@@ -72,7 +72,7 @@ class IndexBuffer {
 
     if (count > 0 && _indexData != null) {
       _gl.bindBuffer(WebGL.ELEMENT_ARRAY_BUFFER, _iboId);
-      _gl.bufferData(WebGL.ELEMENT_ARRAY_BUFFER, _indexData, WebGL.STATIC_DRAW);
+      _gl.bufferData(WebGL.ELEMENT_ARRAY_BUFFER, _indexData!.toList(), WebGL.STATIC_DRAW);
       _gl.bindBuffer(WebGL.ELEMENT_ARRAY_BUFFER, null);
     }
   }
