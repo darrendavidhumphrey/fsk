@@ -1,11 +1,12 @@
 import 'dart:ui';
-import 'package:flutter_angle/flutter_angle.dart';
 import 'package:fsg/float32_array_filler.dart';
 import 'package:fsg/polyline.dart';
 import 'package:fsg/triangle_mesh.dart';
 import 'package:fsg/util.dart';
 import 'package:fsg/vertex_buffer.dart';
 import 'package:vector_math/vector_math_64.dart';
+
+import 'native_array/index.dart';
 
 /// A utility class with static methods to create complex [TriangleMesh] objects
 /// or populate [VertexBuffer] objects from geometry.

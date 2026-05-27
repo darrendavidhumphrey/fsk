@@ -1,6 +1,5 @@
-import 'dart:typed_data';
-
 import 'package:flutter_angle/flutter_angle.dart';
+import 'native_array/index.dart';
 
 /// Manages a WebGL Element Array Buffer, also known as an Index Buffer Object (IBO).
 ///

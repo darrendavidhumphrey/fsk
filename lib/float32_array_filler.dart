@@ -3,6 +3,8 @@ import 'dart:ui';
 import 'package:flutter_angle/flutter_angle.dart';
 import 'package:vector_math/vector_math_64.dart';
 
+import 'native_array/index.dart';
+
 /// A utility class for filling a [Float32Array] with vertex data.
 ///
 /// This class simplifies the process of sequentially adding different types of

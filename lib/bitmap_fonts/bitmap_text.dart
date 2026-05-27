@@ -3,6 +3,7 @@ import 'package:flutter_angle/flutter_angle.dart';
 import 'package:vector_math/vector_math_64.dart';
 
 import '../float32_array_filler.dart';
+import '../native_array/index.dart';
 import '../reference_box.dart';
 import '../vertex_buffer.dart';
 import 'bitmap_font.dart';

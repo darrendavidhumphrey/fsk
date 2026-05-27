@@ -2,11 +2,11 @@ import 'package:flutter/material.dart';
 import 'package:flutter_angle/flutter_angle.dart';
 import 'package:fsg/shaders/shaders.dart';
 import 'package:fsg/shaders/materials.dart';
-import 'package:fsg/shaders/one_light_shader.dart';
 import 'package:fsg/vertex_buffer.dart';
 import 'package:vector_math/vector_math_64.dart' hide Colors;
 import 'fsg_singleton.dart';
 import 'index_buffer.dart';
+import 'native_array/index.dart';
 import 'obj_loader.dart';
 
 /// A renderer responsible for drawing a [WavefrontObjModel] to the screen.

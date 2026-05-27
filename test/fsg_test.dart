@@ -1,6 +1,7 @@
 import 'package:flutter_test/flutter_test.dart';
 import 'package:flutter_angle/flutter_angle.dart';
 import 'package:fsg/fsg.dart';
+import 'package:fsg/native_array/index.dart';
 import 'package:vector_math/vector_math_64.dart' show Vector3;
 
 void main() {

@@ -5,6 +5,7 @@ import 'package:fsg/shaders/shaders.dart';
 import 'package:vector_math/vector_math_64.dart' hide Colors;
 
 import 'float32_array_filler.dart';
+import 'native_array/index.dart';
 
 /// Represents the possible components a vertex can have.
 ///
@@ -160,7 +161,7 @@ class VertexBuffer {
 
     if ((_activeVertexCount > 0) && (vertexData != null)) {
       _gl.bindBuffer(WebGL.ARRAY_BUFFER, _vboId);
-      _gl.bufferData(WebGL.ARRAY_BUFFER, vertexData, WebGL.STATIC_DRAW);
+      _gl.bufferData(WebGL.ARRAY_BUFFER, vertexData!.toList(), WebGL.STATIC_DRAW);
     }
   }
 
