@@ -1,10 +1,7 @@
 import 'package:flutter/services.dart';
 import 'package:fsg/fsg.dart';
 import 'package:flutter/material.dart';
-import 'package:fsg_examples/animated_checkerboard_scene.dart';
-import 'checkerboard_scene.dart';
-import 'checkerboard_uniforms_scene.dart';
-import 'orbitview_scene.dart';
+import 'package:fsg_examples/indexed_scene.dart';
 
 void main() async {
   Logging.brevity = Brevity.detailed;
@@ -30,14 +27,13 @@ class TestApp extends StatefulWidget {
 
 class TestAppState extends State<TestApp> {
   int _pageIndex = 0;
-
-  late CheckerBoardScene checkerBoardScene;
+  late IndexedScene scene;
 
   @override
   void initState() {
     super.initState();
-    checkerBoardScene = CheckerBoardScene();
-    FSG().registerSceneAndAllocateTexture(checkerBoardScene);
+    scene = IndexedScene();
+    FSG().registerSceneAndAllocateTexture(scene);
   }
 
   @override
@@ -51,15 +47,7 @@ class TestAppState extends State<TestApp> {
             Expanded(
               child: Stack(
                 children: [
-                  IndexedStack(
-                    index: _pageIndex,
-                    children: [
-                      RenderToTexture(scene: checkerBoardScene),
-                      CheckerBoardUniformsExample(),
-                      AnimatedCheckerBoardExample(),
-                      OrbitViewExample(),
-                    ],
-                  ),
+                  InteractiveRenderToTexture(scene: scene.currentScene(), navigationDelegate: scene.currentDelegate(),automaticallyPause: false,),
                   LayoutBuilder(
                     builder: (context, constraints) {
                       return Padding(
@@ -72,6 +60,7 @@ class TestAppState extends State<TestApp> {
                           onSelected: (int? value) {
                             setState(() {
                               _pageIndex = value!;
+                              scene.setSceneIndex(_pageIndex);
                             });
                           },
                           // Define the entries in the menu
@@ -80,12 +69,8 @@ class TestAppState extends State<TestApp> {
                               value: 0,
                               label: 'Example 1: Hello World',
                             ),
-                            DropdownMenuEntry(
-                              value: 1,
-                              label: 'Example 2: Driving Shader Uniforms',
-                            ),
-                            DropdownMenuEntry(value: 2, label: 'Example 3: Animated Shader Uniforms'),
-                            DropdownMenuEntry(value: 3, label: 'Example 4: Navigation Delegate (Orbit View)'),
+                            DropdownMenuEntry(value: 1, label: 'Example 2: Animated Shader Uniforms'),
+                            DropdownMenuEntry(value: 2, label: 'Example 3: Navigation Delegate (Orbit View)'),
                           ],
                         ),
                       );

@@ -1,3 +1,4 @@
+import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_angle/flutter_angle.dart';
 import 'package:fsg/fsg.dart';
@@ -66,6 +67,11 @@ class AnimatedCheckerBoardScene extends Scene {
       0.1,
       5000000,
     );
+
+    if (kIsWeb) {
+      // Multiply the Y scale component (row 1, column 1) by -1
+      pMatrix.scale(1.0, -1.0, 1.0);
+    }
   }
 
   Color getCyclingColor({
@@ -139,32 +145,4 @@ class AnimatedCheckerBoardScene extends Scene {
     gl.finish();
     requestRepaint();
   }
-}
-
-class AnimatedCheckerBoardExample extends StatefulWidget {
-  const AnimatedCheckerBoardExample({super.key});
-
-  @override
-  AnimatedCheckerBoardExampleState createState() => AnimatedCheckerBoardExampleState();
-}
-
-class AnimatedCheckerBoardExampleState extends State<AnimatedCheckerBoardExample> {
-  late AnimatedCheckerBoardScene scene;
-
-  @override
-  void initState() {
-    super.initState();
-    scene = AnimatedCheckerBoardScene();
-    FSG().registerSceneAndAllocateTexture(scene);
-  }
-
-  @override
-  Widget build(BuildContext context) {
-    return Stack(
-      children: [
-        RenderToTexture(scene: scene),
-      ],
-    );
-  }
-
 }

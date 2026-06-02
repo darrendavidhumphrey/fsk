@@ -1,3 +1,4 @@
+import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_angle/flutter_angle.dart';
 import 'package:fsg/fsg.dart';
@@ -21,6 +22,10 @@ class CheckerBoardScene extends Scene {
       Rect.fromLTWH(-quadExtents.width/2, -quadExtents.height/2, quadExtents.width, quadExtents.height),
       0.1,
     );
+
+    print("CheckerboardScene init");
+
+    gl.checkError("CheckerboardScene Init");
   }
 
   @override
@@ -39,6 +44,7 @@ class CheckerBoardScene extends Scene {
     exampleVbo.bind();
     exampleVbo.drawTriangles();
     exampleVbo.unbind();
+    gl.checkError("CheckerboardScene drawvbo");
   }
 
   void createViewMatrix() {
@@ -64,11 +70,19 @@ class CheckerBoardScene extends Scene {
       0.1,
       5000000,
     );
+
+    if (kIsWeb) {
+      // Multiply the Y scale component (row 1, column 1) by -1
+      pMatrix.scale(1.0, -1.0, 1.0);
+    }
   }
 
   @override
   void drawScene() {
-    gl.clearColor(1.0, 1.0, 1.0, 1.0);
+    //print("CheckerboardScene drawScene()");
+    gl.clearColor(1.0,0.0, 1.0, 1.0);
+    gl.checkError("clear color");
+
 
     gl.clear(WebGL.COLOR_BUFFER_BIT | WebGL.DEPTH_BUFFER_BIT);
     gl.enable(WebGL.DEPTH_TEST);
@@ -84,5 +98,6 @@ class CheckerBoardScene extends Scene {
     });
 
     gl.finish();
+    gl.flush();
   }
 }

@@ -71,7 +71,11 @@ class RenderingContextWrapper implements GlslShaderContext {
   @override
   UniformLocation getUniformLocation(Program program, String name) => _gl.getUniformLocation(program, name);
   @override
-  void enableVertexAttribArray(int index) => _gl.enableVertexAttribArray(index);
+  void enableVertexAttribArray(int index) {
+    if (index >= 0) {
+      _gl.enableVertexAttribArray(index);
+    }
+  }
   @override
   void checkError(String label) => _gl.checkError(label);
 
@@ -148,7 +152,7 @@ class GlslShader with LoggableClass {
   final List<String> uniformNames;
   final int _sourceHashCode;
 
-  Map<String, int> get attributes => UnmodifiableMapView(_attributes);
+// Map<String, int> get attributes => UnmodifiableMapView(_attributes);
   Map<String, UniformLocation> get uniforms => UnmodifiableMapView(_uniforms);
 
   GlslShader(
@@ -215,9 +219,16 @@ class GlslShader with LoggableClass {
   void _fetchAttributeAndUniformLocations(Program p) {
     for (String attrib in attributeNames) {
       int attributeLocation = gl.getAttribLocation(p, attrib).id;
-      gl.enableVertexAttribArray(attributeLocation);
       gl.checkError(attrib);
-      _attributes[attrib] = attributeLocation;
+
+
+      if (attributeLocation < 0) {
+        logError("GL Failed to get attribute $attrib");
+      }
+      else {
+        gl.enableVertexAttribArray(attributeLocation);
+      }
+        _attributes[attrib] = attributeLocation;
     }
     for (String uniform in uniformNames) {
       var uniformLocation = gl.getUniformLocation(p, uniform);

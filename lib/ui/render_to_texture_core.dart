@@ -78,6 +78,7 @@ class RenderToTextureCoreState extends State<RenderToTextureCore>
             if (widget.automaticallyPause) {
               bool visible = (visibilityInfo.visibleFraction > 0);
               widget.scene.isPaused = !visible;
+
               if (visible) {
                 widget.scene.requestRepaint();
               }

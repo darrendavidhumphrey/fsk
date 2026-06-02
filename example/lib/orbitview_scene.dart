@@ -35,7 +35,6 @@ class OrbitViewScene extends Scene {
     shader.setPatternColor1(Colors.red);
     shader.setPatternColor2(Colors.blue);
 
-
     exampleVbo.bind();
     exampleVbo.drawTriangles();
     exampleVbo.unbind();
@@ -57,34 +56,4 @@ class OrbitViewScene extends Scene {
 
     gl.finish();
   }
-}
-
-class OrbitViewExample extends StatefulWidget {
-  const OrbitViewExample({super.key});
-
-  @override
-  OrbitViewExampleState createState() => OrbitViewExampleState();
-}
-
-class OrbitViewExampleState extends State<OrbitViewExample> {
-  late OrbitViewScene scene;
-  late OrbitView delegate;
-
-  @override
-  void initState() {
-    super.initState();
-    scene = OrbitViewScene();
-    delegate = OrbitView();
-    FSG().registerSceneAndAllocateTexture(scene);
-  }
-
-  @override
-  Widget build(BuildContext context) {
-    return Stack(
-      children: [
-        InteractiveRenderToTexture(navigationDelegate:delegate, scene: scene),
-      ],
-    );
-  }
-
 }

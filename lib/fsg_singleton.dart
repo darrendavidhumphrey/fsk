@@ -79,8 +79,10 @@ class FSG with LoggableClass {
   }
 
   /// Allocates a new FlutterAngleTexture with the given options.
-  Future<FlutterAngleTexture?> allocTexture(AngleOptions options,
-      {double textureSize = 4096}) async {
+  Future<FlutterAngleTexture?> allocTexture(
+    AngleOptions options, {
+    double textureSize = 4096,
+  }) async {
     if (_state == _FsgState.uninitialized) {
       logWarning("allocTexture called before FSG is initialized.");
       return null;
@@ -98,9 +100,9 @@ class FSG with LoggableClass {
   }
 
   /// Initializes platform-specific state, including the frame counter and the engine.
-  void initPlatformState() {
+  Future<void> initPlatformState() async {
     frameCounter = FrameCounterModel();
-    init();
+    await init();
   }
 
   /// Initializes the default material used for rendering.
@@ -177,5 +179,10 @@ class FSG with LoggableClass {
       scenes[scene] = textureId;
     }
     return success;
+  }
+
+  void reuseTexture(FlutterAngleTexture textureId, Scene scene) async {
+    scene.renderToTextureId = textureId;
+    scenes[scene] = textureId;
   }
 }

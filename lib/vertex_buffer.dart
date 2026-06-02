@@ -1,4 +1,5 @@
 import 'dart:typed_data';
+import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_angle/flutter_angle.dart';
 import 'package:fsg/shaders/shaders.dart';
@@ -229,10 +230,22 @@ class VertexBuffer {
     return count;
   }
 
+  void disableAllVertexAttributes() {
+    if (kIsWeb) {
+      // Query the browser's hardware limit for attributes (typically 16)
+      int maxAttributes = 16; // TODO: HACK for  _gl.getParameter(_gl.GL_MAX_VERTEX_ATTRIBS);
+
+      // Loop through every possible slot and turn it off
+      for (int i = 0; i < maxAttributes; i++) {
+        _gl.disableVertexAttribArray(i);
+      }
+    }
+  }
+
   /// Configures the vertex attribute pointers for the enabled components.
   void enableComponents() {
     int offset = 0;
-
+    disableAllVertexAttributes();
     if (enabledComponents.contains(VertexComponentFlags.position)) {
       final comp = VertexComponent.position;
       _gl.enableVertexAttribArray(comp.attributeLocation);
