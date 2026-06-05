@@ -11,13 +11,10 @@ class RenderToTexture extends StatelessWidget {
   /// The scene to be rendered.
   final Scene scene;
 
-  /// If true, the scene will automatically pause when it is not visible.
-  final bool automaticallyPause;
 
   const RenderToTexture({
     required this.scene,
     super.key,
-    this.automaticallyPause = true,
   });
 
   @override
@@ -25,7 +22,6 @@ class RenderToTexture extends StatelessWidget {
     // This widget simply wraps the core rendering logic.
     return RenderToTextureCore(
       scene: scene,
-      automaticallyPause: automaticallyPause,
     );
   }
 }

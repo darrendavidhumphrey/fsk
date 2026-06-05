@@ -75,6 +75,7 @@ class CheckerBoardScene extends Scene {
 
   @override
   void drawScene() {
+
     gl.viewport(0, 0, FSG.renderToTextureSize.toInt(), FSG.renderToTextureSize.toInt());
     gl.enable(WebGL.BLEND);
     gl.disable(WebGL.CULL_FACE);

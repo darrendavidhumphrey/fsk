@@ -45,10 +45,8 @@ abstract class Scene with LoggableClass, GlContextManager {
   /// The texture that this scene will render its output to.
   FlutterAngleTexture? renderToTextureId;
 
-  /// If true, the rendering loop is paused.
-  bool isPaused = false;
 
-// TODO: TESTING THIS
+// TODO: TESTING THIS probably garbage!
   VertexArrayObject? vaoID;
 
   /// Creates a new scene and its associated performance monitor.
@@ -160,11 +158,6 @@ abstract class Scene with LoggableClass, GlContextManager {
         return;
       }
 
-      if (isPaused) {
-        frameProcessing = false;
-        return;
-      }
-
       if (_needsRepaint || needsRebuild()) {
         // Set [_needsRepaint] to false at the start of the loop.
         // The [drawScene] implementation is expected to call [requestRepaint] if it
@@ -179,31 +172,25 @@ abstract class Scene with LoggableClass, GlContextManager {
           FSG().initScene(this);
         }
 
-
-        //logPedantic("renderSceneToTexture");
         drawScene();
 
         if (kIsWeb) {
 
-
+          //logPedantic("renderSceneToTexture");
           //renderToTextureId!.rawOpenGl.gl.bindVertexArray(null);
-         //gl.flush();
+          //gl.flush();
           // TODO: TEST
-          FSG().angle.updateTexture(renderToTextureId!);
+          //FSG().angle.updateTexture(renderToTextureId!);
           await renderToTextureId!.signalNewFrameAvailable();
         } else {
-          gl.bindVertexArray(VertexArrayObject(0));
-          gl.flush();
-
+         // gl.bindVertexArray(VertexArrayObject(0));
+         // gl.flush();
+          //FSG().angle.updateTexture(renderToTextureId!);
           await renderToTextureId!.signalNewFrameAvailable();
           if (Platform.isWindows) {
             gl.finish();
           }
         }
-
-        //print("::renderSceneToTexture::");
-        // TODO: TEST
-        //FSG().angle.updateTexture(renderToTextureId!);
 
         performanceMonitor.endFrame();
       }

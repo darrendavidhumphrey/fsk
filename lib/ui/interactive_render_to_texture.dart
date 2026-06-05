@@ -15,12 +15,8 @@ class InteractiveRenderToTexture extends StatefulWidget {
   /// The delegate responsible for handling user input and navigating the scene.
   final SceneNavigationDelegate? navigationDelegate;
 
-  /// If true, the scene will automatically pause when it is not visible.
-  final bool automaticallyPause;
-
   const InteractiveRenderToTexture({
     super.key,
-    this.automaticallyPause = true,
     required this.scene,
     this.navigationDelegate,
   });
@@ -78,7 +74,6 @@ class InteractiveRenderToTextureState
         child: RenderToTextureCore(
             key: ValueKey('$widget.scene.renderToTextureId!+_RenderToTextureCore'),
             scene: widget.scene,
-            automaticallyPause: widget.automaticallyPause,
             child: SizedBox.expand()
         )
       ),
