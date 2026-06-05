@@ -21,7 +21,6 @@ export 'util.dart';
 export 'vertex_buffer.dart';
 
 export 'ui/render_to_texture.dart';
-export 'ui/interactive_render_to_texture.dart';
 export 'ui/orbit_view_delegate.dart';
 export 'ui/screen_space_overlay.dart';
 export 'ui/scene_navigation_delegate.dart';

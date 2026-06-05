@@ -67,7 +67,7 @@ class TestAppState extends State<TestApp> {
                   Expanded(
                     child: Stack(
                       children: [
-                        InteractiveRenderToTexture(
+                        RenderToTexture(
                           scene: scene!.currentScene(),
                           navigationDelegate: scene!.currentDelegate(),
                         ),

@@ -41,13 +41,8 @@ abstract class Scene with LoggableClass, GlContextManager {
   Size _viewportSize = Size.zero;
   Size get viewportSize => _viewportSize;
 
-
   /// The texture that this scene will render its output to.
   FlutterAngleTexture? renderToTextureId;
-
-
-// TODO: TESTING THIS probably garbage!
-  VertexArrayObject? vaoID;
 
   /// Creates a new scene and its associated performance monitor.
   Scene() {
@@ -174,19 +169,9 @@ abstract class Scene with LoggableClass, GlContextManager {
 
         drawScene();
 
-        if (kIsWeb) {
+        await renderToTextureId!.signalNewFrameAvailable();
 
-          //logPedantic("renderSceneToTexture");
-          //renderToTextureId!.rawOpenGl.gl.bindVertexArray(null);
-          //gl.flush();
-          // TODO: TEST
-          //FSG().angle.updateTexture(renderToTextureId!);
-          await renderToTextureId!.signalNewFrameAvailable();
-        } else {
-         // gl.bindVertexArray(VertexArrayObject(0));
-         // gl.flush();
-          //FSG().angle.updateTexture(renderToTextureId!);
-          await renderToTextureId!.signalNewFrameAvailable();
+        if (!kIsWeb) {
           if (Platform.isWindows) {
             gl.finish();
           }

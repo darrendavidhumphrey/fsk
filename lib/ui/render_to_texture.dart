@@ -1,27 +1,82 @@
 import 'package:flutter/material.dart';
+import 'package:fsg/scene.dart';
 import 'package:fsg/ui/render_to_texture_core.dart';
-import '../scene.dart';
+import 'package:fsg/ui/scene_navigation_delegate.dart';
 
-/// A widget that renders a [Scene] to a texture and displays it.
+/// A widget that renders a [Scene] and provides user interaction capabilities.
 ///
-/// This is a simple, non-interactive widget that uses [RenderToTextureCore] to
-/// manage the underlying rendering lifecycle. For an interactive version, see
-/// [InteractiveRenderToTexture].
-class RenderToTexture extends StatelessWidget {
+/// This widget builds upon [RenderToTextureCore] by adding a [GestureDetector],
+/// a [Listener] for mouse events, and a [Focus] widget for keyboard events.
+/// It forwards all user input to a [SceneNavigationDelegate] to control the scene.
+class RenderToTexture extends StatefulWidget {
   /// The scene to be rendered.
   final Scene scene;
 
+  /// The delegate responsible for handling user input and navigating the scene.
+  final SceneNavigationDelegate? navigationDelegate;
 
   const RenderToTexture({
-    required this.scene,
     super.key,
+    required this.scene,
+    this.navigationDelegate,
   });
 
   @override
+  RenderToTextureState createState() =>
+      RenderToTextureState();
+}
+
+class RenderToTextureState
+    extends State<RenderToTexture> {
+  late FocusNode _focusNode;
+
+  @override
+  void initState() {
+    super.initState();
+    _focusNode = FocusNode();
+    // Set the scene on the delegate when the widget is first created.
+    widget.navigationDelegate?.setScene(widget.scene);
+  }
+
+  @override
+  void didUpdateWidget(covariant RenderToTexture oldWidget) {
+    super.didUpdateWidget(oldWidget);
+    // If the scene or delegate changes, update the delegate.
+    if (widget.scene != oldWidget.scene ||
+        widget.navigationDelegate != oldWidget.navigationDelegate) {
+      widget.navigationDelegate?.setScene(widget.scene);
+    }
+  }
+
+  @override
+  void dispose() {
+    // Dispose the FocusNode to prevent memory leaks.
+    widget.navigationDelegate?.dispose();
+    _focusNode.dispose();
+    super.dispose();
+  }
+
+  @override
   Widget build(BuildContext context) {
-    // This widget simply wraps the core rendering logic.
-    return RenderToTextureCore(
-      scene: scene,
+    return Listener(
+      behavior: HitTestBehavior.opaque,
+      onPointerDown: (event) => widget.navigationDelegate?.onPointerDown(event),
+      onPointerMove: (event) => widget.navigationDelegate?.onPointerMove(event),
+      onPointerUp: (event) => widget.navigationDelegate?.onPointerUp(event),
+      onPointerCancel: (event) =>
+          widget.navigationDelegate?.onPointerCancel(event),
+      child: Focus(
+        autofocus: widget.navigationDelegate != null,
+        focusNode: _focusNode,
+        onKeyEvent: (node, event) =>
+            widget.navigationDelegate?.onKeyEvent(event) ??
+            KeyEventResult.ignored,
+        child: RenderToTextureCore(
+            key: ValueKey('$widget.scene.renderToTextureId!+_RenderToTextureCore'),
+            scene: widget.scene,
+            child: SizedBox.expand()
+        )
+      ),
     );
   }
 }

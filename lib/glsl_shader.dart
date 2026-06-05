@@ -154,8 +154,7 @@ class GlslShader with LoggableClass {
   final List<String> uniformNames;
   final int _sourceHashCode;
 
-  // TODO: fix this
-// Map<String, int> get attributes => UnmodifiableMapView(_attributes);
+  Map<String, int> get attributes => UnmodifiableMapView(_attributes);
   Map<String, UniformLocation> get uniforms => UnmodifiableMapView(_uniforms);
 
   GlslShader(

@@ -25,11 +25,14 @@ class RenderToTextureCoreState extends State<RenderToTextureCore>
   Size screenSize = Size.zero;
   Ticker? ticker;
   bool _tickerIsActive = false;
-  bool _isWebReady = false;
-  bool _webLayoutSettled = false;
-  bool _engineDataReady = false;
-  int _webGenerationKey = 0;
 
+
+  // For web, track the initialization state to eliminate race conditions
+  bool _isWebReady = false;
+  bool _engineDataReady = false;
+
+  // This key ensures the HtmlElement gets created again when the widget is ready
+  int _webGenerationKey = 0;
 
   @override
   void initState() {
@@ -58,6 +61,8 @@ class RenderToTextureCoreState extends State<RenderToTextureCore>
       });
     }
 
+    // For non-web platforms start the ticker here
+    // For web, wait until the window is ready
     if (!kIsWeb && mounted) {
       setState(() {
         _tickerIsActive = true;
@@ -98,7 +103,7 @@ class RenderToTextureCoreState extends State<RenderToTextureCore>
   }
 
   void _onHardwareTick(Duration elapsed) async {
-    if (kIsWeb && (!_isWebReady || !_webLayoutSettled)) return;
+    if (kIsWeb && (!_isWebReady)) return;
 
     if (widget.scene.frameProcessing) {
       return;
@@ -127,50 +132,37 @@ class RenderToTextureCoreState extends State<RenderToTextureCore>
 
     return LayoutBuilder(
       builder: (context, constraints) {
-        if (!_engineDataReady) {
-          return const Center(child: CircularProgressIndicator());
-        }
-
         FlutterAngleTexture? texture = FSG().scenes[widget.scene];
-        if (texture == null) {
+
+        if ((!_engineDataReady)  ||  (texture == null)) {
           return const Center(child: CircularProgressIndicator());
         }
 
-        final double currentWidth = constraints.maxWidth;
-        final double currentHeight = constraints.maxHeight;
+        // Continuously update screen size in case it changed.
+        // This ensures the viewport is correct for constructing GL matrices
+        screenSize = Size(constraints.maxWidth, constraints.maxHeight);
 
-        // Continuously update tracking parameters outside mutation callbacks
-        screenSize = Size(currentWidth, currentHeight);
-
-        if (kIsWeb && currentWidth > 0 && currentHeight > 0) {
+        // On web, only start the ticker once size is non-zero
+        if (kIsWeb && constraints.maxWidth > 0 && constraints.maxHeight > 0) {
           WidgetsBinding.instance.addPostFrameCallback((_) {
             if (mounted) {
-              if (!_webLayoutSettled) {
-                setState(() {
-                  _webLayoutSettled = true;
-                });
-              }
               _startWebTickerSafely();
             }
           });
         }
 
-        final String boundaryKey = 'canvas-boundary-${texture.textureId}-$_webGenerationKey';
         final String elementKey = 'canvas-surface-${texture.textureId}-$_webGenerationKey';
 
         return Stack(
           children: [
             SizedBox(
-              width: currentWidth,
-              height: currentHeight,
+              width: constraints.maxWidth,
+              height: constraints.maxHeight,
               child: kIsWeb
-                  ? RepaintBoundary(
-                key: ValueKey(boundaryKey),
-                child: HtmlElementView(
-                  key: ValueKey(elementKey),
-                  viewType: texture.textureId.toString(),
-                ),
-              )
+                  ? HtmlElementView(
+                    key: ValueKey(elementKey),
+                    viewType: texture.textureId.toString(),
+                  )
                   : Texture(
                key: ValueKey(texture.textureId),
                 textureId: texture.textureId,
