@@ -1,5 +1,6 @@
 import 'package:flutter/gestures.dart';
 import 'package:flutter/material.dart';
+import 'package:vector_math/vector_math_64.dart';
 import '../../scene.dart';
 
 /// An abstract interface for classes that handle user input to navigate a [Scene].
@@ -10,20 +11,62 @@ import '../../scene.dart';
 abstract class SceneNavigationDelegate {
   /// The scene that this delegate controls.
   late Scene scene;
-  final Matrix4 projectionMatrix = Matrix4.identity();
-  final Matrix4 viewMatrix = Matrix4.identity();
+  late Matrix4 _projectionMatrix;
+  late Matrix4 _viewMatrix;
 
-  void createViewMatrix();
-  void createProjectionMatrix();
+  SceneNavigationDelegate() {
+     _projectionMatrix = Matrix4.identity();
+     _viewMatrix = Matrix4.identity();
+  }
+  bool _needsUpdate = true;
+  bool get needsUpdate => _needsUpdate;
+
+  void setNeedsUpdate(bool value) {
+    _needsUpdate = value;
+    if (_needsUpdate) {
+      scene.requestRepaint();
+    }
+  }
+
+  void setViewMatrix(Matrix4 matrix) {
+    matrix.copyInto(_viewMatrix);
+  }
+
+  void setProjectionMatrix(Matrix4 matrix) {
+    matrix.copyInto(_projectionMatrix);
+  }
+
+  Matrix4 getProjectionMatrix() {
+    if (needsUpdate) {
+      updateSceneMatrices();
+    }
+    return _projectionMatrix;
+  }
+
+  Matrix4 getViewMatrix() {
+    if (needsUpdate) {
+      updateSceneMatrices();
+    }
+    return _viewMatrix;
+  }
+
+  // Virtual methods to be implemented by derived classes
+  Matrix4 createViewMatrix();
+  Matrix4 createProjectionMatrix();
 
   void updateSceneMatrices() {
-
     if (scene.isInitialized) {
-      createViewMatrix();
-      scene.mvMatrixStack.current = viewMatrix;
+      if (needsUpdate) {
+        Matrix4 view = createViewMatrix();
+        setViewMatrix(view);
 
-      createProjectionMatrix();
-      scene.pMatrix = projectionMatrix;
+        Matrix4 proj = createProjectionMatrix();
+        setProjectionMatrix(proj);
+        setNeedsUpdate(false);
+      }
+
+      scene.mvMatrixStack.current = getViewMatrix();
+      scene.pMatrix = getProjectionMatrix();
       scene.requestRepaint();
     }
     scene.requestRepaint();
@@ -33,39 +76,40 @@ abstract class SceneNavigationDelegate {
   /// by the owner widget when the delegate is initialized or when the scene changes.
   void setScene(Scene scene) {
     this.scene = scene;
-    updateSceneMatrices();
+    setNeedsUpdate(true);
   }
 
   /// Called when a tap down event occurs. Useful for discrete actions like
   /// object selection or setting a focus point.
-  void onTapDown(TapDownDetails event){}
+  void onTapDown(TapDownDetails event) {}
 
   /// Called when a pointer makes contact with the screen. This is typically
   /// the start of a continuous gesture like a drag or pan.
-  void onPointerDown(PointerDownEvent event){}
+  void onPointerDown(PointerDownEvent event) {}
 
   /// Called when a pointer that is in contact with the screen has moved.
   /// This is used to update continuous gestures.
-  void onPointerMove(PointerMoveEvent event){}
+  void onPointerMove(PointerMoveEvent event) {}
 
   /// Called when a pointer that is in contact with the screen is no longer
   /// in contact. This signals the end of a continuous gesture.
-  void onPointerUp(PointerUpEvent event){}
+  void onPointerUp(PointerUpEvent event) {}
 
   /// Called when the input from a pointer is no longer directed at this widget,
   /// for example, if the system cancels the gesture.
-  void onPointerCancel(PointerCancelEvent event){}
+  void onPointerCancel(PointerCancelEvent event) {}
 
-  /// Called when a pointer scroll event occurs (e.g., mouse wheel or trackpad scroll).
+  /// Called when a pointer signal event occurs (e.g., mouse wheel or trackpad scroll).
   /// This is typically used for zooming or dollying the camera.
-  void onPointerScroll(PointerScrollEvent event){}
+  void onPointerSignal(PointerSignalEvent event) {}
 
   /// Handles a key event from a focused widget.
   ///
   /// Returns a [KeyEventResult] to indicate whether the event was handled.
-  KeyEventResult onKeyEvent(KeyEvent event){
+  KeyEventResult onKeyEvent(KeyEvent event) {
     return KeyEventResult.ignored;
   }
 
-  void dispose();
+  /// Child class should override if they need to clean up resources.
+  void dispose() {}
 }

@@ -120,8 +120,11 @@ class RenderToTextureCoreState extends State<RenderToTextureCore>
     }
 
     widget.scene.setViewportSize(screenSize);
-    widget.navigationDelegate.updateSceneMatrices();
 
+    if (widget.navigationDelegate.needsUpdate) {
+     // widget.navigationDelegate.setNeedsUpdate(true);
+      widget.navigationDelegate.updateSceneMatrices();
+    }
     await widget.scene.renderSceneToTexture();
 
     if (mounted) {
@@ -146,7 +149,7 @@ class RenderToTextureCoreState extends State<RenderToTextureCore>
         // Continuously update screen size in case it changed.
         // This ensures the viewport is correct for constructing GL matrices
         screenSize = Size(constraints.maxWidth, constraints.maxHeight);
-        widget.navigationDelegate.updateSceneMatrices();
+       // TODO! widget.navigationDelegate.setNeedsUpdate(true);
 
         // On web, only start the ticker once size is non-zero
         if (kIsWeb && constraints.maxWidth > 0 && constraints.maxHeight > 0) {

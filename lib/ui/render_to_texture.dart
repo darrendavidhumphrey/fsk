@@ -64,6 +64,7 @@ class RenderToTextureState
       onPointerDown: (event) => widget.navigationDelegate.onPointerDown(event),
       onPointerMove: (event) => widget.navigationDelegate.onPointerMove(event),
       onPointerUp: (event) => widget.navigationDelegate.onPointerUp(event),
+      onPointerSignal: (event) => widget.navigationDelegate.onPointerSignal(event),
       onPointerCancel: (event) =>
           widget.navigationDelegate.onPointerCancel(event),
       child: Focus(

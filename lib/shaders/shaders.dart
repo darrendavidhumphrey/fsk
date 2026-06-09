@@ -47,7 +47,9 @@ class ShaderList with GlContextManager,LoggableClass {
     // 2. Fetch the concrete factory mapping
     final factory = _shaderFactories[T];
     if (factory == null) {
-      throw Exception("Shader Type '$T' has not been registered.");
+      var message = "Shader Type '$T' has not been registered.";
+      logError(message);
+      throw Exception(message);
     }
 
     // 3. Lazy execute, save cache entry, and return strongly-typed instance

@@ -50,13 +50,13 @@ double _clampAngle0To360(double angle) {
     _dragStart = event.localPosition;
     _yawStart = yaw;
     _pitchStart = pitch;
-    updateSceneMatrices();
+    setNeedsUpdate(true);
   }
 
   @override
   void onPointerUp(PointerUpEvent event) {
     _dragStart = Offset.zero;
-    updateSceneMatrices();
+    setNeedsUpdate(true);
   }
 
   @override
@@ -89,18 +89,22 @@ double _clampAngle0To360(double angle) {
 
     _yaw = _clampAngle0To360(newYaw);
     _pitch = _clampAngle0To360(newPitch);
-    updateSceneMatrices();
+    setNeedsUpdate(true);
   }
 
   @override
-  void onPointerScroll(PointerScrollEvent event) {
+  void onPointerSignal(PointerSignalEvent event) {
     const double minRadius = 3;
     double viewRadius = distance;
+
+    if (event is! PointerScrollEvent) return;
+
+    PointerScrollEvent scrollEvent = event;
 
     // Use a logarithmic scale for zooming to make it feel more natural.
     double deltaRadius = -log(distance) / log(2);
 
-    if (event.scrollDelta.dy < 0) {
+    if (scrollEvent.scrollDelta.dy < 0) {
       deltaRadius = -deltaRadius;
     }
 
@@ -110,7 +114,7 @@ double _clampAngle0To360(double angle) {
       viewRadius = minRadius;
     }
     setViewDistance(viewRadius);
-    updateSceneMatrices();
+    setNeedsUpdate(true);
   }
 
   /// Sets the distance of the camera from the orbit center.
@@ -120,7 +124,7 @@ double _clampAngle0To360(double angle) {
 
   /// Creates the view matrix based on the current yaw, pitch, and distance.
   @override
-  void createViewMatrix() {
+  Matrix4 createViewMatrix() {
     Vector3 up = Vector3(0, 1, 0);
     Vector3 orbitCenter = getOrbitCenter();
 
@@ -133,7 +137,7 @@ double _clampAngle0To360(double angle) {
     v.rotateY(radians(yaw));
     v.rotateX(radians(pitch));
     v.translateByVector3(-orbitCenter);
-    v.copyInto(viewMatrix);
+    return v;
   }
 
   /// Calculates the camera's position in 3D space.
@@ -151,8 +155,8 @@ double _clampAngle0To360(double angle) {
     Ray ray = computePickRay(
       mousePosition,
       scene.viewportSize,
-      projectionMatrix,
-      viewMatrix,
+      getProjectionMatrix(),
+      getViewMatrix(),
     );
     return intersectRayWithPlane(ray, _projectPlane);
   }
@@ -162,19 +166,20 @@ double _clampAngle0To360(double angle) {
     Ray ray = computePickRay(
       mousePosition,
       scene.viewportSize,
-      projectionMatrix,
-      viewMatrix,
+      getProjectionMatrix(),
+      getViewMatrix(),
     );
     return ray;
   }
 
   /// Creates the perspective projection matrix.
   @override
-  void createProjectionMatrix() {
+  Matrix4 createProjectionMatrix() {
     final double aspectRatio = scene.viewportSize.width / scene.viewportSize.height;
 
+    Matrix4 proj = Matrix4.identity();
     setPerspectiveMatrix(
-      projectionMatrix,
+      proj,
       verticalFieldOfView,
       aspectRatio,
       0.1,
@@ -182,17 +187,13 @@ double _clampAngle0To360(double angle) {
     );
 
     // Ensure Y Axis is the same regardless of platform
-    FSG.normalizeUpAxis(projectionMatrix);
+    FSG.normalizeUpAxis(proj);
+    return proj;
   }
 
   @override
   KeyEventResult onKeyEvent(KeyEvent event) {
     // TODO: Implement keyboard controls for orbit, pan, or zoom.
     return KeyEventResult.ignored;
-  }
-
-  @override
-  void dispose() {
-    // No resources to dispose of in this specific implementation.
   }
 }

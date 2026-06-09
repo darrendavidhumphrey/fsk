@@ -1,3 +1,5 @@
+import 'dart:ui';
+
 import 'package:flutter_angle/flutter_angle.dart';
 import '../glsl_shader.dart';
 import 'shaders.dart';
@@ -26,25 +28,34 @@ out vec4 FragColor;
 in vec2 v_uv; 
 
 uniform sampler2D uSampler;
+uniform vec4 uTextColor;
 
 void main(void) {
-    vec4 texColor = texture(uSampler, v_uv); // Fixed: Using v_uv here
-    FragColor = texColor;
+    vec4 texColor = texture(uSampler, v_uv);
+    FragColor = texColor * uTextColor; // Modulates the quad texture color
 }
 ''';
 
 class BitmapTextShader extends GlslShader {
 
+  static String uTextColor = "uTextColor";
 
   BitmapTextShader(RenderingContext gl)
       : super(
     RenderingContextWrapper(gl),
     _fragmentShader,
     _vertexShader,
-    [ShaderList.v3Attrib, ShaderList.t2Attrib],
+    [ShaderList.v3Attrib,
+      ShaderList.t2Attrib,
+    ],
     [
-      ShaderList.uModelView, ShaderList.uProj,ShaderList.textureSamplerAttrib
+      ShaderList.uModelView, ShaderList.uProj,ShaderList.textureSamplerAttrib,uTextColor
     ],
   );
-
+  void setTextColor(Color color) {
+    gl.uniform4fv(uniforms[uTextColor]!, [color.r, color.g, color.b, color.a]);
+  }
+  void setTextureSampler(int unit) {
+    gl.uniform1i(uniforms[ShaderList.textureSamplerAttrib]!, unit);
+  }
 }

@@ -41,6 +41,8 @@ class IndexedStackScene extends Scene with ChangeNotifier {
       _currentScene = scenes[index];
       _currentIndex = index;
       _currentDelegate = delegates[_currentScene]!;
+      _currentDelegate.setScene(_currentScene);
+      _currentScene.requestRepaint();
       requestRepaint();
       notifyListeners();
     }

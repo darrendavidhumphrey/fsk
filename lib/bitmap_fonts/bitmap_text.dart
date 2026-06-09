@@ -1,6 +1,6 @@
-import 'dart:ui';
+import 'package:flutter/material.dart'; // Adds the 'Colors' constant utility
 import 'package:flutter_angle/flutter_angle.dart';
-import 'package:vector_math/vector_math_64.dart';
+import 'package:vector_math/vector_math_64.dart' hide Colors;
 
 import '../float32_array_filler.dart';
 import '../fsg_singleton.dart';
@@ -42,8 +42,14 @@ class BitmapText {
 
   late double _width;
 
+  /// The color applied to modulate the text texture quads.
+  Color textColor = const Color(0xFFFFFFFF);
+
   /// The vertex buffer object that holds the geometry for rendering.
   VertexBuffer vbo = VertexBuffer.v3t2();
+
+  // One shader shared by all text instances
+  static BitmapTextShader? shader;
 
   /// Creates a [BitmapText] object.
   ///
@@ -55,17 +61,25 @@ class BitmapText {
     _width = _screenRect.xVector.length;
   }
 
-  BitmapText.origin({required this._text,required BitmapFont font,Vector3? origin,double scale=1}) {
+  BitmapText.origin({required this._text,required BitmapFont font,Vector3? origin,Color? color,double? width}) {
     origin ??= Vector3.zero();
     _font = font;
 
-    _width = _font!.widthOfString(_text)*scale;
+
+    if (width == null) {
+      _width = _font!.widthOfString(_text);
+    } else {
+      _width = width;
+    }
     _screenRect = ReferenceBox(
       origin,
       Vector3(_width, 0, 0),
       Vector3(0, _width, 0),
       Vector3(0, 0, 1),
     );
+    if (color != null) {
+      textColor = color;
+    }
   }
 
   /// Disposes the vertex buffer associated with this text.
@@ -195,10 +209,13 @@ class BitmapText {
     }
   }
 
-  static void drawSetup(RenderingContext gl, Matrix4 pMatrix, Matrix4 mvMatrix) {
-    var shader = FSG().shaders.getShader<BitmapTextShader>();
-    gl.useProgram(shader.program);
-    ShaderList.setMatrixUniforms(shader, pMatrix, mvMatrix);
+  void drawSetup(RenderingContext gl, Matrix4 pMatrix, Matrix4 mvMatrix) {
+    shader ??= FSG().shaders.getShader<BitmapTextShader>();
+    if ((font == null) || (shader==null)) return;
+
+    gl.useProgram(shader!.program);
+    ShaderList.setMatrixUniforms(shader!, pMatrix, mvMatrix);
+
 
     gl.enable(WebGL.BLEND);
     gl.activeTexture(WebGL.TEXTURE0);
@@ -208,6 +225,18 @@ class BitmapText {
       WebGL.ONE,
       WebGL.ONE_MINUS_SRC_ALPHA,
     );
-    gl.uniform1i(shader.uniforms[ShaderList.textureSamplerAttrib]!, 0);
+    shader!.setTextureSampler(0);
+  }
+
+  void draw(RenderingContext gl) {
+    if ((font == null) || (shader==null)) return;
+
+    shader!.setTextColor(textColor);
+
+    gl.bindTexture(WebGL.TEXTURE_2D, font!.fontTexture);
+
+    vbo.bind();
+    vbo.drawTriangles();
+    vbo.unbind();
   }
 }
