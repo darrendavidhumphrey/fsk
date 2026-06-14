@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart'; // Adds the 'Colors' constant utility
 import 'package:flutter_angle/flutter_angle.dart';
+import 'package:fsg/gl_state_manager.dart';
 import 'package:fsg/vbo_filler.dart';
 import 'package:vector_math/vector_math_64.dart' hide Colors;
 import '../fsg_singleton.dart';
@@ -201,17 +202,19 @@ class BitmapText {
     }
   }
 
-  void drawSetup(RenderingContext gl, Matrix4 pMatrix, Matrix4 mvMatrix) {
+  void drawSetup(GlStateManager gls, Matrix4 pMatrix, Matrix4 mvMatrix) {
     shader ??= FSG().shaders.getShader<BitmapTextShader>();
     if ((font == null) || (shader==null)) return;
 
-    gl.useProgram(shader!.program);
+    gls.useProgram(shader!.program);
     ShaderList.setMatrixUniforms(shader!, pMatrix, mvMatrix);
 
 
-    gl.enable(WebGL.BLEND);
-    gl.activeTexture(WebGL.TEXTURE0);
-    gl.blendFuncSeparate(
+    gls.setBlend(true);
+    gls.setTexturingEnabled(true);
+    gls.activeTexture(WebGL.TEXTURE0);
+
+    gls.blendFuncSeparate(
       WebGL.SRC_ALPHA,
       WebGL.ONE_MINUS_SRC_ALPHA,
       WebGL.ONE,
@@ -220,13 +223,13 @@ class BitmapText {
     shader!.setTextureSampler(0);
   }
 
-  void draw(RenderingContext gl) {
+  void draw(GlStateManager gls) {
 
     if ((font == null) || (!font!.isInitialized) || (shader==null)) return;
 
     shader!.setTextColor(textColor);
 
-    gl.bindTexture(WebGL.TEXTURE_2D, font!.textureInfo!.texture);
+    gls.bindTexture(WebGL.TEXTURE_2D, font!.textureInfo!.texture);
 
     vbo.bind();
     vbo.drawTriangles();

@@ -1,5 +1,5 @@
 import 'dart:ui';
-import 'package:flutter_angle/flutter_angle.dart';
+import 'package:fsg/gl_state_manager.dart';
 import 'package:vector_math/vector_math_64.dart';
 
 import '../glsl_shader.dart';
@@ -147,9 +147,9 @@ class OneLightShader extends GlslShader {
 
   static String uDrawFill = "uDrawFill";
 
-  OneLightShader(RenderingContext gl)
+  OneLightShader(GlStateManager gls)
     : super(
-        RenderingContextWrapper(gl),
+        gls,
         _fragmentShader,
         _vertexShader,
         [
@@ -177,54 +177,54 @@ class OneLightShader extends GlslShader {
       );
 
   void setLightPos(Vector3 v) {
-    gl.uniform3f(uniforms[uLightPos]!, v.x, v.y, v.z);
+    gls.setUniform3f(uniforms[uLightPos]!, v.x, v.y, v.z);
   }
 
   void setNMatrix(Matrix3 m) {
-    gl.uniformMatrix3fv(uniforms[uNMatrix]!, false, m.storage);
+    gls.setUniformMatrix3fv(uniforms[uNMatrix]!, m);
   }
 
   void setAmbientLight(Color color) {
-    gl.uniform3f(uniforms[uAmbientLight]!, color.r, color.g, color.b);
+    gls.setUniform3f(uniforms[uAmbientLight]!, color.r, color.g, color.b);
   }
 
   void setDiffuseLight(Color color) {
-    gl.uniform3f(uniforms[uDiffuseLight]!, color.r, color.g, color.b);
+    gls.setUniform3f(uniforms[uDiffuseLight]!, color.r, color.g, color.b);
   }
 
   void setSpecularLight(Color color) {
-    gl.uniform3f(uniforms[uSpecularLight]!, color.r, color.g, color.b);
+    gls.setUniform3f(uniforms[uSpecularLight]!, color.r, color.g, color.b);
   }
 
   void setMaterialAmbient(Color color) {
-    gl.uniform3f(uniforms[uMaterialAmbient]!, color.r, color.g, color.b);
+    gls.setUniform3f(uniforms[uMaterialAmbient]!, color.r, color.g, color.b);
   }
 
   void setMaterialDiffuse(Color color) {
-    gl.uniform3f(uniforms[uMaterialDiffuse]!, color.r, color.g, color.b);
+    gls.setUniform3f(uniforms[uMaterialDiffuse]!, color.r, color.g, color.b);
   }
 
   void setMaterialSpecular(Color color) {
-    gl.uniform3f(uniforms[uMaterialSpecular]!, color.r, color.g, color.b);
+    gls.setUniform3f(uniforms[uMaterialSpecular]!, color.r, color.g, color.b);
   }
 
   void setShininess(num shininess) {
-    gl.uniform1f(uniforms[uMaterialShininess]!, shininess.toDouble());
+    gls.setUniform1f(uniforms[uMaterialShininess]!, shininess.toDouble());
   }
 
   void setOutlineEnabled(bool enabled) {
-    gl.uniform1i(uniforms[uOutlineEnabled]!, enabled ? 1 : 0);
+    gls.setUniform1i(uniforms[uOutlineEnabled]!, enabled ? 1 : 0);
   }
 
   void setDrawFill(bool enabled) {
-    gl.uniform1i(uniforms[uDrawFill]!, enabled ? 1 : 0);
+    gls.setUniform1i(uniforms[uDrawFill]!, enabled ? 1 : 0);
   }
 
   void setOutlineColor(Color color) {
-    gl.uniform4f(uniforms[uOutlineColor]!, color.r, color.g, color.b, color.a);
+    gls.setUniform4f(uniforms[uOutlineColor]!, color.r, color.g, color.b, color.a);
   }
 
   void setOutlineWidth(num width) {
-    gl.uniform1f(uniforms[uOutlineWidth]!, width.toDouble());
+    gls.setUniform1f(uniforms[uOutlineWidth]!, width.toDouble());
   }
 }

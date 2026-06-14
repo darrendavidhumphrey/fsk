@@ -64,7 +64,7 @@ class MeshFileRenderer {
 
   /// Configures and enables the lighting shader for drawing.
   void enableLightingShader(Matrix4 pMatrix, Matrix4 mvMatrix) {
-    gl.useProgram(shader!.program);
+    FSG().glStateManager.useProgram(shader!.program);
     ShaderList.setMatrixUniforms(shader!, pMatrix, mvMatrix);
 
     shader!.setLightPos(Vector3(40, 0, -200));
@@ -91,9 +91,12 @@ class MeshFileRenderer {
   void draw(Matrix4 pMatrix, Matrix4 mvMatrix) {
     shader ??= FSG().shaders.getShader<OneLightShader>();
 
-    gl.enable(WebGL.DEPTH_TEST);
-    gl.enable(WebGL.CULL_FACE);
-    gl.cullFace(WebGL.BACK);
+    var gls = FSG().glStateManager;
+
+    gls.setBlend(true);
+    gls.setDepthTest(true);
+    gls.setCullFace(true);
+    gls.cullFace(WebGL.BACK);
 
     vbo.bind();
     ibo.bind();
@@ -113,9 +116,6 @@ class MeshFileRenderer {
           WebGL.UNSIGNED_SHORT, mesh.bufferOffset * indexSize);
     }
     ibo.unbind();
-
     vbo.unbind();
-    gl.disable(WebGL.DEPTH_TEST);
-    gl.disable(WebGL.CULL_FACE);
   }
 }

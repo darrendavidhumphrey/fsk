@@ -2,7 +2,6 @@ import 'package:flutter/material.dart';
 import 'package:flutter_angle/flutter_angle.dart';
 import 'package:fsg/fsg.dart';
 import 'package:fsg/vbo_filler.dart';
-import 'package:vector_math/vector_math_64.dart' hide Colors;
 
 class AnimatedCheckerBoardScene extends Scene {
   AnimatedCheckerBoardScene() {
@@ -33,9 +32,8 @@ class AnimatedCheckerBoardScene extends Scene {
 
   void drawVBO(Matrix4 pMatrix, Matrix4 mvMatrix) {
     shader ??= FSG().shaders.getShader<CheckerBoardShader>();
-    gl.useProgram(shader!.program);
+    gls.useProgram(shader!.program);
     ShaderList.setMatrixUniforms(shader!, pMatrix, mvMatrix);
-    gl.enable(WebGL.DEPTH_TEST);
 
     shader!.setPatternColor1(color1);
     shader!.setPatternColor2(color2);
@@ -44,34 +42,6 @@ class AnimatedCheckerBoardScene extends Scene {
     exampleVbo.bind();
     exampleVbo.drawTriangles();
     exampleVbo.unbind();
-  }
-
-  void createViewMatrix() {
-    Vector3 up = Vector3(0, 1, 0);
-    Vector3 orbitCenter = Vector3(0,0,0);
-    Vector3 eyeLocation = Vector3(0,0,-500);
-
-    mvMatrixStack.current = makeViewMatrix(eyeLocation, orbitCenter, up);
-    mvMatrix.translateByVector3(orbitCenter);
-    mvMatrix.rotateZ(radians(180));
-    mvMatrix.rotateY(radians(0));
-    mvMatrix.rotateX(radians(45));
-    mvMatrix.translateByVector3(-orbitCenter);
-  }
-
-  void createProjectionMatrix() {
-    final double aspectRatio = viewportSize.width / viewportSize.height;
-
-    setPerspectiveMatrix(
-      pMatrix,
-      radians(60),
-      aspectRatio,
-      0.1,
-      5000000,
-    );
-
-    // Ensure Y Axis is the same regardless of platform
-    FSG.normalizeUpAxis(pMatrix);
   }
 
   Color getCyclingColor({
@@ -111,17 +81,31 @@ class AnimatedCheckerBoardScene extends Scene {
   void drawScene() async {
     super.drawScene();
 
-    //logPedantic("drawScene");
-    gl.clearColor(1.0, 0.0, 1.0, 1.0);
-
+    gls.setViewport(
+      0,
+      0,
+      FSG.renderToTextureSize.toInt(),
+      FSG.renderToTextureSize.toInt(),
+    );
     gl.clear(WebGL.COLOR_BUFFER_BIT | WebGL.DEPTH_BUFFER_BIT);
-    gl.enable(WebGL.DEPTH_TEST);
-    gl.enable(WebGL.BLEND);
-    gl.disable(WebGL.CULL_FACE);
-    gl.depthFunc(WebGL.LESS);
 
-    createProjectionMatrix();
-    createViewMatrix();
+    gls.activeTexture(WebGL.TEXTURE0);
+    gls.setTexturingEnabled(false);
+
+    gls.setBlend(true);
+    gls.setCullFace(false);
+    gls.clearColor(1, 1, 1, 1);
+    gls.setDepthTest(false);
+    gls.setDepthMask(false);
+
+    gls.depthFunc(WebGL.LESS);
+    gls.blendFuncSeparate(
+      WebGL.SRC_ALPHA,
+      WebGL.ONE_MINUS_SRC_ALPHA,
+      WebGL.ONE,
+      WebGL.ONE_MINUS_SRC_ALPHA,
+    );
+
     double cycleDuration = 2;
 
     DateTime now = DateTime.now();

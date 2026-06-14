@@ -130,6 +130,7 @@ class FSG with LoggableClass {
       return;
     }
 
+    glStateManager.initializeGl(gl);
     textureManager.initializeGl(gl);
     initDefaultMaterial();
     shaders.init(gl);

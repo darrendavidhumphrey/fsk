@@ -1,5 +1,6 @@
 import 'dart:ui';
 import 'package:flutter_angle/flutter_angle.dart';
+import '../gl_state_manager.dart';
 import '../glsl_shader.dart';
 import 'shaders.dart';
 
@@ -113,14 +114,15 @@ class GridShader extends GlslShader {
   static String uMinorLineColor = "u_minorLineColor";
   static String ummLineColor = "u_mmLineColor";
 
-  GridShader(RenderingContext gl)
+  GridShader(GlStateManager gls)
     : super(
-      RenderingContextWrapper(gl),
+        gls,
         _gridFragmentShader,
         _gridVertexShader,
         [ShaderList.v3Attrib, ShaderList.t2Attrib],
         [
-          ShaderList.uModelView, ShaderList.uProj,
+          ShaderList.uModelView,
+          ShaderList.uProj,
           uResolution,
           uScale,
           uMajorLineSpacingMM,
@@ -135,43 +137,61 @@ class GridShader extends GlslShader {
       );
 
   void setResolutionMM(num width, num height) {
-    gl.uniform2f(uniforms[uResolution]!, width.toDouble()*10, height.toDouble()*10);
+    gls.setUniform2f(
+      uniforms[uResolution]!,
+      width.toDouble() * 10,
+      height.toDouble() * 10,
+    );
   }
 
   void setScale(num scale) {
-    gl.uniform1f(uniforms[uScale]!, scale.toDouble());
+    gls.setUniform1f(uniforms[uScale]!, scale.toDouble());
   }
 
   void setMajorLineSpacingMM(num spacing) {
-    gl.uniform1f(uniforms[uMajorLineSpacingMM]!, spacing.toDouble());
+    gls.setUniform1f(uniforms[uMajorLineSpacingMM]!, spacing.toDouble());
   }
 
   void setMinorLineSpacingMM(num spacing) {
-    gl.uniform1f(uniforms[uMinorLineSpacingMM]!, spacing.toDouble());
+    gls.setUniform1f(uniforms[uMinorLineSpacingMM]!, spacing.toDouble());
   }
 
   void setMajorLineThickness(num thickness) {
-    gl.uniform1f(uniforms[uMajorLineThickness]!, thickness.toDouble());
+    gls.setUniform1f(uniforms[uMajorLineThickness]!, thickness.toDouble());
   }
 
   void setMinorLineThickness(num thickness) {
-    gl.uniform1f(uniforms[uMinorLineThickness]!, thickness.toDouble());
+    gls.setUniform1f(uniforms[uMinorLineThickness]!, thickness.toDouble());
   }
 
   void setMmLineThickness(num thickness) {
-    gl.uniform1f(uniforms[ummLineThickness]!, thickness.toDouble());
+    gls.setUniform1f(uniforms[ummLineThickness]!, thickness.toDouble());
   }
 
   void setMajorLineColor(Color color) {
-    gl.uniform4fv(uniforms[uMajorLineColor]!, [color.r, color.g, color.b, color.a]);
+    gls.setUniform4fv(uniforms[uMajorLineColor]!, [
+      color.r,
+      color.g,
+      color.b,
+      color.a,
+    ]);
   }
 
   void setMinorLineColor(Color color) {
-    gl.uniform4fv(uniforms[uMinorLineColor]!, [color.r, color.g, color.b, color.a]);
+    gls.setUniform4fv(uniforms[uMinorLineColor]!, [
+      color.r,
+      color.g,
+      color.b,
+      color.a,
+    ]);
   }
 
   void setMmLineColor(Color color) {
-    gl.uniform4fv(uniforms[ummLineColor]!, [color.r, color.g, color.b, color.a]);
+    gls.setUniform4fv(uniforms[ummLineColor]!, [
+      color.r,
+      color.g,
+      color.b,
+      color.a,
+    ]);
   }
-
 }

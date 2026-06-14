@@ -1,5 +1,5 @@
 import 'package:flutter/material.dart';
-import 'package:flutter_angle/flutter_angle.dart';
+import '../fsg_singleton.dart';
 import '../logging.dart';
 import '../scene_layer.dart';
 
@@ -98,14 +98,17 @@ abstract class ScreenSpaceOverlay extends SceneLayer with LoggableClass {
     final windowWidth = textureToScreenX(screenSpaceSize.width);
     final windowHeight = textureToScreenY(screenSpaceSize.height);
 
-    gl.enable(WebGL.SCISSOR_TEST);
+
+    var gls = FSG().glStateManager;
+    gls.scissorEnabled(true);
+
     gl.scissor(
       startX.toInt(),
       startY.toInt(),
       windowWidth.toInt(),
       windowHeight.toInt(),
     );
-    gl.viewport(
+    gls.setViewport(
       startX.toInt(),
       startY.toInt(),
       windowWidth.toInt(),

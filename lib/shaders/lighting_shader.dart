@@ -1,6 +1,6 @@
-import 'package:flutter_angle/flutter_angle.dart';
 import 'package:vector_math/vector_math_64.dart';
 
+import '../gl_state_manager.dart';
 import '../glsl_shader.dart';
 import 'shaders.dart';
 
@@ -52,9 +52,9 @@ class BasicLightingShader extends GlslShader {
   static String uKd = "Kd";
   static String uLd = "Ld";
 
-  BasicLightingShader(RenderingContext gl)
+  BasicLightingShader(GlStateManager gls)
     : super(
-        RenderingContextWrapper(gl),
+    gls,
         _lightingFragmentShader,
         _lightingVertexShader,
         [
@@ -66,14 +66,14 @@ class BasicLightingShader extends GlslShader {
       );
 
   void setLightPos(Vector3 v) {
-    gl.uniform4f(uniforms[uLightPos]!, v.x, v.y, v.z, 1.0);
+    gls.setUniform4f(uniforms[uLightPos]!, v.x, v.y, v.z, 1.0);
   }
 
   void setKd(Vector3 v) {
-    gl.uniform3f(uniforms[uKd]!, v.x, v.y, v.z);
+    gls.setUniform3f(uniforms[uKd]!, v.x, v.y, v.z);
   }
 
   void setLd(Vector3 v) {
-    gl.uniform3f(uniforms[uLd]!, v.x, v.y, v.z);
+    gls.setUniform3f(uniforms[uLd]!, v.x, v.y, v.z);
   }
 }

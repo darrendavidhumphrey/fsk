@@ -8,9 +8,14 @@ class OrbitViewScene extends Scene {
     // TODO: make cube
 
     VboFiller.makeTexturedUnitQuad(
-      Rect.fromLTWH(-quadExtents.width/2, -quadExtents.height/2, quadExtents.width, quadExtents.height),
+      Rect.fromLTWH(
+        -quadExtents.width / 2,
+        -quadExtents.height / 2,
+        quadExtents.width,
+        quadExtents.height,
+      ),
       0.1,
-      exampleVbo
+      exampleVbo,
     );
   }
 
@@ -29,9 +34,9 @@ class OrbitViewScene extends Scene {
     // TODO: Use different shader
     shader ??= FSG().shaders.getShader<CheckerBoardShader>();
 
-    gl.useProgram(shader!.program);
+    gls.useProgram(shader!.program);
     ShaderList.setMatrixUniforms(shader!, pMatrix, mvMatrix);
-    gl.enable(WebGL.DEPTH_TEST);
+
     shader!.setPatternScale(4.0);
     shader!.setPatternColor1(Colors.red);
     shader!.setPatternColor2(Colors.blue);
@@ -42,21 +47,35 @@ class OrbitViewScene extends Scene {
   }
 
   @override
-void drawScene() async {
+  void drawScene() async {
     super.drawScene();
 
-    gl.clearColor(1.0, 0.0, 1.0, 1.0);
+    gls.setViewport(
+      0,
+      0,
+      FSG.renderToTextureSize.toInt(),
+      FSG.renderToTextureSize.toInt(),
+    );
+    gls.activeTexture(WebGL.TEXTURE0);
+    gls.setTexturingEnabled(false);
 
+    gls.setBlend(true);
+    gls.setCullFace(false);
+    gls.clearColor(0, 1, 1, 1);
+    gls.setDepthTest(false);
+    gls.setDepthMask(false);
+
+    gls.depthFunc(WebGL.LESS);
+    gls.blendFuncSeparate(
+      WebGL.SRC_ALPHA,
+      WebGL.ONE_MINUS_SRC_ALPHA,
+      WebGL.ONE,
+      WebGL.ONE_MINUS_SRC_ALPHA,
+    );
     gl.clear(WebGL.COLOR_BUFFER_BIT | WebGL.DEPTH_BUFFER_BIT);
-    gl.enable(WebGL.DEPTH_TEST);
-    gl.enable(WebGL.BLEND);
-    gl.disable(WebGL.CULL_FACE);
-    gl.depthFunc(WebGL.LESS);
-
-    withPushedMatrix( () {
+    withPushedMatrix(() {
       drawVBO(pMatrix, mvMatrix);
     });
-
 
     requestRepaint();
   }

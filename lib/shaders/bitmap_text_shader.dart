@@ -1,6 +1,5 @@
 import 'dart:ui';
-
-import 'package:flutter_angle/flutter_angle.dart';
+import '../gl_state_manager.dart';
 import '../glsl_shader.dart';
 import 'shaders.dart';
 
@@ -37,25 +36,31 @@ void main(void) {
 ''';
 
 class BitmapTextShader extends GlslShader {
-
   static String uTextColor = "uTextColor";
 
-  BitmapTextShader(RenderingContext gl)
-      : super(
-    RenderingContextWrapper(gl),
-    _fragmentShader,
-    _vertexShader,
-    [ShaderList.v3Attrib,
-      ShaderList.t2Attrib,
-    ],
-    [
-      ShaderList.uModelView, ShaderList.uProj,ShaderList.textureSamplerAttrib,uTextColor
-    ],
-  );
+  BitmapTextShader(GlStateManager gls)
+    : super(
+        gls,
+        _fragmentShader,
+        _vertexShader,
+        [ShaderList.v3Attrib, ShaderList.t2Attrib],
+        [
+          ShaderList.uModelView,
+          ShaderList.uProj,
+          ShaderList.textureSamplerAttrib,
+          uTextColor,
+        ],
+      );
   void setTextColor(Color color) {
-    gl.uniform4fv(uniforms[uTextColor]!, [color.r, color.g, color.b, color.a]);
+    gls.setUniform4fv(uniforms[uTextColor]!, [
+      color.r,
+      color.g,
+      color.b,
+      color.a,
+    ]);
   }
+
   void setTextureSampler(int unit) {
-    gl.uniform1i(uniforms[ShaderList.textureSamplerAttrib]!, unit);
+    gls.setUniform1i(uniforms[ShaderList.textureSamplerAttrib]!, unit);
   }
 }

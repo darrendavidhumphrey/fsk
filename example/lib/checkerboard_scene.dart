@@ -31,7 +31,7 @@ class CheckerBoardScene extends Scene {
 
   void drawVBO(Matrix4 pMatrix, Matrix4 mvMatrix) {
     shader ??= FSG().shaders.getShader<CheckerBoardShader>();
-    gl.useProgram(shader!.program);
+    gls.useProgram(shader!.program);
     ShaderList.setMatrixUniforms(shader!, pMatrix, mvMatrix);
 
     shader!.setPatternColor1(Colors.red);
@@ -47,10 +47,29 @@ class CheckerBoardScene extends Scene {
   void drawScene() async {
     super.drawScene();
 
-    gl.viewport(0, 0, FSG.renderToTextureSize.toInt(), FSG.renderToTextureSize.toInt());
-    gl.enable(WebGL.BLEND);
-    gl.disable(WebGL.CULL_FACE);
-    gl.clearColor(0.0, 1.0, 1.0 , 1.0);
+    gls.setViewport(
+      0,
+      0,
+      FSG.renderToTextureSize.toInt(),
+      FSG.renderToTextureSize.toInt(),
+    );
+    gls.activeTexture(WebGL.TEXTURE0);
+    gls.setTexturingEnabled(false);
+
+    gls.setBlend(true);
+    gls.setCullFace(false);
+    gls.clearColor(0, 1, 1, 1);
+    gls.setDepthTest(false);
+    gls.setDepthMask(false);
+
+    gls.depthFunc(WebGL.LESS);
+    gls.blendFuncSeparate(
+      WebGL.SRC_ALPHA,
+      WebGL.ONE_MINUS_SRC_ALPHA,
+      WebGL.ONE,
+      WebGL.ONE_MINUS_SRC_ALPHA,
+    );
+
     gl.clear(WebGL.COLOR_BUFFER_BIT | WebGL.DEPTH_BUFFER_BIT);
 
     withPushedMatrix( () {

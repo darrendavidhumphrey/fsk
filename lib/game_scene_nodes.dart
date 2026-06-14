@@ -86,7 +86,7 @@ class GameQuadNode extends GameSceneNode {
     gl.activeTexture(WebGL.TEXTURE0);
     gl.bindTexture(WebGL.TEXTURE_2D, texture);
 
-   // TODO:  gl.uniform1i(shader.uniforms[ShaderList.uSampler]!, 0);
+   // TODO:  gls.setUniform1i(shader.uniforms[ShaderList.uSampler]!, 0);
 
     // TODO:  vbo!.draw(shader);
   }
@@ -128,8 +128,8 @@ class GameTextNode extends GameSceneNode {
     ShaderList.setMatrixUniforms(shader, pMatrix, mvStack.current);
 
     gl.activeTexture(WebGL.TEXTURE0);
- // TODO:    gl.bindTexture(WebGL.TEXTURE_2D, bitmapText!.font.fontTexture);
-   //TODO:  gl.uniform1i(shader.uniforms[ShaderList.uSampler]!, 0);
+ // TODO:    gls.bindTexture(WebGL.TEXTURE_2D, bitmapText!.font.fontTexture);
+   //TODO:  gls.setUniform1i(shader.uniforms[ShaderList.uSampler]!, 0);
 
     // TODO:  bitmapText!.vbo?.draw(shader);
   }

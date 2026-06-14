@@ -1,5 +1,4 @@
-import 'dart:ui';
-import 'package:flutter_angle/flutter_angle.dart';
+import '../gl_state_manager.dart';
 import '../glsl_shader.dart';
 import 'shaders.dart';
 
@@ -39,20 +38,17 @@ void main(void) {
 ''';
 
 class FlatShader extends GlslShader {
-  FlatShader(RenderingContext gl)
-      : super(
-    RenderingContextWrapper(gl),
-    _fragmentShader,
-    _vertexShader,
-    [
-      ShaderList.v3Attrib,
-      ShaderList.t2Attrib,
-      ShaderList.n3Attrib,
-      ShaderList.c4Attrib
-    ],
-    [
-      ShaderList.uModelView,
-      ShaderList.uProj,
-    ],
-  );
+  FlatShader(GlStateManager gls)
+    : super(
+        gls,
+        _fragmentShader,
+        _vertexShader,
+        [
+          ShaderList.v3Attrib,
+          ShaderList.t2Attrib,
+          ShaderList.n3Attrib,
+          ShaderList.c4Attrib,
+        ],
+        [ShaderList.uModelView, ShaderList.uProj],
+      );
 }

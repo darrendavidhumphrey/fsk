@@ -2,6 +2,8 @@ import 'package:flutter_angle/flutter_angle.dart';
 import 'package:fsg/fsg.dart';
 import 'package:vector_math/vector_math_64.dart';
 
+import '../gl_state_manager.dart';
+
 /// A class that manages the lifecycle of all shader programs in the application.
 class ShaderList with GlContextManager,LoggableClass {
   // --- Shared Attribute Names ---
@@ -23,13 +25,14 @@ class ShaderList with GlContextManager,LoggableClass {
   /// Initializes all shader programs with the given rendering context.
   void init(RenderingContext gl) {
     initializeGl(gl);
+    GlStateManager gls = FSG().glStateManager;
     // Register default shaders
-    registerShader<OneLightShader>(()=> OneLightShader(gl));
-    registerShader<BasicLightingShader>(()=> BasicLightingShader(gl));
-    registerShader<CheckerBoardShader>(()=> CheckerBoardShader(gl));
-    registerShader<GridShader>(()=> GridShader(gl));
-    registerShader<BitmapTextShader>(()=> BitmapTextShader(gl));
-    registerShader<FlatShader>(()=> FlatShader(gl));
+    registerShader<OneLightShader>(()=> OneLightShader(gls));
+    registerShader<BasicLightingShader>(()=> BasicLightingShader(gls));
+    registerShader<CheckerBoardShader>(()=> CheckerBoardShader(gls));
+    registerShader<GridShader>(()=> GridShader(gls));
+    registerShader<BitmapTextShader>(()=> BitmapTextShader(gls));
+    registerShader<FlatShader>(()=> FlatShader(gls));
   }
 
   /// Registers a custom shader by name for later retrieval.
@@ -60,15 +63,13 @@ class ShaderList with GlContextManager,LoggableClass {
 
   /// A utility to set the standard model-view and projection matrices on a shader.
   static void setMatrixUniforms(GlslShader shader,Matrix4 pMatrix, Matrix4 mvMatrix) {
-    shader.gl.uniformMatrix4fv(
+    shader.gls.setUniformMatrix4fv(
       shader.uniforms[ShaderList.uProj]!,
-      false,
-      pMatrix.storage,
+      pMatrix,
     );
-    shader.gl.uniformMatrix4fv(
+    shader.gls.setUniformMatrix4fv(
       shader.uniforms[ShaderList.uModelView]!,
-      false,
-      mvMatrix.storage,
+      mvMatrix,
     );
   }
 }

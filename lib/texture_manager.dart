@@ -2,7 +2,7 @@ import 'dart:typed_data';
 import 'dart:ui';
 import 'package:fsg/fsg.dart';
 import 'package:mutex/mutex.dart';
-import 'package:flutter_angle/flutter_angle.dart';git co
+import 'package:flutter_angle/flutter_angle.dart';
 
 class TextureInfo {
   String url;

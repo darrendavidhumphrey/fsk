@@ -94,25 +94,37 @@ class BitmapTextScene extends Scene {
     }
 
 
-    gl.viewport(
+    gls.setViewport(
       0,
       0,
       FSG.renderToTextureSize.toInt(),
       FSG.renderToTextureSize.toInt(),
     );
-    gl.enable(WebGL.BLEND);
-    gl.disable(WebGL.CULL_FACE);
-    gl.disable(WebGL.DEPTH_TEST);
-    gl.clearColor(0.0, 1.0, 1.0, 1.0);
-    gl.clear(WebGL.COLOR_BUFFER_BIT | WebGL.DEPTH_BUFFER_BIT);
+    gls.activeTexture(WebGL.TEXTURE0);
+    gls.setTexturingEnabled(false);
 
+    gls.setBlend(true);
+    gls.setCullFace(false);
+    gls.clearColor(0, 1, 1, 1);
+    gls.setDepthTest(false);
+    gls.setDepthMask(false);
+
+    gls.depthFunc(WebGL.LESS);
+    gls.blendFuncSeparate(
+      WebGL.SRC_ALPHA,
+      WebGL.ONE_MINUS_SRC_ALPHA,
+
+      WebGL.ONE,
+      WebGL.ONE_MINUS_SRC_ALPHA,
+    );
+    gl.clear(WebGL.COLOR_BUFFER_BIT | WebGL.DEPTH_BUFFER_BIT);
     withPushedMatrix(() {
-      textItems.first.drawSetup(gl, pMatrix, mvMatrix);
+      textItems.first.drawSetup(gls, pMatrix, mvMatrix);
 
       for (var text in textItems) {
-        text.draw(gl);
+        text.draw(gls);
       }
-      gl.bindTexture(WebGL.TEXTURE_2D, null);
+      gls.bindTexture(WebGL.TEXTURE_2D, null);
     });
 
     requestRepaint();

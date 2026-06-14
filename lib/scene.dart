@@ -6,6 +6,7 @@ import 'package:flutter_angle/flutter_angle.dart';
 import 'package:fsg/gl_context_manager.dart';
 import 'package:fsg/matrix_stack.dart';
 import 'package:fsg/performance_monitor.dart';
+import 'gl_state_manager.dart';
 import 'logging.dart';
 import 'fsg_singleton.dart';
 import 'scene_layer.dart';
@@ -48,6 +49,7 @@ abstract class Scene with LoggableClass, GlContextManager {
   /// The texture that this scene will render its output to.
   FlutterAngleTexture? renderToTextureId;
 
+  late GlStateManager gls;
   /// Creates a new scene and its associated performance monitor.
   Scene() {
     performanceMonitor = PerformanceMonitor(tag: runtimeType.toString());
@@ -71,6 +73,7 @@ abstract class Scene with LoggableClass, GlContextManager {
   /// This must be called before any drawing operations can occur.
   void init(RenderingContext gl) {
     initializeGl(gl); // Initialize the GlContextManager mixin
+    gls = FSG().glStateManager;
 
     FSG().initContext(gl);
     mvMatrixStack.current = Matrix4.identity();

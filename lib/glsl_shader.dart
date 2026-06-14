@@ -1,147 +1,8 @@
 import 'dart:collection';
 import 'package:flutter/foundation.dart';
 import 'package:flutter_angle/flutter_angle.dart';
+import 'gl_state_manager.dart';
 import 'logging.dart';
-
-/// Defines an abstract interface for the WebGL rendering context methods needed
-/// by the [GlslShader] class and its subclasses. This allows for easier testing
-/// by mocking this interface instead of the complex [RenderingContext].
-abstract class GlslShaderContext {
-  dynamic createShader(int type);
-  void shaderSource(dynamic shader, String source);
-  void compileShader(dynamic shader);
-  dynamic getShaderParameter(dynamic shader, int pname);
-  String? getShaderInfoLog(dynamic shader);
-  Program createProgram();
-  void attachShader(Program program, dynamic shader);
-  void linkProgram(Program program);
-  dynamic getProgramParameter(Program program, int pname);
-  String? getProgramInfoLog(Program program);
-  void deleteShader(dynamic shader);
-  void deleteProgram(Program program);
-  UniformLocation getAttribLocation(Program program, String name);
-  UniformLocation getUniformLocation(Program program, String name);
-  void enableVertexAttribArray(int index);
-  void checkError(String label);
-
-  // Uniform methods needed by subclasses
-  void uniform1f(UniformLocation? location, double v0);
-  void uniform1i(UniformLocation? location, int v0);
-  void uniform2f(UniformLocation? location, double v0, double v1);
-  void uniform3f(UniformLocation? location, double v0, double v1, double v2);
-  void uniform4f(UniformLocation? location, double v0, double v1, double v2, double v3);
-  void uniform4fv(UniformLocation? location, List<double> value);
-  void uniformMatrix3fv(UniformLocation? location, bool transpose, List<double> value);
-  void uniformMatrix4fv(UniformLocation? location, bool transpose, List<double> value);
-}
-
-/// A concrete implementation of [GlslShaderContext] that wraps a real
-/// [RenderingContext]. Your application will use this class at runtime.
-class RenderingContextWrapper implements GlslShaderContext {
-  final RenderingContext _gl;
-
-  RenderingContextWrapper(this._gl);
-
-  @override
-  dynamic createShader(int type) => _gl.createShader(type);
-  @override
-  void shaderSource(dynamic shader, String source) => _gl.shaderSource(shader, source);
-  @override
-  void compileShader(dynamic shader) => _gl.compileShader(shader);
-  @override
-  dynamic getShaderParameter(dynamic shader, int pname) => _gl.getShaderParameter(shader, pname);
-  @override
-  String? getShaderInfoLog(dynamic shader) => _gl.getShaderInfoLog(shader);
-  @override
-  Program createProgram() => _gl.createProgram();
-  @override
-  void attachShader(Program program, dynamic shader) => _gl.attachShader(program, shader);
-  @override
-  void linkProgram(Program program) => _gl.linkProgram(program);
-  @override
-  dynamic getProgramParameter(Program program, int pname) => _gl.getProgramParameter(program, pname);
-  @override
-  String? getProgramInfoLog(Program program) => _gl.getProgramInfoLog(program);
-  @override
-  void deleteShader(dynamic shader) => _gl.deleteShader(shader);
-  @override
-  void deleteProgram(Program program) => _gl.deleteProgram(program);
-  @override
-  UniformLocation getAttribLocation(Program program, String name) => _gl.getAttribLocation(program, name);
-  @override
-  UniformLocation getUniformLocation(Program program, String name) => _gl.getUniformLocation(program, name);
-  @override
-  void enableVertexAttribArray(int index) {
-    if (index >= 0) {
-      _gl.enableVertexAttribArray(index);
-    }
-  }
-  @override
-  void checkError(String label) => _gl.checkError(label);
-
-  // Uniform methods
-  @override
-  void uniform1f(UniformLocation? location, double v0) {
-    if (location != null) {
-      _gl.uniform1f(location, v0);
-    }
-  }
-
-  @override
-  void uniform1i(UniformLocation? location, int v0) {
-    if (location != null) {
-      _gl.uniform1i(location, v0);
-    }
-  }
-
-  @override
-  void uniform2f(UniformLocation? location, double v0, double v1) {
-    if (location != null) {
-      _gl.uniform2f(location, v0, v1);
-    }
-  }
-
-  @override
-  void uniform3f(UniformLocation? location, double v0, double v1, double v2) {
-    if (location != null) {
-      _gl.uniform3f(location, v0, v1, v2);
-    }
-  }
-
-  @override
-  void uniform4f(
-      UniformLocation? location, double v0, double v1, double v2, double v3) {
-    if (location != null) {
-      _gl.uniform4f(location, v0, v1, v2, v3);
-    }
-  }
-
-  @override
-  void uniform4fv(UniformLocation? location, List<double> value) {
-    if (location != null) {
-      _gl.uniform4fv(location, Float32List.fromList(value));
-    }
-  }
-
-  @override
-  void uniformMatrix3fv(
-      UniformLocation? location, bool transpose, List<double> value) {
-    if (location != null) {
-      final Float32List nativeMatrix = Float32List.fromList(value);
-      _gl.uniformMatrix3fv(location, transpose,nativeMatrix);
-    }
-  }
-
-  @override
-  void uniformMatrix4fv(
-      UniformLocation? location, bool transpose, List<double> value) {
-    if (location != null) {
-      final Float32List nativeMatrix = Float32List.fromList(value);
-      _gl.uniformMatrix4fv(location, transpose, nativeMatrix);
-    }
-  }
-}
-
 
 /// A class that encapsulates a WebGL shader program.
 class GlslShader with LoggableClass {
@@ -149,7 +10,7 @@ class GlslShader with LoggableClass {
   final Map<String, UniformLocation> _uniforms = <String, UniformLocation>{};
   Program? program;
 
-  final GlslShaderContext gl;
+  final GlStateManager gls;
   final List<String> attributeNames;
   final List<String> uniformNames;
   final int _sourceHashCode;
@@ -158,7 +19,7 @@ class GlslShader with LoggableClass {
   Map<String, UniformLocation> get uniforms => UnmodifiableMapView(_uniforms);
 
   GlslShader(
-    this.gl,
+    this.gls,
     String fragSrc,
     String vertSrc,
     this.attributeNames,
@@ -174,6 +35,7 @@ class GlslShader with LoggableClass {
       fragShader = _compileShader(WebGL.FRAGMENT_SHADER, fragSrc);
       vertShader = _compileShader(WebGL.VERTEX_SHADER, vertSrc);
 
+      RenderingContext gl = gls.gl;
       final p = gl.createProgram();
       program = p;
       gl.attachShader(p, vertShader);
@@ -199,12 +61,13 @@ class GlslShader with LoggableClass {
       dispose();
       rethrow;
     } finally {
-      if (vertShader != null) gl.deleteShader(vertShader);
-      if (fragShader != null) gl.deleteShader(fragShader);
+      if (vertShader != null) gls.gl.deleteShader(vertShader);
+      if (fragShader != null) gls.gl.deleteShader(fragShader);
     }
   }
 
   dynamic _compileShader(int type, String source) {
+    RenderingContext gl = gls.gl;
     final shader = gl.createShader(type);
     gl.shaderSource(shader, source);
     gl.compileShader(shader);
@@ -219,6 +82,7 @@ class GlslShader with LoggableClass {
   }
 
   void _fetchAttributeAndUniformLocations(Program p) {
+    RenderingContext gl = gls.gl;
     for (String attrib in attributeNames) {
       int attributeLocation = gl.getAttribLocation(p, attrib).id;
       gl.checkError(attrib);
@@ -242,7 +106,7 @@ class GlslShader with LoggableClass {
   void dispose() {
     final p = program;
     if (p != null) {
-      gl.deleteProgram(p);
+      gls.gl.deleteProgram(p);
       program = null;
     }
   }
@@ -252,7 +116,7 @@ class GlslShader with LoggableClass {
     if (identical(this, other)) return true;
     return other is GlslShader &&
         other.runtimeType == runtimeType &&
-        other.gl == gl &&
+        other.gls == gls &&
         other._sourceHashCode == _sourceHashCode &&
         listEquals(other.attributeNames, attributeNames) &&
         listEquals(other.uniformNames, uniformNames);
@@ -260,7 +124,7 @@ class GlslShader with LoggableClass {
 
   @override
   int get hashCode => Object.hash(
-    gl,
+    gls,
     _sourceHashCode,
     Object.hashAll(attributeNames),
     Object.hashAll(uniformNames),
