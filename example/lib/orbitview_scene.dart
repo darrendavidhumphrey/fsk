@@ -5,7 +5,6 @@ import 'package:fsg/vbo_filler.dart';
 
 class OrbitViewScene extends Scene {
   OrbitViewScene() {
-    // TODO: make cube
 
     VboFiller.makeTexturedUnitQuad(
       Rect.fromLTWH(
@@ -21,7 +20,7 @@ class OrbitViewScene extends Scene {
 
   VertexBuffer exampleVbo = VertexBuffer.v3t2();
   final Size quadExtents = Size(500, 500);
-  CheckerBoardShader? shader;
+  GridShader? shader;
 
   @override
   void init(RenderingContext gl) {
@@ -31,19 +30,23 @@ class OrbitViewScene extends Scene {
   }
 
   void drawVBO(Matrix4 pMatrix, Matrix4 mvMatrix) {
-    // TODO: Use different shader
-    shader ??= FSG().shaders.getShader<CheckerBoardShader>();
+    shader ??= FSG().shaders.getShader<GridShader>();
 
     gls.useProgram(shader!.program);
     ShaderList.setMatrixUniforms(shader!, pMatrix, mvMatrix);
 
-    shader!.setPatternScale(4.0);
-    shader!.setPatternColor1(Colors.red);
-    shader!.setPatternColor2(Colors.blue);
-
+    shader!.setResolutionMM(250,250);
+    shader!.setScale(0.1);
+    shader!.setMajorLineSpacingMM(25);
+    shader!.setMinorLineSpacingMM(5);
+    shader!.setMajorLineThickness(1);
+    shader!.setMinorLineThickness(0.25);
+    shader!.setMmLineThickness(0.025);
+    shader!.setMajorLineColor(Colors.red);
+    shader!.setMinorLineColor(Colors.blue);
+    shader!.setMmLineColor(Colors.green);
     exampleVbo.bind();
     exampleVbo.drawTriangles();
-    exampleVbo.unbind();
   }
 
   @override
@@ -61,7 +64,7 @@ class OrbitViewScene extends Scene {
 
     gls.setBlend(true);
     gls.setCullFace(false);
-    gls.clearColor(0, 1, 1, 1);
+    gls.clearColor(1, 1, 1, 1);
     gls.setDepthTest(false);
     gls.setDepthMask(false);
 

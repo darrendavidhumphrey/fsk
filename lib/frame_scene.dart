@@ -1,29 +1,46 @@
 import 'package:flutter_angle/flutter_angle.dart';
 import 'package:vector_math/vector_math_64.dart';
 import 'fsg.dart';
-import 'game_scene_data.dart';
-import 'game_scene_nodes.dart';
+import 'frame_data.dart';
+import 'frame_scene_nodes.dart';
 
-class GameScene extends Scene {
-  final GameSceneData data;
-  final List<GameSceneNode> rootNodes = [];
-  final Map<String, GameSceneNode> nodeMap = {};
+class FrameScene extends Scene {
+  late FrameData _data;
+  final List<FrameNode> rootNodes = [];
+  final Map<String, FrameNode> nodeMap = {};
   final Map<String, WebGLTexture> textureMap = {};
+  bool _sceneIsReady = false;
+  bool get sceneIsReady => _sceneIsReady;
+  String _assetsPath = "";
 
-  GameScene(this.data);
+  FrameScene();
 
-  @override
-  Future<void> init(RenderingContext gl) async {
-    super.init(gl);
+  set assetsPath(String value) {
+    _assetsPath = value;
+  }
 
-    // 1. Load textures
-    for (var textureData in data.textures.values) {
-      final tex = await FSG().textureManager.createTextureFromAsset(
-          textureData.file);
+  set data(FrameData value) {
+    _data = value;
+    buildScene();
+  }
+
+  String getTexturePath(String textureName) {
+    if (_assetsPath.isEmpty) {
+      return textureName;
     }
+    return '$_assetsPath/$textureName';
+  }
+  Future<void> buildScene() async {
+    // 1. Load textures
+    for (var textureData in _data.textures.values) {
+      logVerbose("Loading texture: ${textureData.file}, full path is ${getTexturePath(textureData.file)}");
+       var texInfo = await FSG().textureManager.createTextureFromAsset(getTexturePath(textureData.file));
+      logVerbose("Did texture ${textureData.file} load? ${texInfo.isLoaded}");
+    }
+    logVerbose("Done reading textures");
 
     // 2. Load fonts
-    for (var fontData in data.fonts.values) {
+    for (var fontData in _data.fonts.values) {
       // Assuming BitmapFontManager has a way to load from asset strings, 
       // but the current implementation of createFont uses hardcoded asset logic.
       // For now, we assume fonts are already registered or we'd need to fetch their XML.
@@ -31,9 +48,9 @@ class GameScene extends Scene {
 
       // TODO: Implement this
     }
-
+/*
     // 3. Build node tree
-    for (var objData in data.objects) {
+    for (var objData in _data.objects) {
       final node = _createNode(objData);
       if (node != null) {
         rootNodes.add(node);
@@ -42,29 +59,28 @@ class GameScene extends Scene {
 
     // 4. Initialize nodes
     for (var node in rootNodes) {
-      node.init(gl);
+      node.init(gls);
     }
 
     // 5. Assign textures to quads
     _assignTextures();
-    
-    // Orthographic projection for 2D UI
-    pMatrix = makeOrthographicMatrix(0, 1280, 720, 0, -1, 1);
+ */
+    _sceneIsReady = true;
   }
 
   void _assignTextures() {
     for (var node in nodeMap.values) {
-      if (node is GameQuadNode) {
+      if (node is FrameQuadNode) {
         final quadData = node.data as QuadData;
         node.texture = textureMap[quadData.texture];
       }
     }
   }
 
-  GameSceneNode? _createNode(SceneObject objData) {
-    GameSceneNode? node;
+  FrameNode? _createNode(SceneObject objData) {
+    FrameNode? node;
     if (objData is GroupData) {
-      final groupNode = GameGroupNode(objData);
+      final groupNode = FrameGroupNode(objData);
       for (var childData in objData.children) {
         final childNode = _createNode(childData);
         if (childNode != null) {
@@ -73,9 +89,9 @@ class GameScene extends Scene {
       }
       node = groupNode;
     } else if (objData is QuadData) {
-      node = GameQuadNode(objData);
+      node = FrameQuadNode(objData);
     } else if (objData is TextData) {
-      node = GameTextNode(objData);
+      node = FrameTextNode(objData);
     }
 
     if (node != null) {
@@ -86,14 +102,16 @@ class GameScene extends Scene {
 
   @override
   void drawScene() {
+    super.drawScene();
     gl.clear(WebGL.COLOR_BUFFER_BIT | WebGL.DEPTH_BUFFER_BIT);
-    gl.disable(WebGL.DEPTH_TEST);
-    gl.enable(WebGL.BLEND);
-    gl.blendFunc(WebGL.SRC_ALPHA, WebGL.ONE_MINUS_SRC_ALPHA);
+
+    gls.setDepthTest(false);
+    gls.setBlend(true);
+    gls.blendFuncSeparate(WebGL.SRC_ALPHA, WebGL.ONE_MINUS_SRC_ALPHA,WebGL.SRC_ALPHA, WebGL.ONE_MINUS_SRC_ALPHA);
 
     mvMatrixStack.current = Matrix4.identity();
     for (var node in rootNodes) {
-      node.draw(gl, pMatrix, mvMatrixStack);
+      node.draw(gls, pMatrix, mvMatrixStack);
     }
   }
 
@@ -105,7 +123,7 @@ class GameScene extends Scene {
     super.dispose();
   }
 
-  GameSceneNode? findNode(String id) => nodeMap[id];
+  FrameNode? findNode(String id) => nodeMap[id];
 
   void setVisible(String id, bool visible) {
     findNode(id)?.visible = visible;
@@ -113,7 +131,7 @@ class GameScene extends Scene {
 
   void setText(String id, String text) {
     final node = findNode(id);
-    if (node is GameTextNode) {
+    if (node is FrameTextNode) {
       node.bitmapText?.setText(text);
     }
   }

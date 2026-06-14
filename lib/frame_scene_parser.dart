@@ -1,13 +1,33 @@
+import 'dart:io';
 import 'dart:ui';
+import 'package:flutter/foundation.dart';
+import 'package:flutter/services.dart';
 import 'package:vector_math/vector_math_64.dart';
 import 'package:xml/xml.dart';
-import 'game_scene_data.dart';
+import 'frame_data.dart';
 
-class GameSceneParser {
-  static GameSceneData parse(String xmlString) {
+class FrameSceneParser {
+
+  static Future<FrameData> parseFromAssets(String assetPath) async {
+    String fullPath = assetPath;
+    if (!kIsWeb) {
+      fullPath = "assets/$assetPath";
+    }
+    final String xmlString = await rootBundle.loadString(fullPath);
+    return parse(xmlString);
+  }
+
+  static Future<FrameData> parseFromFile(File file) async {
+    final String xmlString = await file.readAsString();
+    return parse(xmlString);
+  }
+
+  static FrameData parse(String xmlString) {
     final document = XmlDocument.parse(xmlString);
-    final root = document.getElement('gameScene')!;
+    final root = document.getElement('frameScene')!;
     final version = root.getAttribute('version') ?? '1.0';
+    final double width = double.tryParse(root.getAttribute('width') ?? '') ?? 1280.0;
+    final double height = double.tryParse(root.getAttribute('height') ?? '') ?? 720.0;
 
     final textures = <TextureData>[];
     final texturesElement = root.getElement('textures');
@@ -55,7 +75,8 @@ class GameSceneParser {
       }
     }
 
-    return GameSceneData(
+    return FrameData(
+      frameSize: Size(width, height),
       version: version,
       textures: textures,
       fonts: fonts,

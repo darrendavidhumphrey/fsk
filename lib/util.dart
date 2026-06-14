@@ -3,6 +3,18 @@ import 'dart:typed_data';
 import 'dart:ui';
 import 'package:vector_math/vector_math_64.dart';
 
+/// Wraps an angle to be in the range [0, 360).
+double clampAngle0To360(double angle) {
+  if (!angle.isFinite) {
+    return 0.0;
+  }
+
+  final clamped = angle % 360.0;
+
+  // Fixes rare floating-point rounding anomalies (e.g., resulting in exactly 360.0)
+  return clamped >= 360.0 ? 0.0 : clamped;
+}
+
 /// Utility extensions for creating Vector views on buffers.
 extension VectorView on Vector3 {
   /// Creates a [Vector3] view of a [buffer] at a given [offset].

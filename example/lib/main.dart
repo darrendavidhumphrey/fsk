@@ -50,8 +50,8 @@ class TestAppState extends State<TestApp> {
     DropdownMenuEntry(value: 0, label: 'Example 1: Checkerboard Shaded Quad'),
     DropdownMenuEntry(value: 1, label: 'Example 2: Animated Shader Uniforms'),
     DropdownMenuEntry(value: 2, label: 'Example 3:Orbit View Delegate',),
-    DropdownMenuEntry(value: 3, label: 'Example 4: Bitmap Text',
-    ),
+    DropdownMenuEntry(value: 3, label: 'Example 4: Bitmap Text',),
+    DropdownMenuEntry(value: 3, label: 'Example 5: Frame Scene',),
   ];
 
   @override

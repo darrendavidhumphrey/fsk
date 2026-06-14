@@ -22,6 +22,9 @@ export 'texture_manager.dart';
 export 'util.dart';
 export 'vertex_buffer.dart';
 
+export 'frame_scene.dart';
+export 'frame_scene_parser.dart';
+
 export 'ui/render_to_texture.dart';
 export 'ui/screen_space_overlay.dart';
 export 'ui/navigation_delegates/orbit_view_delegate.dart';

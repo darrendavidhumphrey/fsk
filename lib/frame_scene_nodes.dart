@@ -2,40 +2,40 @@ import 'package:flutter_angle/flutter_angle.dart';
 import 'package:fsg/vbo_filler.dart';
 import 'package:vector_math/vector_math_64.dart';
 import 'package:fsg/fsg.dart';
-import 'game_scene_data.dart';
+import 'frame_data.dart';
 import 'matrix_stack.dart';
 
-abstract class GameSceneNode {
+abstract class FrameNode {
   final SceneObject data;
   bool visible = true;
 
-  GameSceneNode(this.data);
+  FrameNode(this.data);
 
-  void init(RenderingContext gl);
-  void draw(RenderingContext gl, Matrix4 pMatrix, MatrixStack mvStack);
+  void init(GlStateManager gls);
+  void draw(GlStateManager gls, Matrix4 pMatrix, MatrixStack mvStack);
   void dispose();
 }
 
-class GameGroupNode extends GameSceneNode {
-  final List<GameSceneNode> children = [];
+class FrameGroupNode extends FrameNode {
+  final List<FrameNode> children = [];
 
-  GameGroupNode(GroupData super.data);
+  FrameGroupNode(GroupData super.data);
 
   @override
-  void init(RenderingContext gl) {
+  void init(GlStateManager gls) {
     for (var child in children) {
-      child.init(gl);
+      child.init(gls);
     }
   }
 
   @override
-  void draw(RenderingContext gl, Matrix4 pMatrix, MatrixStack mvStack) {
+  void draw(GlStateManager gls, Matrix4 pMatrix, MatrixStack mvStack) {
     if (!visible) return;
     final groupData = data as GroupData;
     mvStack.withPushed(() {
       mvStack.current.translate(groupData.anchor);
       for (var child in children) {
-        child.draw(gl, pMatrix, mvStack);
+        child.draw(gls, pMatrix, mvStack);
       }
     });
   }
@@ -48,14 +48,14 @@ class GameGroupNode extends GameSceneNode {
   }
 }
 
-class GameQuadNode extends GameSceneNode {
+class FrameQuadNode extends FrameNode {
   VertexBuffer? vbo;
   WebGLTexture? texture;
 
-  GameQuadNode(QuadData super.data);
+  FrameQuadNode(QuadData super.data);
 
   @override
-  void init(RenderingContext gl) {
+  void init(GlStateManager gls) {
     final quadData = data as QuadData;
     vbo = VertexBuffer.v3t2();
     final buffer = vbo!.requestBuffer(6);
@@ -75,7 +75,7 @@ class GameQuadNode extends GameSceneNode {
   }
 
   @override
-  void draw(RenderingContext gl, Matrix4 pMatrix, MatrixStack mvStack) {
+  void draw(GlStateManager gls, Matrix4 pMatrix, MatrixStack mvStack) {
     if (!visible || vbo == null || texture == null) return;
 
     // TODO: Bind the right shader
@@ -83,8 +83,16 @@ class GameQuadNode extends GameSceneNode {
  // TODO:   shader.use();
     ShaderList.setMatrixUniforms(shader, pMatrix, mvStack.current);
 
-    gl.activeTexture(WebGL.TEXTURE0);
-    gl.bindTexture(WebGL.TEXTURE_2D, texture);
+    QuadData quadData = data as QuadData;
+
+    if (quadData.premultiplyAlpha) {
+      gls.blendFuncSeparate(WebGL.ONE, WebGL.ONE_MINUS_SRC_ALPHA,WebGL.ONE, WebGL.ONE_MINUS_SRC_ALPHA);
+    } else {
+      gls.blendFuncSeparate(WebGL.SRC_ALPHA, WebGL.ONE_MINUS_SRC_ALPHA,WebGL.SRC_ALPHA, WebGL.ONE_MINUS_SRC_ALPHA);
+    }
+
+    gls.activeTexture(WebGL.TEXTURE0);
+    gls.bindTexture(WebGL.TEXTURE_2D, texture);
 
    // TODO:  gls.setUniform1i(shader.uniforms[ShaderList.uSampler]!, 0);
 
@@ -97,13 +105,13 @@ class GameQuadNode extends GameSceneNode {
   }
 }
 
-class GameTextNode extends GameSceneNode {
+class FrameTextNode extends FrameNode {
   BitmapText? bitmapText;
 
-  GameTextNode(TextData super.data);
+  FrameTextNode(TextData super.data);
 
   @override
-  void init(RenderingContext gl) {
+  void init(GlStateManager gls) {
     final textData = data as TextData;
     final font = BitmapFontManager().getFont(textData.font);
     if (font != null) {
@@ -118,16 +126,16 @@ class GameTextNode extends GameSceneNode {
   }
 
   @override
-  void draw(RenderingContext gl, Matrix4 pMatrix, MatrixStack mvStack) {
+  void draw(GlStateManager gls, Matrix4 pMatrix, MatrixStack mvStack) {
     if (!visible || bitmapText == null) return;
     
-    bitmapText!.rebuild(gl);
+    bitmapText!.rebuild(gls);
     
     final shader = FSG().shaders.getShader<GlslShader>();
     // TODO: shader.use();
     ShaderList.setMatrixUniforms(shader, pMatrix, mvStack.current);
 
-    gl.activeTexture(WebGL.TEXTURE0);
+    gls.activeTexture(WebGL.TEXTURE0);
  // TODO:    gls.bindTexture(WebGL.TEXTURE_2D, bitmapText!.font.fontTexture);
    //TODO:  gls.setUniform1i(shader.uniforms[ShaderList.uSampler]!, 0);
 

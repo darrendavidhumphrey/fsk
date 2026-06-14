@@ -1,10 +1,8 @@
 import 'dart:math';
 import 'package:flutter/gestures.dart';
 import 'package:flutter/material.dart';
-import 'scene_navigation_delegate.dart';
 import 'package:vector_math/vector_math_64.dart';
-import '../../fsg_singleton.dart';
-import '../../util.dart';
+import 'package:fsg/fsg.dart';
 
 /// A navigation delegate that implements a classic 3D orbit camera.
 ///
@@ -31,12 +29,6 @@ class OrbitViewDelegate extends SceneNavigationDelegate {
   Offset _dragStart = Offset.zero;
   double _yawStart = 0;
   double _pitchStart = 0;
-
-// TODO: Move to util
-/// Wraps an angle to be in the range [0, 360).
-double _clampAngle0To360(double angle) {
-  return angle % 360;
-}
 
 /// A plane at z=0 used for calculating logical coordinates from a pick ray.
   final Plane _projectPlane = makePlaneFromVertices(
@@ -87,8 +79,8 @@ double _clampAngle0To360(double angle) {
     final newYaw = _yawStart + degrees(deltaYaw);
     final newPitch = _pitchStart + degrees(deltaPitch);
 
-    _yaw = _clampAngle0To360(newYaw);
-    _pitch = _clampAngle0To360(newPitch);
+    _yaw = clampAngle0To360(newYaw);
+    _pitch = clampAngle0To360(newPitch);
     setNeedsUpdate(true);
   }
 

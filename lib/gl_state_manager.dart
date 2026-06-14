@@ -100,6 +100,8 @@ class GlStateManager {
     _blendDstAlpha = WebGL.ZERO;
     gl.blendFuncSeparate(WebGL.ONE, WebGL.ZERO, WebGL.ONE, WebGL.ZERO);
 
+
+
     // 4. Reset Texture Units & Active Bindings
     _activeTextureUnit = WebGL.TEXTURE0;
     gl.activeTexture(WebGL.TEXTURE0);

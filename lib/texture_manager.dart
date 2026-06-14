@@ -1,5 +1,6 @@
 import 'dart:typed_data';
 import 'dart:ui';
+import 'package:flutter/services.dart';
 import 'package:fsg/fsg.dart';
 import 'package:mutex/mutex.dart';
 import 'package:flutter_angle/flutter_angle.dart';
@@ -49,7 +50,12 @@ class TextureManager with GlContextManager, LoggableClass {
       var textureInfo = TextureInfo(url, magFilter, minFilter, wrapS, wrapT);
       _textures[url] = textureInfo;
 
-      textureInfo.image = await gl.loadImageFromAsset('assets/$url');
+      final ByteData data = await rootBundle.load('assets/$url');
+
+      final Codec codec = await instantiateImageCodec(data.buffer.asUint8List());
+      final FrameInfo frameInfo = await codec.getNextFrame();
+
+      textureInfo.image = frameInfo.image;
       textureInfo.isLoaded = true;
 
       await _unBoundTexturesLock.protect(() async {

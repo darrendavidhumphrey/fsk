@@ -5,6 +5,7 @@ import 'package:fsg_examples/animated_checkerboard_scene.dart';
 import 'package:fsg_examples/bitmap_text_scene.dart';
 import 'package:fsg_examples/orbitview_scene.dart';
 import 'checkerboard_scene.dart';
+import 'frame_scene_example.dart';
 
 // The example scenes are placed in an IndexedStackScene that corresponds
 // with the IndexedStack flutter widget to draw only one example scene
@@ -21,6 +22,7 @@ class ExampleScenes extends IndexedStackScene {
     addScene(AnimatedCheckerBoardScene(),StaticViewDelegate());
     addScene(OrbitViewScene(),OrbitViewDelegate());
     addScene(BitmapTextScene(),OrbitViewDelegate());
+    addScene(FrameSceneExample(),OrbitViewDelegate());
 
     setCurrentScene(0);
   }

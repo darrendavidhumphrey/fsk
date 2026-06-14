@@ -215,7 +215,7 @@ class BitmapText {
     gls.activeTexture(WebGL.TEXTURE0);
 
     gls.blendFuncSeparate(
-      WebGL.SRC_ALPHA,
+      WebGL.ONE,
       WebGL.ONE_MINUS_SRC_ALPHA,
       WebGL.ONE,
       WebGL.ONE_MINUS_SRC_ALPHA,
@@ -224,7 +224,6 @@ class BitmapText {
   }
 
   void draw(GlStateManager gls) {
-
     if ((font == null) || (!font!.isInitialized) || (shader==null)) return;
 
     shader!.setTextColor(textColor);
@@ -233,6 +232,6 @@ class BitmapText {
 
     vbo.bind();
     vbo.drawTriangles();
-    vbo.unbind();
+
   }
 }
