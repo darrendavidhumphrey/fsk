@@ -1,0 +1,20 @@
+<font>
+  <info face="Scoreboard140" size="140" bold="0" italic="0" charset="" unicode="" stretchH="100" smooth="1" aa="1" padding="2,2,2,2" spacing="0,0" outline="0"/>
+  <common lineHeight="156" base="99" scaleW="221" scaleH="454" pages="1" packed="0"/>
+  <pages>
+    <page id="0" file="Scoreboard140.png"/>
+  </pages>
+  <chars count="10">
+    <char id="48" x="2" y="2" width="71" height="111" xoffset="3" yoffset="0" xadvance="74" page="0" chnl="15"/>
+    <char id="49" x="2" y="115" width="22" height="111" xoffset="28" yoffset="0" xadvance="74" page="0" chnl="15"/>
+    <char id="50" x="2" y="228" width="71" height="111" xoffset="3" yoffset="0" xadvance="74" page="0" chnl="15"/>
+    <char id="51" x="26" y="115" width="71" height="111" xoffset="3" yoffset="0" xadvance="74" page="0" chnl="15"/>
+    <char id="52" x="75" y="2" width="71" height="111" xoffset="3" yoffset="0" xadvance="74" page="0" chnl="15"/>
+    <char id="53" x="2" y="341" width="71" height="111" xoffset="3" yoffset="0" xadvance="74" page="0" chnl="15"/>
+    <char id="54" x="75" y="228" width="71" height="111" xoffset="3" yoffset="0" xadvance="74" page="0" chnl="15"/>
+    <char id="55" x="99" y="115" width="71" height="111" xoffset="3" yoffset="0" xadvance="74" page="0" chnl="15"/>
+    <char id="56" x="148" y="2" width="71" height="111" xoffset="3" yoffset="0" xadvance="74" page="0" chnl="15"/>
+    <char id="57" x="75" y="341" width="71" height="111" xoffset="3" yoffset="0" xadvance="74" page="0" chnl="15"/>
+    <char id="32" x="0" y="0" width="0" height="0" xoffset="3" yoffset="0" xadvance="74" page="0" chnl="15"/>
+  </chars>
+</font>

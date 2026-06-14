@@ -1,0 +1,142 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
+<gameScene version="1.0">
+	<textures>
+        <texture id="FastMoneyAnswers" file="fastmoneyanswers.png" />
+        <texture id="FastMoneyBackground" file="fastmoneybackground.png" />
+        <texture id="White" file="white.png" />
+        <texture id="FastMoney" file="FastMoney.png" />
+    </textures>
+         
+    <fonts>
+        <font id="Arial36" fntFile="Arial36.fnt" texture="Arial36.png" />
+        <font id="Scoreboard100" fntFile="Scoreboard100.fnt" texture="Scoreboard100.png" />
+        <font id="Scoreboard140" fntFile="Scoreboard140.fnt" texture="Scoreboard140.png" />
+    </fonts>
+
+    <!-- Start of SCENE  -->
+
+	<objects>
+		<quad id="Background" texture="FastMoneyBackground" 
+				screenRect="{{0, 0}, {1280, 720}}"
+				textureRect="{{0, 0}, {1, 1}}" />
+		
+		<quad id="FastMoneyPlayer1Answers" texture="FastMoneyAnswers" 
+				screenRect="{{220, 175}, {419, 329}}"
+				textureRect="{{0, 0}, {1, 1}}" />
+        
+        <quad id="FastMoneyPlayer2Answers" texture="FastMoneyAnswers" 
+				screenRect="{{643, 175}, {419, 329}}"
+				textureRect="{{0, 0}, {1, 1}}" />
+        
+        <!------ Round 1 answers ---------->
+        <text id="FastMoneyRd1Answer1" font="Arial36" text="0123456789012345"
+        		screenRect="{{230, 420}, {310, 91}}"
+        		scaleToFit="YES"/>
+        		
+        <text id="FastMoneyRd1Answer2" font="Arial36" text="0123456789012345"
+        		screenRect="{{230, 354}, {310, 91}}"
+        		scaleToFit="YES"/>
+        		 
+        <text id="FastMoneyRd1Answer3" font="Arial36" text="0123456789012345"
+        		screenRect="{{230, 287}, {310, 91}}"
+        		scaleToFit="YES"/>
+        
+        <text id="FastMoneyRd1Answer4" font="Arial36" text="0123456789012345"
+        		screenRect="{{230, 221}, {310, 91}}"
+        		scaleToFit="YES"/>  
+         
+         <text id="FastMoneyRd1Answer5" font="Arial36" text="0123456789012345"
+        		screenRect="{{230, 155}, {310, 91}}"
+        		scaleToFit="YES"/>         
+        
+         <!------ Round 1 scores ---------->
+        <text id="FastMoneyRd1Score1" font="Arial36" text="99"
+        		screenRect="{{558, 420}, {70, 91}}"
+        		hJustify="JUSTIFY_RIGHT"
+        		scaleToFit="YES"/>
+        		
+      	<text id="FastMoneyRd1Score2" font="Arial36" text="99"
+        		screenRect="{{558, 354}, {70, 91}}"
+        		hJustify="JUSTIFY_RIGHT"
+        		scaleToFit="YES"/> 		
+        
+        <text id="FastMoneyRd1Score3" font="Arial36" text="99"
+        		screenRect="{{558, 287}, {70, 91}}"
+        		hJustify="JUSTIFY_RIGHT"
+        		scaleToFit="YES"/>  
+        		
+        <text id="FastMoneyRd1Score4" font="Arial36" text="99"
+        		screenRect="{{558, 221}, {70, 91}}"
+        		hJustify="JUSTIFY_RIGHT"
+        		scaleToFit="YES"/>        
+
+        <text id="FastMoneyRd1Score5" font="Arial36" text="99"
+        		screenRect="{{558, 155}, {70, 91}}"
+        		hJustify="JUSTIFY_RIGHT"
+        		scaleToFit="YES"/>       
+        
+        <!------ Round 2 answers ---------->
+        <text id="FastMoneyRd2Answer1" font="Arial36" text="0123456789012345"
+        		screenRect="{{653, 420}, {310, 91}}"
+        		scaleToFit="YES"/>
+        		
+        <text id="FastMoneyRd2Answer2" font="Arial36" text="0123456789012345"
+        		screenRect="{{653, 354}, {310, 91}}"
+        		scaleToFit="YES"/>
+        		 
+        <text id="FastMoneyRd2Answer3" font="Arial36" text="0123456789012345"
+        		screenRect="{{653, 287}, {310, 91}}"
+        		scaleToFit="YES"/>
+        
+        <text id="FastMoneyRd2Answer4" font="Arial36" text="0123456789012345"
+        		screenRect="{{653, 221}, {310, 91}}"
+        		scaleToFit="YES"/>  
+         
+        <text id="FastMoneyRd2Answer5" font="Arial36" text="0123456789012345"
+        		screenRect="{{653, 155}, {310, 91}}"
+        		scaleToFit="YES"/>      
+                
+       <!------ Round 2 scores ----------> 
+       <text id="FastMoneyRd2Score1" font="Arial36" text="99"
+        		screenRect="{{980, 420}, {70, 91}}"
+        		hJustify="JUSTIFY_RIGHT"
+        		scaleToFit="YES"/>
+        		
+      	<text id="FastMoneyRd2Score2" font="Arial36" text="99"
+        		screenRect="{{980, 354}, {70, 91}}"
+        		hJustify="JUSTIFY_RIGHT"
+        		scaleToFit="YES"/> 		
+        
+        <text id="FastMoneyRd2Score3" font="Arial36" text="99"
+        		screenRect="{{980, 287}, {70, 91}}"
+        		hJustify="JUSTIFY_RIGHT"
+        		scaleToFit="YES"/>  
+        		
+        <text id="FastMoneyRd2Score4" font="Arial36" text="99"
+        		screenRect="{{980, 221}, {70, 91}}"
+        		hJustify="JUSTIFY_RIGHT"
+        		scaleToFit="YES"/>        
+
+        <text id="FastMoneyRd2Score5" font="Arial36" text="99"
+        		screenRect="{{980, 155}, {70, 91}}"
+        		hJustify="JUSTIFY_RIGHT"
+        		scaleToFit="YES"/>
+        		   
+        <!------ Overlays ----------> 
+        <text id="Timer" font="Scoreboard140" text="999"
+        		screenRect="{{565, 530}, {200, 80}}"
+        		hJustify="JUSTIFY_RIGHT"
+        		scaleToFit="YES"/>
+        
+        <text id="Score" font="Scoreboard140" text="999"
+        		screenRect="{{540, -16}, {200, 80}}"
+        		hJustify="JUSTIFY_CENTER"
+        		scaleToFit="YES"/>
+        		
+        <quad id="FastMoney" texture="FastMoney" 
+				screenRect="{{0, 0}, {1280, 720}}"
+				textureRect="{{0, 0}, {1, 1}}" />
+        
+	</objects>
+</gameScene>

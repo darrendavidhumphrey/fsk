@@ -1,6 +1,6 @@
 import 'package:flutter_angle/flutter_angle.dart';
 import 'package:vector_math/vector_math_64.dart';
-import 'fsg.dart';
+import '../fsg.dart';
 import 'frame_data.dart';
 import 'frame_scene_nodes.dart';
 
@@ -11,13 +11,9 @@ class FrameScene extends Scene {
   final Map<String, WebGLTexture> textureMap = {};
   bool _sceneIsReady = false;
   bool get sceneIsReady => _sceneIsReady;
-  String _assetsPath = "";
 
   FrameScene();
 
-  set assetsPath(String value) {
-    _assetsPath = value;
-  }
 
   set data(FrameData value) {
     _data = value;
@@ -25,17 +21,17 @@ class FrameScene extends Scene {
   }
 
   String getTexturePath(String textureName) {
-    if (_assetsPath.isEmpty) {
+    if ((_data.assetsPath == null) || (_data.assetsPath!.isEmpty)) {
       return textureName;
     }
-    return '$_assetsPath/$textureName';
+    return '${_data.assetsPath}/$textureName';
   }
+
   Future<void> buildScene() async {
     // 1. Load textures
     for (var textureData in _data.textures.values) {
       logVerbose("Loading texture: ${textureData.file}, full path is ${getTexturePath(textureData.file)}");
-       var texInfo = await FSG().textureManager.createTextureFromAsset(getTexturePath(textureData.file));
-      logVerbose("Did texture ${textureData.file} load? ${texInfo.isLoaded}");
+       await FSG().textureManager.createTextureFromAsset(getTexturePath(textureData.file));
     }
     logVerbose("Done reading textures");
 

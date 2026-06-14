@@ -3,7 +3,7 @@ import 'package:fsg/vbo_filler.dart';
 import 'package:vector_math/vector_math_64.dart';
 import 'package:fsg/fsg.dart';
 import 'frame_data.dart';
-import 'matrix_stack.dart';
+import '../matrix_stack.dart';
 
 abstract class FrameNode {
   final SceneObject data;

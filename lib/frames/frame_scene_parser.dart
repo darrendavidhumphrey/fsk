@@ -1,5 +1,4 @@
 import 'dart:io';
-import 'dart:ui';
 import 'package:flutter/foundation.dart';
 import 'package:flutter/services.dart';
 import 'package:vector_math/vector_math_64.dart';
@@ -28,6 +27,7 @@ class FrameSceneParser {
     final version = root.getAttribute('version') ?? '1.0';
     final double width = double.tryParse(root.getAttribute('width') ?? '') ?? 1280.0;
     final double height = double.tryParse(root.getAttribute('height') ?? '') ?? 720.0;
+    final String? assetsPath = root.getAttribute('assetsPath');
 
     final textures = <TextureData>[];
     final texturesElement = root.getElement('textures');
@@ -77,6 +77,7 @@ class FrameSceneParser {
 
     return FrameData(
       frameSize: Size(width, height),
+      assetsPath: assetsPath,
       version: version,
       textures: textures,
       fonts: fonts,

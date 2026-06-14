@@ -1,7 +1,7 @@
 import 'dart:ui';
 import 'package:vector_math/vector_math_64.dart';
 
-import 'logging.dart';
+import '../logging.dart';
 
 class FrameData with LoggableClass {
   final String version;
@@ -11,8 +11,10 @@ class FrameData with LoggableClass {
   final List<SceneObject> objects;
   final Map<String, SceneObject> _objectMap = {};
   final Size _frameSize;
+  final String? _assetsPath;
 
   Size get frameSize => _frameSize;
+  String? get assetsPath => _assetsPath;
 
   FrameData({
     required this.version,
@@ -21,6 +23,7 @@ class FrameData with LoggableClass {
     required List<AnchorData> anchors,
     required this.objects,
     required this._frameSize,
+    required this._assetsPath,
   })  : textures = {for (var t in textures) t.id: t},
         fonts = {for (var f in fonts) f.id: f},
         anchors = {for (var a in anchors) a.id: a} {
@@ -41,7 +44,7 @@ class FrameData with LoggableClass {
   SceneObject? findObject(String id) => _objectMap[id];
 
   void dumpTree() {
-    logInfo('📂 FrameData (Version: $version, Size: ${_frameSize.width}x${_frameSize.height})');
+    logInfo('📂 FrameData (Version: $version, Size: ${_frameSize.width}x${_frameSize.height} AssetsPath "${_assetsPath}")');
 
     // Print metadata summaries
     logInfo(' ├── 🖼️ Textures (${textures.length}): ${textures.keys.join(', ')}');

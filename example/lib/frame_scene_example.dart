@@ -19,9 +19,6 @@ class FrameSceneExample extends FrameScene {
     String skinPath = "frames/GameScreen.xml";
     var frameData = await FrameSceneParser.parseFromAssets(skinPath);
 
-    // Set the assets path for the frame data
-    assetsPath = "frames";
-
     // Set the frame data in the base class, will trigger loading the assets in the file
     data  = frameData;
 
