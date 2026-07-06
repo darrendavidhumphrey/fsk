@@ -1,22 +1,11 @@
 import 'package:flutter_angle/flutter_angle.dart';
-import 'package:fsg/fsg.dart';
+import 'package:fsg/fsk.dart';
+import 'package:fsg/shaders/simple_texture_shader.dart';
 import 'package:vector_math/vector_math_64.dart';
-
-import '../gl_state_manager.dart';
 
 /// A class that manages the lifecycle of all shader programs in the application.
 class ShaderList with GlContextManager,LoggableClass {
-  // --- Shared Attribute Names ---
-  static const String v3Attrib = "aVertexPosition";
-  static const String c4Attrib = "aVertexColor";
-  static const String t2Attrib = "aTextureCoord";
-  static const String n3Attrib = "aVertexNormal";
 
-  // --- Shared Uniform Names ---
-  static const String uModelView = "uMVMatrix";
-  static const String uProj = "uPMatrix";
-  static const String uNormal = "uNMatrix";
-  static const String textureSamplerAttrib = 'uSampler';
 
   // --- Custom Shader Registration ---
   final Map<Type, GlslShader> _cachedShaders = {};
@@ -25,7 +14,7 @@ class ShaderList with GlContextManager,LoggableClass {
   /// Initializes all shader programs with the given rendering context.
   void init(RenderingContext gl) {
     initializeGl(gl);
-    GlStateManager gls = FSG().glStateManager;
+    GlStateManager gls = FSK().glStateManager;
     // Register default shaders
     registerShader<OneLightShader>(()=> OneLightShader(gls));
     registerShader<BasicLightingShader>(()=> BasicLightingShader(gls));
@@ -33,6 +22,7 @@ class ShaderList with GlContextManager,LoggableClass {
     registerShader<GridShader>(()=> GridShader(gls));
     registerShader<BitmapTextShader>(()=> BitmapTextShader(gls));
     registerShader<FlatShader>(()=> FlatShader(gls));
+    registerShader<SimpleTextureShader>(()=> SimpleTextureShader(gls));
   }
 
   /// Registers a custom shader by name for later retrieval.
@@ -64,11 +54,11 @@ class ShaderList with GlContextManager,LoggableClass {
   /// A utility to set the standard model-view and projection matrices on a shader.
   static void setMatrixUniforms(GlslShader shader,Matrix4 pMatrix, Matrix4 mvMatrix) {
     shader.gls.setUniformMatrix4fv(
-      shader.uniforms[ShaderList.uProj]!,
+      shader.uniforms[GlslShader.uProj]!,
       pMatrix,
     );
     shader.gls.setUniformMatrix4fv(
-      shader.uniforms[ShaderList.uModelView]!,
+      shader.uniforms[GlslShader.uModelView]!,
       mvMatrix,
     );
   }

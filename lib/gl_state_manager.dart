@@ -1,6 +1,6 @@
 import 'package:flutter_angle/flutter_angle.dart';
 import 'package:vector_math/vector_math_64.dart';
-import 'fsg_singleton.dart';
+import 'fsk_singleton.dart';
 
 /// Helper to store texture parameter states for individual textures.
 class TextureSettings {
@@ -449,6 +449,6 @@ class GlStateManager {
 
   // Must be called before rendering a scene
   void startFrame() {
-    FSG().textureManager.bindUnboundTextures();
+    FSK().textureManager.bindUnboundTextures();
   }
 }

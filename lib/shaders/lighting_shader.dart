@@ -2,7 +2,6 @@ import 'package:vector_math/vector_math_64.dart';
 
 import '../gl_state_manager.dart';
 import '../glsl_shader.dart';
-import 'shaders.dart';
 
 const String _lightingVertexShader = """
 #version 300 es
@@ -58,11 +57,11 @@ class BasicLightingShader extends GlslShader {
         _lightingFragmentShader,
         _lightingVertexShader,
         [
-          ShaderList.v3Attrib,
-          ShaderList.t2Attrib,
-          ShaderList.n3Attrib,
+          GlslShader.v3Attrib,
+          GlslShader.t2Attrib,
+          GlslShader.n3Attrib,
         ],
-        [uKd, uLd, uLightPos, ShaderList.uModelView, ShaderList.uProj],
+        [uKd, uLd, uLightPos, GlslShader.uModelView, GlslShader.uProj],
       );
 
   void setLightPos(Vector3 v) {

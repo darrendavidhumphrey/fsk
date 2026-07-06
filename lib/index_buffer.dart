@@ -1,5 +1,5 @@
 import 'package:flutter_angle/flutter_angle.dart';
-import 'package:fsg/fsg.dart';
+import 'package:fsg/fsk.dart';
 
 /// Manages a WebGL Element Array Buffer, also known as an Index Buffer Object (IBO).
 ///

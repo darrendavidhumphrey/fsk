@@ -1,6 +1,5 @@
 import '../gl_state_manager.dart';
 import '../glsl_shader.dart';
-import 'shaders.dart';
 
 String _vertexShader = '''
           #version 300 es       
@@ -44,11 +43,11 @@ class FlatShader extends GlslShader {
         _fragmentShader,
         _vertexShader,
         [
-          ShaderList.v3Attrib,
-          ShaderList.t2Attrib,
-          ShaderList.n3Attrib,
-          ShaderList.c4Attrib,
+          GlslShader.v3Attrib,
+          GlslShader.t2Attrib,
+          GlslShader.n3Attrib,
+          GlslShader.c4Attrib,
         ],
-        [ShaderList.uModelView, ShaderList.uProj],
+        [GlslShader.uModelView, GlslShader.uProj, GlslShader.textureSamplerAttrib,],
       );
 }

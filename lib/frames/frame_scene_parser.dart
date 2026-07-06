@@ -7,10 +7,11 @@ import 'frame_data.dart';
 
 class FrameSceneParser {
 
+  static String assetsRoot = "assets/";
   static Future<FrameData> parseFromAssets(String assetPath) async {
     String fullPath = assetPath;
     if (!kIsWeb) {
-      fullPath = "assets/$assetPath";
+      fullPath = "$assetsRoot$assetPath";
     }
     final String xmlString = await rootBundle.loadString(fullPath);
     return parse(xmlString);
@@ -29,22 +30,22 @@ class FrameSceneParser {
     final double height = double.tryParse(root.getAttribute('height') ?? '') ?? 720.0;
     final String? assetsPath = root.getAttribute('assetsPath');
 
-    final textures = <TextureData>[];
+    final textures = <FrameTextureData>[];
     final texturesElement = root.getElement('textures');
     if (texturesElement != null) {
       for (final node in texturesElement.findElements('texture')) {
-        textures.add(TextureData(
+        textures.add(FrameTextureData(
           id: node.getAttribute('id')!,
           file: node.getAttribute('file')!,
         ));
       }
     }
 
-    final fonts = <FontData>[];
+    final fonts = <FrameFontData>[];
     final fontsElement = root.getElement('fonts');
     if (fontsElement != null) {
       for (final node in fontsElement.findElements('font')) {
-        fonts.add(FontData(
+        fonts.add(FrameFontData(
           id: node.getAttribute('id')!,
           fntFile: node.getAttribute('fntFile')!,
           texture: node.getAttribute('texture')!,
@@ -52,19 +53,19 @@ class FrameSceneParser {
       }
     }
 
-    final anchors = <String, AnchorData>{};
+    final anchors = <String, FrameAnchorData>{};
     final anchorsElement = root.getElement('anchors');
     if (anchorsElement != null) {
       for (final node in anchorsElement.findElements('anchor')) {
         final id = node.getAttribute('id')!;
-        anchors[id] = AnchorData(
+        anchors[id] = FrameAnchorData(
           id: id,
           val: _parseVector3(node.getAttribute('val')!, {}),
         );
       }
     }
 
-    final objects = <SceneObject>[];
+    final objects = <FrameObjectData>[];
     final objectsElement = root.getElement('objects');
     if (objectsElement != null) {
       for (final node in objectsElement.children.whereType<XmlElement>()) {
@@ -86,7 +87,7 @@ class FrameSceneParser {
     );
   }
 
-  static SceneObject? _parseObject(XmlElement node, Map<String, AnchorData> anchors) {
+  static FrameObjectData? _parseObject(XmlElement node, Map<String, FrameAnchorData> anchors) {
     switch (node.name.local) {
       case 'quad':
         return QuadData(
@@ -97,14 +98,12 @@ class FrameSceneParser {
           premultiplyAlpha: node.getAttribute('premultiplyAlpha') == 'true',
         );
       case 'group':
-        final children = <SceneObject>[];
-        final childrenElement = node.getElement('children');
-        if (childrenElement != null) {
-          for (final childNode in childrenElement.children.whereType<XmlElement>()) {
-            final child = _parseObject(childNode, anchors);
-            if (child != null) {
-              children.add(child);
-            }
+        final children = <FrameObjectData>[];
+        // Directly iterate through the child XML elements of the group node
+        for (final childNode in node.children.whereType<XmlElement>()) {
+          final child = _parseObject(childNode, anchors);
+          if (child != null) {
+            children.add(child);
           }
         }
         return GroupData(
@@ -113,7 +112,7 @@ class FrameSceneParser {
           children: children,
         );
       case 'text':
-        return TextData(
+        return FrameTextData(
           id: node.getAttribute('id')!,
           font: node.getAttribute('font')!,
           text: node.getAttribute('text')!,
@@ -141,7 +140,7 @@ class FrameSceneParser {
     return Rect.zero;
   }
 
-  static Vector3 _parseVector3(String s, Map<String, AnchorData> anchors) {
+  static Vector3 _parseVector3(String s, Map<String, FrameAnchorData> anchors) {
     if (anchors.containsKey(s)) {
       return anchors[s]!.val.clone();
     }

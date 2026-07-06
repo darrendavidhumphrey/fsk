@@ -1,4 +1,3 @@
-import 'dart:ui';
 import '../gl_state_manager.dart';
 import '../glsl_shader.dart';
 
@@ -34,28 +33,17 @@ void main(void) {
 }
 ''';
 
-class BitmapTextShader extends GlslShader {
-  static String uTextColor = "uTextColor";
+class SimpleTextureShader extends GlslShader {
+  SimpleTextureShader(GlStateManager gls)
+      : super(
+    gls,
+    _fragmentShader,
+    _vertexShader,
+    [
+      GlslShader.v3Attrib,
+      GlslShader.t2Attrib,
+    ],
+    [GlslShader.uModelView, GlslShader.uProj, GlslShader.textureSamplerAttrib,],
+  );
 
-  BitmapTextShader(GlStateManager gls)
-    : super(
-        gls,
-        _fragmentShader,
-        _vertexShader,
-        [GlslShader.v3Attrib, GlslShader.t2Attrib],
-        [
-          GlslShader.uModelView,
-          GlslShader.uProj,
-          GlslShader.textureSamplerAttrib,
-          uTextColor,
-        ],
-      );
-  void setTextColor(Color color) {
-    gls.setUniform4fv(uniforms[uTextColor]!, [
-      color.r,
-      color.g,
-      color.b,
-      color.a,
-    ]);
-  }
 }

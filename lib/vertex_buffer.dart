@@ -1,13 +1,13 @@
 import 'package:flutter/foundation.dart';
 import 'package:flutter_angle/flutter_angle.dart';
-import 'package:fsg/fsg.dart';
+import 'package:fsg/fsk.dart';
 
 /// Represents the possible components a vertex can have.
 enum VertexComponent {
-  position(3, ShaderList.v3Attrib, 0), // Location 0, 3 floats
-  texCoord(2, ShaderList.t2Attrib, 1), // Location 1, 2 floats
-  normal(3, ShaderList.n3Attrib, 2),   // Location 2, 3 floats
-  color(4, ShaderList.c4Attrib, 3);    // Location 3, 4 floats (RGBA)
+  position(3, GlslShader.v3Attrib, 0), // Location 0, 3 floats
+  texCoord(2, GlslShader.t2Attrib, 1), // Location 1, 2 floats
+  normal(3, GlslShader.n3Attrib, 2),   // Location 2, 3 floats
+  color(4, GlslShader.c4Attrib, 3);    // Location 3, 4 floats (RGBA)
 
   final int size;
   final String shaderAttributeName;

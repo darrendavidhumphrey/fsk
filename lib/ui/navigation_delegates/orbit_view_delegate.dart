@@ -2,7 +2,7 @@ import 'dart:math';
 import 'package:flutter/gestures.dart';
 import 'package:flutter/material.dart';
 import 'package:vector_math/vector_math_64.dart';
-import 'package:fsg/fsg.dart';
+import 'package:fsg/fsk.dart';
 
 /// A navigation delegate that implements a classic 3D orbit camera.
 ///
@@ -179,7 +179,7 @@ class OrbitViewDelegate extends SceneNavigationDelegate {
     );
 
     // Ensure Y Axis is the same regardless of platform
-    FSG.normalizeUpAxis(proj);
+    FSK.normalizeUpAxis(proj);
     return proj;
   }
 

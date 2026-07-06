@@ -1,14 +1,13 @@
 import 'package:flutter_angle/flutter_angle.dart';
-import 'package:vector_math/vector_math_64.dart';
-import '../fsg.dart';
+import '../fsk.dart';
 import 'frame_data.dart';
 import 'frame_scene_nodes.dart';
 
-class FrameScene extends Scene {
+class FrameScene extends FskScene {
   late FrameData _data;
   final List<FrameNode> rootNodes = [];
   final Map<String, FrameNode> nodeMap = {};
-  final Map<String, WebGLTexture> textureMap = {};
+
   bool _sceneIsReady = false;
   bool get sceneIsReady => _sceneIsReady;
 
@@ -20,7 +19,7 @@ class FrameScene extends Scene {
     buildScene();
   }
 
-  String getTexturePath(String textureName) {
+  String getResourcePath(String textureName) {
     if ((_data.assetsPath == null) || (_data.assetsPath!.isEmpty)) {
       return textureName;
     }
@@ -30,21 +29,22 @@ class FrameScene extends Scene {
   Future<void> buildScene() async {
     // 1. Load textures
     for (var textureData in _data.textures.values) {
-      logVerbose("Loading texture: ${textureData.file}, full path is ${getTexturePath(textureData.file)}");
-       await FSG().textureManager.createTextureFromAsset(getTexturePath(textureData.file));
+
+      logVerbose("Loading texture: ID=${textureData.id} path=${textureData.file}, path=${getResourcePath(textureData.file)}");
+
+      await FSK().textureManager.createTextureFromAsset(textureData.id,getResourcePath(textureData.file));
     }
     logVerbose("Done reading textures");
 
     // 2. Load fonts
     for (var fontData in _data.fonts.values) {
-      // Assuming BitmapFontManager has a way to load from asset strings, 
-      // but the current implementation of createFont uses hardcoded asset logic.
-      // For now, we assume fonts are already registered or we'd need to fetch their XML.
-      // This part might need more robust asset loading.
+      String texturePath = getResourcePath(fontData.texture);
+      String fontPath = getResourcePath(fontData.fntFile);
 
-      // TODO: Implement this
+      await BitmapFontManager().createFontFromFile(fontData.id,fontPath, texturePath);
     }
-/*
+    logVerbose("Done registering fonts");
+
     // 3. Build node tree
     for (var objData in _data.objects) {
       final node = _createNode(objData);
@@ -52,28 +52,16 @@ class FrameScene extends Scene {
         rootNodes.add(node);
       }
     }
-
+    logVerbose("Done building tree");
     // 4. Initialize nodes
     for (var node in rootNodes) {
       node.init(gls);
     }
-
-    // 5. Assign textures to quads
-    _assignTextures();
- */
+    logVerbose("Done initializing tree");
     _sceneIsReady = true;
   }
 
-  void _assignTextures() {
-    for (var node in nodeMap.values) {
-      if (node is FrameQuadNode) {
-        final quadData = node.data as QuadData;
-        node.texture = textureMap[quadData.texture];
-      }
-    }
-  }
-
-  FrameNode? _createNode(SceneObject objData) {
+  FrameNode? _createNode(FrameObjectData objData) {
     FrameNode? node;
     if (objData is GroupData) {
       final groupNode = FrameGroupNode(objData);
@@ -86,7 +74,7 @@ class FrameScene extends Scene {
       node = groupNode;
     } else if (objData is QuadData) {
       node = FrameQuadNode(objData);
-    } else if (objData is TextData) {
+    } else if (objData is FrameTextData) {
       node = FrameTextNode(objData);
     }
 
@@ -104,8 +92,8 @@ class FrameScene extends Scene {
     gls.setDepthTest(false);
     gls.setBlend(true);
     gls.blendFuncSeparate(WebGL.SRC_ALPHA, WebGL.ONE_MINUS_SRC_ALPHA,WebGL.SRC_ALPHA, WebGL.ONE_MINUS_SRC_ALPHA);
+    mvMatrixStack.current = mvMatrix;
 
-    mvMatrixStack.current = Matrix4.identity();
     for (var node in rootNodes) {
       node.draw(gls, pMatrix, mvMatrixStack);
     }
@@ -128,7 +116,7 @@ class FrameScene extends Scene {
   void setText(String id, String text) {
     final node = findNode(id);
     if (node is FrameTextNode) {
-      node.bitmapText?.setText(text);
+      node.object?.setText(text);
     }
   }
 }

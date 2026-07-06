@@ -1,6 +1,6 @@
 export 'bitmap_fonts/bitmap_font.dart';
 export 'bitmap_fonts/bitmap_font_manager.dart';
-export 'bitmap_fonts/bitmap_text.dart';
+export 'scene_graph/fsk_bitmap_text.dart';
 
 export 'shaders/materials.dart';
 export 'shaders/shaders.dart';
@@ -11,12 +11,12 @@ export 'shaders/flat_shader.dart';
 export 'shaders/grid_shader.dart';
 export 'shaders/bitmap_text_shader.dart';
 
-export 'fsg_singleton.dart';
+export 'fsk_singleton.dart';
 export 'glsl_shader.dart';
 export 'index_buffer.dart';
 export 'obj_loader.dart';
-export 'scene.dart';
-export 'scene_layer.dart';
+export 'fsk_scene.dart';
+export 'fsk_scene_layer.dart';
 
 export 'texture_manager.dart';
 export 'util.dart';

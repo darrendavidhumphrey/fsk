@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_angle/flutter_angle.dart';
 import 'package:xml/xml.dart';
-import '../fsg_singleton.dart';
+import '../fsk_singleton.dart';
 import '../logging.dart';
 import '../texture_manager.dart';
 
@@ -86,7 +86,8 @@ class BitmapFont with LoggableClass {
   Future<void> loadTexture(String textureName) async {
     try {
       // Execute the asynchronous asset creation
-      textureInfo = await FSG().textureManager.createTextureFromAsset(
+      textureInfo = await FSK().textureManager.createTextureFromAsset(
+        name,
         textureName,
         magFilter: WebGL.NEAREST,
         minFilter: WebGL.NEAREST,

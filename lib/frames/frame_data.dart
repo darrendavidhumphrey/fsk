@@ -5,11 +5,11 @@ import '../logging.dart';
 
 class FrameData with LoggableClass {
   final String version;
-  final Map<String, TextureData> textures;
-  final Map<String, FontData> fonts;
-  final Map<String, AnchorData> anchors;
-  final List<SceneObject> objects;
-  final Map<String, SceneObject> _objectMap = {};
+  final Map<String, FrameTextureData> textures;
+  final Map<String, FrameFontData> fonts;
+  final Map<String, FrameAnchorData> anchors;
+  final List<FrameObjectData> objects;
+  final Map<String, FrameObjectData> _objectMap = {};
   final Size _frameSize;
   final String? _assetsPath;
 
@@ -18,9 +18,9 @@ class FrameData with LoggableClass {
 
   FrameData({
     required this.version,
-    required List<TextureData> textures,
-    required List<FontData> fonts,
-    required List<AnchorData> anchors,
+    required List<FrameTextureData> textures,
+    required List<FrameFontData> fonts,
+    required List<FrameAnchorData> anchors,
     required this.objects,
     required this._frameSize,
     required this._assetsPath,
@@ -32,7 +32,7 @@ class FrameData with LoggableClass {
     }
   }
 
-  void _registerObject(SceneObject obj) {
+  void _registerObject(FrameObjectData obj) {
     _objectMap[obj.id] = obj;
     if (obj is GroupData) {
       for (var child in obj.children) {
@@ -41,10 +41,10 @@ class FrameData with LoggableClass {
     }
   }
 
-  SceneObject? findObject(String id) => _objectMap[id];
+  FrameObjectData? findObject(String id) => _objectMap[id];
 
   void dumpTree() {
-    logInfo('📂 FrameData (Version: $version, Size: ${_frameSize.width}x${_frameSize.height} AssetsPath "${_assetsPath}")');
+    logInfo('📂 FrameData (Version: $version, Size: ${_frameSize.width}x${_frameSize.height} AssetsPath "$_assetsPath")');
 
     // Print metadata summaries
     logInfo(' ├── 🖼️ Textures (${textures.length}): ${textures.keys.join(', ')}');
@@ -59,7 +59,7 @@ class FrameData with LoggableClass {
     }
   }
 
-  void _printNode(SceneObject obj, String indent, bool isLast) {
+  void _printNode(FrameObjectData obj, String indent, bool isLast) {
     final marker = isLast ? '└── ' : '├── ';
     final nextIndent = indent + (isLast ? '    ' : '│   ');
 
@@ -72,7 +72,7 @@ class FrameData with LoggableClass {
     } else if (obj is QuadData) {
       final rect = obj.screenRect;
       logInfo('$indent$marker🖼️ Quad [ID: ${obj.id}] (Tex: ${obj.texture}, Rect: [L:${rect.left}, T:${rect.top}, W:${rect.width}, H:${rect.height}])');
-    } else if (obj is TextData) {
+    } else if (obj is FrameTextData) {
       logInfo('$indent$marker🔤 Text [ID: ${obj.id}] (Font: ${obj.font}, Text: "${obj.text}")');
     } else {
       logInfo('$indent$marker❓ Unknown Object [ID: ${obj.id}]');
@@ -80,38 +80,38 @@ class FrameData with LoggableClass {
   }
 }
 
-class TextureData {
+class FrameTextureData {
   final String id;
   final String file;
 
-  TextureData({required this.id, required this.file});
+  FrameTextureData({required this.id, required this.file});
 }
 
-class FontData {
+class FrameFontData {
   final String id;
   final String fntFile;
   final String texture;
 
-  FontData({
+  FrameFontData({
     required this.id,
     required this.fntFile,
     required this.texture,
   });
 }
 
-class AnchorData {
+class FrameAnchorData {
   final String id;
   final Vector3 val;
 
-  AnchorData({required this.id, required this.val});
+  FrameAnchorData({required this.id, required this.val});
 }
 
-abstract class SceneObject {
+abstract class FrameObjectData {
   final String id;
-  SceneObject({required this.id});
+  FrameObjectData({required this.id});
 }
 
-class QuadData extends SceneObject {
+class QuadData extends FrameObjectData {
   final String texture;
   final Rect screenRect;
   final Rect textureRect;
@@ -126,9 +126,9 @@ class QuadData extends SceneObject {
   });
 }
 
-class GroupData extends SceneObject {
+class GroupData extends FrameObjectData {
   final Vector3 anchor;
-  final List<SceneObject> children;
+  final List<FrameObjectData> children;
 
   GroupData({
     required super.id,
@@ -137,7 +137,7 @@ class GroupData extends SceneObject {
   });
 }
 
-class TextData extends SceneObject {
+class FrameTextData extends FrameObjectData {
   final String font;
   final String text;
   final Rect screenRect;
@@ -145,7 +145,7 @@ class TextData extends SceneObject {
   final int? maxLen;
   final bool scaleToFit;
 
-  TextData({
+  FrameTextData({
     required super.id,
     required this.font,
     required this.text,

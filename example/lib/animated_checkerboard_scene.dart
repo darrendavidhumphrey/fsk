@@ -1,9 +1,9 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_angle/flutter_angle.dart';
-import 'package:fsg/fsg.dart';
+import 'package:fsg/fsk.dart';
 import 'package:fsg/vbo_filler.dart';
 
-class AnimatedCheckerBoardScene extends Scene {
+class AnimatedCheckerBoardScene extends FskScene {
   AnimatedCheckerBoardScene() {
     VboFiller.makeTexturedUnitQuad(
       Rect.fromLTWH(-quadExtents.width/2, -quadExtents.height/2, quadExtents.width, quadExtents.height),
@@ -31,7 +31,7 @@ class AnimatedCheckerBoardScene extends Scene {
   void dispose() {}
 
   void drawVBO(Matrix4 pMatrix, Matrix4 mvMatrix) {
-    shader ??= FSG().shaders.getShader<CheckerBoardShader>();
+    shader ??= FSK().shaders.getShader<CheckerBoardShader>();
     gls.useProgram(shader!.program);
     ShaderList.setMatrixUniforms(shader!, pMatrix, mvMatrix);
 
@@ -84,8 +84,8 @@ class AnimatedCheckerBoardScene extends Scene {
     gls.setViewport(
       0,
       0,
-      FSG.renderToTextureSize.toInt(),
-      FSG.renderToTextureSize.toInt(),
+      FSK.renderToTextureSize.toInt(),
+      FSK.renderToTextureSize.toInt(),
     );
     gl.clear(WebGL.COLOR_BUFFER_BIT | WebGL.DEPTH_BUFFER_BIT);
 

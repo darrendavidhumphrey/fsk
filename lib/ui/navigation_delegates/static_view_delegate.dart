@@ -1,6 +1,6 @@
 import 'package:fsg/ui/navigation_delegates/scene_navigation_delegate.dart';
 import 'package:vector_math/vector_math_64.dart';
-import '../../fsg_singleton.dart';
+import '../../fsk_singleton.dart';
 
 /// A navigation delegate that implements a static view
 class StaticViewDelegate extends SceneNavigationDelegate {
@@ -79,7 +79,7 @@ class StaticViewDelegate extends SceneNavigationDelegate {
     setPerspectiveMatrix(proj, radians(_fovYDegrees), aspectRatio, zNear, zFar);
 
     // Ensure Y Axis is the same regardless of platform
-    FSG.normalizeUpAxis(proj);
+    FSK.normalizeUpAxis(proj);
 
     return proj;
   }

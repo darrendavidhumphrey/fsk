@@ -1,17 +1,17 @@
 import 'package:flutter/material.dart';
-import 'package:fsg/fsg.dart';
-import '../fsg_singleton.dart';
+import 'package:fsg/fsk.dart';
+import '../fsk_singleton.dart';
 import '../logging.dart';
-import '../scene_layer.dart';
+import '../fsk_scene_layer.dart';
 
-/// An abstract base class for a [SceneLayer] that is rendered in 2D screen space
+/// An abstract base class for a [FskSceneLayer] that is rendered in 2D screen space
 /// rather than 3D world space.
 ///
 /// This class manages the positioning and scissoring required to create a 2D
 /// overlay on top of the main 3D scene. The position is defined by anchoring
 /// the overlay to one vertical edge (top or bottom) and one horizontal edge
 /// (left or right) of the parent viewport.
-abstract class ScreenSpaceOverlay extends SceneLayer with LoggableClass {
+abstract class ScreenSpaceOverlay extends FskSceneLayer with LoggableClass {
   /// The total size of the render-to-texture target. This is used to convert
   /// screen pixels to texture pixels for GL operations like `scissor` and `viewport`.
   final double textureSize;
@@ -54,7 +54,7 @@ abstract class ScreenSpaceOverlay extends SceneLayer with LoggableClass {
         'Must provide either left or right, but not both.');
     assert((top == null) != (bottom == null),
         'Must provide either top or bottom, but not both.');
-    gls = FSG().glStateManager;
+    gls = FSK().glStateManager;
   }
 
   /// Calculates the top-left corner of this overlay within the parent viewport.

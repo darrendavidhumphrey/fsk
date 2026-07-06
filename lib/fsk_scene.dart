@@ -8,18 +8,18 @@ import 'package:fsg/matrix_stack.dart';
 import 'package:fsg/performance_monitor.dart';
 import 'gl_state_manager.dart';
 import 'logging.dart';
-import 'fsg_singleton.dart';
-import 'scene_layer.dart';
+import 'fsk_singleton.dart';
+import 'fsk_scene_layer.dart';
 
 /// An abstract base class for a 3D scene, representing the root of a scene graph.
 ///
-/// Manages the rendering context, a model-view matrix stack, a list of [SceneLayer]
+/// Manages the rendering context, a model-view matrix stack, a list of [FskSceneLayer]
 /// objects, and the main rendering loop. Subclasses must implement the [drawScene]
 /// method to define the actual rendering logic.
 ///
-/// A [Scene] must be initialized with a [RenderingContext] via the [init] method
+/// A [FskScene] must be initialized with a [RenderingContext] via the [init] method
 /// before it can be used for drawing.
-abstract class Scene with LoggableClass, GlContextManager {
+abstract class FskScene with LoggableClass, GlContextManager {
   /// The perspective projection matrix.
   Matrix4 pMatrix = Matrix4.identity();
 
@@ -30,7 +30,7 @@ abstract class Scene with LoggableClass, GlContextManager {
   Matrix4 get mvMatrix => mvMatrixStack.current;
 
   /// The list of layers that compose this scene, drawn in order.
-  final List<SceneLayer> layers = [];
+  final List<FskSceneLayer> layers = [];
 
   /// A helper for monitoring rendering performance.
   late final PerformanceMonitor performanceMonitor;
@@ -51,7 +51,7 @@ abstract class Scene with LoggableClass, GlContextManager {
 
   late GlStateManager gls;
   /// Creates a new scene and its associated performance monitor.
-  Scene() {
+  FskScene() {
     performanceMonitor = PerformanceMonitor(tag: runtimeType.toString());
   }
 
@@ -64,17 +64,17 @@ abstract class Scene with LoggableClass, GlContextManager {
   }
 
   /// The width of the render-to-texture target.
-  int get textureWidth => FSG.renderToTextureSize.toInt();
+  int get textureWidth => FSK.renderToTextureSize.toInt();
 
   /// The height of the render-to-texture target.
-  int get textureHeight => FSG.renderToTextureSize.toInt();
+  int get textureHeight => FSK.renderToTextureSize.toInt();
 
   /// Initializes the scene with the WebGL [RenderingContext].
   /// This must be called before any drawing operations can occur.
   void init(RenderingContext gl) {
     initializeGl(gl); // Initialize the GlContextManager mixin
-    FSG().initContext(gl);
-    gls = FSG().glStateManager;
+    FSK().initContext(gl);
+    gls = FSK().glStateManager;
     mvMatrixStack.current = Matrix4.identity();
     gl.clearColor(0, 1, 0, 1);
   }
@@ -113,28 +113,28 @@ void drawScene() {
 
   }
 
-  /// Adds a [SceneLayer] to this scene.
-  void addLayer(SceneLayer layer) {
+  /// Adds a [FskSceneLayer] to this scene.
+  void addLayer(FskSceneLayer layer) {
     layers.add(layer);
   }
 
   /// Triggers a rebuild for all layers in the scene.
   void rebuildLayers(DateTime now) {
-    for (SceneLayer layer in layers) {
+    for (FskSceneLayer layer in layers) {
       layer.rebuild(now);
     }
   }
 
   /// Draws all layers in the scene.
   void drawLayers() {
-    for (SceneLayer layer in layers) {
+    for (FskSceneLayer layer in layers) {
       layer.draw(pMatrix, mvMatrix);
     }
   }
 
   /// Checks if any layer in the scene needs to be rebuilt.
   bool needsRebuild() {
-    for (SceneLayer layer in layers) {
+    for (FskSceneLayer layer in layers) {
       if (layer.needsRebuild) {
         return true;
       }
@@ -172,7 +172,7 @@ void drawScene() {
         renderToTextureId!.activate();
 
         if (!isInitialized) {
-          FSG().initScene(this);
+          FSK().initScene(this);
         }
 
        drawScene();

@@ -10,7 +10,7 @@ import 'package:vector_math/vector_math_64.dart' hide Colors;
 import 'gl_state_manager.dart';
 import 'logging.dart';
 
-import 'scene.dart';
+import 'fsk_scene.dart';
 
 /// Enum to manage the initialization state of the FSG singleton.
 enum FsgState {
@@ -32,7 +32,7 @@ enum FsgState {
 /// This class is responsible for managing global state, including the FlutterAngle
 /// engine instance, scenes, and shared resources like shaders, materials, and
 /// textures.
-class FSG with LoggableClass {
+class FSK with LoggableClass {
   /// The core FlutterAngle engine instance.
   FlutterAngle angle = FlutterAngle();
 
@@ -44,7 +44,7 @@ class FSG with LoggableClass {
   static double renderToTextureSize = 4096;
 
   /// A map of all registered scenes and their corresponding output textures.
-  final Map<Scene, FlutterAngleTexture> scenes = {};
+  final Map<FskScene, FlutterAngleTexture> scenes = {};
 
   /// The manager for all shader programs.
   late ShaderList shaders;
@@ -62,17 +62,18 @@ class FSG with LoggableClass {
   final GlStateManager glStateManager = GlStateManager();
 
   /// The singleton instance.
-  static final FSG _singleton = FSG._internal();
+  static final FSK _singleton = FSK._internal();
 
   /// Factory constructor to return the singleton instance.
-  factory FSG() {
+  factory FSK() {
     return _singleton;
   }
 
   /// Internal constructor for the singleton.
-  FSG._internal() {
+  FSK._internal() {
     textureManager = TextureManager(glStateManager);
   }
+
 
   /// Initializes the core FlutterAngle engine.
   /// This must be called once before any other operations.
@@ -102,8 +103,8 @@ class FSG with LoggableClass {
     return newTexture;
   }
 
-  /// Initializes a [Scene] with its rendering context.
-  void initScene(Scene scene) {
+  /// Initializes a [FskScene] with its rendering context.
+  void initScene(FskScene scene) {
     if (!scene.isInitialized) {
       scene.init(scene.renderToTextureId!.getContext());
     }
@@ -171,7 +172,7 @@ class FSG with LoggableClass {
 
   /// Registers a scene with the engine and allocates a texture for it to render to.
   /// This is the primary method for setting up a new renderable scene.
-  Future<bool> registerSceneAndAllocateTexture(Scene scene) async {
+  Future<bool> registerSceneAndAllocateTexture(FskScene scene) async {
     final options = AngleOptions(
       width: scene.textureWidth,
       height: scene.textureHeight,
@@ -191,7 +192,7 @@ class FSG with LoggableClass {
     return success;
   }
 
-  void reuseTexture(FlutterAngleTexture textureId, Scene scene) async {
+  void reuseTexture(FlutterAngleTexture textureId, FskScene scene) async {
     scene.renderToTextureId = textureId;
     scenes[scene] = textureId;
   }

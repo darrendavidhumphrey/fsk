@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_angle/flutter_angle.dart';
-import 'package:fsg/fsg.dart';
+import 'package:fsg/fsk.dart';
 import 'package:fsg/vbo_filler.dart';
 
 class FrameSceneExample extends FrameScene {

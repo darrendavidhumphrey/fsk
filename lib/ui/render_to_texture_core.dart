@@ -2,13 +2,13 @@ import 'package:flutter/foundation.dart';
 import 'package:flutter/scheduler.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_angle/flutter_angle.dart';
-import '../fsg_singleton.dart';
-import '../scene.dart';
+import '../fsk_singleton.dart';
+import '../fsk_scene.dart';
 import '../logging.dart';
 import 'navigation_delegates/scene_navigation_delegate.dart';
 
 class RenderToTextureCore extends StatefulWidget {
-  final Scene scene;
+  final FskScene scene;
   final Widget? child;
   final SceneNavigationDelegate navigationDelegate;
 
@@ -47,13 +47,13 @@ class RenderToTextureCoreState extends State<RenderToTextureCore>
   void _initRenderLoop() async {
 
     // Make sure FSG is ready
-    while (FSG().state != FsgState.glInitialized) {
+    while (FSK().state != FsgState.glInitialized) {
       await Future.delayed(const Duration(milliseconds: 16));
       if (!mounted) return;
     }
 
     // Make sure texture is ready
-    while (FSG().scenes[widget.scene] == null) {
+    while (FSK().scenes[widget.scene] == null) {
       await Future.delayed(const Duration(milliseconds: 16));
       if (!mounted) return;
     }
@@ -140,7 +140,7 @@ class RenderToTextureCoreState extends State<RenderToTextureCore>
 
     return LayoutBuilder(
       builder: (context, constraints) {
-        FlutterAngleTexture? texture = FSG().scenes[widget.scene];
+        FlutterAngleTexture? texture = FSK().scenes[widget.scene];
 
         if ((!_engineDataReady)  ||  (texture == null)) {
           return const Center(child: CircularProgressIndicator());

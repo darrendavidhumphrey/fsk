@@ -1,15 +1,15 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_angle/flutter_angle.dart';
-import 'package:fsg/fsg.dart';
+import 'package:fsg/fsk.dart';
 
 // IndexedStackScene contains a list of scenes and a current scene index.
 // Only the current scene is rendered. Its behavior is analogous to the
 // IndexedStack widget in flutter
-class IndexedStackScene extends Scene with ChangeNotifier {
-  late Scene _currentScene;
+class IndexedStackScene extends FskScene with ChangeNotifier {
+  late FskScene _currentScene;
   late SceneNavigationDelegate _currentDelegate;
-  final List<Scene> scenes = [];
-  final Map<Scene, SceneNavigationDelegate> delegates = {};
+  final List<FskScene> scenes = [];
+  final Map<FskScene, SceneNavigationDelegate> delegates = {};
   int _currentIndex = 0;
   int get currentIndex => _currentIndex;
 
@@ -28,9 +28,9 @@ class IndexedStackScene extends Scene with ChangeNotifier {
   }
 
   // Add a scene to the list of scenes, optionally with a delegate.
-  void addScene(Scene scene, SceneNavigationDelegate delegate) {
+  void addScene(FskScene scene, SceneNavigationDelegate delegate) {
     scene.init(gl);
-    FSG().reuseTexture(renderToTextureId!, scene);
+    FSK().reuseTexture(renderToTextureId!, scene);
     scenes.add(scene);
     delegates[scene] = delegate;
     notifyListeners();
@@ -56,7 +56,7 @@ class IndexedStackScene extends Scene with ChangeNotifier {
     }
   }
 
-  Scene currentScene() {
+  FskScene currentScene() {
     return _currentScene;
   }
 

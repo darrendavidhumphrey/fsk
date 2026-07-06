@@ -1,9 +1,9 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_angle/flutter_angle.dart';
-import 'package:fsg/fsg.dart';
+import 'package:fsg/fsk.dart';
 import 'package:fsg/vbo_filler.dart';
 
-class OrbitViewScene extends Scene {
+class OrbitViewScene extends FskScene {
   OrbitViewScene() {
 
     VboFiller.makeTexturedUnitQuad(
@@ -30,7 +30,7 @@ class OrbitViewScene extends Scene {
   }
 
   void drawVBO(Matrix4 pMatrix, Matrix4 mvMatrix) {
-    shader ??= FSG().shaders.getShader<GridShader>();
+    shader ??= FSK().shaders.getShader<GridShader>();
 
     gls.useProgram(shader!.program);
     ShaderList.setMatrixUniforms(shader!, pMatrix, mvMatrix);
@@ -56,8 +56,8 @@ class OrbitViewScene extends Scene {
     gls.setViewport(
       0,
       0,
-      FSG.renderToTextureSize.toInt(),
-      FSG.renderToTextureSize.toInt(),
+      FSK.renderToTextureSize.toInt(),
+      FSK.renderToTextureSize.toInt(),
     );
     gls.activeTexture(WebGL.TEXTURE0);
     gls.setTexturingEnabled(false);

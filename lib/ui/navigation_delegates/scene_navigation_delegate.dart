@@ -1,16 +1,16 @@
 import 'package:flutter/gestures.dart';
 import 'package:flutter/material.dart';
 import 'package:vector_math/vector_math_64.dart';
-import '../../scene.dart';
+import '../../fsk_scene.dart';
 
-/// An abstract interface for classes that handle user input to navigate a [Scene].
+/// An abstract interface for classes that handle user input to navigate a [FskScene].
 ///
 /// This decouples the interaction logic (like orbiting, panning, or zooming)
 /// from the rendering widget itself. It defines a contract for a set of event
 /// handlers that a widget like [RenderToTexture] can call in response to user input.
 abstract class SceneNavigationDelegate {
   /// The scene that this delegate controls.
-  late Scene scene;
+  late FskScene scene;
   late Matrix4 _projectionMatrix;
   late Matrix4 _viewMatrix;
 
@@ -74,7 +74,7 @@ abstract class SceneNavigationDelegate {
 
   /// Sets the scene that this delegate will control. This is typically called
   /// by the owner widget when the delegate is initialized or when the scene changes.
-  void setScene(Scene scene) {
+  void setScene(FskScene scene) {
     this.scene = scene;
     setNeedsUpdate(true);
   }

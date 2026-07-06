@@ -1,9 +1,8 @@
 import 'dart:ui';
 import 'package:fsg/gl_state_manager.dart';
 import 'package:vector_math/vector_math_64.dart';
-
 import '../glsl_shader.dart';
-import 'shaders.dart';
+
 
 const String _vertexShader = """
 #version 300 es
@@ -153,9 +152,9 @@ class OneLightShader extends GlslShader {
         _fragmentShader,
         _vertexShader,
         [
-          ShaderList.v3Attrib,
-          ShaderList.t2Attrib,
-          ShaderList.n3Attrib,
+          GlslShader.v3Attrib,
+          GlslShader.t2Attrib,
+          GlslShader.n3Attrib,
         ],
         [
           uLightPos,
@@ -171,8 +170,8 @@ class OneLightShader extends GlslShader {
           uDrawFill,
           uOutlineColor,
           uOutlineWidth,
-          ShaderList.uModelView,
-          ShaderList.uProj,
+          GlslShader.uModelView,
+          GlslShader.uProj,
         ],
       );
 

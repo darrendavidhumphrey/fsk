@@ -1,9 +1,9 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_angle/flutter_angle.dart';
-import 'package:fsg/fsg.dart';
+import 'package:fsg/fsk.dart';
 import 'package:fsg/vbo_filler.dart';
 
-class CheckerBoardScene extends Scene {
+class CheckerBoardScene extends FskScene {
 
   CheckerBoardScene() {
     VboFiller.makeTexturedUnitQuad(
@@ -30,7 +30,7 @@ class CheckerBoardScene extends Scene {
 
 
   void drawVBO(Matrix4 pMatrix, Matrix4 mvMatrix) {
-    shader ??= FSG().shaders.getShader<CheckerBoardShader>();
+    shader ??= FSK().shaders.getShader<CheckerBoardShader>();
     gls.useProgram(shader!.program);
     ShaderList.setMatrixUniforms(shader!, pMatrix, mvMatrix);
 
@@ -50,8 +50,8 @@ class CheckerBoardScene extends Scene {
     gls.setViewport(
       0,
       0,
-      FSG.renderToTextureSize.toInt(),
-      FSG.renderToTextureSize.toInt(),
+      FSK.renderToTextureSize.toInt(),
+      FSK.renderToTextureSize.toInt(),
     );
     gls.activeTexture(WebGL.TEXTURE0);
     gls.setTexturingEnabled(false);

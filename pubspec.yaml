@@ -1,5 +1,5 @@
 name: fsg
-description: "FlutterSceneGraph - lightweight library for adding flutter_angle to flutter applications"
+description: "FlutterSceneKit - lightweight library for adding OpenGL ES 3D rendering to flutter applications"
 version: 0.0.1
 homepage: https://pub.dev
 

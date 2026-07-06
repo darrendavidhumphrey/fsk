@@ -1,5 +1,6 @@
 import 'package:flutter/services.dart';
 
+import '../logging.dart';
 import 'bitmap_font.dart';
 part 'built_in_font.dart';
 
@@ -8,13 +9,14 @@ part 'built_in_font.dart';
 ///
 /// This class is intended to be held by a central singleton (e.g., FSG) and is
 /// responsible for caching fonts and ensuring their textures are loaded before use.
-class BitmapFontManager {
+class BitmapFontManager with LoggableClass {
   /// The internal cache of registered fonts, keyed by their unique name.
   final Map<String, BitmapFont> _fonts = {};
 
   /// The singleton instance.
   static final BitmapFontManager _singleton = BitmapFontManager._internal();
 
+  static String assetsRoot = "assets/";
   /// Factory constructor to return the singleton instance.
   factory BitmapFontManager() {
     return _singleton;
@@ -30,6 +32,7 @@ class BitmapFontManager {
 
   /// Registers a pre-loaded [BitmapFont] instance with a given [name].
   void registerFont(String name, BitmapFont font) {
+    logInfo("Registering font $name");
     _fonts[name] = font;
   }
 
@@ -52,10 +55,11 @@ class BitmapFontManager {
     return font;
   }
 
-void createFontFromFile(String fontName, String filename, String textureName) async {
+Future<void> createFontFromFile(String fontName, String filename, String textureName) async {
   // Load the XML data from the file as a string
-  final xmlData = await rootBundle.loadString(filename);
+  final xmlData = await rootBundle.loadString("$assetsRoot$filename");
 
+  logVerbose("createFontFromFile: $fontName, $filename, $textureName");
   // Call the createFont method with the retrieved data
   createFont(fontName, xmlData, textureName);
 }

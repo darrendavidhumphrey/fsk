@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_angle/flutter_angle.dart';
-import 'package:fsg/fsg.dart';
+import 'package:fsg/fsk.dart';
 import 'package:vector_math/vector_math_64.dart' hide Colors;
 
 /// A renderer responsible for drawing a [WavefrontObjModel] to the screen.
@@ -76,7 +76,7 @@ class MeshFileRenderer {
 
   /// Sets the material properties on the currently active shader.
   void setMaterial(String materialName) {
-    GlMaterial material = FSG().materials.getMaterial(materialName);
+    GlMaterial material = FSK().materials.getMaterial(materialName);
     shader!.setMaterialAmbient(material.ambient);
     shader!.setMaterialDiffuse(material.diffuse);
     shader!.setMaterialSpecular(material.specular);
@@ -89,9 +89,9 @@ class MeshFileRenderer {
   /// enables the shader, and then iterates through each mesh in the model.
   /// For each mesh, it sets the correct material and issues a `drawElements` call.
   void draw(Matrix4 pMatrix, Matrix4 mvMatrix) {
-    shader ??= FSG().shaders.getShader<OneLightShader>();
+    shader ??= FSK().shaders.getShader<OneLightShader>();
 
-    var gls = FSG().glStateManager;
+    var gls = FSK().glStateManager;
 
     gls.setBlend(true);
     gls.setDepthTest(true);

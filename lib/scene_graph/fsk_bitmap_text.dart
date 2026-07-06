@@ -3,19 +3,20 @@ import 'package:flutter_angle/flutter_angle.dart';
 import 'package:fsg/gl_state_manager.dart';
 import 'package:fsg/vbo_filler.dart';
 import 'package:vector_math/vector_math_64.dart' hide Colors;
-import '../fsg_singleton.dart';
+import '../fsk_singleton.dart';
 import '../reference_box.dart';
 import '../shaders/bitmap_text_shader.dart';
 import '../shaders/shaders.dart';
 import '../vertex_buffer.dart';
-import 'bitmap_font.dart';
+import '../bitmap_fonts/bitmap_font.dart';
+import 'fsk_scene_object.dart';
 
 /// A class that manages the geometry and rendering for a single line of text
 /// using a [BitmapFont].
 ///
 /// It generates a set of quads for the text, scaled to fit within a target
 /// [ReferenceBox], and manages the associated [VertexBuffer] for rendering.
-class BitmapText {
+class FskBitmapText extends FskSceneObject {
   /// The list of 3D quads representing the geometry of each character.
   List<Quad> quads = [];
 
@@ -51,17 +52,17 @@ class BitmapText {
   // One shader shared by all text instances
   static BitmapTextShader? shader;
 
-  /// Creates a [BitmapText] object.
+  /// Creates a [FskBitmapText] object.
   ///
   /// - [_font]: The font to use for rendering.
   /// - [_text]: The initial text string.
   /// - [_screenRect]: The target area for the text.
-  BitmapText(this._font, this._text, this._screenRect) {
+  FskBitmapText(this._font, this._text, this._screenRect) {
     // Cache the target width from the reference box.
     _width = _screenRect.xVector.length;
   }
 
-  BitmapText.origin({required this._text,required BitmapFont font,Vector3? origin,Color? color,double? width}) {
+  FskBitmapText.origin({required this._text,required BitmapFont font,Vector3? origin,Color? color,double? width}) {
     origin ??= Vector3.zero();
     _font = font;
 
@@ -103,15 +104,18 @@ class BitmapText {
     }
   }
 
+  @override
+  void init(GlStateManager gls) {
+    vbo.init(gls);
+    rebuild(gls);
+  }
   /// Rebuilds the vertex buffer object if the text or font has changed.
+  @override
   void rebuild(GlStateManager gls) {
     // Guard against unnecessary, expensive rebuilds.
     if (!_needsRebuild) return;
 
     rebuildQuads();
-
-    // Create the VBO if it doesn't exist.
-    vbo.init(gls);
 
     int vertexCount = quads.length * 6; // Two triangles per character quad.
 
@@ -202,13 +206,16 @@ class BitmapText {
     }
   }
 
+  @override
   void drawSetup(GlStateManager gls, Matrix4 pMatrix, Matrix4 mvMatrix) {
-    shader ??= FSG().shaders.getShader<BitmapTextShader>();
+
+    // TODO: Clean this up .. Don't do it in the loop
+    shader ??= FSK().shaders.getShader<BitmapTextShader>();
+
     if ((font == null) || (shader==null)) return;
 
     gls.useProgram(shader!.program);
     ShaderList.setMatrixUniforms(shader!, pMatrix, mvMatrix);
-
 
     gls.setBlend(true);
     gls.setTexturingEnabled(true);
@@ -223,6 +230,7 @@ class BitmapText {
     shader!.setTextureSampler(0);
   }
 
+  @override
   void draw(GlStateManager gls) {
     if ((font == null) || (!font!.isInitialized) || (shader==null)) return;
 

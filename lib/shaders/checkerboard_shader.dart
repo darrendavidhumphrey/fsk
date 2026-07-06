@@ -1,7 +1,6 @@
 import 'dart:ui';
 import '../gl_state_manager.dart';
 import '../glsl_shader.dart';
-import 'shaders.dart';
 
 String _vertexShader = '''
 #version 300 es
@@ -61,13 +60,13 @@ class CheckerBoardShader extends GlslShader {
         gls,
         _fragmentShader,
         _vertexShader,
-        [ShaderList.v3Attrib, ShaderList.t2Attrib],
+        [GlslShader.v3Attrib, GlslShader.t2Attrib],
         [
           uPatternColor1,
           uPatternColor2,
           uPatternScale,
-          ShaderList.uModelView,
-          ShaderList.uProj,
+          GlslShader.uModelView,
+          GlslShader.uProj,
         ],
       );
 

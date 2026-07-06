@@ -1,6 +1,6 @@
 import 'package:flutter/foundation.dart';
 import 'package:flutter/services.dart';
-import 'package:fsg/fsg.dart';
+import 'package:fsg/fsk.dart';
 import 'package:flutter/material.dart';
 import 'package:fsg_examples/example_scenes.dart';
 
@@ -32,13 +32,13 @@ class TestAppState extends State<TestApp> {
     // FSG.renderToTextureSize = 1024;
 
     // Initialize FSG. This call immediately sets FSG().state to inProgress
-    await FSG().initPlatformState();
+    await FSK().initPlatformState();
 
     // Create the scene
     scene = ExampleScenes();
 
     // Register the scene and allocate a texture
-    await FSG().registerSceneAndAllocateTexture(scene!);
+    await FSK().registerSceneAndAllocateTexture(scene!);
 
     // Trigger a rebuild of the widget
     setState(() {
@@ -58,7 +58,7 @@ class TestAppState extends State<TestApp> {
   Widget build(BuildContext context) {
     return LayoutBuilder(
       builder: (context, constraints) {
-        if (FSG().state == FsgState.uninitialized) {
+        if (FSK().state == FsgState.uninitialized) {
           initAngle();
         }
 

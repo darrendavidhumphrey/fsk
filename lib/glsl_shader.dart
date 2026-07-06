@@ -6,6 +6,21 @@ import 'logging.dart';
 
 /// A class that encapsulates a WebGL shader program.
 class GlslShader with LoggableClass {
+
+  // --- Shared Attribute Names ---
+  // Use these constants when possible
+  static const String v3Attrib = "aVertexPosition";
+  static const String c4Attrib = "aVertexColor";
+  static const String t2Attrib = "aTextureCoord";
+  static const String n3Attrib = "aVertexNormal";
+
+  // --- Shared Uniform Names ---
+  // Use these constants when possible
+  static const String uModelView = "uMVMatrix";
+  static const String uProj = "uPMatrix";
+  static const String uNormal = "uNMatrix";
+  static const String textureSamplerAttrib = 'uSampler';
+
   final Map<String, int> _attributes = <String, int>{};
   final Map<String, UniformLocation> _uniforms = <String, UniformLocation>{};
   Program? program;
@@ -129,4 +144,12 @@ class GlslShader with LoggableClass {
     Object.hashAll(attributeNames),
     Object.hashAll(uniformNames),
   );
+
+  void setUniform1i(String name, int value) {
+    gls.setUniform1i(uniforms[name]!, value);
+  }
+
+  void setTextureSampler(int unit) {
+    gls.setUniform1i(uniforms[GlslShader.textureSamplerAttrib]!, unit);
+  }
 }

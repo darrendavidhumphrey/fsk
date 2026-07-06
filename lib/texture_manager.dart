@@ -1,11 +1,12 @@
 import 'dart:typed_data';
 import 'dart:ui';
 import 'package:flutter/services.dart';
-import 'package:fsg/fsg.dart';
+import 'package:fsg/fsk.dart';
 import 'package:mutex/mutex.dart';
 import 'package:flutter_angle/flutter_angle.dart';
 
 class TextureInfo {
+  String id;
   String url;
   WebGLTexture? texture;
   Image? image;
@@ -16,13 +17,14 @@ class TextureInfo {
   bool isLoaded = false;
   bool isBound = false;
 
-  TextureInfo(this.url, this.magFilter, this.minFilter, this.wrapS, this.wrapT);
+  TextureInfo(this.id,this.url, this.magFilter, this.minFilter, this.wrapS, this.wrapT);
 }
 
 /// A manager for loading, creating, and caching WebGL textures for a given GL context.
 class TextureManager with GlContextManager, LoggableClass {
   final Map<String, TextureInfo> _textures = {};
 
+  static String assetsRoot = "assets/";
   // List of textures that are loaded but unbound
   final List<TextureInfo> _unBoundTextures = [];
   final Mutex _unBoundTexturesLock = Mutex();
@@ -34,23 +36,33 @@ class TextureManager with GlContextManager, LoggableClass {
   /// rather than being a singleton itself.
   TextureManager(this.gls);
 
+  void dump() {
+    for (var textureInfo in _textures.values) {
+      logInfo("Texture: ID=${textureInfo.id}, path=${textureInfo.url}");
+    }
+  }
   /// Loads an image from assets and creates a WebGL texture from it.
   ///
   /// Textures are cached based on their asset [url]. If a texture is already
   /// in the cache, the existing instance is returned. Otherwise, a new texture
   /// is created with the specified filtering and wrapping parameters.
   Future<TextureInfo> createTextureFromAsset(
+      String id,
     String url, {
     int magFilter = WebGL.LINEAR,
     int minFilter = WebGL.LINEAR_MIPMAP_LINEAR,
     int wrapS = WebGL.REPEAT,
     int wrapT = WebGL.REPEAT,
   }) async {
-    if (!_textures.containsKey(url)) {
-      var textureInfo = TextureInfo(url, magFilter, minFilter, wrapS, wrapT);
-      _textures[url] = textureInfo;
+    if (!_textures.containsKey(id)) {
+      var textureInfo = TextureInfo(id,url, magFilter, minFilter, wrapS, wrapT);
+      _textures[id] = textureInfo;
 
-      final ByteData data = await rootBundle.load('assets/$url');
+      String fullPath = '$assetsRoot$url';
+      logVerbose("createTextureFromAsset: ID=$id, path=$fullPath");
+
+
+      final ByteData data = await rootBundle.load(fullPath);
 
       final Codec codec = await instantiateImageCodec(data.buffer.asUint8List());
       final FrameInfo frameInfo = await codec.getNextFrame();
@@ -63,12 +75,15 @@ class TextureManager with GlContextManager, LoggableClass {
       });
       return textureInfo;
     }
+    else {
+      logInfo("Skip Loading Texture ID $id (already exists)");
+    }
 
-    return _textures[url]!;
+    return _textures[id]!;
   }
 
-  TextureInfo? getTextureInfo(String url) {
-    return _textures[url];
+  TextureInfo? getTextureInfo(String id) {
+    return _textures[id];
   }
 
   Future<void> bindUnboundTextures() async {
@@ -122,7 +137,7 @@ class TextureManager with GlContextManager, LoggableClass {
         gls.bindTexture(WebGL.TEXTURE_2D, textureInfo.texture);
         gl.pixelStorei(WebGL.UNPACK_ALIGNMENT, 1);
 
-        logVerbose("Uploading WebGL texture for: ${textureInfo.url}");
+        logVerbose("Uploading WebGL texture for:${textureInfo.id} path=${textureInfo.url}");
 
         // 2. Upload the data immediately without yielding the main thread
         gl.texImage2D(
@@ -158,7 +173,7 @@ class TextureManager with GlContextManager, LoggableClass {
         gls.bindTexture(WebGL.TEXTURE_2D, null);
 
         textureInfo.isBound = true;
-        _textures[textureInfo.url] = textureInfo;
+        _textures[textureInfo.id] = textureInfo;
       } catch (e) {
         logError(
           "Error processing WebGL texture allocation for ${textureInfo.url}: $e",

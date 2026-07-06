@@ -2,16 +2,16 @@ import 'dart:ui';
 import 'package:flutter_angle/flutter_angle.dart';
 import 'package:fsg/gl_context_manager.dart';
 import 'package:vector_math/vector_math_64.dart';
-import 'scene.dart';
+import 'fsk_scene.dart';
 
-/// An abstract base class for a layer within a [Scene].
+/// An abstract base class for a layer within a [FskScene].
 ///
 /// A layer is a distinct component of a scene that can be rebuilt and drawn
 /// independently. It has its own lifecycle methods and manages its own WebGL
 /// resources.
-abstract class SceneLayer with GlContextManager {
-  /// A reference to the parent [Scene] that owns this layer.
-  late final Scene parent;
+abstract class FskSceneLayer with GlContextManager {
+  /// A reference to the parent [FskScene] that owns this layer.
+  late final FskScene parent;
 
   bool _needsRebuild = true;
 
@@ -24,7 +24,7 @@ abstract class SceneLayer with GlContextManager {
   Size get viewportSize => _viewportSize;
 
   /// Creates a new SceneLayer.
-  SceneLayer();
+  FskSceneLayer();
 
   /// Sets the viewport size for this layer.
   void setViewportSize(Size size) {
@@ -38,7 +38,7 @@ abstract class SceneLayer with GlContextManager {
 
   /// Initializes the layer and its GL context.
   /// This must be called before any drawing or building operations can occur.
-  void init(Scene parent) {
+  void init(FskScene parent) {
     this.parent = parent;
     initializeGl(parent.gl);
   }

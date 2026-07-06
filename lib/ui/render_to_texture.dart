@@ -1,16 +1,16 @@
 import 'package:flutter/material.dart';
-import 'package:fsg/scene.dart';
+import 'package:fsg/fsk_scene.dart';
 import 'package:fsg/ui/render_to_texture_core.dart';
 import 'package:fsg/ui/navigation_delegates/scene_navigation_delegate.dart';
 
-/// A widget that renders a [Scene] and provides user interaction capabilities.
+/// A widget that renders a [FskScene] and provides user interaction capabilities.
 ///
 /// This widget builds upon [RenderToTextureCore] by adding a [GestureDetector],
 /// a [Listener] for mouse events, and a [Focus] widget for keyboard events.
 /// It forwards all user input to a [SceneNavigationDelegate] to control the scene.
 class RenderToTexture extends StatefulWidget {
   /// The scene to be rendered.
-  final Scene scene;
+  final FskScene scene;
 
   /// The delegate responsible for handling user input and navigating the scene.
   final SceneNavigationDelegate navigationDelegate;
