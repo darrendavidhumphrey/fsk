@@ -34,7 +34,7 @@
 	</textures>
             
     <fonts>
-		<font id="AnswerFont36" fntFile="SourceCodeProBlack36.fnt" texture="SourceCodeProBlack36.png" />
+		<font id="AnswerFont36" fntFile="Arial36.fnt" texture="Arial36.png" />
 		<font id="AnswerScoreFont" fntFile="Arial60.fnt" texture="Arial60.png" />
 		<font id="Scoreboard100" fntFile="Scoreboard100.fnt" texture="Scoreboard100.png" />
 		<font id="Scoreboard140" fntFile="Scoreboard140.fnt" texture="Scoreboard140.png" />
@@ -59,81 +59,82 @@
                 <group id="Question1" anchor="{228, 443, 0}">
                         <group id="Question1_Back" anchor="{0, 0, 0}">
                                 <quad id="Question1_BackBox" texture="Question_Back" premultiplyAlpha="true" screenRect="{{0, -53}, {411, 91}}" />
-								<text id="Question1_Text" font="AnswerFont36" text="Answer Number 1" screenRect="{{12, -40}, {288, 91}}" scaleToFit="YES"	/>
-        						<text id="Question1_Score" font="AnswerScoreFont" text="01" screenRect="{{300, -63}, {90, 91}}" hJustify="JUSTIFY_RIGHT"	/>
+							    <quad id="TestyTest" texture="TestPattern" screenRect="{{12, -40}, {288, 68}}"	/>
+								<text id="Question1_Text" font="AnswerFont36" text="Answerg Number_1" screenRect="{{12, -40}, {288, 68}}" />
+        						<text id="Question1_Score" font="AnswerScoreFont" text="01" screenRect="{{300, -40}, {90, 68}}" hJustify="JUSTIFY_RIGHT"	/>
 						</group>
 					<quad id="Question1_Front" texture="Question1_Front" premultiplyAlpha="true" screenRect="{{0, -53}, {411, 91}}" visible="false" />
-					<quad id="TestyTest" texture="TestPattern" screenRect="{{12, -40}, {288, 68}}"	/>
+
               	</group>
               	
               	<!-- Question Number Two  -->
-              	<group id="Question2" anchor="{228, 348, 0}" visible="false">
+              	<group id="Question2" anchor="{228, 348, 0}" >
                         <group id="Question2_Back" anchor="{0, 0, 0}">
                                 <quad id="Question2_BackBox" texture="Question_Back" premultiplyAlpha="true" screenRect="{{0, -53}, {411, 91}}" />
-								<text id="Question2_Text" font="AnswerFont36" text="XXXX" screenRect="{{12, -65}, {288, 91}}" scaleToFit="YES"	/>
-        						<text id="Question2_Score" font="AnswerScoreFont" text="77" screenRect="{{300, -63}, {90, 91}}" hJustify="JUSTIFY_RIGHT"	/>
+								<text id="Question2_Text" font="AnswerFont36" text="A Very Long Answer!_" screenRect="{{12, -40}, {288, 68}}" 	/>
+        						<text id="Question2_Score" font="AnswerScoreFont" text="77" screenRect="{{300, -40}, {90, 68}}" hJustify="JUSTIFY_RIGHT"	/>
 						</group>
-					<quad id="Question2_Front" texture="Question2_Front" premultiplyAlpha="true" screenRect="{{0, -53}, {411, 91}}" />
+					<quad id="Question2_Front" texture="Question2_Front" premultiplyAlpha="true" screenRect="{{0, -53}, {411, 91}}" visible="false"/>
               	</group>
               	
                 <!-- Question Number Three  -->
               	<group id="Question3" anchor="{228, 253, 0}">
                         <group id="Question3_Back" anchor="{0, 0, 0}">
                                 <quad id="Question3_BackBox" texture="Question_Back" premultiplyAlpha="true" screenRect="{{0, -53}, {411, 91}}"  />
-								<text id="Question3_Text" font="AnswerFont36" text="Answer 3" screenRect="{{12, -65}, {288, 91}}" scaleToFit="YES"/>
-        						<text id="Question3_Score" font="AnswerScoreFont" text="3" screenRect="{{300, -63}, {90, 91}}" hJustify="JUSTIFY_RIGHT"/>
+								<text id="Question3_Text" font="AnswerFont36" text="A Very VERY very Long AnsweR!_" screenRect="{{12, -40}, {288, 68}}" scaleToFit="YES"	/>
+        						<text id="Question3_Score" font="AnswerScoreFont" text="3" screenRect="{{300, -40}, {90, 68}}" scaleToFit="YES" hJustify="JUSTIFY_RIGHT"	/>
 						</group>
-						<quad id="Question3_Front" texture="Question3_Front" premultiplyAlpha="true" screenRect="{{0, -53}, {411, 91}}"  />
+						<quad id="Question3_Front" texture="Question3_Front" premultiplyAlpha="true" screenRect="{{0, -53}, {411, 91}}"  visible="false"/>
               	</group> 
               	
                  <!-- Question Number Four  -->
               	<group id="Question4" anchor="{228, 158, 0}">
                         <group id="Question4_Back" anchor="{0, 0, 0}">
                                 <quad id="Question4_BackBox" texture="Question_Back" premultiplyAlpha="true" screenRect="{{0, -53}, {411, 91}}"  />
-								<text id="Question4_Text" font="AnswerFont36" text="XXXX" screenRect="{{12, -65}, {288, 91}}" scaleToFit="YES"/>
-        						<text id="Question4_Score" font="AnswerScoreFont" text="77" screenRect="{{300, -63}, {90, 91}}" hJustify="JUSTIFY_RIGHT"/>
+								<text id="Question4_Text" font="AnswerFont36" text="XXXX" screenRect="{{12, -40}, {288, 68}}" scaleToFit="YES"	/>
+        						<text id="Question4_Score" font="AnswerScoreFont" text="77" screenRect="{{300, -40}, {90, 68}}" scaleToFit="YES" hJustify="JUSTIFY_RIGHT"	/>
 						</group>
-						<quad id="Question4_Front" texture="Question4_Front" premultiplyAlpha="true" screenRect="{{0, -53}, {411, 91}}"  />
+						<quad id="Question4_Front" texture="Question4_Front" premultiplyAlpha="true" screenRect="{{0, -53}, {411, 91}}"  visible="false"/>
               	</group>           
                 
                 <!-- Question Number Five  -->
               	<group id="Question5" anchor="{645, 443, 0}">
                         <group id="Question5_Back" anchor="{0, 0, 0}">
                                 <quad id="Question5_BackBox" texture="Question_Back" premultiplyAlpha="true" screenRect="{{0, -53}, {411, 91}}" />
-								<text id="Question5_Text" font="AnswerFont36" text="XXXX" screenRect="{{12, -65}, {288, 91}}" scaleToFit="YES"/>
-        						<text id="Question5_Score" font="AnswerScoreFont" text="77" screenRect="{{300, -63}, {90, 91}}" hJustify="JUSTIFY_RIGHT"/>
+								<text id="Question5_Text" font="AnswerFont36" text="XXXX" screenRect="{{12, -40}, {288, 68}}" scaleToFit="YES"	/>
+        						<text id="Question5_Score" font="AnswerScoreFont" text="77" screenRect="{{300, -40}, {90, 68}}" scaleToFit="YES" hJustify="JUSTIFY_RIGHT"	/>
 						</group>
-					<quad id="Question5_Front" texture="Question5_Front" premultiplyAlpha="true" screenRect="{{0, -53}, {411, 91}}" />
+					<quad id="Question5_Front" texture="Question5_Front" premultiplyAlpha="true" screenRect="{{0, -53}, {411, 91}}" visible="false"/>
               	</group>            
               	
                 <!-- Question Number Six  -->
               	<group id="Question6" anchor="{645, 348, 0}">
                         <group id="Question6_Back" anchor="{0, 0, 0}">
                                 <quad id="Question6_BackBox" texture="Question_Back" premultiplyAlpha="true" screenRect="{{0, -53}, {411, 91}}"  />
-								<text id="Question6_Text" font="AnswerFont36" text="XXXX" screenRect="{{12, -65}, {288, 91}}" scaleToFit="YES"/>
-        						<text id="Question6_Score" font="AnswerScoreFont" text="77" screenRect="{{300, -63}, {90, 91}}" hJustify="JUSTIFY_RIGHT"/>
+								<text id="Question6_Text" font="AnswerFont36" text="XXXX" screenRect="{{12, -40}, {288, 68}}" scaleToFit="YES"	/>
+        						<text id="Question6_Score" font="AnswerScoreFont" text="77" screenRect="{{300, -40}, {90, 68}}" scaleToFit="YES" hJustify="JUSTIFY_RIGHT"	/>
 						</group>
-					<quad id="Question6_Front" texture="Question6_Front" premultiplyAlpha="true" screenRect="{{0, -53}, {411, 91}}" />
+					<quad id="Question6_Front" texture="Question6_Front" premultiplyAlpha="true" screenRect="{{0, -53}, {411, 91}}" visible="false"/>
               	</group>                	       
       
                 <!-- Question Number Seven  -->
               	<group id="Question7" anchor="{645, 253, 0}">
                         <group id="Question7_Back" anchor="{0, 0, 0}">
                                 <quad id="Question7_BackBox" texture="Question_Back" premultiplyAlpha="true" screenRect="{{0, -53}, {411, 91}}" />
-								<text id="Question7_Text" font="AnswerFont36" text="XXXX" screenRect="{{12, -65}, {288, 91}}" scaleToFit="YES"/>
-        						<text id="Question7_Score" font="AnswerScoreFont" text="77" screenRect="{{300, -63}, {90, 91}}" hJustify="JUSTIFY_RIGHT"/>
+								<text id="Question7_Text" font="AnswerFont36" text="XXXX" screenRect="{{12, -40}, {288, 68}}" scaleToFit="YES"	/>
+        						<text id="Question7_Score" font="AnswerScoreFont" text="77" screenRect="{{300, -40}, {90, 68}}" scaleToFit="YES" hJustify="JUSTIFY_RIGHT"	/>
 						</group>
-					<quad id="Question7_Front" texture="Question7_Front" premultiplyAlpha="true" screenRect="{{0, -53}, {411, 91}}" />
+					<quad id="Question7_Front" texture="Question7_Front" premultiplyAlpha="true" screenRect="{{0, -53}, {411, 91}}" visible="false"/>
 				</group>
                 
                 <!-- Question Number Eight  -->
               	<group id="Question8" anchor="{645, 158, 0}">
                         <group id="Question8_Back" anchor="{0, 0, 0}">
                                 <quad id="Question8_BackBox" texture="Question_Back" premultiplyAlpha="true" screenRect="{{0, -53}, {411, 91}}" />
-								<text id="Question8_Text" font="AnswerFont36" text="XXXX" screenRect="{{12, -65}, {288, 91}}" scaleToFit="YES"/>
-        						<text id="Question8_Score" font="AnswerScoreFont" text="77" screenRect="{{300, -63}, {90, 91}}" hJustify="JUSTIFY_RIGHT"/>
+								<text id="Question8_Text" font="AnswerFont36" text="XXXX" screenRect="{{12, -40}, {288, 68}}" scaleToFit="YES"	/>
+        						<text id="Question8_Score" font="AnswerScoreFont" text="77" screenRect="{{300, -40}, {90, 68}}" scaleToFit="YES" hJustify="JUSTIFY_RIGHT"	/>
 						</group>
-					<quad id="Question8_Front" texture="Question8_Front" premultiplyAlpha="true" screenRect="{{0, -53}, {411, 91}}" />
+					<quad id="Question8_Front" texture="Question8_Front" premultiplyAlpha="true" screenRect="{{0, -53}, {411, 91}}" visible="false"/>
               	</group>
         </group> 
     	<!-- End of Questions Group -->
@@ -143,13 +144,13 @@
         
         <!-- Scores -->
         <text id="LeftScore" font="Scoreboard100" text="999"
-			screenRect="{{11, 115}, {175, 80}}" hJustify="JUSTIFY_CENTER" maxLen="3"/>
+			screenRect="{{11, 135}, {175, 80}}" hJustify="JUSTIFY_CENTER" maxLen="3"/>
 			
         <text id="RightScore" font="Scoreboard100" text="999"
-			screenRect="{{1095, 115}, {175, 80}}" hJustify="JUSTIFY_CENTER" maxLen="3"/>
+			screenRect="{{1095, 135}, {175, 80}}" hJustify="JUSTIFY_CENTER" maxLen="3"/>
  
          <text id="RoundScore" font="Scoreboard140" text="999"
-			screenRect="{{540, 530}, {200, 80}}" hJustify="JUSTIFY_CENTER" maxLen="3"/>
+			screenRect="{{540, 565}, {200, 80}}" hJustify="JUSTIFY_CENTER" maxLen="3"/>
         
         <!-- Start of strikes  -->
         <group id="StrikesGroup" anchor="{0, 0, 0}">

@@ -12,6 +12,7 @@ export 'frames/frame_scene_nodes.dart';
 export 'frames/frame_scene_parser.dart';
 
 export 'geometry/edge.dart';
+export 'geometry/geometry_util.dart';
 export 'geometry/mesh_factory.dart';
 export 'geometry/mesh_hit_tester.dart';
 export 'geometry/polyline.dart';

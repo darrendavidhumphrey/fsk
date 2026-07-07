@@ -109,11 +109,13 @@ class FrameTextNode extends FrameObjectNode<FskBitmapText> {
       logWarning("Font not found for ${data.id}, using default font");
     }
     final refBox = ReferenceBox(
-      Vector3(textData.screenRect.left, textData.screenRect.top, 0),
+      Vector3(textData.screenRect.left, textData.screenRect.bottom, 0),
       Vector3(textData.screenRect.width, 0, 0),
       Vector3(0, textData.screenRect.height, 0),
       Vector3(0, 0, 1),
     );
+    print("Height for ${data.id} is ${refBox.yVector.length}");
+    // TODO: pass in justify fields, scaleToFit setting?
     object = FskBitmapText(font, textData.text, refBox);
     object!.init(gls);
   }

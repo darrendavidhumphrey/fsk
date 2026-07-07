@@ -1,5 +1,7 @@
-import 'package:fsg/fsk.dart';
 import 'package:vector_math/vector_math_64.dart';
+import 'polyline.dart';
+import 'triangle_mesh.dart';
+import 'mesh_factory.dart';
 
 /// Represents a generic 3D solid, specifically a rectangular prism or cube.
 ///
