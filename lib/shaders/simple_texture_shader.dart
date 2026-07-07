@@ -1,3 +1,7 @@
+import 'dart:ui';
+
+import 'package:flutter_angle/shared/classes.dart';
+
 import '../gl_state_manager.dart';
 import '../glsl_shader.dart';
 
@@ -25,28 +29,38 @@ out vec4 FragColor;
 in vec2 v_uv; 
 
 uniform sampler2D uSampler;
-uniform vec4 uTextColor;
+uniform vec4 uModulateColor;
 
 void main(void) {
     vec4 texColor = texture(uSampler, v_uv);
     
     // Modulates the quad texture color
-    //FragColor = texColor * uTextColor; 
-    FragColor = texColor;
+    FragColor = texColor * uModulateColor; 
 }
 ''';
 
 class SimpleTextureShader extends GlslShader {
-  SimpleTextureShader(GlStateManager gls)
-      : super(
-    gls,
-    _fragmentShader,
-    _vertexShader,
-    [
-      GlslShader.v3Attrib,
-      GlslShader.t2Attrib,
-    ],
-    [GlslShader.uModelView, GlslShader.uProj, GlslShader.textureSamplerAttrib,],
-  );
+  static String uModulateColor = "uModulateColor";
 
+  late UniformLocation _modulateLocation;
+
+  SimpleTextureShader(GlStateManager gls)
+    : super(
+        gls,
+        _fragmentShader,
+        _vertexShader,
+        [GlslShader.v3Attrib, GlslShader.t2Attrib],
+        [
+          GlslShader.uModelView,
+          GlslShader.uProj,
+          GlslShader.textureSamplerAttrib,
+          uModulateColor,
+        ],
+      ) {
+    _modulateLocation = uniforms[uModulateColor]!;
+  }
+
+  void setModulateColor(Color color) {
+    gls.setUniform4fv(_modulateLocation, [color.r, color.g, color.b, color.a]);
+  }
 }

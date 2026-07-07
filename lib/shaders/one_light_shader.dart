@@ -1,8 +1,8 @@
 import 'dart:ui';
+import 'package:flutter_angle/shared/classes.dart';
 import 'package:fsg/gl_state_manager.dart';
 import 'package:vector_math/vector_math_64.dart';
 import '../glsl_shader.dart';
-
 
 const String _vertexShader = """
 #version 300 es
@@ -146,16 +146,26 @@ class OneLightShader extends GlslShader {
 
   static String uDrawFill = "uDrawFill";
 
+  late UniformLocation _lightPosLocation;
+  late UniformLocation _nMatrixLocation;
+  late UniformLocation _ambientLightLocation;
+  late UniformLocation _diffuseLightLocation;
+  late UniformLocation _specularLightLocation;
+  late UniformLocation _materialAmbientLocation;
+  late UniformLocation _materialDiffuseLocation;
+  late UniformLocation _materialSpecularLocation;
+  late UniformLocation _materialShininessLocation;
+  late UniformLocation _outlineEnabledLocation;
+  late UniformLocation _outlineColorLocation;
+  late UniformLocation _outlineWidthLocation;
+  late UniformLocation _drawFillLocation;
+
   OneLightShader(GlStateManager gls)
     : super(
         gls,
         _fragmentShader,
         _vertexShader,
-        [
-          GlslShader.v3Attrib,
-          GlslShader.t2Attrib,
-          GlslShader.n3Attrib,
-        ],
+        [GlslShader.v3Attrib, GlslShader.t2Attrib, GlslShader.n3Attrib],
         [
           uLightPos,
           uNMatrix,
@@ -173,57 +183,80 @@ class OneLightShader extends GlslShader {
           GlslShader.uModelView,
           GlslShader.uProj,
         ],
-      );
+      ) {
+    _lightPosLocation = uniforms[uLightPos]!;
+    _nMatrixLocation = uniforms[uNMatrix]!;
+    _ambientLightLocation = uniforms[uAmbientLight]!;
+    _diffuseLightLocation = uniforms[uDiffuseLight]!;
+    _specularLightLocation = uniforms[uSpecularLight]!;
+    _materialAmbientLocation = uniforms[uMaterialAmbient]!;
+    _materialDiffuseLocation = uniforms[uMaterialDiffuse]!;
+    _materialSpecularLocation = uniforms[uMaterialSpecular]!;
+    _materialShininessLocation = uniforms[uMaterialShininess]!;
+    _outlineEnabledLocation = uniforms[uOutlineEnabled]!;
+    _outlineColorLocation = uniforms[uOutlineColor]!;
+    _outlineWidthLocation = uniforms[uOutlineWidth]!;
+    _drawFillLocation = uniforms[uDrawFill]!;
+  }
 
   void setLightPos(Vector3 v) {
-    gls.setUniform3fv(uniforms[uLightPos]!, [v.x, v.y, v.z]);
+    gls.setUniform3fv(_lightPosLocation, [v.x, v.y, v.z]);
   }
 
   void setNMatrix(Matrix3 m) {
-    gls.setUniformMatrix3fv(uniforms[uNMatrix]!, m);
+    gls.setUniformMatrix3fv(_nMatrixLocation, m);
   }
 
   void setAmbientLight(Color color) {
-    gls.setUniform3fv(uniforms[uAmbientLight]!, [color.r, color.g, color.b]);
+    gls.setUniform3fv(_ambientLightLocation, [color.r, color.g, color.b]);
   }
 
   void setDiffuseLight(Color color) {
-    gls.setUniform3fv(uniforms[uDiffuseLight]!, [color.r, color.g, color.b]);
+    gls.setUniform3fv(_diffuseLightLocation, [color.r, color.g, color.b]);
   }
 
   void setSpecularLight(Color color) {
-    gls.setUniform3fv(uniforms[uSpecularLight]!, [color.r, color.g, color.b]);
+    gls.setUniform3fv(_specularLightLocation, [color.r, color.g, color.b]);
   }
 
   void setMaterialAmbient(Color color) {
-    gls.setUniform3fv(uniforms[uMaterialAmbient]!, [color.r, color.g, color.b]);
+    gls.setUniform3fv(_materialAmbientLocation, [color.r, color.g, color.b]);
   }
 
   void setMaterialDiffuse(Color color) {
-    gls.setUniform3fv(uniforms[uMaterialDiffuse]!, [color.r, color.g, color.b]);
+    gls.setUniform3fv(_materialDiffuseLocation, [color.r, color.g, color.b]);
   }
 
   void setMaterialSpecular(Color color) {
-    gls.setUniform3fv(uniforms[uMaterialSpecular]!, [color.r, color.g, color.b]);
+    gls.setUniform3fv(_materialSpecularLocation, [
+      color.r,
+      color.g,
+      color.b,
+    ]);
   }
 
   void setShininess(num shininess) {
-    gls.setUniform1f(uniforms[uMaterialShininess]!, shininess.toDouble());
+    gls.setUniform1f(_materialShininessLocation, shininess.toDouble());
   }
 
   void setOutlineEnabled(bool enabled) {
-    gls.setUniform1i(uniforms[uOutlineEnabled]!, enabled ? 1 : 0);
+    gls.setUniform1i(_outlineEnabledLocation, enabled ? 1 : 0);
   }
 
   void setDrawFill(bool enabled) {
-    gls.setUniform1i(uniforms[uDrawFill]!, enabled ? 1 : 0);
+    gls.setUniform1i(_drawFillLocation, enabled ? 1 : 0);
   }
 
   void setOutlineColor(Color color) {
-    gls.setUniform4fv(uniforms[uOutlineColor]!, [color.r, color.g, color.b, color.a]);
+    gls.setUniform4fv(_outlineColorLocation, [
+      color.r,
+      color.g,
+      color.b,
+      color.a,
+    ]);
   }
 
   void setOutlineWidth(num width) {
-    gls.setUniform1f(uniforms[uOutlineWidth]!, width.toDouble());
+    gls.setUniform1f(_outlineWidthLocation, width.toDouble());
   }
 }

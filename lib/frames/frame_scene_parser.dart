@@ -25,6 +25,7 @@ class FrameSceneParser {
     }
     return true;
   }
+
   static Future<FrameData> parseFromFile(File file) async {
     final String xmlString = await file.readAsString();
     return parse(xmlString);
@@ -95,6 +96,15 @@ class FrameSceneParser {
     );
   }
 
+  static _parseTextureRect(String ?rectString) {
+
+    if (rectString != null) {
+      return _parseRect(rectString);
+    }
+
+    // If no rectString is provided, return a default value
+    return Rect.fromLTWH(0, 0, 1, 1);
+  }
   static FrameObjectData? _parseObject(XmlElement node, Map<String, FrameAnchorData> anchors) {
     switch (node.name.local) {
       case 'quad':
@@ -103,7 +113,7 @@ class FrameSceneParser {
           visible: FrameSceneParser.isVisible(node),
           texture: node.getAttribute('texture')!,
           screenRect: _parseRect(node.getAttribute('screenRect')!),
-          textureRect: _parseRect(node.getAttribute('textureRect')!),
+          textureRect: _parseTextureRect(node.getAttribute('textureRect')),
           premultiplyAlpha: node.getAttribute('premultiplyAlpha') == 'true',
         );
       case 'group':

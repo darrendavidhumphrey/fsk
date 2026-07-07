@@ -1,4 +1,6 @@
 import 'dart:ui';
+import 'package:flutter_angle/shared/classes.dart';
+
 import '../gl_state_manager.dart';
 import '../glsl_shader.dart';
 
@@ -37,6 +39,8 @@ void main(void) {
 class BitmapTextShader extends GlslShader {
   static String uTextColor = "uTextColor";
 
+  late UniformLocation _textColorLocation;
+
   BitmapTextShader(GlStateManager gls)
     : super(
         gls,
@@ -49,13 +53,11 @@ class BitmapTextShader extends GlslShader {
           GlslShader.textureSamplerAttrib,
           uTextColor,
         ],
-      );
+      ) {
+    _textColorLocation = uniforms[uTextColor]!;
+  }
+
   void setTextColor(Color color) {
-    gls.setUniform4fv(uniforms[uTextColor]!, [
-      color.r,
-      color.g,
-      color.b,
-      color.a,
-    ]);
+    gls.setUniform4fv(_textColorLocation, [color.r, color.g, color.b, color.a]);
   }
 }

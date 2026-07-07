@@ -1,6 +1,5 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
-<gameScene version="1.0">
+<frameScene version="1.0" width="1280" height="720" assetsPath ="frames">
 	<textures>
 		 <texture id="Strike" file="strike.png" />
 		 <texture id="TestPattern" file="TestPattern.png" />
@@ -73,15 +72,15 @@
 				
         <!-- Start of questions Group -->
         <group id="QuestionsGroup" anchor="{0, 0, 0}">            
-            <children>
+           
                 <!-- Question Number One  -->
                 <group id="Question1" anchor="{228, 443, 0}">            
-            		<children>
+            		
                     	<quad id="Question1_Front" texture="Question1_Front" premultiplyAlpha="true"
 							screenRect="{{0, -53}, {411, 91}}" textureRect="{{0, 0}, {1, 1}}" />
 						
                         <group id="Question1_Back" anchor="{0, 0, 0}">            
-            				<children>
+            				
                                 <quad id="Question1_BackBox" texture="Question_Back" premultiplyAlpha="true"
 										screenRect="{{0, -53}, {411, 91}}" textureRect="{{0, 0}, {1, 1}}" />
 										
@@ -90,19 +89,19 @@
 										
         						<text id="Question1_Score" font="AnswerScoreFont" text="77"
 										screenRect="{{300, -63}, {90, 91}}" hJustify="JUSTIFY_RIGHT"/>
-							</children>
+							
 						</group>
-					</children>
+					
               	</group>
               	
               	<!-- Question Number Two  -->
               	<group id="Question2" anchor="{228, 348, 0}">            
-            		<children>
+            		
                     	<quad id="Question2_Front" texture="Question2_Front" premultiplyAlpha="true"
 							screenRect="{{0, -53}, {411, 91}}" textureRect="{{0, 0}, {1, 1}}" />
 						
                         <group id="Question2_Back" anchor="{0, 0, 0}">            
-            				<children>
+            				
                                 <quad id="Question2_BackBox" texture="Question_Back" premultiplyAlpha="true"
 										screenRect="{{0, -53}, {411, 91}}" textureRect="{{0, 0}, {1, 1}}" />
 										
@@ -111,19 +110,19 @@
 										
         						<text id="Question2_Score" font="AnswerScoreFont" text="77"
 										screenRect="{{300, -63}, {90, 91}}" hJustify="JUSTIFY_RIGHT"/>
-							</children>
+							
 						</group>
-					</children>
+					
               	</group>
               	
                 <!-- Question Number Three  -->
               	<group id="Question3" anchor="{228, 253, 0}">            
-            		<children>
+            		
                     	<quad id="Question3_Front" texture="Question3_Front" premultiplyAlpha="true"
 							screenRect="{{0, -53}, {411, 91}}" textureRect="{{0, 0}, {1, 1}}" />
 						
                         <group id="Question3_Back" anchor="{0, 0, 0}">            
-            				<children>
+            				
                                 <quad id="Question3_BackBox" texture="Question_Back" premultiplyAlpha="true"
 										screenRect="{{0, -53}, {411, 91}}" textureRect="{{0, 0}, {1, 1}}" />
 										
@@ -132,19 +131,19 @@
 										
         						<text id="Question3_Score" font="AnswerScoreFont" text="77"
 										screenRect="{{300, -63}, {90, 91}}" hJustify="JUSTIFY_RIGHT"/>
-							</children>
+							
 						</group>
-					</children>
+					
               	</group> 
               	
                  <!-- Question Number Four  -->
               	<group id="Question4" anchor="{228, 158, 0}">            
-            		<children>
+            		
                     	<quad id="Question4_Front" texture="Question4_Front" premultiplyAlpha="true"
 							screenRect="{{0, -53}, {411, 91}}" textureRect="{{0, 0}, {1, 1}}" />
 						
                         <group id="Question4_Back" anchor="{0, 0, 0}">            
-            				<children>
+            				
                                 <quad id="Question4_BackBox" texture="Question_Back" premultiplyAlpha="true"
 										screenRect="{{0, -53}, {411, 91}}" textureRect="{{0, 0}, {1, 1}}" />
 										
@@ -153,19 +152,19 @@
 										
         						<text id="Question4_Score" font="AnswerScoreFont" text="77"
 										screenRect="{{300, -63}, {90, 91}}" hJustify="JUSTIFY_RIGHT"/>
-							</children>
+							
 						</group>
-					</children>
+					
               	</group>           
                 
                 <!-- Question Number Five  -->
               	<group id="Question5" anchor="{645, 443, 0}">            
-            		<children>
+            		
                     	<quad id="Question5_Front" texture="Question5_Front" premultiplyAlpha="true"
 							screenRect="{{0, -53}, {411, 91}}" textureRect="{{0, 0}, {1, 1}}" />
 						
                         <group id="Question5_Back" anchor="{0, 0, 0}">            
-            				<children>
+            				
                                 <quad id="Question5_BackBox" texture="Question_Back" premultiplyAlpha="true"
 										screenRect="{{0, -53}, {411, 91}}" textureRect="{{0, 0}, {1, 1}}" />
 										
@@ -174,19 +173,19 @@
 										
         						<text id="Question5_Score" font="AnswerScoreFont" text="77"
 										screenRect="{{300, -63}, {90, 91}}" hJustify="JUSTIFY_RIGHT"/>
-							</children>
+							
 						</group>
-					</children>
+					
               	</group>            
               	
                 <!-- Question Number Six  -->
               	<group id="Question6" anchor="{645, 348, 0}">            
-            		<children>
+            		
                     	<quad id="Question6_Front" texture="Question6_Front" premultiplyAlpha="true"
 							screenRect="{{0, -53}, {411, 91}}" textureRect="{{0, 0}, {1, 1}}" />
 						
                         <group id="Question6_Back" anchor="{0, 0, 0}">            
-            				<children>
+            				
                                 <quad id="Question6_BackBox" texture="Question_Back" premultiplyAlpha="true"
 										screenRect="{{0, -53}, {411, 91}}" textureRect="{{0, 0}, {1, 1}}" />
 										
@@ -195,19 +194,19 @@
 										
         						<text id="Question6_Score" font="AnswerScoreFont" text="77"
 										screenRect="{{300, -63}, {90, 91}}" hJustify="JUSTIFY_RIGHT"/>
-							</children>
+							
 						</group>
-					</children>
+					
               	</group>                	       
       
                 <!-- Question Number Seven  -->
               	<group id="Question7" anchor="{645, 253, 0}">            
-            		<children>
+            		
                     	<quad id="Question7_Front" texture="Question7_Front" premultiplyAlpha="true"
 							screenRect="{{0, -53}, {411, 91}}" textureRect="{{0, 0}, {1, 1}}" />
 						
                         <group id="Question7_Back" anchor="{0, 0, 0}">            
-            				<children>
+            				
                                 <quad id="Question7_BackBox" texture="Question_Back" premultiplyAlpha="true" 
 										screenRect="{{0, -53}, {411, 91}}" textureRect="{{0, 0}, {1, 1}}" />
 										
@@ -216,19 +215,19 @@
 										
         						<text id="Question7_Score" font="AnswerScoreFont" text="77"
 										screenRect="{{300, -63}, {90, 91}}" hJustify="JUSTIFY_RIGHT"/>
-							</children>
+							
 						</group>
-					</children>
+					
               	</group>    
                 
                 <!-- Question Number Eight  -->
               	<group id="Question8" anchor="{645, 158, 0}">            
-            		<children>
+            		
                     	<quad id="Question8_Front" texture="Question8_Front" premultiplyAlpha="true"
 							screenRect="{{0, -53}, {411, 91}}" textureRect="{{0, 0}, {1, 1}}" />
 						
                         <group id="Question8_Back" anchor="{0, 0, 0}">            
-            				<children>
+            				
                                 <quad id="Question8_BackBox" texture="Question_Back" premultiplyAlpha="true"
 										screenRect="{{0, -53}, {411, 91}}" textureRect="{{0, 0}, {1, 1}}" />
 										
@@ -237,11 +236,11 @@
 										
         						<text id="Question8_Score" font="AnswerScoreFont" text="77"
 										screenRect="{{300, -63}, {90, 91}}" hJustify="JUSTIFY_RIGHT"/>
-							</children>
+							
 						</group>
-					</children>
+					
               	</group>           
-          	</children>
+          	
         </group> 
     	<!-- End of Questions Group -->
     	
@@ -263,7 +262,7 @@
         
         <!-- Start of strikes  -->
         <group id="StrikesGroup" anchor="{0, 0, 0}">            
-            <children>
+           
 				<quad id="Strike1" texture="Strike"
 					screenRect="{{30, 104}, {450, 450}}" textureRect="{{0, 0}, {1, 1}}" />
 					
@@ -273,7 +272,7 @@
               	<quad id="Strike3" texture="Strike"
 					screenRect="{{798, 104}, {450, 450}}" textureRect="{{0, 0}, {1, 1}}" />
                 
-          	</children>
+          	
         </group> 
         
         
@@ -291,7 +290,7 @@
 
         <!-- Start of RightArrows  -->
         <group id="RightArrows" anchor="{0, 0, 0}">            
-            <children>
+           
 				<quad id="RightArrows1" texture="Arrows1"
 					screenRect="{{660, 145}, {420, 260}}" textureRect="{{0, 0}, {1, 1}}" />  
 					   
@@ -306,12 +305,12 @@
 
   				<quad id="RightArrows5" texture="Arrows5"
 					screenRect="{{660, 145}, {420, 260}}" textureRect="{{0, 0}, {1, 1}}" />                 
-          	</children>
+          	
         </group> 
         
         
         <group id="LeftArrows" anchor="{413, 315, 0}">            
-            <children>
+           
 				<quad id="LeftArrows1" texture="Arrows1"
 					screenRect="{{-210, -130}, {420, 260}}" textureRect="{{0, 0}, {1, 1}}" />  
 					   
@@ -326,11 +325,11 @@
 
   				<quad id="LeftArrows5" texture="Arrows5"
 					screenRect="{{-210, -130}, {420, 260}}" textureRect="{{0, 0}, {1, 1}}" />                 
-          	</children>
+          	
         </group> 
                 
 		<quad id="TestPattern" texture="TestPattern"
 					screenRect="{{0, 0}, {1280, 720}}" textureRect="{{0, 0}, {1, 1}}" />  
 	</objects>
  
-</gameScene>
+</frameScene>

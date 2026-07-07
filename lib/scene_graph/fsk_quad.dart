@@ -19,6 +19,8 @@ class FskQuad extends FskSceneObject {
   // The texture coordinates for the quad
   final Rect _textureRect;
 
+  final Color _color;
+
   // Name of the texture
   String _textureId;
 
@@ -35,7 +37,7 @@ class FskQuad extends FskSceneObject {
 
   GlslShader? _shader;
 
-  FskQuad(this._quad, this._textureRect,this._textureId) {
+  FskQuad(this._quad, this._textureRect,this._textureId,{this._color = Colors.white}) {
     // Default to the simple texture shader if not set.
     _shader ??= FSK().shaders.getShader<SimpleTextureShader>();
 
@@ -85,6 +87,12 @@ class FskQuad extends FskSceneObject {
     gls.setTexturingEnabled(true);
     gls.activeTexture(WebGL.TEXTURE0);
     gls.setDepthTest(false);
+
+    // TODO: Make this better
+    if (_shader is SimpleTextureShader) {
+      var shader = _shader as SimpleTextureShader;
+      shader.setModulateColor(_color);
+    }
 
     gls.blendFuncSeparate(
       WebGL.ONE,

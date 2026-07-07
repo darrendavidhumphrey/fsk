@@ -1,4 +1,6 @@
 import 'dart:ui';
+import 'package:flutter_angle/shared/classes.dart';
+
 import '../gl_state_manager.dart';
 import '../glsl_shader.dart';
 
@@ -112,6 +114,17 @@ class GridShader extends GlslShader {
   static String uMinorLineColor = "u_minorLineColor";
   static String ummLineColor = "u_mmLineColor";
 
+  late UniformLocation _resolutionLocation;
+  late UniformLocation _scaleLocation;
+  late UniformLocation _majorLineSpacingMMLocation;
+  late UniformLocation _minorLineSpacingMMLocation;
+  late UniformLocation _majorLineThicknessLocation;
+  late UniformLocation _minorLineThicknessLocation;
+  late UniformLocation _mmLineThicknessLocation;
+  late UniformLocation _majorLineColorLocation;
+  late UniformLocation _minorLineColorLocation;
+  late UniformLocation _mmLineColorLocation;
+
   GridShader(GlStateManager gls)
     : super(
         gls,
@@ -132,42 +145,52 @@ class GridShader extends GlslShader {
           uMinorLineColor,
           ummLineColor,
         ],
-      );
+      ) {
+    _resolutionLocation = uniforms[uResolution]!;
+    _scaleLocation = uniforms[uScale]!;
+    _majorLineSpacingMMLocation = uniforms[uMajorLineSpacingMM]!;
+    _minorLineSpacingMMLocation = uniforms[uMinorLineSpacingMM]!;
+    _majorLineThicknessLocation = uniforms[uMajorLineThickness]!;
+    _minorLineThicknessLocation = uniforms[uMinorLineThickness]!;
+    _mmLineThicknessLocation = uniforms[ummLineThickness]!;
+    _majorLineColorLocation = uniforms[uMajorLineColor]!;
+    _minorLineColorLocation = uniforms[uMinorLineColor]!;
+    _mmLineColorLocation = uniforms[ummLineColor]!;
+  }
 
   void setResolutionMM(num width, num height) {
-    gls.setUniform2fv(
-      uniforms[uResolution]!,
-      [width.toDouble() * 10,
-      height.toDouble() * 10]
-    );
+    gls.setUniform2fv(_resolutionLocation, [
+      width.toDouble() * 10,
+      height.toDouble() * 10,
+    ]);
   }
 
   void setScale(num scale) {
-    gls.setUniform1f(uniforms[uScale]!, scale.toDouble());
+    gls.setUniform1f(_scaleLocation, scale.toDouble());
   }
 
   void setMajorLineSpacingMM(num spacing) {
-    gls.setUniform1f(uniforms[uMajorLineSpacingMM]!, spacing.toDouble());
+    gls.setUniform1f(_majorLineSpacingMMLocation, spacing.toDouble());
   }
 
   void setMinorLineSpacingMM(num spacing) {
-    gls.setUniform1f(uniforms[uMinorLineSpacingMM]!, spacing.toDouble());
+    gls.setUniform1f(_minorLineSpacingMMLocation, spacing.toDouble());
   }
 
   void setMajorLineThickness(num thickness) {
-    gls.setUniform1f(uniforms[uMajorLineThickness]!, thickness.toDouble());
+    gls.setUniform1f(_majorLineThicknessLocation, thickness.toDouble());
   }
 
   void setMinorLineThickness(num thickness) {
-    gls.setUniform1f(uniforms[uMinorLineThickness]!, thickness.toDouble());
+    gls.setUniform1f(_minorLineThicknessLocation, thickness.toDouble());
   }
 
   void setMmLineThickness(num thickness) {
-    gls.setUniform1f(uniforms[ummLineThickness]!, thickness.toDouble());
+    gls.setUniform1f(_mmLineThicknessLocation, thickness.toDouble());
   }
 
   void setMajorLineColor(Color color) {
-    gls.setUniform4fv(uniforms[uMajorLineColor]!, [
+    gls.setUniform4fv(_majorLineColorLocation, [
       color.r,
       color.g,
       color.b,
@@ -176,7 +199,7 @@ class GridShader extends GlslShader {
   }
 
   void setMinorLineColor(Color color) {
-    gls.setUniform4fv(uniforms[uMinorLineColor]!, [
+    gls.setUniform4fv(_minorLineColorLocation, [
       color.r,
       color.g,
       color.b,
@@ -185,7 +208,7 @@ class GridShader extends GlslShader {
   }
 
   void setMmLineColor(Color color) {
-    gls.setUniform4fv(uniforms[ummLineColor]!, [
+    gls.setUniform4fv(_mmLineColorLocation, [
       color.r,
       color.g,
       color.b,

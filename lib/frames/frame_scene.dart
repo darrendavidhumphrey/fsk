@@ -4,7 +4,7 @@ import 'frame_data.dart';
 import 'frame_scene_nodes.dart';
 
 class FrameScene extends FskScene {
-  late FrameData _data;
+  late FrameData _frameData;
   final List<FrameNode> rootNodes = [];
   final Map<String, FrameNode> nodeMap = {};
 
@@ -14,21 +14,24 @@ class FrameScene extends FskScene {
   FrameScene();
 
 
-  set data(FrameData value) {
-    _data = value;
+  set frameData(FrameData value) {
+    _frameData = value;
     buildScene();
   }
 
+  FrameData get frameData => _frameData;
+
+
   String getResourcePath(String textureName) {
-    if ((_data.assetsPath == null) || (_data.assetsPath!.isEmpty)) {
+    if ((_frameData.assetsPath == null) || (_frameData.assetsPath!.isEmpty)) {
       return textureName;
     }
-    return '${_data.assetsPath}/$textureName';
+    return '${_frameData.assetsPath}/$textureName';
   }
 
   Future<void> buildScene() async {
     // 1. Load textures
-    for (var textureData in _data.textures.values) {
+    for (var textureData in _frameData.textures.values) {
 
       logVerbose("Loading texture: ID=${textureData.id} path=${textureData.file}, path=${getResourcePath(textureData.file)}");
 
@@ -37,7 +40,7 @@ class FrameScene extends FskScene {
     logVerbose("Done reading textures");
 
     // 2. Load fonts
-    for (var fontData in _data.fonts.values) {
+    for (var fontData in _frameData.fonts.values) {
       String texturePath = getResourcePath(fontData.texture);
       String fontPath = getResourcePath(fontData.fntFile);
 
@@ -46,7 +49,7 @@ class FrameScene extends FskScene {
     logVerbose("Done registering fonts");
 
     // 3. Build node tree
-    for (var objData in _data.objects) {
+    for (var objData in _frameData.objects) {
       final node = _createNode(objData);
       if (node != null) {
         rootNodes.add(node);

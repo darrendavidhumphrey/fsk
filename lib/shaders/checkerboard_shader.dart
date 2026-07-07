@@ -1,4 +1,6 @@
 import 'dart:ui';
+import 'package:flutter_angle/shared/classes.dart';
+
 import '../gl_state_manager.dart';
 import '../glsl_shader.dart';
 
@@ -55,6 +57,11 @@ class CheckerBoardShader extends GlslShader {
   static String uPatternColor1 = "uPatternColor1";
   static String uPatternColor2 = "uPatternColor2";
   static String uPatternScale = "uPatternScale";
+
+  late UniformLocation _patternColor1Location;
+  late UniformLocation _patternColor2Location;
+  late UniformLocation _patternScaleLocation;
+
   CheckerBoardShader(GlStateManager gls)
     : super(
         gls,
@@ -68,29 +75,30 @@ class CheckerBoardShader extends GlslShader {
           GlslShader.uModelView,
           GlslShader.uProj,
         ],
-      );
-
+      ) {
+    _patternColor1Location = uniforms[uPatternColor1]!;
+    _patternColor2Location = uniforms[uPatternColor2]!;
+    _patternScaleLocation = uniforms[uPatternScale]!;
+  }
   void setPatternColor1(Color color) {
-    gls.setUniform4fv(
-      uniforms[uPatternColor1]!,
-      [color.r,
+    gls.setUniform4fv(_patternColor1Location, [
+      color.r,
       color.g,
       color.b,
-      color.a],
-    );
+      color.a,
+    ]);
   }
 
   void setPatternColor2(Color color) {
-    gls.setUniform4fv(
-      uniforms[uPatternColor2]!,
-      [color.r,
+    gls.setUniform4fv(_patternColor2Location, [
+      color.r,
       color.g,
       color.b,
-      color.a],
-    );
+      color.a,
+    ]);
   }
 
   void setPatternScale(num scale) {
-    gls.setUniform1f(uniforms[uPatternScale]!, scale.toDouble());
+    gls.setUniform1f(_patternScaleLocation, scale.toDouble());
   }
 }

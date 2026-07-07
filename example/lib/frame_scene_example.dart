@@ -1,3 +1,5 @@
+import 'dart:ui';
+
 import 'package:flutter/material.dart';
 import 'package:flutter_angle/flutter_angle.dart';
 import 'package:fsg/fsk.dart';
@@ -6,6 +8,7 @@ import 'package:fsg/vbo_filler.dart';
 class FrameSceneExample extends FrameScene {
 
   bool skinLoaded = false;
+
   FrameSceneExample();
 
 
@@ -17,10 +20,7 @@ class FrameSceneExample extends FrameScene {
 
   void loadSkin() async {
     String skinPath = "frames/GameScreen.xml";
-    var frameData = await FrameSceneParser.parseFromAssets(skinPath);
-
-    // Set the frame data in the base class, will trigger loading the assets in the file
-    data  = frameData;
+    frameData = await FrameSceneParser.parseFromAssets(skinPath);
 
     skinLoaded = true;
     frameData.dumpTree();

@@ -1,6 +1,5 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
-<gameScene version="1.0">
+<frameScene version="1.0" width="1280" height="720" assetsPath ="frames">
 	<textures>
         <texture id="FastMoneyAnswers" file="fastmoneyanswers.png" />
         <texture id="FastMoneyBackground" file="fastmoneybackground.png" />
@@ -28,8 +27,7 @@
         <quad id="FastMoneyPlayer2Answers" texture="FastMoneyAnswers" 
 				screenRect="{{643, 175}, {419, 329}}"
 				textureRect="{{0, 0}, {1, 1}}" />
-        
-        <!------ Round 1 answers ---------->
+
         <text id="FastMoneyRd1Answer1" font="Arial36" text="0123456789012345"
         		screenRect="{{230, 420}, {310, 91}}"
         		scaleToFit="YES"/>
@@ -50,7 +48,7 @@
         		screenRect="{{230, 155}, {310, 91}}"
         		scaleToFit="YES"/>         
         
-         <!------ Round 1 scores ---------->
+
         <text id="FastMoneyRd1Score1" font="Arial36" text="99"
         		screenRect="{{558, 420}, {70, 91}}"
         		hJustify="JUSTIFY_RIGHT"
@@ -76,7 +74,7 @@
         		hJustify="JUSTIFY_RIGHT"
         		scaleToFit="YES"/>       
         
-        <!------ Round 2 answers ---------->
+
         <text id="FastMoneyRd2Answer1" font="Arial36" text="0123456789012345"
         		screenRect="{{653, 420}, {310, 91}}"
         		scaleToFit="YES"/>
@@ -97,7 +95,7 @@
         		screenRect="{{653, 155}, {310, 91}}"
         		scaleToFit="YES"/>      
                 
-       <!------ Round 2 scores ----------> 
+
        <text id="FastMoneyRd2Score1" font="Arial36" text="99"
         		screenRect="{{980, 420}, {70, 91}}"
         		hJustify="JUSTIFY_RIGHT"
@@ -123,7 +121,7 @@
         		hJustify="JUSTIFY_RIGHT"
         		scaleToFit="YES"/>
         		   
-        <!------ Overlays ----------> 
+
         <text id="Timer" font="Scoreboard140" text="999"
         		screenRect="{{565, 530}, {200, 80}}"
         		hJustify="JUSTIFY_RIGHT"
@@ -139,4 +137,4 @@
 				textureRect="{{0, 0}, {1, 1}}" />
         
 	</objects>
-</gameScene>
+</frameScene>
