@@ -2,13 +2,13 @@ import 'dart:math';
 import 'package:flutter/gestures.dart';
 import 'package:flutter/material.dart';
 import 'package:vector_math/vector_math_64.dart';
-import 'package:fsg/fsk.dart';
+import 'package:fsk/fsk.dart';
 
 /// A navigation delegate that implements a classic 3D orbit camera.
 ///
 /// This class handles user input to rotate (orbit) around a central point,
 /// and zoom (dolly) the camera towards and away from that point.
-class OrbitViewDelegate extends SceneNavigationDelegate {
+class OrbitViewDelegate extends FskSceneNavigationDelegate {
 
   OrbitViewDelegate();
   static const double _initialYaw = 0;

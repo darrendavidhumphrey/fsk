@@ -1,8 +1,8 @@
 import 'package:flutter/foundation.dart';
 import 'package:flutter/services.dart';
-import 'package:fsg/fsk.dart';
+import 'package:fsk/fsk.dart';
 import 'package:flutter/material.dart';
-import 'package:fsg_examples/example_scenes.dart';
+import 'package:fsk_examples/example_scenes.dart';
 
 void main() async {
   Logging.brevity = Brevity.detailed;
@@ -29,9 +29,9 @@ class TestAppState extends State<TestApp> {
 
   Future<void> initAngle() async {
     // Override the size of the render to texture buffer here (defaults to 4096)
-    // FSG.renderToTextureSize = 1024;
+    // FSK.renderToTextureSize = 1024;
 
-    // Initialize FSG. This call immediately sets FSG().state to inProgress
+    // Initialize FSK. This call immediately sets FSK().state to inProgress
     await FSK().initPlatformState();
 
     // Create the scene
@@ -58,7 +58,7 @@ class TestAppState extends State<TestApp> {
   Widget build(BuildContext context) {
     return LayoutBuilder(
       builder: (context, constraints) {
-        if (FSK().state == FsgState.uninitialized) {
+        if (FSK().state == FskState.uninitialized) {
           initAngle();
         }
 
@@ -70,7 +70,7 @@ class TestAppState extends State<TestApp> {
           width: constraints.maxWidth,
           height: constraints.maxHeight,
           child: MaterialApp(
-            title: 'FSG Examples',
+            title: 'FSK Examples',
              //showPerformanceOverlay: true,
             home: Scaffold(
               body: Stack(

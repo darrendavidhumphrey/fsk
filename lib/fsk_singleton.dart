@@ -3,17 +3,17 @@ import 'dart:io';
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_angle/flutter_angle.dart';
-import 'package:fsg/shaders/shaders.dart';
-import 'package:fsg/shaders/materials.dart';
-import 'package:fsg/fsk_texture_manager.dart';
+import 'package:fsk/shaders/shaders.dart';
+import 'package:fsk/shaders/materials.dart';
+import 'package:fsk/fsk_texture_manager.dart';
 import 'package:vector_math/vector_math_64.dart' hide Colors;
 import 'angle/gl_state_manager.dart';
 import 'logging.dart';
 
 import 'fsk_scene.dart';
 
-/// Enum to manage the initialization state of the FSG singleton.
-enum FsgState {
+/// Enum to manage the initialization state of the FSK singleton.
+enum FskState {
   /// The engine has not been initialized at all.
   uninitialized,
 
@@ -37,8 +37,8 @@ class FSK with LoggableClass {
   FlutterAngle angle = FlutterAngle();
 
   /// The current initialization state of the engine.
-  FsgState _state = FsgState.uninitialized;
-  FsgState get state => _state;
+  FskState _state = FskState.uninitialized;
+  FskState get state => _state;
 
       /// The default size for textures that are rendered to.
   static double renderToTextureSize = 4096;
@@ -78,14 +78,14 @@ class FSK with LoggableClass {
   /// Initializes the core FlutterAngle engine.
   /// This must be called once before any other operations.
   Future<bool> init() async {
-    if (_state != FsgState.uninitialized) {
+    if (_state != FskState.uninitialized) {
       return false;
     }
-    _state = FsgState.inProgress;
+    _state = FskState.inProgress;
 
     await angle.init();
     shaders = ShaderList();
-    _state = FsgState.glInitialized;
+    _state = FskState.glInitialized;
     return true;
   }
 
@@ -94,8 +94,8 @@ class FSK with LoggableClass {
     AngleOptions options, {
     double textureSize = 4096,
   }) async {
-    if (_state == FsgState.uninitialized) {
-      logWarning("allocTexture called before FSG is initialized.");
+    if (_state == FskState.uninitialized) {
+      logWarning("allocTexture called before FSK is initialized.");
       return null;
     }
     var newTexture = await angle.createTexture(options);
@@ -129,7 +129,7 @@ class FSK with LoggableClass {
   /// Initializes shared context-specific resources like shaders and textures.
   /// This is called once a GL context becomes available.
   void initContext(RenderingContext gl) {
-    if (_state == FsgState.contextInitialized) {
+    if (_state == FskState.contextInitialized) {
       return;
     }
 
@@ -137,7 +137,7 @@ class FSK with LoggableClass {
     textureManager.initializeGl(gl);
     initDefaultMaterial();
     shaders.init(gl);
-    _state = FsgState.contextInitialized;
+    _state = FskState.contextInitialized;
   }
 
   /// Disposes all scenes, textures, shaders, and other GPU resources.
@@ -165,8 +165,8 @@ class FSK with LoggableClass {
     await textureManager.dispose();
 
     // After disposing context-specific resources, we revert to the GL-initialized state.
-    if (_state == FsgState.contextInitialized) {
-      _state = FsgState.glInitialized;
+    if (_state == FskState.contextInitialized) {
+      _state = FskState.glInitialized;
     }
   }
 

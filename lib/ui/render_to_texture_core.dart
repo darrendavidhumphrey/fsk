@@ -10,7 +10,7 @@ import 'navigation_delegates/scene_navigation_delegate.dart';
 class RenderToTextureCore extends StatefulWidget {
   final FskScene scene;
   final Widget? child;
-  final SceneNavigationDelegate navigationDelegate;
+  final FskSceneNavigationDelegate? navigationDelegate;
 
   const RenderToTextureCore({
     super.key,
@@ -46,8 +46,8 @@ class RenderToTextureCoreState extends State<RenderToTextureCore>
 
   void _initRenderLoop() async {
 
-    // Make sure FSG is ready
-    while (FSK().state != FsgState.glInitialized) {
+    // Make sure FSK is ready
+    while (FSK().state != FskState.glInitialized) {
       await Future.delayed(const Duration(milliseconds: 16));
       if (!mounted) return;
     }
@@ -121,9 +121,9 @@ class RenderToTextureCoreState extends State<RenderToTextureCore>
 
     widget.scene.setViewportSize(screenSize);
 
-    if (widget.navigationDelegate.needsUpdate) {
+    if  ((widget.navigationDelegate != null) && (widget.navigationDelegate!.needsUpdate)) {
      // widget.navigationDelegate.setNeedsUpdate(true);
-      widget.navigationDelegate.updateSceneMatrices();
+      widget.navigationDelegate!.updateSceneMatrices();
     }
     await widget.scene.renderSceneToTexture();
 

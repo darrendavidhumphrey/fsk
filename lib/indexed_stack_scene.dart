@@ -1,23 +1,21 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_angle/flutter_angle.dart';
-import 'package:fsg/fsk.dart';
+import 'package:fsk/fsk.dart';
 
 // IndexedStackScene contains a list of scenes and a current scene index.
 // Only the current scene is rendered. Its behavior is analogous to the
 // IndexedStack widget in flutter
 class IndexedStackScene extends FskScene with ChangeNotifier {
   late FskScene _currentScene;
-  late SceneNavigationDelegate _currentDelegate;
   final List<FskScene> scenes = [];
-  final Map<FskScene, SceneNavigationDelegate> delegates = {};
+
   int _currentIndex = 0;
   int get currentIndex => _currentIndex;
 
   IndexedStackScene() {
     // HACK to fix async init problem -- return this scene until a real one is ready
     _currentScene = this;
-    // HACK to fix async init problem -- create a temp delegate until a real one is ready
-    _currentDelegate = StaticViewDelegate();
+
   }
 
   @override
@@ -27,12 +25,11 @@ class IndexedStackScene extends FskScene with ChangeNotifier {
     notifyListeners();
   }
 
-  // Add a scene to the list of scenes, optionally with a delegate.
-  void addScene(FskScene scene, SceneNavigationDelegate delegate) {
+  // Add a scene to the list of scene
+  void addScene(FskScene scene) {
     scene.init(gl);
     FSK().reuseTexture(renderToTextureId!, scene);
     scenes.add(scene);
-    delegates[scene] = delegate;
     notifyListeners();
   }
 
@@ -40,8 +37,6 @@ class IndexedStackScene extends FskScene with ChangeNotifier {
     if (index < scenes.length) {
       _currentScene = scenes[index];
       _currentIndex = index;
-      _currentDelegate = delegates[_currentScene]!;
-      _currentDelegate.setScene(_currentScene);
       _currentScene.requestRepaint();
       requestRepaint();
       notifyListeners();
@@ -60,9 +55,7 @@ class IndexedStackScene extends FskScene with ChangeNotifier {
     return _currentScene;
   }
 
-  SceneNavigationDelegate currentDelegate() {
-    return _currentDelegate;
-  }
+
   @override
   void dispose() {
     for (var scene in scenes) {

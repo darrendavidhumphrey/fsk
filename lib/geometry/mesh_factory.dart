@@ -1,6 +1,6 @@
 import 'dart:ui';
 import 'package:flutter_angle/native-array/index.dart';
-import 'package:fsg/fsk.dart';
+import 'package:fsk/fsk.dart';
 import 'package:vector_math/vector_math_64.dart';
 
 /// A utility class with static methods to create complex [TriangleMesh] objects

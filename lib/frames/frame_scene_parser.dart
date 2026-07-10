@@ -3,13 +3,14 @@ import 'package:flutter/foundation.dart';
 import 'package:flutter/services.dart';
 import 'package:vector_math/vector_math_64.dart';
 import 'package:xml/xml.dart';
+import '../logging.dart';
 import '../scene_graph/fsk_bitmap_text.dart';
 import 'frame_data.dart';
 
-class FrameSceneParser {
+class FrameSceneParser with LoggableClass {
 
   static String assetsRoot = "assets/";
-  static Future<FrameData> parseFromAssets(String assetPath) async {
+  static Future<FrameData?> parseFromAssets(String assetPath) async {
     String fullPath = assetPath;
     if (!kIsWeb) {
       fullPath = "$assetsRoot$assetPath";
@@ -27,78 +28,88 @@ class FrameSceneParser {
     return true;
   }
 
-  static Future<FrameData> parseFromFile(File file) async {
+  static Future<FrameData?> parseFromFile(File file) async {
     final String xmlString = await file.readAsString();
     return parse(xmlString);
   }
 
-  static FrameData parse(String xmlString) {
-    final document = XmlDocument.parse(xmlString);
-    final root = document.getElement('frameScene')!;
-    final version = root.getAttribute('version') ?? '1.0';
-    final double width = double.tryParse(root.getAttribute('width') ?? '') ?? 1280.0;
-    final double height = double.tryParse(root.getAttribute('height') ?? '') ?? 720.0;
-    final String? assetsPath = root.getAttribute('assetsPath');
+  static FrameData? parse(String xmlString) {
+    try {
+      final document = XmlDocument.parse(xmlString);
+      final root = document.getElement('frameScene')!;
+      final version = root.getAttribute('version') ?? '1.0';
+      final double width = double.tryParse(root.getAttribute('width') ?? '') ??
+          1280.0;
+      final double height = double.tryParse(
+          root.getAttribute('height') ?? '') ?? 720.0;
+      final String? assetsPath = root.getAttribute('assetsPath');
 
-    final textures = <FrameTextureData>[];
-    final texturesElement = root.getElement('textures');
-    if (texturesElement != null) {
-      for (final node in texturesElement.findElements('texture')) {
-        textures.add(FrameTextureData(
-          id: node.getAttribute('id')!,
-          file: node.getAttribute('file')!,
-        ));
-      }
-    }
-
-    final fonts = <FrameFontData>[];
-    final fontsElement = root.getElement('fonts');
-    if (fontsElement != null) {
-      for (final node in fontsElement.findElements('font')) {
-        fonts.add(FrameFontData(
-          id: node.getAttribute('id')!,
-          fntFile: node.getAttribute('fntFile')!,
-          texture: node.getAttribute('texture')!,
-        ));
-      }
-    }
-
-    final anchors = <String, FrameAnchorData>{};
-    final anchorsElement = root.getElement('anchors');
-    if (anchorsElement != null) {
-      for (final node in anchorsElement.findElements('anchor')) {
-        final id = node.getAttribute('id')!;
-        anchors[id] = FrameAnchorData(
-          id: id,
-          val: _parseVector3(node.getAttribute('val')!, {}),
-        );
-      }
-    }
-
-    final objects = <FrameObjectData>[];
-    final objectsElement = root.getElement('objects');
-    if (objectsElement != null) {
-      for (final node in objectsElement.children.whereType<XmlElement>()) {
-        final obj = _parseObject(node, anchors);
-        if (obj != null) {
-          objects.add(obj);
+      final textures = <FrameTextureData>[];
+      final texturesElement = root.getElement('textures');
+      if (texturesElement != null) {
+        for (final node in texturesElement.findElements('texture')) {
+          textures.add(FrameTextureData(
+            id: node.getAttribute('id')!,
+            file: node.getAttribute('file')!,
+          ));
         }
       }
+
+      final fonts = <FrameFontData>[];
+      final fontsElement = root.getElement('fonts');
+      if (fontsElement != null) {
+        for (final node in fontsElement.findElements('font')) {
+          fonts.add(FrameFontData(
+            id: node.getAttribute('id')!,
+            fntFile: node.getAttribute('fntFile')!,
+            texture: node.getAttribute('texture')!,
+          ));
+        }
+      }
+
+      final anchors = <String, FrameAnchorData>{};
+      final anchorsElement = root.getElement('anchors');
+      if (anchorsElement != null) {
+        for (final node in anchorsElement.findElements('anchor')) {
+          final id = node.getAttribute('id')!;
+          anchors[id] = FrameAnchorData(
+            id: id,
+            val: _parseVector3(node.getAttribute('val')!, {}),
+          );
+        }
+      }
+
+      final objects = <FrameObjectData>[];
+      final objectsElement = root.getElement('objects');
+      if (objectsElement != null) {
+        for (final node in objectsElement.children.whereType<XmlElement>()) {
+          final obj = _parseObject(node, anchors);
+          if (obj != null) {
+            objects.add(obj);
+          }
+        }
+      }
+
+      return FrameData(
+        frameSize: Size(width, height),
+        assetsPath: assetsPath,
+        version: version,
+        textures: textures,
+        fonts: fonts,
+        anchors: anchors.values.toList(),
+        objects: objects,
+      );
+    }
+    catch (e, stackTrace) {
+      Logging.log(LogLevel.error, "Error loading frame file': $e", source: "FrameSceneParser");
+      Logging.log(LogLevel.error, "StackTrace: $stackTrace", source: "FrameSceneParser");
+
+      return null;
     }
 
-    return FrameData(
-      frameSize: Size(width, height),
-      assetsPath: assetsPath,
-      version: version,
-      textures: textures,
-      fonts: fonts,
-      anchors: anchors.values.toList(),
-      objects: objects,
-    );
   }
 
-  static _parseTextureRect(String ?rectString) {
-
+  static Rect _parseTextureRect(String ?rectString) {
     if (rectString != null) {
       return _parseRect(rectString);
     }

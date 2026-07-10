@@ -1,5 +1,5 @@
 import 'package:flutter_test/flutter_test.dart';
-import 'package:fsg/fsk.dart';
+import 'package:fsk/fsk.dart';
 import 'package:vector_math/vector_math_64.dart';
 
 void main() {

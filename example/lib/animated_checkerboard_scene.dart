@@ -1,10 +1,10 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_angle/flutter_angle.dart';
-import 'package:fsg/fsk.dart';
-import 'package:fsg/vbo_filler.dart';
+import 'package:fsk/fsk.dart';
+import 'package:fsk/vbo_filler.dart';
 
 class AnimatedCheckerBoardScene extends FskScene {
-  AnimatedCheckerBoardScene() {
+  AnimatedCheckerBoardScene({super.navigationDelegate}) {
     VboFiller.makeTexturedUnitQuad(
       Rect.fromLTWH(-quadExtents.width/2, -quadExtents.height/2, quadExtents.width, quadExtents.height),
       0.1,

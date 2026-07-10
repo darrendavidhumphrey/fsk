@@ -1,6 +1,6 @@
 import 'dart:ui';
 import 'package:flutter_angle/flutter_angle.dart';
-import 'package:fsg/fsk.dart';
+import 'package:fsk/fsk.dart';
 import 'package:vector_math/vector_math_64.dart';
 
 /// A utility class for filling a [VBO] with vertex data.

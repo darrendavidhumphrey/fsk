@@ -1,6 +1,6 @@
 import 'package:flutter/foundation.dart';
 import 'package:flutter_angle/flutter_angle.dart';
-import 'package:fsg/fsk.dart';
+import 'package:fsk/fsk.dart';
 
 /// Represents the possible components a vertex can have.
 enum VertexComponent {

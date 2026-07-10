@@ -1,6 +1,6 @@
 import 'dart:ui';
 import 'package:flutter/services.dart';
-import 'package:fsg/fsk.dart';
+import 'package:fsk/fsk.dart';
 import 'package:mutex/mutex.dart';
 import 'package:flutter_angle/flutter_angle.dart';
 
@@ -31,7 +31,7 @@ class FskTextureManager with GlContextManager, LoggableClass {
   GlStateManager gls;
 
   /// Creates a new TextureManager.
-  /// This class is intended to be held by a central singleton (e.g., FSG)
+  /// This class is intended to be held by a central singleton (e.g., FSK)
   /// rather than being a singleton itself.
   FskTextureManager(this.gls);
 

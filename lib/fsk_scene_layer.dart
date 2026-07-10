@@ -1,5 +1,5 @@
 import 'dart:ui';
-import 'package:fsg/fsk.dart';
+import 'package:fsk/fsk.dart';
 import 'package:vector_math/vector_math_64.dart';
 
 /// An abstract base class for a layer within a [FskScene].

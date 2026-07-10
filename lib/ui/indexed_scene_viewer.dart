@@ -1,5 +1,5 @@
 import 'package:flutter/material.dart';
-import 'package:fsg/ui/render_to_texture.dart';
+import 'package:fsk/ui/render_to_texture.dart';
 import '../indexed_stack_scene.dart';
 
 class IndexedSceneViewer extends StatefulWidget {
@@ -22,7 +22,6 @@ class _IndexedSceneViewerState extends State<IndexedSceneViewer> {
         // 2. Refresh and cleanly render the Texture view once initialized
         return RenderToTexture(
           scene: widget.scene.currentScene(),
-          navigationDelegate: widget.scene.currentDelegate()
         );
       },
     );

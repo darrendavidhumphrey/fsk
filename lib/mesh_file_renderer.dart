@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_angle/flutter_angle.dart';
-import 'package:fsg/fsk.dart';
+import 'package:fsk/fsk.dart';
 import 'package:vector_math/vector_math_64.dart' hide Colors;
 
 /// A renderer responsible for drawing a [WavefrontObjModel] to the screen.

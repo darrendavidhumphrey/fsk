@@ -1,9 +1,9 @@
-import 'package:fsg/ui/navigation_delegates/scene_navigation_delegate.dart';
+import 'package:fsk/ui/navigation_delegates/scene_navigation_delegate.dart';
 import 'package:vector_math/vector_math_64.dart';
 import '../../fsk_singleton.dart';
 
 /// A navigation delegate that implements a static view
-class StaticViewDelegate extends SceneNavigationDelegate {
+class StaticViewDelegate extends FskSceneNavigationDelegate {
   StaticViewDelegate();
 
   // The rotation of the view, in degrees

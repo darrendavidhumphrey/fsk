@@ -1,29 +1,20 @@
 import 'dart:ui';
 
-import 'package:flutter/material.dart';
 import 'package:flutter_angle/flutter_angle.dart';
-import 'package:fsg/fsk.dart';
-import 'package:fsg/vbo_filler.dart';
+import 'package:fsk/fsk.dart';
 
 class FrameSceneExample extends FrameScene {
 
-  bool skinLoaded = false;
 
-  FrameSceneExample();
+
+  FrameSceneExample({super.navigationDelegate});
 
 
   @override
   void init(RenderingContext gl) {
-    super.init(gl);
-    loadSkin();
-  }
-
-  void loadSkin() async {
     String skinPath = "frames/GameScreen.xml";
-    frameData = await FrameSceneParser.parseFromAssets(skinPath);
-
-    skinLoaded = true;
-    frameData.dumpTree();
+    super.init(gl);
+    loadSkin(skinPath);
   }
 
   @override

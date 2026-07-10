@@ -3,18 +3,22 @@ import 'package:flutter/material.dart';
 import 'package:vector_math/vector_math_64.dart';
 import '../../fsk_scene.dart';
 
+abstract interface class ScreenRectSubscriber {
+  void setViewRect(Rect value);
+}
+
 /// An abstract interface for classes that handle user input to navigate a [FskScene].
 ///
 /// This decouples the interaction logic (like orbiting, panning, or zooming)
 /// from the rendering widget itself. It defines a contract for a set of event
 /// handlers that a widget like [RenderToTexture] can call in response to user input.
-abstract class SceneNavigationDelegate {
+abstract class FskSceneNavigationDelegate {
   /// The scene that this delegate controls.
   late FskScene scene;
   late Matrix4 _projectionMatrix;
   late Matrix4 _viewMatrix;
 
-  SceneNavigationDelegate() {
+  FskSceneNavigationDelegate() {
      _projectionMatrix = Matrix4.identity();
      _viewMatrix = Matrix4.identity();
   }

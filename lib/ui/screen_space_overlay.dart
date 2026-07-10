@@ -1,5 +1,5 @@
 import 'package:flutter/material.dart';
-import 'package:fsg/fsk.dart';
+import 'package:fsk/fsk.dart';
 import '../fsk_singleton.dart';
 import '../logging.dart';
 import '../fsk_scene_layer.dart';

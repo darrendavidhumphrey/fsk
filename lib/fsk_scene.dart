@@ -3,8 +3,8 @@ import 'dart:io';
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_angle/flutter_angle.dart';
-import 'package:fsg/fsk.dart';
-import 'package:fsg/performance_monitor.dart';
+import 'package:fsk/fsk.dart';
+import 'package:fsk/performance_monitor.dart';
 
 /// An abstract base class for a 3D scene, representing the root of a scene graph.
 ///
@@ -46,9 +46,12 @@ abstract class FskScene with LoggableClass, GlContextManager {
 
   late GlStateManager gls;
 
+  FskSceneNavigationDelegate? navigationDelegate;
+
   /// Creates a new scene and its associated performance monitor.
-  FskScene() {
+  FskScene({this.navigationDelegate}) {
     performanceMonitor = PerformanceMonitor(tag: runtimeType.toString());
+    navigationDelegate?.setScene(this);
   }
 
   /// Executes the provided [drawCommands] within a new, pushed matrix state.

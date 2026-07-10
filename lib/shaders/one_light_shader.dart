@@ -1,6 +1,6 @@
 import 'dart:ui';
 import 'package:flutter_angle/shared/classes.dart';
-import 'package:fsg/angle/gl_state_manager.dart';
+import 'package:fsk/angle/gl_state_manager.dart';
 import 'package:vector_math/vector_math_64.dart';
 import '../angle/glsl_shader.dart';
 

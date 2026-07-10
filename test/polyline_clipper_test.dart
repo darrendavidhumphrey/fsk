@@ -1,6 +1,6 @@
 import 'package:test/test.dart';
 import 'package:vector_math/vector_math_64.dart';
-import 'package:fsg/fsk.dart';
+import 'package:fsk/fsk.dart';
 
 /// Helper to compare two polylines for equality within a tolerance.
 bool _polylinesAreEqual(Polyline? a, Polyline? b, {double epsilon = 1e-6}) {

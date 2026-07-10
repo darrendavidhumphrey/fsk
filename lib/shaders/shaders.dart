@@ -1,6 +1,6 @@
 import 'package:flutter_angle/flutter_angle.dart';
-import 'package:fsg/fsk.dart';
-import 'package:fsg/shaders/simple_texture_shader.dart';
+import 'package:fsk/fsk.dart';
+import 'package:fsk/shaders/simple_texture_shader.dart';
 import 'package:vector_math/vector_math_64.dart';
 
 /// A class that manages the lifecycle of all shader programs in the application.

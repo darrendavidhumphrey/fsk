@@ -1,55 +1,71 @@
+import 'dart:ui';
+
 import 'package:flutter_angle/flutter_angle.dart';
 import '../fsk.dart';
 import 'frame_data.dart';
-import 'frame_scene_nodes.dart';
 
 class FrameScene extends FskScene {
-  late FrameData _frameData;
+  FrameData? _frameData;
   final List<FrameNode> rootNodes = [];
   final Map<String, FrameNode> nodeMap = {};
 
   bool _sceneIsReady = false;
   bool get sceneIsReady => _sceneIsReady;
+  bool skinLoaded = false;
 
-  FrameScene();
+  FrameScene({super.navigationDelegate});
 
-
-  set frameData(FrameData value) {
+  set frameData(FrameData? value) {
     _frameData = value;
     buildScene();
   }
 
-  FrameData get frameData => _frameData;
-
+  FrameData? get frameData => _frameData;
 
   String getResourcePath(String textureName) {
-    if ((_frameData.assetsPath == null) || (_frameData.assetsPath!.isEmpty)) {
+    if (_frameData == null) {
       return textureName;
     }
-    return '${_frameData.assetsPath}/$textureName';
+
+    if ((_frameData!.assetsPath == null) || (_frameData!.assetsPath!.isEmpty)) {
+      return textureName;
+    }
+    return '${_frameData!.assetsPath}/$textureName';
   }
 
   Future<void> buildScene() async {
+    if (_frameData == null) {
+      return;
+    }
+
     // 1. Load textures
-    for (var textureData in _frameData.textures.values) {
+    for (var textureData in _frameData!.textures.values) {
+      logVerbose(
+        "Loading texture: ID=${textureData.id} path=${textureData.file}, path=${getResourcePath(textureData.file)}",
+      );
 
-      logVerbose("Loading texture: ID=${textureData.id} path=${textureData.file}, path=${getResourcePath(textureData.file)}");
-
-      await FSK().textureManager.createTextureFromAsset(textureData.id,getResourcePath(textureData.file));
+      await FSK().textureManager.createTextureFromAsset(
+        textureData.id,
+        getResourcePath(textureData.file),
+      );
     }
     logVerbose("Done reading textures");
 
     // 2. Load fonts
-    for (var fontData in _frameData.fonts.values) {
+    for (var fontData in _frameData!.fonts.values) {
       String texturePath = getResourcePath(fontData.texture);
       String fontPath = getResourcePath(fontData.fntFile);
 
-      await BitmapFontManager().createFontFromFile(fontData.id,fontPath, texturePath);
+      await BitmapFontManager().createFontFromFile(
+        fontData.id,
+        fontPath,
+        texturePath,
+      );
     }
     logVerbose("Done registering fonts");
 
     // 3. Build node tree
-    for (var objData in _frameData.objects) {
+    for (var objData in _frameData!.objects) {
       final node = _createNode(objData);
       if (node != null) {
         rootNodes.add(node);
@@ -94,7 +110,12 @@ class FrameScene extends FskScene {
 
     gls.setDepthTest(false);
     gls.setBlend(true);
-    gls.blendFuncSeparate(WebGL.SRC_ALPHA, WebGL.ONE_MINUS_SRC_ALPHA,WebGL.SRC_ALPHA, WebGL.ONE_MINUS_SRC_ALPHA);
+    gls.blendFuncSeparate(
+      WebGL.SRC_ALPHA,
+      WebGL.ONE_MINUS_SRC_ALPHA,
+      WebGL.SRC_ALPHA,
+      WebGL.ONE_MINUS_SRC_ALPHA,
+    );
     mvMatrixStack.current = mvMatrix;
 
     for (var node in rootNodes) {
@@ -111,6 +132,31 @@ class FrameScene extends FskScene {
   }
 
   FrameNode? findNode(String id) => nodeMap[id];
+
+  Future<void> loadSkin(String skinPath) async {
+    frameData = await FrameSceneParser.parseFromAssets(skinPath);
+
+    if ((navigationDelegate != null) &&
+        (frameData != null) &&
+        (navigationDelegate is ScreenRectSubscriber)) {
+      var viewRect = Rect.fromLTWH(
+        0,
+        0,
+        frameData!.frameSize.width,
+        frameData!.frameSize.height,
+      );
+
+      var screenRectSub = navigationDelegate as ScreenRectSubscriber;
+      screenRectSub.setViewRect(viewRect);
+
+      skinLoaded = true;
+      if (frameData != null) {
+        frameData!.dumpTree();
+      }
+    }
+    }
+
+
 
   void setVisible(String id, bool visible) {
     findNode(id)?.visible = visible;

@@ -1,13 +1,13 @@
 import 'dart:ui';
 
 import 'package:flutter/foundation.dart';
-import 'package:fsg/ui/navigation_delegates/scene_navigation_delegate.dart';
+import 'package:fsk/ui/navigation_delegates/scene_navigation_delegate.dart';
 import 'package:vector_math/vector_math_64.dart';
-import '../../fsk_singleton.dart';
 
 /// A navigation delegate that implements a static orthographic view
-class OrthoViewDelegate extends SceneNavigationDelegate {
-  OrthoViewDelegate({required this._viewRect});
+class OrthoViewDelegate extends FskSceneNavigationDelegate implements ScreenRectSubscriber {
+  static const Rect defaultViewRect = Rect.fromLTWH(0, 0, 250, 250);
+  OrthoViewDelegate({this._viewRect=defaultViewRect});
 
   Rect _viewRect;
   double _zNear = -1000;
@@ -26,7 +26,8 @@ class OrthoViewDelegate extends SceneNavigationDelegate {
     setNeedsUpdate(true);
   }
 
-  set viewRect(Rect value) {
+  @override
+  void setViewRect(Rect value) {
     _viewRect = value;
     setNeedsUpdate(true);
   }
@@ -45,7 +46,7 @@ class OrthoViewDelegate extends SceneNavigationDelegate {
   @override
   Matrix4 createProjectionMatrix() {
     Matrix4 proj = Matrix4.identity();
-    print("OrthoViewDelegate: ${_viewRect.toString()}");
+
     if (kIsWeb) {
       setOrthographicMatrix(proj, _viewRect.left, _viewRect.right, _viewRect.top, _viewRect.bottom, _zNear, _zFar);
     } else {
