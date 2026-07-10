@@ -22,7 +22,7 @@ class ExampleScenes extends IndexedStackScene {
     addScene(CheckerBoardScene( navigationDelegate: OrthoViewDelegate()));
     addScene(AnimatedCheckerBoardScene(navigationDelegate: StaticViewDelegate()));
     addScene(OrbitViewScene(navigationDelegate: OrbitViewDelegate()));
-    addScene(BitmapTextScene(navigationDelegate: OrbitViewDelegate()));
+    addScene(BitmapTextScene(navigationDelegate: OrthoViewDelegate()));
     addScene(FrameSceneExample( navigationDelegate: OrthoViewDelegate()));
 
     setCurrentScene(0);

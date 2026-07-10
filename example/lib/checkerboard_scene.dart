@@ -26,7 +26,6 @@ class CheckerBoardScene extends FskScene {
   @override
   void dispose() {}
 
-
   void drawVBO(Matrix4 pMatrix, Matrix4 mvMatrix) {
     shader ??= FSK().shaders.getShader<CheckerBoardShader>();
     gls.useProgram(shader!.program);

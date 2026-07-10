@@ -1,0 +1,23 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<frameScene version="1.0" width="1280" height="720" assetsPath ="frames">
+    <textures>
+        <texture id="TestPattern" file="TestPattern.png" />
+    </textures>
+
+    <fonts>/>
+        <font id="Arial36" fntFile="Arial36.fnt" texture="Arial36.png" />
+        <font id="Scoreboard140" fntFile="Scoreboard140.fnt" texture="Scoreboard140.png" />
+    </fonts>
+
+    <!-- Start of SCENE  -->
+    <objects>
+        <quad id="TestPattern" texture="TestPattern" screenRect="{{0, 0}, {1280, 720}}" visible="false" />
+
+
+        <text id="FrameCount" font="Scoreboard140" text="999"
+            screenRect="{{545, 525}, {200, 80}}" hJustify="center" vJustify="bottom"/>
+
+
+    </objects>
+
+</frameScene>

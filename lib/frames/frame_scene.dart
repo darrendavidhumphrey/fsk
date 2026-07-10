@@ -15,6 +15,10 @@ class FrameScene extends FskScene {
 
   FrameScene({super.navigationDelegate});
 
+  // Stub: Override this to perform an action as soon as the scene is ready
+  // For example, mapping named nodes to objects
+  void onSceneReady() {}
+
   set frameData(FrameData? value) {
     _frameData = value;
     buildScene();
@@ -78,6 +82,9 @@ class FrameScene extends FskScene {
     }
     logVerbose("Done initializing tree");
     _sceneIsReady = true;
+
+    // Allow derived class to call custom initialization
+    onSceneReady();
   }
 
   FrameNode? _createNode(FrameObjectData objData) {
@@ -106,6 +113,7 @@ class FrameScene extends FskScene {
   @override
   void drawScene() {
     super.drawScene();
+    gls.clearColor(0, 0, 0, 1);
     gl.clear(WebGL.COLOR_BUFFER_BIT | WebGL.DEPTH_BUFFER_BIT);
 
     gls.setDepthTest(false);
@@ -131,41 +139,44 @@ class FrameScene extends FskScene {
     super.dispose();
   }
 
+  // Generic findNode function
   FrameNode? findNode(String id) => nodeMap[id];
 
+  // Type safe findNode function
+  T? findNodeByType<T>(String id) {
+    var node = nodeMap[id];
+
+    if (node is T) {
+      return node as T;
+    }
+
+    return null;
+  }
+
   Future<void> loadSkin(String skinPath) async {
-    frameData = await FrameSceneParser.parseFromAssets(skinPath);
+    try {
+      frameData = await FrameSceneParser.parseFromAssets(skinPath);
 
-    if ((navigationDelegate != null) &&
-        (frameData != null) &&
-        (navigationDelegate is ScreenRectSubscriber)) {
-      var viewRect = Rect.fromLTWH(
-        0,
-        0,
-        frameData!.frameSize.width,
-        frameData!.frameSize.height,
-      );
+      if ((navigationDelegate != null) &&
+          (frameData != null) &&
+          (navigationDelegate is ScreenRectSubscriber)) {
+        var viewRect = Rect.fromLTWH(
+          0,
+          0,
+          frameData!.frameSize.width,
+          frameData!.frameSize.height,
+        );
 
-      var screenRectSub = navigationDelegate as ScreenRectSubscriber;
-      screenRectSub.setViewRect(viewRect);
-
+        var screenRectSub = navigationDelegate as ScreenRectSubscriber;
+        screenRectSub.setViewRect(viewRect);
+      }
       skinLoaded = true;
       if (frameData != null) {
         frameData!.dumpTree();
       }
-    }
-    }
-
-
-
-  void setVisible(String id, bool visible) {
-    findNode(id)?.visible = visible;
-  }
-
-  void setText(String id, String text) {
-    final node = findNode(id);
-    if (node is FrameTextNode) {
-      node.object?.setText(text);
+    } catch (e, stackTrace) {
+      logError("Error skin XML '$skinPath': $e");
+      logError("StackTrace: $stackTrace");
     }
   }
 }

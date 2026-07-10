@@ -60,11 +60,18 @@ class BitmapFontManager with LoggableClass {
     String textureName,
   ) async {
     // Load the XML data from the file as a string
-    final xmlData = await rootBundle.loadString("$assetsRoot$filename");
+    final fontPath = "$assetsRoot$filename";
 
-    logVerbose("createFontFromFile: $fontName, $filename, $textureName");
-    // Call the createFont method with the retrieved data
-    createFont(fontName, xmlData, textureName);
+    try {
+      final xmlData = await rootBundle.loadString(fontPath);
+
+      logVerbose("createFontFromFile: $fontName, $filename, $textureName");
+      // Call the createFont method with the retrieved data
+      createFont(fontName, xmlData, textureName);
+    } catch (e, stackTrace) {
+      logError("Error loading font XML '$fontPath': $e");
+      logError("StackTrace: $stackTrace");
+    }
   }
 
   /// Creates a font from XML data, loads its texture, and registers it.

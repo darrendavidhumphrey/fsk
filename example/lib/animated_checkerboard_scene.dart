@@ -1,7 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_angle/flutter_angle.dart';
 import 'package:fsk/fsk.dart';
-import 'package:fsk/vbo_filler.dart';
 
 class AnimatedCheckerBoardScene extends FskScene {
   AnimatedCheckerBoardScene({super.navigationDelegate}) {

@@ -29,7 +29,6 @@ class RenderToTextureCoreState extends State<RenderToTextureCore>
   Ticker? ticker;
   bool _tickerIsActive = false;
 
-
   // For web, track the initialization state to eliminate race conditions
   bool _isWebReady = false;
   bool _engineDataReady = false;
@@ -45,7 +44,6 @@ class RenderToTextureCoreState extends State<RenderToTextureCore>
   }
 
   void _initRenderLoop() async {
-
     // Make sure FSK is ready
     while (FSK().state != FskState.glInitialized) {
       await Future.delayed(const Duration(milliseconds: 16));
@@ -108,7 +106,6 @@ class RenderToTextureCoreState extends State<RenderToTextureCore>
   void _onHardwareTick(Duration elapsed) async {
     if (kIsWeb && (!_isWebReady)) return;
 
-
     if (widget.scene.frameProcessing) {
       return;
     }
@@ -121,35 +118,34 @@ class RenderToTextureCoreState extends State<RenderToTextureCore>
 
     widget.scene.setViewportSize(screenSize);
 
-    if  ((widget.navigationDelegate != null) && (widget.navigationDelegate!.needsUpdate)) {
-     // widget.navigationDelegate.setNeedsUpdate(true);
+    if ((widget.navigationDelegate != null) &&
+        (widget.navigationDelegate!.needsUpdate)) {
+      // widget.navigationDelegate.setNeedsUpdate(true);
       widget.navigationDelegate!.updateSceneMatrices();
     }
     await widget.scene.renderSceneToTexture();
 
     if (mounted) {
       if (!kIsWeb) {
-        setState(() {
-        });
+        setState(() {});
       }
     }
   }
 
   @override
   Widget build(BuildContext context) {
-
     return LayoutBuilder(
       builder: (context, constraints) {
         FlutterAngleTexture? texture = FSK().scenes[widget.scene];
 
-        if ((!_engineDataReady)  ||  (texture == null)) {
+        if ((!_engineDataReady) || (texture == null)) {
           return const Center(child: CircularProgressIndicator());
         }
 
         // Continuously update screen size in case it changed.
         // This ensures the viewport is correct for constructing GL matrices
         screenSize = Size(constraints.maxWidth, constraints.maxHeight);
-       // TODO! widget.navigationDelegate.setNeedsUpdate(true);
+        // TODO! widget.navigationDelegate.setNeedsUpdate(true);
 
         // On web, only start the ticker once size is non-zero
         if (kIsWeb && constraints.maxWidth > 0 && constraints.maxHeight > 0) {
@@ -160,7 +156,8 @@ class RenderToTextureCoreState extends State<RenderToTextureCore>
           });
         }
 
-        final String elementKey = 'canvas-surface-${texture.textureId}-$_webGenerationKey';
+        final String elementKey =
+            'canvas-surface-${texture.textureId}-$_webGenerationKey';
 
         return Stack(
           children: [
@@ -169,14 +166,14 @@ class RenderToTextureCoreState extends State<RenderToTextureCore>
               height: constraints.maxHeight,
               child: kIsWeb
                   ? HtmlElementView(
-                    key: ValueKey(elementKey),
-                    viewType: texture.textureId.toString(),
-                  )
+                      key: ValueKey(elementKey),
+                      viewType: texture.textureId.toString(),
+                    )
                   : Texture(
-               key: ValueKey(texture.textureId),
-                textureId: texture.textureId,
-                filterQuality: FilterQuality.medium,
-              ),
+                      key: ValueKey(texture.textureId),
+                      textureId: texture.textureId,
+                      filterQuality: FilterQuality.medium,
+                    ),
             ),
             if (widget.child != null) widget.child!,
           ],

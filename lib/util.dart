@@ -1,5 +1,4 @@
 import 'dart:math';
-import 'dart:typed_data';
 import 'package:vector_math/vector_math_64.dart';
 
 /// Wraps an angle to be in the range [0, 360).
@@ -15,7 +14,7 @@ double clampAngle0To360(double angle) {
 }
 
 /// Utility extensions for 3D vector operations.
-extension Dist2D on Vector3 {
+extension Dist3D on Vector3 {
   /// Calculates the shortest distance from this point to a 3D line segment [a]-[b].
   double distanceToLineSegment3D(Vector3 a, Vector3 b) {
     Vector3 segmentVector = b - a;
@@ -43,33 +42,6 @@ extension QuadNormal on Quad {
     normal.normalize();
     return normal;
   }
-}
-
-/// Utility extension for human-readable [Vector3] formatting.
-extension VectorToString on Vector3 {
-  String niceString() {
-    return "(x: ${x.toStringAsFixed(2)} y: ${y.toStringAsFixed(2)} z: ${z.toStringAsFixed(2)})";
-  }
-}
-
-/// Utility extension for human-readable [Quad] formatting.
-extension QuadToString on Quad {
-  String niceString() {
-    String pointsStr = "Quad =";
-    pointsStr += "${point0.niceString()} ";
-    pointsStr += "${point1.niceString()} ";
-    pointsStr += "${point2.niceString()} ";
-    pointsStr += point3.niceString();
-    return pointsStr;
-  }
-}
-
-/// Checks for value equality between two [Quad] objects.
-bool quadsAreEqual(Quad q1, Quad q2) {
-  return (q1.point0 == q2.point0 &&
-      q1.point1 == q2.point1 &&
-      q1.point2 == q2.point2 &&
-      q1.point3 == q2.point3);
 }
 
 /// Utility extensions for [Quaternion] operations.
@@ -190,17 +162,4 @@ List<Vector2> computeTexCoords(
     ..normalize();
 
   return (right: right, up: up, forward: forward);
-}
-
-extension Float32ListVectorView on Float32List {
-  /// Creates a non-allocating [Vector3] view into the list starting at
-  /// the given float [offset].
-  ///
-  /// The offset is in floats, not bytes. For example, an offset of 3
-  /// will view the second vector in a tightly packed list of vertices.
-  Vector3 vector3View(int offset) {
-    // Vector3.fromBuffer expects a byte offset. Since each float in a
-    // Float32List is 4 bytes, we multiply the float offset by 4.
-    return Vector3.fromBuffer(buffer, offset * 4);
-  }
 }
