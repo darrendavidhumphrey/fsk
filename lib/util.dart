@@ -2,6 +2,8 @@ import 'dart:math';
 import 'dart:ui';
 import 'package:vector_math/vector_math_64.dart';
 
+import 'logging.dart';
+
 /// Wraps an angle to be in the range [0, 360).
 double clampAngle0To360(double angle) {
   if (!angle.isFinite) {
@@ -190,6 +192,7 @@ Color parseHexColor(String? hex) {
     // Re-orders bytes from RRGGBBAA to Flutter's expected AARRGGBB format
     return Color(int.parse('0x$aa$rrgg'));
   } catch (_) {
+    Logging.logError ('Error parsing hex color: $hex',source: 'parseHexColor');
     return const Color(0xFFFFFFFF); // Fallback on parsing exceptions
   }
 }

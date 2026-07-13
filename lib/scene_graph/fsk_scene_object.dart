@@ -9,4 +9,6 @@ abstract class FskSceneObject {
   void init(GlStateManager gls);
   void rebuild(GlStateManager gls);
   void dispose();
+
+  void applyShaderParams(Map<String, String> params);
 }

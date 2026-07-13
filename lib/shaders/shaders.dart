@@ -1,6 +1,5 @@
 import 'package:flutter_angle/flutter_angle.dart';
 import 'package:fsk/fsk.dart';
-import 'package:fsk/shaders/simple_texture_shader.dart';
 import 'package:vector_math/vector_math_64.dart';
 
 /// A class that manages the lifecycle of all shader programs in the application.
@@ -49,6 +48,26 @@ class ShaderList with GlContextManager,LoggableClass {
     final shaderInstance = factory();
     _cachedShaders[T] = shaderInstance;
     return shaderInstance as T;
+  }
+
+  /// Retrieves a shader by its class name (as a string).
+  GlslShader? getShaderByName(String name) {
+    for (var type in _shaderFactories.keys) {
+      if (type.toString() == name) {
+        return _getShaderByType(type);
+      }
+    }
+    return null;
+  }
+
+  GlslShader _getShaderByType(Type t) {
+    if (_cachedShaders.containsKey(t)) {
+      return _cachedShaders[t]!;
+    }
+    final factory = _shaderFactories[t]!;
+    final shaderInstance = factory();
+    _cachedShaders[t] = shaderInstance;
+    return shaderInstance;
   }
 
   /// A utility to set the standard model-view and projection matrices on a shader.

@@ -108,7 +108,13 @@ class FskBitmapText extends FskSceneObject {
   final VertexBuffer _vbo = VertexBuffer.v3t2();
 
   // One shader shared by all text instances
-  static BitmapTextShader? shader;
+  static GlslShader? _shader;
+
+  GlslShader? get _activeShader => _shader;
+
+  void setShader(GlslShader? s) {
+    _shader = s ?? FSK().shaders.getShader<BitmapTextShader>();
+  }
 
   TextVerticalJustification _verticalJustification;
 
@@ -137,6 +143,10 @@ class FskBitmapText extends FskSceneObject {
     this._horizontalJustification = TextHorizontalJustification.left,
     this._maxLen,
   }) {
+
+    // Default to the bitmap texture shader if not set.
+    _shader ??= FSK().shaders.getShader<BitmapTextShader>();
+
     // Cache the target width from the reference box.
     _width = _screenRect.xVector.length;
   }
@@ -194,6 +204,16 @@ class FskBitmapText extends FskSceneObject {
     if (_text != text) {
       _text = text;
       _needsRebuild = true;
+    }
+  }
+
+  @override
+  void applyShaderParams(Map<String, String> params) {
+    final activeShader = _activeShader;
+    if (activeShader != null) {
+      params.forEach((name, value) {
+        activeShader.setUniformValue(name, value);
+      });
     }
   }
 
@@ -369,37 +389,37 @@ class FskBitmapText extends FskSceneObject {
 
   @override
   void drawSetup(GlStateManager gls, Matrix4 pMatrix, Matrix4 mvMatrix) {
-    // TODO: Clean this up .. Don't do it in the loop
-    shader ??= FSK().shaders.getShader<BitmapTextShader>();
+    final activeShader = _activeShader;
 
-    if ((font == null) || (shader == null)) return;
+    if ((font == null) || (activeShader == null)) return;
 
-    gls.useProgram(shader!.program);
-    ShaderList.setMatrixUniforms(shader!, pMatrix, mvMatrix);
+    gls.useProgram(activeShader.program);
+    ShaderList.setMatrixUniforms(activeShader, pMatrix, mvMatrix);
 
     gls.setBlend(true);
     gls.setTexturingEnabled(true);
     gls.activeTexture(WebGL.TEXTURE0);
     gls.setDepthTest(false);
+
+    if (activeShader is BitmapTextShader) {
+      activeShader.setTextColor(textColor);
+    }
+
     gls.blendFuncSeparate(
       WebGL.ONE,
       WebGL.ONE_MINUS_SRC_ALPHA,
       WebGL.ONE,
       WebGL.ONE_MINUS_SRC_ALPHA,
     );
-    shader!.setTextureSampler(0);
+    activeShader.setTextureSampler(0);
   }
 
   @override
   void draw(GlStateManager gls) {
-    if ((font == null) || (!font!.isInitialized) || (shader == null)) return;
-
-    shader!.setTextColor(textColor);
+    final activeShader = _activeShader;
+    if ((font == null) || (!font!.isInitialized) || (activeShader == null)) return;
 
     gls.bindTexture(WebGL.TEXTURE_2D, font!.textureInfo!.texture);
-
-    // TODO: TEST
-    rebuildQuads();
 
     _vbo.bind();
     _vbo.drawTriangles();

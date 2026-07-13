@@ -5,14 +5,14 @@
     </textures>
 
     <fonts>
-        <font id="SourceCodePro-Black30" fntFile="SourceCodePro-Black30.fnt" texture="SourceCodePro-Black30.png" />
+        <font id="SourceCodePro-Black60" fntFile="SourceCodePro-Black60.fnt" texture="SourceCodePro-Black60.png" />
         <font id="ArialMT36" fntFile="ArialMT36.fnt" texture="ArialMT36.png" />
         <font id="SourceCodePro-Black36" fntFile="SourceCodePro-Black36.fnt" texture="SourceCodePro-Black36.png" />
     </fonts>
 
     <!-- Start of SCENE  -->
     <objects>
-        <text id="Text1" font="SourceCodePro-Black30" text="Text Item "
+        <text id="Text1" font="SourceCodePro-Black36" text="Text Item "
             screenRect="{{439, 457}, {162, 21}}" hJustify="center" vJustify="bottom" visible="true" textColor="#000000FF" />
 
         <text id="Text2" font="ArialMT36" text="Left Justified"

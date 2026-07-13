@@ -11,6 +11,9 @@ abstract class FrameNode with LoggableClass {
   void init(GlStateManager gls);
   void draw(GlStateManager gls, Matrix4 pMatrix, MatrixStack mvStack);
   void dispose();
+
+  /// Applies shader parameters to the bound shader.
+  void applyShaderParams(GlStateManager gls);
 }
 
 class FrameGroupNode extends FrameNode {
@@ -45,6 +48,11 @@ class FrameGroupNode extends FrameNode {
       child.dispose();
     }
   }
+
+  @override
+  void applyShaderParams(GlStateManager gls) {
+    // Groups themselves don't have a bound shader.
+  }
 }
 
 abstract class FrameObjectNode<T extends FskSceneObject> extends FrameNode {
@@ -58,7 +66,15 @@ abstract class FrameObjectNode<T extends FskSceneObject> extends FrameNode {
 
     object?.rebuild(gls);
     object?.drawSetup(gls, pMatrix, mvStack.current);
+    applyShaderParams(gls);
     object?.draw(gls);
+  }
+
+  @override
+  void applyShaderParams(GlStateManager gls) {
+    if (object != null && data.shaderParams.isNotEmpty) {
+      object!.applyShaderParams(data.shaderParams);
+    }
   }
 
   @override
@@ -89,12 +105,10 @@ class FrameQuadNode extends FrameObjectNode<FskQuad> {
 
     object = FskQuad(rect, quadData.textureRect, quadData.texture);
 
-    //TODO: Add shader support
     if (quadData.shader != null) {
-      print("Quad shader for ${data.id} is ${quadData.shader}");
-      print("Params are ${data.shaderParams.toString()}");
+      final shader = FSK().shaders.getShaderByName(quadData.shader!);
+      object!.setShader(shader);
     }
-
 
     object!.init(gls);
   }
@@ -123,12 +137,17 @@ class FrameTextNode extends FrameObjectNode<FskBitmapText> {
     // Parse the hex string or default to solid white Vector4(1.0, 1.0, 1.0, 1.0)
     final textColorVector = parseHexColor(textData.textColor);
 
-    //TODO: Add shader support
-
     object = FskBitmapText(font, textData.text, refBox,
-
         textColor: textColorVector,horizontalJustification:  textData.hJustify,
         verticalJustification: textData.vJustify,maxLen:textData.maxLen);
+
+    if (textData.shader != null) {
+      final shader = FSK().shaders.getShaderByName(textData.shader!);
+      object!.setShader(shader);
+    } else {
+
+    }
+
     object!.init(gls);
   }
 }

@@ -11,11 +11,26 @@
     <objects>
         <quad id="PenelopeModulate" texture="Penelope" screenRect="{{41, 422}, {221, 238}}" visible="true" opacity="1"
             shader="SimpleTextureShader"
-            shaderParams="modulateColor: #FF000000"
+            shaderParams="uModulateColor: #FF0000FF"
         />
 
-        <quad id="Penelope" texture="Penelope" screenRect="{{429, 422}, {221, 238}}" visible="true" opacity="1" />
+        <quad id="PenelopeModulate2" texture="Penelope" screenRect="{{241, 422}, {221, 238}}" visible="true" opacity="1"
+            shader="SimpleTextureShader"
+            shaderParams="uModulateColor: #00FF00FF"
+        />
 
+        <quad id="Penelope" texture="Penelope" screenRect="{{441, 422}, {221, 238}}" visible="true" opacity="1" />
+
+
+        <quad id="PenelopeModulate2" texture="Penelope" screenRect="{{641, 422}, {221, 238}}" visible="true" opacity="1"
+            shader="CheckerBoardShader"
+            shaderParams="uPatternColor1: #FF0000FF, uPatternColor2: #00FF00FF, uPatternScale: 5, uUseTexture:true,uTextureMix:0.5"
+        />
     </objects>
+
+    "uPatternColor1";
+    static String uPatternColor2 = "uPatternColor2";
+    static String uPatternScale = "uPatternScale"
+
 
 </frameScene>

@@ -150,7 +150,9 @@ class GlslShader with LoggableClass {
   }
 
   void setTextureSampler(int unit) {
-    gls.setUniform1i(uniforms[GlslShader.textureSamplerAttrib]!, unit);
+    if (uniforms[GlslShader.textureSamplerAttrib] != null) {
+      gls.setUniform1i(uniforms[GlslShader.textureSamplerAttrib]!, unit);
+    }
   }
 
 

@@ -64,8 +64,17 @@ class FskQuad extends FskSceneObject {
     _needsRebuild = false;
   }
 
-  void setShader(GlslShader shader) {
-    _shader = shader;
+  void setShader(GlslShader? shader) {
+    _shader = shader ?? FSK().shaders.getShader<SimpleTextureShader>();
+  }
+
+  @override
+  void applyShaderParams(Map<String, String> params) {
+    if (_shader != null) {
+      params.forEach((name, value) {
+        _shader!.setUniformValue(name, value);
+      });
+    }
   }
 
   @override

@@ -22,7 +22,7 @@ out vec2 vTextureCoord;   // Interpolated texture coordinate
 void main(void) {
     gl_Position = uPMatrix * uMVMatrix * vec4(aVertexPosition, 1.0);
     vTextureCoord = aTextureCoord;
-}0
+}
 ''';
 
 String _fragmentShader = '''
@@ -34,6 +34,9 @@ precision mediump float;
 out vec4 FragColor;
 in vec2 vTextureCoord;
 
+uniform sampler2D uSampler;
+uniform bool uUseTexture;
+uniform float uTextureMix; // 0.0 = pattern only, 1.0 = texture only
 uniform vec4 uPatternColor1; // Pattern color 1
 uniform vec4 uPatternColor2; // Pattern color 2
 uniform float uPatternScale; // Scale of the pattern
@@ -46,10 +49,20 @@ void main() {
     float checkX = step(0.5, fractionalCoord.x); 
     float checkY = step(0.5, fractionalCoord.y);
 
+    vec4 color;
     if (checkX != checkY) {
-        FragColor = uPatternColor1;
+        color = uPatternColor1;
     } else {
-        FragColor = uPatternColor2;
+        color = uPatternColor2;
+    }
+    
+    if (uUseTexture) {
+        vec4 texColor = texture(uSampler, vTextureCoord);
+        vec3 blendedRGB = mix(color.rgb, texColor.rgb, uTextureMix);
+        float alpha = texColor.a;
+        FragColor = vec4(blendedRGB * alpha, alpha);
+    } else {
+        FragColor = vec4(color.rgb * color.a, color.a);
     }
 }
 ''';
@@ -58,10 +71,14 @@ class CheckerBoardShader extends GlslShader {
   static String uPatternColor1 = "uPatternColor1";
   static String uPatternColor2 = "uPatternColor2";
   static String uPatternScale = "uPatternScale";
+  static String uUseTexture = "uUseTexture";
+  static String uTextureMix = "uTextureMix";
 
   late UniformLocation _patternColor1Location;
   late UniformLocation _patternColor2Location;
   late UniformLocation _patternScaleLocation;
+  late UniformLocation _useTextureLocation;
+  late UniformLocation _textureMixLocation;
 
   CheckerBoardShader(GlStateManager gls)
     : super(
@@ -73,13 +90,20 @@ class CheckerBoardShader extends GlslShader {
           uPatternColor1,
           uPatternColor2,
           uPatternScale,
+          uUseTexture,
+          uTextureMix,
           GlslShader.uModelView,
           GlslShader.uProj,
+          GlslShader.textureSamplerAttrib,
         ],
       ) {
     _patternColor1Location = uniforms[uPatternColor1]!;
     _patternColor2Location = uniforms[uPatternColor2]!;
     _patternScaleLocation = uniforms[uPatternScale]!;
+    _useTextureLocation = uniforms[uUseTexture]!;
+    _textureMixLocation = uniforms[uTextureMix]!;
+    setUseTexture(false);
+    setTextureMix(0.0);
   }
   void setPatternColor1(Color color) {
     gls.setUniform4fv(_patternColor1Location, [
@@ -103,6 +127,14 @@ class CheckerBoardShader extends GlslShader {
     gls.setUniform1f(_patternScaleLocation, scale.toDouble());
   }
 
+  void setUseTexture(bool useTexture) {
+    gls.setUniform1i(_useTextureLocation, useTexture ? 1 : 0);
+  }
+
+  void setTextureMix(num mix) {
+    gls.setUniform1f(_textureMixLocation, mix.toDouble());
+  }
+
   @override
   void setUniformValue(String name, String value) {
     if (name == uPatternColor1) {
@@ -112,6 +144,11 @@ class CheckerBoardShader extends GlslShader {
     } else if (name == uPatternScale) {
       final val = double.tryParse(value);
       if (val != null) setPatternScale(val);
+    } else if (name == uUseTexture) {
+      setUseTexture(value.toLowerCase() == 'true' || value == '1');
+    } else if (name == uTextureMix) {
+      final val = double.tryParse(value);
+      if (val != null) setTextureMix(val);
     } else {
       super.setUniformValue(name, value);
     }
