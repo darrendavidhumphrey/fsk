@@ -5,6 +5,8 @@ class BitmapTextScene extends FrameScene {
   BitmapTextScene({super.navigationDelegate});
 
   FrameTextNode? frameCountText;
+  FrameTextNode? sourceCode1, sourceCode2, sourceCode3;
+
   @override
   void dispose() {}
 
@@ -21,6 +23,13 @@ class BitmapTextScene extends FrameScene {
   void onSceneReady() {
     drawScene();
     frameCountText ??= findNodeByType<FrameTextNode>("FrameCount");
+    sourceCode1 ??= findNodeByType<FrameTextNode>("sourceCode1");
+    sourceCode2 ??= findNodeByType<FrameTextNode>("sourceCode2");
+    sourceCode3 ??= findNodeByType<FrameTextNode>("sourceCode3");
+
+    sourceCode1?.object!.setText("01234");
+    sourceCode2?.object!.setText("01234");
+    sourceCode3?.object!.setText("01234");
   }
 
   @override
@@ -30,7 +39,7 @@ class BitmapTextScene extends FrameScene {
       return;
     }
 
-    gls.clearColor(1,1,1,1);
+    gls.clearColor(0,1,0,1);
     // Access text object by ID in skin file
     frameCountText?.object!.setText("$frameCounter");
 

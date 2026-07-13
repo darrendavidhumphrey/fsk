@@ -9,7 +9,10 @@
 
     <!-- Start of SCENE  -->
     <objects>
-        <quad id="PenelopeModulate" texture="Penelope" screenRect="{{41, 422}, {221, 238}}" visible="true" opacity="1" />
+        <quad id="PenelopeModulate" texture="Penelope" screenRect="{{41, 422}, {221, 238}}" visible="true" opacity="1"
+            shader="SimpleTextureShader"
+            shaderParams="modulateColor: #FF000000"
+        />
 
         <quad id="Penelope" texture="Penelope" screenRect="{{429, 422}, {221, 238}}" visible="true" opacity="1" />
 

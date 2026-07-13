@@ -50,6 +50,7 @@ class BitmapFontManager with LoggableClass {
     // Asynchronously Lazily instantiate the default font
     if (font == null) {
       createDefaultFont();
+      return _fonts["default"];
     }
     return font;
   }

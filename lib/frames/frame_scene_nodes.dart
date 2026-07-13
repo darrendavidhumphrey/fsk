@@ -109,6 +109,14 @@ class FrameQuadNode extends FrameObjectNode<FskQuad> {
     );
 
     object = FskQuad(rect, quadData.textureRect, quadData.texture);
+
+    //TODO: Add shader support
+    if (quadData.shader != null) {
+      print("Quad shader for ${data.id} is ${quadData.shader}");
+      print("Params are ${data.shaderParams.toString()}");
+    }
+
+
     object!.init(gls);
   }
 }
@@ -135,6 +143,8 @@ class FrameTextNode extends FrameObjectNode<FskBitmapText> {
 
     // Parse the hex string or default to solid white Vector4(1.0, 1.0, 1.0, 1.0)
     final textColorVector = parseHexToColor(textData.textColor);
+
+    //TODO: Add shader support
 
     object = FskBitmapText(font, textData.text, refBox,
 

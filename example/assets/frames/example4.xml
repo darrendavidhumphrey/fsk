@@ -5,22 +5,32 @@
     </textures>
 
     <fonts>
-        <font id="SourceCodePro-Regular30" fntFile="SourceCodePro-Regular30.fnt" texture="SourceCodePro-Regular30.png" />
-        <font id="ArialMT36" fntFile="Arial36.fnt" texture="Arial36.png" />
+        <font id="SourceCodePro-Black30" fntFile="SourceCodePro-Black30.fnt" texture="SourceCodePro-Black30.png" />
+        <font id="ArialMT36" fntFile="ArialMT36.fnt" texture="ArialMT36.png" />
+        <font id="SourceCodePro-Black36" fntFile="SourceCodePro-Black36.fnt" texture="SourceCodePro-Black36.png" />
     </fonts>
 
     <!-- Start of SCENE  -->
     <objects>
-        <text id="Text1" font="SourceCodePro-Regular30" text="Text Item "
-            screenRect="{{440, 457}, {160, 21}}" hJustify="center" vJustify="bottom" visible="true" textColor="#000000FF" />
+        <text id="Text1" font="SourceCodePro-Black30" text="Text Item "
+            screenRect="{{439, 457}, {162, 21}}" hJustify="center" vJustify="bottom" visible="true" textColor="#000000FF" />
 
         <text id="Text2" font="ArialMT36" text="Left Justified"
             screenRect="{{245, 634}, {198, 26}}" hJustify="left" vJustify="bottom" visible="true" textColor="#FF0000FF" />
 
-        <text id="Text2 copy" font="ArialMT36" text="Centered"
+        <text id="sourceCode1" font="SourceCodePro-Black36" text="0123456789"
+            screenRect="{{56, 246}, {213, 25}}" hJustify="right" vJustify="bottom" visible="true" textColor="#FF0000FF" maxLen="2"/>
+
+        <text id="sourceCode2" font="SourceCodePro-Black36" text="0123456789"
+            screenRect="{{56, 185}, {213, 25}}" hJustify="right" vJustify="bottom" visible="true" textColor="#FF0000FF" maxLen="3" />
+
+        <text id="sourceCode3" font="SourceCodePro-Black36" text="0123456789"
+            screenRect="{{56, 124}, {213, 25}}" hJustify="right" vJustify="bottom" visible="true" textColor="#FF0000FF" />
+
+        <text id="Text2Copy" font="ArialMT36" text="Centered"
             screenRect="{{170, 583}, {145, 26}}" hJustify="center" vJustify="bottom" visible="true" textColor="#FF0000FF" />
 
-        <text id="Text2 copy 2" font="ArialMT36" text="Right Justified"
+        <text id="Text2Copy2" font="ArialMT36" text="Right Justified"
             screenRect="{{20, 525}, {221, 33}}" hJustify="right" vJustify="bottom" visible="true" textColor="#FF0000FF" />
 
         <quad id="Penelope" texture="Penelope" screenRect="{{430, 199}, {221, 238}}" visible="true" opacity="1" />

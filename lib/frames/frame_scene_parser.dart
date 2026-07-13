@@ -117,7 +117,13 @@ class FrameSceneParser with LoggableClass {
     // If no rectString is provided, return a default value
     return Rect.fromLTWH(0, 0, 1, 1);
   }
+
   static FrameObjectData? _parseObject(XmlElement node, Map<String, FrameAnchorData> anchors) {
+    final String? shaderName = node.getAttribute('shader');
+
+    // Parse shader parameters down into a safe Key-Value profile Map structure
+    final Map<String, String> shaderParamsMap = _parseShaderParams(node.getAttribute('shaderParams'));
+
     switch (node.name.local) {
       case 'quad':
         return QuadData(
@@ -127,10 +133,11 @@ class FrameSceneParser with LoggableClass {
           screenRect: _parseRect(node.getAttribute('screenRect')!),
           textureRect: _parseTextureRect(node.getAttribute('textureRect')),
           premultiplyAlpha: node.getAttribute('premultiplyAlpha') == 'true',
+          shader: shaderName,
+          shaderParams: shaderParamsMap,
         );
       case 'group':
         final children = <FrameObjectData>[];
-        // Directly iterate through the child XML elements of the group node
         for (final childNode in node.children.whereType<XmlElement>()) {
           final child = _parseObject(childNode, anchors);
           if (child != null) {
@@ -142,12 +149,13 @@ class FrameSceneParser with LoggableClass {
           visible: FrameSceneParser.isVisible(node),
           anchor: _parseVector3(node.getAttribute('anchor')!, anchors),
           children: children,
+          shader: shaderName,
+          shaderParams: shaderParamsMap,
         );
       case 'text':
         final String rawHJustify = node.getAttribute('hJustify') ?? 'left';
         final String rawVJustify = node.getAttribute('vJustify') ?? 'top';
 
-        // Parse strings safely into their type-safe enum abstractions
         final hJustification = TextHorizontalJustification.fromString(rawHJustify, defaultValue: TextHorizontalJustification.left);
         final vJustification = TextVerticalJustification.fromString(rawVJustify, defaultValue: TextVerticalJustification.top);
 
@@ -157,11 +165,13 @@ class FrameSceneParser with LoggableClass {
           font: node.getAttribute('font')!,
           text: node.getAttribute('text')!,
           screenRect: _parseRect(node.getAttribute('screenRect')!),
-          hJustify: hJustification, // Updated to pass the enum object instead of raw String
+          hJustify: hJustification,
           vJustify: vJustification,
           maxLen: int.tryParse(node.getAttribute('maxLen') ?? ''),
           scaleToFit: node.getAttribute('scaleToFit') == 'YES',
           textColor: node.getAttribute('textColor'),
+          shader: shaderName,
+          shaderParams: shaderParamsMap,
         );
       default:
         return null;
@@ -196,5 +206,27 @@ class FrameSceneParser with LoggableClass {
       return Vector3(x, y, z);
     }
     return Vector3.zero();
+  }
+
+  /// Converts a comma-separated key:value string into a Map configuration profile
+  static Map<String, String> _parseShaderParams(String? rawParams) {
+    final Map<String, String> paramsMap = {};
+    if (rawParams == null || rawParams.trim().isEmpty) {
+      return paramsMap;
+    }
+
+    // Split parameters by comma separation fields safely
+    final pairs = rawParams.split(',');
+    for (final pair in pairs) {
+      final indexOfColon = pair.indexOf(':');
+      if (indexOfColon != -1) {
+        final key = pair.substring(0, indexOfColon).trim();
+        final value = pair.substring(indexOfColon + 1).trim();
+        if (key.isNotEmpty) {
+          paramsMap[key] = value;
+        }
+      }
+    }
+    return paramsMap;
   }
 }
