@@ -4,6 +4,7 @@ import 'package:flutter_angle/shared/classes.dart';
 
 import '../angle/gl_state_manager.dart';
 import '../angle/glsl_shader.dart';
+import '../util.dart';
 
 String _vertexShader = '''
 #version 300 es
@@ -62,5 +63,14 @@ class SimpleTextureShader extends GlslShader {
 
   void setModulateColor(Color color) {
     gls.setUniform4fv(_modulateLocation, [color.r, color.g, color.b, color.a]);
+  }
+
+  @override
+  void setUniformValue(String name, String value) {
+    if (name == uModulateColor) {
+      setModulateColor(parseHexColor(value));
+    } else {
+      super.setUniformValue(name, value);
+    }
   }
 }

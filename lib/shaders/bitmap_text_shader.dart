@@ -3,6 +3,7 @@ import 'package:flutter_angle/shared/classes.dart';
 
 import '../angle/gl_state_manager.dart';
 import '../angle/glsl_shader.dart';
+import '../util.dart';
 
 String _vertexShader = '''
 #version 300 es
@@ -59,5 +60,14 @@ class BitmapTextShader extends GlslShader {
 
   void setTextColor(Color color) {
     gls.setUniform4fv(_textColorLocation, [color.r, color.g, color.b, color.a]);
+  }
+
+  @override
+  void setUniformValue(String name, String value) {
+    if (name == uTextColor) {
+      setTextColor(parseHexColor(value));
+    } else {
+      super.setUniformValue(name, value);
+    }
   }
 }

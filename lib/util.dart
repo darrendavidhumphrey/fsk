@@ -1,4 +1,5 @@
 import 'dart:math';
+import 'dart:ui';
 import 'package:vector_math/vector_math_64.dart';
 
 /// Wraps an angle to be in the range [0, 360).
@@ -148,18 +149,84 @@ List<Vector2> computeTexCoords(
 }
 
 /// Extracts the camera's local right, up, and forward axes from its [viewMatrix].
-({Vector3 right, Vector3 up, Vector3 forward}) getCameraAxes(Matrix4 viewMatrix) {
+({Vector3 right, Vector3 up, Vector3 forward}) getCameraAxes(
+  Matrix4 viewMatrix,
+) {
   final Matrix4 inverseViewMatrix = viewMatrix.clone()..invert();
 
-  final Vector3 right = Vector3(inverseViewMatrix.entry(0, 0),
-      inverseViewMatrix.entry(1, 0), inverseViewMatrix.entry(2, 0))
-    ..normalize();
-  final Vector3 up = Vector3(inverseViewMatrix.entry(0, 1),
-      inverseViewMatrix.entry(1, 1), inverseViewMatrix.entry(2, 1))
-    ..normalize();
-  final Vector3 forward = Vector3(inverseViewMatrix.entry(0, 2),
-      inverseViewMatrix.entry(1, 2), inverseViewMatrix.entry(2, 2))
-    ..normalize();
+  final Vector3 right = Vector3(
+    inverseViewMatrix.entry(0, 0),
+    inverseViewMatrix.entry(1, 0),
+    inverseViewMatrix.entry(2, 0),
+  )..normalize();
+  final Vector3 up = Vector3(
+    inverseViewMatrix.entry(0, 1),
+    inverseViewMatrix.entry(1, 1),
+    inverseViewMatrix.entry(2, 1),
+  )..normalize();
+  final Vector3 forward = Vector3(
+    inverseViewMatrix.entry(0, 2),
+    inverseViewMatrix.entry(1, 2),
+    inverseViewMatrix.entry(2, 2),
+  )..normalize();
 
   return (right: right, up: up, forward: forward);
+}
+
+/// Parses a #RRGGBBAA hex string into a flutter Color(r, g, b, a).
+/// Returns solid white  on failure or if null.
+Color parseHexColor(String? hex) {
+  if (hex == null || !hex.startsWith('#') || hex.length != 9) {
+    return const Color(0xFFFFFFFF); // Default to solid white
+  }
+
+  try {
+    final String cleanHex = hex.substring(
+      1,
+    ); // Drops the '#' character to leave RRGGBBAA
+    final String rrgg = cleanHex.substring(0, 6);
+    final String aa = cleanHex.substring(6, 8);
+
+    // Re-orders bytes from RRGGBBAA to Flutter's expected AARRGGBB format
+    return Color(int.parse('0x$aa$rrgg'));
+  } catch (_) {
+    return const Color(0xFFFFFFFF); // Fallback on parsing exceptions
+  }
+}
+
+/// Parses a comma-separated string into a [Vector2].
+/// Returns [Vector2.zero] on failure.
+Vector2 parseVector2(String value) {
+  final parts = value.split(',').map((p) => double.tryParse(p.trim())).toList();
+  if (parts.length >= 2 && parts[0] != null && parts[1] != null) {
+    return Vector2(parts[0]!, parts[1]!);
+  }
+  return Vector2.zero();
+}
+
+/// Parses a comma-separated string into a [Vector3].
+/// Returns [Vector3.zero] on failure.
+Vector3 parseVector3(String value) {
+  final parts = value.split(',').map((p) => double.tryParse(p.trim())).toList();
+  if (parts.length >= 3 &&
+      parts[0] != null &&
+      parts[1] != null &&
+      parts[2] != null) {
+    return Vector3(parts[0]!, parts[1]!, parts[2]!);
+  }
+  return Vector3.zero();
+}
+
+/// Parses a comma-separated string into a [Vector4].
+/// Returns [Vector4.zero] on failure.
+Vector4 parseVector4(String value) {
+  final parts = value.split(',').map((p) => double.tryParse(p.trim())).toList();
+  if (parts.length >= 4 &&
+      parts[0] != null &&
+      parts[1] != null &&
+      parts[2] != null &&
+      parts[3] != null) {
+    return Vector4(parts[0]!, parts[1]!, parts[2]!, parts[3]!);
+  }
+  return Vector4.zero();
 }

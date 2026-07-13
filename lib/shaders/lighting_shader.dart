@@ -3,6 +3,7 @@ import 'package:vector_math/vector_math_64.dart';
 
 import '../angle/gl_state_manager.dart';
 import '../angle/glsl_shader.dart';
+import '../util.dart';
 
 const String _lightingVertexShader = """
 #version 300 es
@@ -84,5 +85,18 @@ class BasicLightingShader extends GlslShader {
 
   void setLd(Vector3 v) {
     gls.setUniform3fv(_ldLocation, [v.x, v.y, v.z]);
+  }
+
+  @override
+  void setUniformValue(String name, String value) {
+    if (name == uKd) {
+      setKd(parseVector3(value));
+    } else if (name == uLd) {
+      setLd(parseVector3(value));
+    } else if (name == uLightPos) {
+      setLightPos(parseVector3(value));
+    } else {
+      super.setUniformValue(name, value);
+    }
   }
 }

@@ -152,4 +152,14 @@ class GlslShader with LoggableClass {
   void setTextureSampler(int unit) {
     gls.setUniform1i(uniforms[GlslShader.textureSamplerAttrib]!, unit);
   }
+
+
+  /// Sets a uniform by name using a string representation of its value.
+  /// Derived classes must provide an implementation
+  /// Supported names are: [uResolution], [uScale], [uMajorLineSpacingMM],
+  /// [uMinorLineSpacingMM], [uMajorLineThickness], [uMinorLineThickness],
+  /// [ummLineThickness], [uMajorLineColor], [uMinorLineColor], [ummLineColor].
+  void setUniformValue(String name, String value) {
+    logWarning("setUniformValue not implemented for uniform $name");
+  }
 }

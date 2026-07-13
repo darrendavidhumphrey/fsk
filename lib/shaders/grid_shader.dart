@@ -3,6 +3,7 @@ import 'package:flutter_angle/shared/classes.dart';
 
 import '../angle/gl_state_manager.dart';
 import '../angle/glsl_shader.dart';
+import '../util.dart';
 
 String _gridVertexShader = '''
 #version 300 es
@@ -214,5 +215,41 @@ class GridShader extends GlslShader {
       color.b,
       color.a,
     ]);
+  }
+
+
+  @override
+  void setUniformValue(String name, String value) {
+    if (name == uResolution) {
+      final v = parseVector2(value);
+      setResolutionMM(v.x, v.y);
+    } else if (name == uScale) {
+      final val = double.tryParse(value);
+      if (val != null) setScale(val);
+    } else if (name == uMajorLineSpacingMM) {
+      final val = double.tryParse(value);
+      if (val != null) setMajorLineSpacingMM(val);
+    } else if (name == uMinorLineSpacingMM) {
+      final val = double.tryParse(value);
+      if (val != null) setMinorLineSpacingMM(val);
+    } else if (name == uMajorLineThickness) {
+      final val = double.tryParse(value);
+      if (val != null) setMajorLineThickness(val);
+    } else if (name == uMinorLineThickness) {
+      final val = double.tryParse(value);
+      if (val != null) setMinorLineThickness(val);
+    } else if (name == ummLineThickness) {
+      final val = double.tryParse(value);
+      if (val != null) setMmLineThickness(val);
+    } else if (name == uMajorLineColor) {
+      setMajorLineColor(parseHexColor(value));
+    } else if (name == uMinorLineColor) {
+      setMinorLineColor(parseHexColor(value));
+    } else if (name == ummLineColor) {
+      setMmLineColor(parseHexColor(value));
+    }
+    else {
+      super.setUniformValue(name, value);
+    }
   }
 }

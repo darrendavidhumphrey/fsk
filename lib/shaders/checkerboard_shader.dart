@@ -3,6 +3,7 @@ import 'package:flutter_angle/shared/classes.dart';
 
 import '../angle/gl_state_manager.dart';
 import '../angle/glsl_shader.dart';
+import '../util.dart';
 
 String _vertexShader = '''
 #version 300 es
@@ -21,7 +22,7 @@ out vec2 vTextureCoord;   // Interpolated texture coordinate
 void main(void) {
     gl_Position = uPMatrix * uMVMatrix * vec4(aVertexPosition, 1.0);
     vTextureCoord = aTextureCoord;
-}
+}0
 ''';
 
 String _fragmentShader = '''
@@ -101,4 +102,19 @@ class CheckerBoardShader extends GlslShader {
   void setPatternScale(num scale) {
     gls.setUniform1f(_patternScaleLocation, scale.toDouble());
   }
+
+  @override
+  void setUniformValue(String name, String value) {
+    if (name == uPatternColor1) {
+      setPatternColor1(parseHexColor(value));
+    } else if (name == uPatternColor2) {
+      setPatternColor2(parseHexColor(value));
+    } else if (name == uPatternScale) {
+      final val = double.tryParse(value);
+      if (val != null) setPatternScale(val);
+    } else {
+      super.setUniformValue(name, value);
+    }
+  }
+
 }

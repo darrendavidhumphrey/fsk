@@ -3,6 +3,7 @@ import 'package:flutter_angle/shared/classes.dart';
 import 'package:fsk/angle/gl_state_manager.dart';
 import 'package:vector_math/vector_math_64.dart';
 import '../angle/glsl_shader.dart';
+import '../util.dart';
 
 const String _vertexShader = """
 #version 300 es
@@ -258,5 +259,38 @@ class OneLightShader extends GlslShader {
 
   void setOutlineWidth(num width) {
     gls.setUniform1f(_outlineWidthLocation, width.toDouble());
+  }
+
+  @override
+  void setUniformValue(String name, String value) {
+    if (name == uLightPos) {
+      setLightPos(parseVector3(value));
+    } else if (name == uAmbientLight) {
+      setAmbientLight(parseHexColor(value));
+    } else if (name == uDiffuseLight) {
+      setDiffuseLight(parseHexColor(value));
+    } else if (name == uSpecularLight) {
+      setSpecularLight(parseHexColor(value));
+    } else if (name == uMaterialAmbient) {
+      setMaterialAmbient(parseHexColor(value));
+    } else if (name == uMaterialDiffuse) {
+      setMaterialDiffuse(parseHexColor(value));
+    } else if (name == uMaterialSpecular) {
+      setMaterialSpecular(parseHexColor(value));
+    } else if (name == uMaterialShininess) {
+      final val = double.tryParse(value);
+      if (val != null) setShininess(val);
+    } else if (name == uOutlineEnabled) {
+      setOutlineEnabled(value.toLowerCase() == 'true' || value == '1');
+    } else if (name == uOutlineColor) {
+      setOutlineColor(parseHexColor(value));
+    } else if (name == uOutlineWidth) {
+      final val = double.tryParse(value);
+      if (val != null) setOutlineWidth(val);
+    } else if (name == uDrawFill) {
+      setDrawFill(value.toLowerCase() == 'true' || value == '1');
+    } else {
+      super.setUniformValue(name, value);
+    }
   }
 }
