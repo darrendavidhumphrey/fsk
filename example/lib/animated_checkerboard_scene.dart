@@ -32,7 +32,7 @@ class AnimatedCheckerBoardScene extends FskScene {
   void drawVBO(Matrix4 pMatrix, Matrix4 mvMatrix) {
     shader ??= FSK().shaders.getShader<CheckerBoardShader>();
     gls.useProgram(shader!.program);
-    ShaderList.setMatrixUniforms(shader!, pMatrix, mvMatrix);
+    shader!.setMatrixUniforms(pMatrix, mvMatrix);
 
     shader!.setPatternColor1(color1);
     shader!.setPatternColor2(color2);

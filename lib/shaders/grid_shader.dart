@@ -1,6 +1,4 @@
 import 'dart:ui';
-import 'package:flutter_angle/shared/classes.dart';
-
 import '../angle/gl_state_manager.dart';
 import '../angle/glsl_shader.dart';
 import '../util.dart';
@@ -13,7 +11,7 @@ layout (location = 1) in vec2 aTextureCoord;
 
 uniform mat4 uMVMatrix;
 uniform mat4 uPMatrix;
-
+uniform sampler2D uSampler;
 out vec2 v_uv;
 void main(void) {
     gl_Position = uPMatrix * uMVMatrix * vec4(aVertexPosition, 1.0);
@@ -115,16 +113,27 @@ class GridShader extends GlslShader {
   static String uMinorLineColor = "u_minorLineColor";
   static String ummLineColor = "u_mmLineColor";
 
-  late UniformLocation _resolutionLocation;
-  late UniformLocation _scaleLocation;
-  late UniformLocation _majorLineSpacingMMLocation;
-  late UniformLocation _minorLineSpacingMMLocation;
-  late UniformLocation _majorLineThicknessLocation;
-  late UniformLocation _minorLineThicknessLocation;
-  late UniformLocation _mmLineThicknessLocation;
-  late UniformLocation _majorLineColorLocation;
-  late UniformLocation _minorLineColorLocation;
-  late UniformLocation _mmLineColorLocation;
+  late UniformDefinition _resolution;
+  late UniformDefinition _scale;
+  late UniformDefinition _majorLineSpacingMM;
+  late UniformDefinition _minorLineSpacingMM;
+  late UniformDefinition _majorLineThickness;
+  late UniformDefinition _minorLineThickness;
+  late UniformDefinition _mmLineThickness;
+  late UniformDefinition _majorLineColor;
+  late UniformDefinition _minorLineColor;
+  late UniformDefinition _mmLineColor;
+
+  UniformDefinition get resolutionLocation => _resolution;
+  UniformDefinition get scaleLocation => _scale;
+  UniformDefinition get majorLineSpacingMMLocation => _majorLineSpacingMM;
+  UniformDefinition get minorLineSpacingMMLocation => _minorLineSpacingMM;
+  UniformDefinition get majorLineThicknessLocation => _majorLineThickness;
+  UniformDefinition get minorLineThicknessLocation => _minorLineThickness;
+  UniformDefinition get mmLineThicknessLocation => _mmLineThickness;
+  UniformDefinition get majorLineColorLocation => _majorLineColor;
+  UniformDefinition get minorLineColorLocation => _minorLineColor;
+  UniformDefinition get mmLineColorLocation => _mmLineColor;
 
   GridShader(GlStateManager gls)
     : super(
@@ -133,65 +142,67 @@ class GridShader extends GlslShader {
         _gridVertexShader,
         [GlslShader.v3Attrib, GlslShader.t2Attrib],
         [
-          GlslShader.uModelView,
-          GlslShader.uProj,
-          uResolution,
-          uScale,
-          uMajorLineSpacingMM,
-          uMinorLineSpacingMM,
-          uMajorLineThickness,
-          uMinorLineThickness,
-          ummLineThickness,
-          uMajorLineColor,
-          uMinorLineColor,
-          ummLineColor,
+          UniformDefinition(uResolution, UniformType.floatVec2),
+          UniformDefinition(uScale, UniformType.float),
+          UniformDefinition(uMajorLineSpacingMM, UniformType.float),
+          UniformDefinition(uMinorLineSpacingMM, UniformType.float),
+          UniformDefinition(uMajorLineThickness, UniformType.float),
+          UniformDefinition(uMinorLineThickness, UniformType.float),
+          UniformDefinition(ummLineThickness, UniformType.float),
+          UniformDefinition(uMajorLineColor, UniformType.floatVec4),
+          UniformDefinition(uMinorLineColor, UniformType.floatVec4),
+          UniformDefinition(ummLineColor, UniformType.floatVec4),
+          UniformDefinition(
+            GlslShader.textureSamplerAttrib,
+            UniformType.sampler2D,
+          ),
         ],
       ) {
-    _resolutionLocation = uniforms[uResolution]!;
-    _scaleLocation = uniforms[uScale]!;
-    _majorLineSpacingMMLocation = uniforms[uMajorLineSpacingMM]!;
-    _minorLineSpacingMMLocation = uniforms[uMinorLineSpacingMM]!;
-    _majorLineThicknessLocation = uniforms[uMajorLineThickness]!;
-    _minorLineThicknessLocation = uniforms[uMinorLineThickness]!;
-    _mmLineThicknessLocation = uniforms[ummLineThickness]!;
-    _majorLineColorLocation = uniforms[uMajorLineColor]!;
-    _minorLineColorLocation = uniforms[uMinorLineColor]!;
-    _mmLineColorLocation = uniforms[ummLineColor]!;
+    _resolution = uniforms[uResolution]!;
+    _scale = uniforms[uScale]!;
+    _majorLineSpacingMM = uniforms[uMajorLineSpacingMM]!;
+    _minorLineSpacingMM = uniforms[uMinorLineSpacingMM]!;
+    _majorLineThickness = uniforms[uMajorLineThickness]!;
+    _minorLineThickness = uniforms[uMinorLineThickness]!;
+    _mmLineThickness = uniforms[ummLineThickness]!;
+    _majorLineColor = uniforms[uMajorLineColor]!;
+    _minorLineColor = uniforms[uMinorLineColor]!;
+    _mmLineColor = uniforms[ummLineColor]!;
   }
 
   void setResolutionMM(num width, num height) {
-    gls.setUniform2fv(_resolutionLocation, [
+    gls.setUniform2fv(_resolution.position!, [
       width.toDouble() * 10,
       height.toDouble() * 10,
     ]);
   }
 
   void setScale(num scale) {
-    gls.setUniform1f(_scaleLocation, scale.toDouble());
+    gls.setUniform1f(_scale.position!, scale.toDouble());
   }
 
   void setMajorLineSpacingMM(num spacing) {
-    gls.setUniform1f(_majorLineSpacingMMLocation, spacing.toDouble());
+    gls.setUniform1f(_majorLineSpacingMM.position!, spacing.toDouble());
   }
 
   void setMinorLineSpacingMM(num spacing) {
-    gls.setUniform1f(_minorLineSpacingMMLocation, spacing.toDouble());
+    gls.setUniform1f(_minorLineSpacingMM.position!, spacing.toDouble());
   }
 
   void setMajorLineThickness(num thickness) {
-    gls.setUniform1f(_majorLineThicknessLocation, thickness.toDouble());
+    gls.setUniform1f(_majorLineThickness.position!, thickness.toDouble());
   }
 
   void setMinorLineThickness(num thickness) {
-    gls.setUniform1f(_minorLineThicknessLocation, thickness.toDouble());
+    gls.setUniform1f(_minorLineThickness.position!, thickness.toDouble());
   }
 
   void setMmLineThickness(num thickness) {
-    gls.setUniform1f(_mmLineThicknessLocation, thickness.toDouble());
+    gls.setUniform1f(_mmLineThickness.position!, thickness.toDouble());
   }
 
   void setMajorLineColor(Color color) {
-    gls.setUniform4fv(_majorLineColorLocation, [
+    gls.setUniform4fv(_majorLineColor.position!, [
       color.r,
       color.g,
       color.b,
@@ -200,7 +211,7 @@ class GridShader extends GlslShader {
   }
 
   void setMinorLineColor(Color color) {
-    gls.setUniform4fv(_minorLineColorLocation, [
+    gls.setUniform4fv(_minorLineColor.position!, [
       color.r,
       color.g,
       color.b,
@@ -209,7 +220,7 @@ class GridShader extends GlslShader {
   }
 
   void setMmLineColor(Color color) {
-    gls.setUniform4fv(_mmLineColorLocation, [
+    gls.setUniform4fv(_mmLineColor.position!, [
       color.r,
       color.g,
       color.b,
@@ -217,39 +228,30 @@ class GridShader extends GlslShader {
     ]);
   }
 
-
   @override
-  void setUniformValue(String name, String value) {
+  dynamic uniformValueFromString(String name, String value) {
     if (name == uResolution) {
-      final v = parseVector2(value);
-      setResolutionMM(v.x, v.y);
+      return parseVector2(value);
     } else if (name == uScale) {
-      final val = double.tryParse(value);
-      if (val != null) setScale(val);
+      return double.tryParse(value);
     } else if (name == uMajorLineSpacingMM) {
-      final val = double.tryParse(value);
-      if (val != null) setMajorLineSpacingMM(val);
+      return double.tryParse(value);
     } else if (name == uMinorLineSpacingMM) {
-      final val = double.tryParse(value);
-      if (val != null) setMinorLineSpacingMM(val);
+      return double.tryParse(value);
     } else if (name == uMajorLineThickness) {
-      final val = double.tryParse(value);
-      if (val != null) setMajorLineThickness(val);
+      return double.tryParse(value);
     } else if (name == uMinorLineThickness) {
-      final val = double.tryParse(value);
-      if (val != null) setMinorLineThickness(val);
+      return double.tryParse(value);
     } else if (name == ummLineThickness) {
-      final val = double.tryParse(value);
-      if (val != null) setMmLineThickness(val);
+      return double.tryParse(value);
     } else if (name == uMajorLineColor) {
-      setMajorLineColor(parseHexColor(value));
+      return (parseHexColor(value));
     } else if (name == uMinorLineColor) {
-      setMinorLineColor(parseHexColor(value));
+      return (parseHexColor(value));
     } else if (name == ummLineColor) {
-      setMmLineColor(parseHexColor(value));
-    }
-    else {
-      super.setUniformValue(name, value);
+      return (parseHexColor(value));
+    } else {
+      return super.uniformValueFromString(name, value);
     }
   }
 }

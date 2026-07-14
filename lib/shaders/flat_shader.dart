@@ -48,6 +48,11 @@ class FlatShader extends GlslShader {
           GlslShader.n3Attrib,
           GlslShader.c4Attrib,
         ],
-        [GlslShader.uModelView, GlslShader.uProj, GlslShader.textureSamplerAttrib,],
+        [
+          UniformDefinition(
+            GlslShader.textureSamplerAttrib,
+            UniformType.sampler2D,
+          ),
+        ],
       );
 }

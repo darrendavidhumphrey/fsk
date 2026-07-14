@@ -1,6 +1,4 @@
 import 'dart:ui';
-import 'package:flutter_angle/shared/classes.dart';
-
 import '../angle/gl_state_manager.dart';
 import '../angle/glsl_shader.dart';
 import '../util.dart';
@@ -74,11 +72,17 @@ class CheckerBoardShader extends GlslShader {
   static String uUseTexture = "uUseTexture";
   static String uTextureMix = "uTextureMix";
 
-  late UniformLocation _patternColor1Location;
-  late UniformLocation _patternColor2Location;
-  late UniformLocation _patternScaleLocation;
-  late UniformLocation _useTextureLocation;
-  late UniformLocation _textureMixLocation;
+  late UniformDefinition _patternColor1;
+  late UniformDefinition _patternColor2;
+  late UniformDefinition _patternScale;
+  late UniformDefinition _useTexture;
+  late UniformDefinition _textureMix;
+
+  UniformDefinition get patternColor1Location => _patternColor1;
+  UniformDefinition get patternColor2Location => _patternColor2;
+  UniformDefinition get patternScaleLocation => _patternScale;
+  UniformDefinition get useTextureLocation => _useTexture;
+  UniformDefinition get textureMixLocation => _textureMix;
 
   CheckerBoardShader(GlStateManager gls)
     : super(
@@ -87,26 +91,28 @@ class CheckerBoardShader extends GlslShader {
         _vertexShader,
         [GlslShader.v3Attrib, GlslShader.t2Attrib],
         [
-          uPatternColor1,
-          uPatternColor2,
-          uPatternScale,
-          uUseTexture,
-          uTextureMix,
-          GlslShader.uModelView,
-          GlslShader.uProj,
-          GlslShader.textureSamplerAttrib,
+          UniformDefinition(uPatternColor1, UniformType.floatVec4),
+          UniformDefinition(uPatternColor2, UniformType.floatVec4),
+          UniformDefinition(uPatternScale, UniformType.float),
+          UniformDefinition(uUseTexture, UniformType.bool),
+          UniformDefinition(uTextureMix, UniformType.float),
+          UniformDefinition(
+            GlslShader.textureSamplerAttrib,
+            UniformType.sampler2D,
+          ),
         ],
       ) {
-    _patternColor1Location = uniforms[uPatternColor1]!;
-    _patternColor2Location = uniforms[uPatternColor2]!;
-    _patternScaleLocation = uniforms[uPatternScale]!;
-    _useTextureLocation = uniforms[uUseTexture]!;
-    _textureMixLocation = uniforms[uTextureMix]!;
+
+    _patternColor1 = uniforms[uPatternColor1]!;
+    _patternColor2 = uniforms[uPatternColor2]!;
+    _patternScale = uniforms[uPatternScale]!;
+    _useTexture = uniforms[uUseTexture]!;
+    _textureMix = uniforms[uTextureMix]!;
     setUseTexture(false);
     setTextureMix(0.0);
   }
   void setPatternColor1(Color color) {
-    gls.setUniform4fv(_patternColor1Location, [
+    gls.setUniform4fv(_patternColor1.position!, [
       color.r,
       color.g,
       color.b,
@@ -115,7 +121,7 @@ class CheckerBoardShader extends GlslShader {
   }
 
   void setPatternColor2(Color color) {
-    gls.setUniform4fv(_patternColor2Location, [
+    gls.setUniform4fv(_patternColor2.position!, [
       color.r,
       color.g,
       color.b,
@@ -124,34 +130,31 @@ class CheckerBoardShader extends GlslShader {
   }
 
   void setPatternScale(num scale) {
-    gls.setUniform1f(_patternScaleLocation, scale.toDouble());
+    gls.setUniform1f(_patternScale.position!, scale.toDouble());
   }
 
   void setUseTexture(bool useTexture) {
-    gls.setUniform1i(_useTextureLocation, useTexture ? 1 : 0);
+    gls.setUniform1i(_useTexture.position!, useTexture ? 1 : 0);
   }
 
   void setTextureMix(num mix) {
-    gls.setUniform1f(_textureMixLocation, mix.toDouble());
+    gls.setUniform1f(_textureMix.position!, mix.toDouble());
   }
 
   @override
-  void setUniformValue(String name, String value) {
+  dynamic uniformValueFromString(String name, String value) {
     if (name == uPatternColor1) {
-      setPatternColor1(parseHexColor(value));
+      return(parseHexColor(value));
     } else if (name == uPatternColor2) {
-      setPatternColor2(parseHexColor(value));
+      return(parseHexColor(value));
     } else if (name == uPatternScale) {
-      final val = double.tryParse(value);
-      if (val != null) setPatternScale(val);
+      return  double.tryParse(value);
     } else if (name == uUseTexture) {
-      setUseTexture(value.toLowerCase() == 'true' || value == '1');
+      return(value.toLowerCase() == 'true' || value == '1');
     } else if (name == uTextureMix) {
-      final val = double.tryParse(value);
-      if (val != null) setTextureMix(val);
+      return double.tryParse(value);
     } else {
-      super.setUniformValue(name, value);
+      return super.uniformValueFromString(name, value);
     }
   }
-
 }

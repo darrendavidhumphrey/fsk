@@ -70,15 +70,4 @@ class ShaderList with GlContextManager,LoggableClass {
     return shaderInstance;
   }
 
-  /// A utility to set the standard model-view and projection matrices on a shader.
-  static void setMatrixUniforms(GlslShader shader,Matrix4 pMatrix, Matrix4 mvMatrix) {
-    shader.gls.setUniformMatrix4fv(
-      shader.uniforms[GlslShader.uProj]!,
-      pMatrix,
-    );
-    shader.gls.setUniformMatrix4fv(
-      shader.uniforms[GlslShader.uModelView]!,
-      mvMatrix,
-    );
-  }
 }

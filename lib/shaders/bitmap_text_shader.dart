@@ -1,6 +1,4 @@
 import 'dart:ui';
-import 'package:flutter_angle/shared/classes.dart';
-
 import '../angle/gl_state_manager.dart';
 import '../angle/glsl_shader.dart';
 import '../util.dart';
@@ -40,7 +38,9 @@ void main(void) {
 class BitmapTextShader extends GlslShader {
   static String uTextColor = "uTextColor";
 
-  late UniformLocation _textColorLocation;
+  late UniformDefinition _textColor;
+  UniformDefinition get textColorLocation => _textColor;
+
 
   BitmapTextShader(GlStateManager gls)
     : super(
@@ -49,25 +49,24 @@ class BitmapTextShader extends GlslShader {
         _vertexShader,
         [GlslShader.v3Attrib, GlslShader.t2Attrib],
         [
-          GlslShader.uModelView,
-          GlslShader.uProj,
-          GlslShader.textureSamplerAttrib,
-          uTextColor,
+          UniformDefinition(GlslShader.textureSamplerAttrib,UniformType.sampler2D),
+          UniformDefinition(uTextColor,UniformType.floatVec4)
         ],
       ) {
-    _textColorLocation = uniforms[uTextColor]!;
+    _textColor = uniforms[uTextColor]!;
   }
 
   void setTextColor(Color color) {
-    gls.setUniform4fv(_textColorLocation, [color.r, color.g, color.b, color.a]);
+    gls.setUniform4fv(_textColor.position!, [color.r, color.g, color.b, color.a]);
   }
 
   @override
-  void setUniformValue(String name, String value) {
+  dynamic uniformValueFromString(String name, String value) {
     if (name == uTextColor) {
-      setTextColor(parseHexColor(value));
+      return(parseHexColor(value));
     } else {
-      super.setUniformValue(name, value);
+      return super.uniformValueFromString(name, value);
     }
   }
+
 }

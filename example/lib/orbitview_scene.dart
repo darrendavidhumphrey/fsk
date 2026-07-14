@@ -33,7 +33,7 @@ class OrbitViewScene extends FskScene {
     shader ??= FSK().shaders.getShader<GridShader>();
 
     gls.useProgram(shader!.program);
-    ShaderList.setMatrixUniforms(shader!, pMatrix, mvMatrix);
+    shader!.setMatrixUniforms(pMatrix, mvMatrix);
 
     shader!.setResolutionMM(250,250);
     shader!.setScale(0.1);

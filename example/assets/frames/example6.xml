@@ -9,28 +9,29 @@
 
     <!-- Start of SCENE  -->
     <objects>
-        <quad id="PenelopeGrid" texture="Penelope" screenRect="{{447, 459}, {187, 201}}" 
-        shader="GridShader"
-        shaderParams="u_resolution:1 1,u_scale:1,u_majorLineSpacingMM:20,u_minorLineSpacingMM:5,u_majorLineThickness:1.0,u_minorLineThickness:0.5,u_mmLineThickness:0.125,u_majorLineColor:#FF0000FF,u_minorLineColor:#00FF00FF,u_mmLineColor:#0000FFFF"
-        visible="true" opacity="1" />
 
-        <quad id="PenelopeModulate" texture="Penelope" screenRect="{{266, 459}, {186, 201}}" 
-          shader="SimpleTextureShader" shaderParams="uModulateColor: #FF0000FF"
-        visible="true" opacity="1" />
+       <quad id="PenelopeGrid" texture="Penelope" screenRect="{{447, 459}, {225, 225}}"
+       shader="GridShader"
+       shaderParams="u_resolution:1 1,u_scale:20,u_majorLineSpacingMM:20,u_minorLineSpacingMM:5,u_majorLineThickness:1.0,u_minorLineThickness:0.5,u_mmLineThickness:0.125,u_majorLineColor:#FF0000FF,u_minorLineColor:#FFFFFFFF,u_mmLineColor:#0000FFFF"
+       visible="true" opacity="1" />
 
-        <quad id="PenelopeCheckerboard" texture="Penelope" screenRect="{{628, 459}, {186, 201}}" 
-        visible="true" opacity="1" 
-         shader="CheckerBoardShader"
-            shaderParams="uPatternColor1: #FF0000FF, uPatternColor2: #00FF00FF, uPatternScale: 5, uUseTexture:true,uTextureMix:0.5"
-        />
+       <quad id="PenelopeModulate" texture="Penelope" screenRect="{{266, 459}, {186, 201}}"
+         shader="SimpleTextureShader" shaderParams="uModulateColor: #FF0000FF"
+       visible="true" opacity="1" />
 
-        <quad id="PenelopeCheckerboard2" texture="Penelope" screenRect="{{808, 459}, {186, 201}}" visible="true" opacity="1" 
-         shader="CheckerBoardShader"
-            shaderParams="uPatternColor1: #FFFF00FF, uPatternColor2: #00FFFFFF, uPatternScale: 10, uUseTexture:false"
-        />
+                     <quad id="PenelopeCheckerboard" texture="Penelope" screenRect="{{628, 459}, {186, 201}}"
+                     visible="true" opacity="1"
+                      shader="CheckerBoardShader"
+                         shaderParams="uPatternColor1: #FF0000FF, uPatternColor2: #00FF00FF, uPatternScale: 5, uUseTexture:true,uTextureMix:0.5"
+                     />
 
-        <quad id="Penelope" texture="Penelope" screenRect="{{86, 459}, {186, 201}}" visible="true" opacity="1" />
+                     <quad id="PenelopeCheckerboard2" texture="Penelope" screenRect="{{808, 459}, {186, 201}}" visible="true" opacity="1"
+                      shader="CheckerBoardShader"
+                         shaderParams="uPatternColor1: #FFFF00FF, uPatternColor2: #00FFFFFF, uPatternScale: 10, uUseTexture:false"
+                     />
 
-    </objects>
+                     <quad id="Penelope" texture="Penelope" screenRect="{{86, 459}, {186, 201}}" visible="true" opacity="1"  shader="SimpleTextureShader" shaderParams="uModulateColor: #0000FFFF" />
 
-</frameScene>
+         </objects>
+
+      </frameScene>

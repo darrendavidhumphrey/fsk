@@ -152,6 +152,29 @@ class FrameScene extends FskScene {
     return null;
   }
 
+  // Gets a UniformValue for a given node and uniform name
+  // Simply call foo.value on the return result to set the uniform value,
+  // which will be applied on the next frame
+  // The set of uniforms available for a given node depend the shader that is set
+  // Returns null if the node is not found
+  // Returns null if the shader is not set on the node
+  // Returns null if the uniform is not found in the shader
+  UniformValue ?findObjectUniform(String nodeName,String uniformName){
+    var node = findNodeByType<FrameQuadNode>(nodeName);
+    if (node != null) {
+      var object = node.object;
+      if (object != null) {
+        if (object.shader != null) {
+          var uniformDef = object.shader!.uniforms[uniformName];
+          if (uniformDef != null) {
+            return object.getUniformValue(uniformDef);
+          }
+        }
+      }
+    }
+    return null;
+  }
+
   Future<void> loadSkin(String skinPath) async {
     try {
       frameData = await FrameSceneParser.parseFromAssets(skinPath);

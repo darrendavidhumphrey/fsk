@@ -1,7 +1,5 @@
 import 'dart:ui';
 
-import 'package:flutter_angle/shared/classes.dart';
-
 import '../angle/gl_state_manager.dart';
 import '../angle/glsl_shader.dart';
 import '../util.dart';
@@ -43,7 +41,8 @@ void main(void) {
 class SimpleTextureShader extends GlslShader {
   static String uModulateColor = "uModulateColor";
 
-  late UniformLocation _modulateLocation;
+  late UniformDefinition _modulateColor;
+  UniformDefinition get modulateColor => _modulateColor;
 
   SimpleTextureShader(GlStateManager gls)
     : super(
@@ -52,25 +51,28 @@ class SimpleTextureShader extends GlslShader {
         _vertexShader,
         [GlslShader.v3Attrib, GlslShader.t2Attrib],
         [
-          GlslShader.uModelView,
-          GlslShader.uProj,
-          GlslShader.textureSamplerAttrib,
-          uModulateColor,
+          UniformDefinition(GlslShader.textureSamplerAttrib,UniformType.sampler2D),
+          UniformDefinition(uModulateColor,UniformType.floatVec4),
         ],
       ) {
-    _modulateLocation = uniforms[uModulateColor]!;
+    _modulateColor = uniforms[uModulateColor]!;
   }
 
   void setModulateColor(Color color) {
-    gls.setUniform4fv(_modulateLocation, [color.r, color.g, color.b, color.a]);
+    gls.setUniform4fv(_modulateColor.position!, [
+      color.r,
+      color.g,
+      color.b,
+      color.a,
+    ]);
   }
 
   @override
-  void setUniformValue(String name, String value) {
+  dynamic uniformValueFromString(String name, String value) {
     if (name == uModulateColor) {
-      setModulateColor(parseHexColor(value));
+     return parseHexColor(value);
     } else {
-      super.setUniformValue(name, value);
+      return super.uniformValueFromString(name, value);
     }
   }
 }

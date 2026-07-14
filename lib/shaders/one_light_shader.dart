@@ -1,5 +1,4 @@
 import 'dart:ui';
-import 'package:flutter_angle/shared/classes.dart';
 import 'package:fsk/angle/gl_state_manager.dart';
 import 'package:vector_math/vector_math_64.dart';
 import '../angle/glsl_shader.dart';
@@ -147,19 +146,33 @@ class OneLightShader extends GlslShader {
 
   static String uDrawFill = "uDrawFill";
 
-  late UniformLocation _lightPosLocation;
-  late UniformLocation _nMatrixLocation;
-  late UniformLocation _ambientLightLocation;
-  late UniformLocation _diffuseLightLocation;
-  late UniformLocation _specularLightLocation;
-  late UniformLocation _materialAmbientLocation;
-  late UniformLocation _materialDiffuseLocation;
-  late UniformLocation _materialSpecularLocation;
-  late UniformLocation _materialShininessLocation;
-  late UniformLocation _outlineEnabledLocation;
-  late UniformLocation _outlineColorLocation;
-  late UniformLocation _outlineWidthLocation;
-  late UniformLocation _drawFillLocation;
+  late UniformDefinition _lightPos;
+  late UniformDefinition _nMatrix;
+  late UniformDefinition _ambientLight;
+  late UniformDefinition _diffuseLight;
+  late UniformDefinition _specularLight;
+  late UniformDefinition _materialAmbient;
+  late UniformDefinition _materialDiffuse;
+  late UniformDefinition _materialSpecular;
+  late UniformDefinition _materialShininess;
+  late UniformDefinition _outlineEnabled;
+  late UniformDefinition _outlineColor;
+  late UniformDefinition _outlineWidth;
+  late UniformDefinition _drawFill;
+
+  UniformDefinition get lightPosLocation => _lightPos;
+  UniformDefinition get nMatrixLocation => _nMatrix;
+  UniformDefinition get ambientLightLocation => _ambientLight;
+  UniformDefinition get diffuseLightLocation => _diffuseLight;
+  UniformDefinition get specularLightLocation => _specularLight;
+  UniformDefinition get materialAmbientLocation => _materialAmbient;
+  UniformDefinition get materialDiffuseLocation => _materialDiffuse;
+  UniformDefinition get materialSpecularLocation => _materialSpecular;
+  UniformDefinition get materialShininessLocation => _materialShininess;
+  UniformDefinition get outlineEnabledLocation => _outlineEnabled;
+  UniformDefinition get outlineColorLocation => _outlineColor;
+  UniformDefinition get outlineWidthLocation => _outlineWidth;
+  UniformDefinition get drawFillLocation => _drawFill;
 
   OneLightShader(GlStateManager gls)
     : super(
@@ -168,88 +181,82 @@ class OneLightShader extends GlslShader {
         _vertexShader,
         [GlslShader.v3Attrib, GlslShader.t2Attrib, GlslShader.n3Attrib],
         [
-          uLightPos,
-          uNMatrix,
-          uAmbientLight,
-          uDiffuseLight,
-          uSpecularLight,
-          uMaterialAmbient,
-          uMaterialDiffuse,
-          uMaterialSpecular,
-          uMaterialShininess,
-          uOutlineEnabled,
-          uDrawFill,
-          uOutlineColor,
-          uOutlineWidth,
-          GlslShader.uModelView,
-          GlslShader.uProj,
+          UniformDefinition(uLightPos, UniformType.floatVec3),
+          UniformDefinition(uNMatrix, UniformType.floatMat3),
+          UniformDefinition(uAmbientLight, UniformType.floatVec3),
+          UniformDefinition(uDiffuseLight, UniformType.floatVec3),
+          UniformDefinition(uSpecularLight, UniformType.floatVec3),
+          UniformDefinition(uMaterialAmbient, UniformType.floatVec3),
+          UniformDefinition(uMaterialDiffuse, UniformType.floatVec3),
+          UniformDefinition(uMaterialSpecular, UniformType.floatVec3),
+          UniformDefinition(uMaterialShininess, UniformType.float),
+          UniformDefinition(uOutlineEnabled, UniformType.bool),
+          UniformDefinition(uDrawFill, UniformType.bool),
+          UniformDefinition(uOutlineColor, UniformType.floatVec4),
+          UniformDefinition(uOutlineWidth, UniformType.float),
         ],
       ) {
-    _lightPosLocation = uniforms[uLightPos]!;
-    _nMatrixLocation = uniforms[uNMatrix]!;
-    _ambientLightLocation = uniforms[uAmbientLight]!;
-    _diffuseLightLocation = uniforms[uDiffuseLight]!;
-    _specularLightLocation = uniforms[uSpecularLight]!;
-    _materialAmbientLocation = uniforms[uMaterialAmbient]!;
-    _materialDiffuseLocation = uniforms[uMaterialDiffuse]!;
-    _materialSpecularLocation = uniforms[uMaterialSpecular]!;
-    _materialShininessLocation = uniforms[uMaterialShininess]!;
-    _outlineEnabledLocation = uniforms[uOutlineEnabled]!;
-    _outlineColorLocation = uniforms[uOutlineColor]!;
-    _outlineWidthLocation = uniforms[uOutlineWidth]!;
-    _drawFillLocation = uniforms[uDrawFill]!;
+    _lightPos = uniforms[uLightPos]!;
+    _nMatrix = uniforms[uNMatrix]!;
+    _ambientLight = uniforms[uAmbientLight]!;
+    _diffuseLight = uniforms[uDiffuseLight]!;
+    _specularLight = uniforms[uSpecularLight]!;
+    _materialAmbient = uniforms[uMaterialAmbient]!;
+    _materialDiffuse = uniforms[uMaterialDiffuse]!;
+    _materialSpecular = uniforms[uMaterialSpecular]!;
+    _materialShininess = uniforms[uMaterialShininess]!;
+    _outlineEnabled = uniforms[uOutlineEnabled]!;
+    _outlineColor = uniforms[uOutlineColor]!;
+    _outlineWidth = uniforms[uOutlineWidth]!;
+    _drawFill = uniforms[uDrawFill]!;
   }
 
   void setLightPos(Vector3 v) {
-    gls.setUniform3fv(_lightPosLocation, [v.x, v.y, v.z]);
+    gls.setUniform3fv(_lightPos.position!, [v.x, v.y, v.z]);
   }
 
   void setNMatrix(Matrix3 m) {
-    gls.setUniformMatrix3fv(_nMatrixLocation, m);
+    gls.setUniformMatrix3fv(_nMatrix.position!, m);
   }
 
   void setAmbientLight(Color color) {
-    gls.setUniform3fv(_ambientLightLocation, [color.r, color.g, color.b]);
+    gls.setUniform3fv(_ambientLight.position!, [color.r, color.g, color.b]);
   }
 
   void setDiffuseLight(Color color) {
-    gls.setUniform3fv(_diffuseLightLocation, [color.r, color.g, color.b]);
+    gls.setUniform3fv(_diffuseLight.position!, [color.r, color.g, color.b]);
   }
 
   void setSpecularLight(Color color) {
-    gls.setUniform3fv(_specularLightLocation, [color.r, color.g, color.b]);
+    gls.setUniform3fv(_specularLight.position!, [color.r, color.g, color.b]);
   }
 
   void setMaterialAmbient(Color color) {
-    gls.setUniform3fv(_materialAmbientLocation, [color.r, color.g, color.b]);
+    gls.setUniform3fv(_materialAmbient.position!, [color.r, color.g, color.b]);
   }
 
   void setMaterialDiffuse(Color color) {
-    gls.setUniform3fv(_materialDiffuseLocation, [color.r, color.g, color.b]);
+    gls.setUniform3fv(_materialDiffuse.position!, [color.r, color.g, color.b]);
   }
 
   void setMaterialSpecular(Color color) {
-    gls.setUniform3fv(_materialSpecularLocation, [
-      color.r,
-      color.g,
-      color.b,
-    ]);
+    gls.setUniform3fv(_materialSpecular.position!, [color.r, color.g, color.b]);
   }
 
   void setShininess(num shininess) {
-    gls.setUniform1f(_materialShininessLocation, shininess.toDouble());
+    gls.setUniform1f(_materialShininess.position!, shininess.toDouble());
   }
 
   void setOutlineEnabled(bool enabled) {
-    gls.setUniform1i(_outlineEnabledLocation, enabled ? 1 : 0);
+    gls.setUniform1i(_outlineEnabled.position!, enabled ? 1 : 0);
   }
 
   void setDrawFill(bool enabled) {
-    gls.setUniform1i(_drawFillLocation, enabled ? 1 : 0);
+    gls.setUniform1i(_drawFill.position!, enabled ? 1 : 0);
   }
 
   void setOutlineColor(Color color) {
-    gls.setUniform4fv(_outlineColorLocation, [
+    gls.setUniform4fv(_outlineColor.position!, [
       color.r,
       color.g,
       color.b,
@@ -258,39 +265,37 @@ class OneLightShader extends GlslShader {
   }
 
   void setOutlineWidth(num width) {
-    gls.setUniform1f(_outlineWidthLocation, width.toDouble());
+    gls.setUniform1f(_outlineWidth.position!, width.toDouble());
   }
 
   @override
-  void setUniformValue(String name, String value) {
+  dynamic uniformValueFromString(String name, String value) {
     if (name == uLightPos) {
-      setLightPos(parseVector3(value));
+      return parseVector3(value);
     } else if (name == uAmbientLight) {
-      setAmbientLight(parseHexColor(value));
+      return (parseHexColor(value));
     } else if (name == uDiffuseLight) {
-      setDiffuseLight(parseHexColor(value));
+      return (parseHexColor(value));
     } else if (name == uSpecularLight) {
-      setSpecularLight(parseHexColor(value));
+      return (parseHexColor(value));
     } else if (name == uMaterialAmbient) {
-      setMaterialAmbient(parseHexColor(value));
+      return (parseHexColor(value));
     } else if (name == uMaterialDiffuse) {
-      setMaterialDiffuse(parseHexColor(value));
+      return (parseHexColor(value));
     } else if (name == uMaterialSpecular) {
-      setMaterialSpecular(parseHexColor(value));
+      return (parseHexColor(value));
     } else if (name == uMaterialShininess) {
-      final val = double.tryParse(value);
-      if (val != null) setShininess(val);
+      return double.tryParse(value);
     } else if (name == uOutlineEnabled) {
-      setOutlineEnabled(value.toLowerCase() == 'true' || value == '1');
+      return (value.toLowerCase() == 'true' || value == '1');
     } else if (name == uOutlineColor) {
-      setOutlineColor(parseHexColor(value));
+      return (parseHexColor(value));
     } else if (name == uOutlineWidth) {
-      final val = double.tryParse(value);
-      if (val != null) setOutlineWidth(val);
+      return double.tryParse(value);
     } else if (name == uDrawFill) {
-      setDrawFill(value.toLowerCase() == 'true' || value == '1');
+      return (value.toLowerCase() == 'true' || value == '1');
     } else {
-      super.setUniformValue(name, value);
+      return super.uniformValueFromString(name, value);
     }
   }
 }

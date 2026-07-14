@@ -65,7 +65,7 @@ class MeshFileRenderer {
   /// Configures and enables the lighting shader for drawing.
   void enableLightingShader(Matrix4 pMatrix, Matrix4 mvMatrix) {
     gls.useProgram(shader!.program);
-    ShaderList.setMatrixUniforms(shader!, pMatrix, mvMatrix);
+    shader!.setMatrixUniforms(pMatrix, mvMatrix);
 
     shader!.setLightPos(Vector3(40, 0, -200));
     shader!.setNMatrix(Matrix3.identity());

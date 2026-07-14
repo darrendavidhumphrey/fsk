@@ -4,14 +4,12 @@ import 'package:vector_math/vector_math_64.dart' hide Colors;
 import '../fsk.dart';
 
 /// A class that manages the geometry and rendering for a single textured quad
-class FskQuad extends FskSceneObject {
+class FskQuad extends FskRenderableObject {
   // The quad to render
   final Quad _quad;
 
   // The texture coordinates for the quad
   final Rect _textureRect;
-
-  final Color _color;
 
   // Name of the texture
   String _textureId;
@@ -27,11 +25,9 @@ class FskQuad extends FskSceneObject {
   /// The vertex buffer object that holds the geometry for rendering.
   final VertexBuffer _vbo = VertexBuffer.v3t2();
 
-  GlslShader? _shader;
-
-  FskQuad(this._quad, this._textureRect,this._textureId,{this._color = Colors.white}) {
+  FskQuad(this._quad, this._textureRect,this._textureId) {
     // Default to the simple texture shader if not set.
-    _shader ??= FSK().shaders.getShader<SimpleTextureShader>();
+    setShader(FSK().shaders.getShader<SimpleTextureShader>());
 
     _textureInfo = FSK().textureManager.getTextureInfo(_textureId);
   }
@@ -64,36 +60,19 @@ class FskQuad extends FskSceneObject {
     _needsRebuild = false;
   }
 
-  void setShader(GlslShader? shader) {
-    _shader = shader ?? FSK().shaders.getShader<SimpleTextureShader>();
-  }
-
-  @override
-  void applyShaderParams(Map<String, String> params) {
-    if (_shader != null) {
-      params.forEach((name, value) {
-        _shader!.setUniformValue(name, value);
-      });
-    }
-  }
 
   @override
   void drawSetup(GlStateManager gls, Matrix4 pMatrix, Matrix4 mvMatrix) {
-    if ((_textureInfo == null) || (_shader==null)) return;
+    if ((_textureInfo == null) || (shader==null)) return;
 
-    gls.useProgram(_shader!.program);
-    ShaderList.setMatrixUniforms(_shader!, pMatrix, mvMatrix);
+    gls.useProgram(shader!.program);
+    shader!.setMatrixUniforms(pMatrix, mvMatrix);
 
+    applyShaderParams();
     gls.setBlend(true);
     gls.setTexturingEnabled(true);
     gls.activeTexture(WebGL.TEXTURE0);
     gls.setDepthTest(false);
-
-    // TODO: Make this better
-    if (_shader is SimpleTextureShader) {
-      var shader = _shader as SimpleTextureShader;
-      shader.setModulateColor(_color);
-    }
 
     gls.blendFuncSeparate(
       WebGL.ONE,
@@ -101,12 +80,12 @@ class FskQuad extends FskSceneObject {
       WebGL.ONE,
       WebGL.ONE_MINUS_SRC_ALPHA,
     );
-    _shader!.setTextureSampler(0);
+    shader!.setTextureSampler(0);
   }
 
   @override
   void draw(GlStateManager gls) {
-    if ((_textureInfo == null) || (_shader==null)) return;
+    if ((_textureInfo == null) || (shader==null)) return;
 
     gls.bindTexture(WebGL.TEXTURE_2D, _textureInfo!.texture);
 

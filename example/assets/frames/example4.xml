@@ -34,7 +34,7 @@
         <text id="Text2Copy2" font="ArialMT36" text="Right Justified"
             screenRect="{{20, 525}, {221, 33}}" hJustify="right" vJustify="bottom" visible="true" textColor="#FF0000FF" />
 
-        <quad id="Penelope" texture="Penelope" screenRect="{{430, 199}, {221, 238}}" visible="true" opacity="1" />
+        <quad id="Penelope" texture="Penelope" screenRect="{{430, 199}, {221, 238}}" visible="true" opacity="1" shader="SimpleTextureShader" shaderParams="uModulateColor: #0000FFFF"/>
 
     </objects>
 

@@ -192,7 +192,7 @@ Color parseHexColor(String? hex) {
     // Re-orders bytes from RRGGBBAA to Flutter's expected AARRGGBB format
     return Color(int.parse('0x$aa$rrgg'));
   } catch (_) {
-    Logging.logError ('Error parsing hex color: $hex',source: 'parseHexColor');
+    Logging.logError('Error parsing hex color: $hex', source: 'parseHexColor');
     return const Color(0xFFFFFFFF); // Fallback on parsing exceptions
   }
 }
@@ -244,4 +244,8 @@ Vector4 parseVector4(String value) {
     return Vector4(parts[0]!, parts[1]!, parts[2]!, parts[3]!);
   }
   return Vector4.zero();
+}
+
+List<double> colorToNormalizedList(Color color) {
+  return [color.r, color.g, color.b, color.a];
 }

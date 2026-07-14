@@ -56,12 +56,14 @@ enum TextHorizontalJustification {
   }
 }
 
+
+
 /// A class that manages the geometry and rendering for a single line of text
 /// using a [BitmapFont].
 ///
 /// It generates a set of quads for the text, scaled to fit within a target
 /// [ReferenceBox], and manages the associated [VertexBuffer] for rendering.
-class FskBitmapText extends FskSceneObject {
+class FskBitmapText extends FskRenderableObject {
   /// The list of 3D quads representing the geometry of each character.
   List<Quad> quads = [];
 
@@ -107,15 +109,6 @@ class FskBitmapText extends FskSceneObject {
   /// The vertex buffer object that holds the geometry for rendering.
   final VertexBuffer _vbo = VertexBuffer.v3t2();
 
-  // One shader shared by all text instances
-  static GlslShader? _shader;
-
-  GlslShader? get _activeShader => _shader;
-
-  void setShader(GlslShader? s) {
-    _shader = s ?? FSK().shaders.getShader<BitmapTextShader>();
-  }
-
   TextVerticalJustification _verticalJustification;
 
   TextVerticalJustification get verticalJustification => _verticalJustification;
@@ -145,7 +138,7 @@ class FskBitmapText extends FskSceneObject {
   }) {
 
     // Default to the bitmap texture shader if not set.
-    _shader ??= FSK().shaders.getShader<BitmapTextShader>();
+    setShader(FSK().shaders.getShader<BitmapTextShader>());
 
     // Cache the target width from the reference box.
     _width = _screenRect.xVector.length;
@@ -208,20 +201,12 @@ class FskBitmapText extends FskSceneObject {
   }
 
   @override
-  void applyShaderParams(Map<String, String> params) {
-    final activeShader = _activeShader;
-    if (activeShader != null) {
-      params.forEach((name, value) {
-        activeShader.setUniformValue(name, value);
-      });
-    }
-  }
-
-  @override
   void init(GlStateManager gls) {
     _vbo.init(gls);
     rebuild(gls);
   }
+
+
 
   /// Rebuilds the vertex buffer object if the text or font has changed.
   @override
@@ -389,20 +374,23 @@ class FskBitmapText extends FskSceneObject {
 
   @override
   void drawSetup(GlStateManager gls, Matrix4 pMatrix, Matrix4 mvMatrix) {
-    final activeShader = _activeShader;
+    if ((font == null) || (shader == null)) return;
 
-    if ((font == null) || (activeShader == null)) return;
+    gls.useProgram(shader!.program);
+    shader!.setMatrixUniforms(pMatrix, mvMatrix);
 
-    gls.useProgram(activeShader.program);
-    ShaderList.setMatrixUniforms(activeShader, pMatrix, mvMatrix);
+    applyShaderParams();
 
     gls.setBlend(true);
     gls.setTexturingEnabled(true);
     gls.activeTexture(WebGL.TEXTURE0);
     gls.setDepthTest(false);
 
-    if (activeShader is BitmapTextShader) {
-      activeShader.setTextColor(textColor);
+    // TODO: Do both of these better
+    if (shader is BitmapTextShader) {
+      var bitmapShader = shader as BitmapTextShader;
+      bitmapShader.setTextColor(textColor);
+      bitmapShader.setTextureSampler(0);
     }
 
     gls.blendFuncSeparate(
@@ -411,13 +399,12 @@ class FskBitmapText extends FskSceneObject {
       WebGL.ONE,
       WebGL.ONE_MINUS_SRC_ALPHA,
     );
-    activeShader.setTextureSampler(0);
+
   }
 
   @override
   void draw(GlStateManager gls) {
-    final activeShader = _activeShader;
-    if ((font == null) || (!font!.isInitialized) || (activeShader == null)) return;
+    if ((font == null) || (!font!.isInitialized) || (shader == null)) return;
 
     gls.bindTexture(WebGL.TEXTURE_2D, font!.textureInfo!.texture);
 

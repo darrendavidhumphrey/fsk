@@ -1,12 +1,54 @@
 import 'dart:collection';
+import 'dart:ui';
 import 'package:flutter/foundation.dart';
 import 'package:flutter_angle/flutter_angle.dart';
+import 'package:vector_math/vector_math_64.dart';
+import '../util.dart';
 import 'gl_state_manager.dart';
 import '../logging.dart';
 
+/// Standard OpenGL ES uniform types
+enum UniformType {
+  float,
+  floatVec2,
+  floatVec3,
+  floatVec4,
+  int,
+  intVec2,
+  intVec3,
+  intVec4,
+  bool,
+  boolVec2,
+  boolVec3,
+  boolVec4,
+  floatMat2,
+  floatMat3,
+  floatMat4,
+  sampler2D,
+  samplerCube,
+}
+
+class UniformDefinition {
+  final String name;
+  UniformLocation? position;
+  final UniformType type;
+  UniformDefinition(this.name, this.type);
+
+  @override
+  String toString() {
+    return "UniformDefinition($name, $type)";
+  }
+}
+
+class UniformValue {
+  final UniformDefinition definition;
+  dynamic value;
+
+  UniformValue(this.definition, this.value);
+}
+
 /// A class that encapsulates a WebGL shader program.
 class GlslShader with LoggableClass {
-
   // --- Shared Attribute Names ---
   // Use these constants when possible
   static const String v3Attrib = "aVertexPosition";
@@ -22,24 +64,35 @@ class GlslShader with LoggableClass {
   static const String textureSamplerAttrib = 'uSampler';
 
   final Map<String, int> _attributes = <String, int>{};
-  final Map<String, UniformLocation> _uniforms = <String, UniformLocation>{};
+  final Map<String, UniformDefinition> _uniforms =
+      <String, UniformDefinition>{};
   Program? program;
 
   final GlStateManager gls;
   final List<String> attributeNames;
-  final List<String> uniformNames;
+  final List<UniformDefinition> uniformDefinitions;
   final int _sourceHashCode;
 
   Map<String, int> get attributes => UnmodifiableMapView(_attributes);
-  Map<String, UniformLocation> get uniforms => UnmodifiableMapView(_uniforms);
+  Map<String, UniformDefinition> get uniforms => UnmodifiableMapView(_uniforms);
+
+  late UniformDefinition _uModelView;
+  late UniformDefinition _uProj;
+
 
   GlslShader(
     this.gls,
     String fragSrc,
     String vertSrc,
     this.attributeNames,
-    this.uniformNames,
+    this.uniformDefinitions,
   ) : _sourceHashCode = Object.hash(fragSrc, vertSrc) {
+    // Manually add matrices to all shaders
+    _uModelView = UniformDefinition(uModelView, UniformType.floatMat4);
+    _uProj = UniformDefinition(uProj, UniformType.floatMat4);
+    uniformDefinitions.add(_uModelView);
+    uniformDefinitions.add(_uProj);
+
     _compileAndLink(fragSrc, vertSrc);
   }
 
@@ -67,7 +120,8 @@ class GlslShader with LoggableClass {
 
       if (!success) {
         throw Exception(
-            'Shader program linking failed: ${gl.getProgramInfoLog(p) ?? ''}');
+          'Shader program linking failed: ${gl.getProgramInfoLog(p) ?? ''}',
+        );
       }
 
       _fetchAttributeAndUniformLocations(p);
@@ -102,19 +156,19 @@ class GlslShader with LoggableClass {
       int attributeLocation = gl.getAttribLocation(p, attrib).id;
       gl.checkError(attrib);
 
-
       if (attributeLocation < 0) {
         logError("GL Failed to get attribute $attrib");
-      }
-      else {
+      } else {
         gl.enableVertexAttribArray(attributeLocation);
       }
-        _attributes[attrib] = attributeLocation;
+      _attributes[attrib] = attributeLocation;
     }
-    for (String uniform in uniformNames) {
-      var uniformLocation = gl.getUniformLocation(p, uniform);
-      gl.checkError(uniform);
-      _uniforms[uniform] = UniformLocation(uniformLocation.id);
+    for (var uniform in uniformDefinitions) {
+      var uniformLocation = gl.getUniformLocation(p, uniform.name);
+      gl.checkError(uniform.name);
+      uniform.position = UniformLocation(uniformLocation.id);
+
+      _uniforms[uniform.name] = uniform;
     }
   }
 
@@ -134,7 +188,7 @@ class GlslShader with LoggableClass {
         other.gls == gls &&
         other._sourceHashCode == _sourceHashCode &&
         listEquals(other.attributeNames, attributeNames) &&
-        listEquals(other.uniformNames, uniformNames);
+        listEquals(other.uniformDefinitions, uniformDefinitions);
   }
 
   @override
@@ -142,31 +196,120 @@ class GlslShader with LoggableClass {
     gls,
     _sourceHashCode,
     Object.hashAll(attributeNames),
-    Object.hashAll(uniformNames),
+    Object.hashAll(uniformDefinitions),
   );
 
-  void setUniform1i(String name, int value) {
-    gls.setUniform1i(uniforms[name]!, value);
-  }
 
+  // TODO: FIX THIS CRAP
   void setTextureSampler(int unit) {
     if (uniforms[GlslShader.textureSamplerAttrib] != null) {
-      gls.setUniform1i(uniforms[GlslShader.textureSamplerAttrib]!, unit);
+      gls.setUniform1i(
+        uniforms[GlslShader.textureSamplerAttrib]!.position!,
+        unit,
+      );
+    }
+  }
+
+  dynamic uniformValueFromString(String name, String value) {
+    if (name == GlslShader.textureSamplerAttrib) {
+      return int.tryParse(value);
+    } else {
+      logWarning("setUniformValue not implemented for uniform $name");
+      return null;
+    }
+  }
+
+  void setUniform(UniformDefinition uniform, dynamic value) {
+    var position = uniform.position!;
+
+    switch (uniform.type) {
+      case UniformType.float:
+        gls.setUniform1f(position, value as double);
+        break;
+      case UniformType.floatVec2:
+        final v = value as Vector2;
+        gls.setUniform2fv(position, v.storage);
+        break;
+      case UniformType.floatVec3:
+        final v = value as Vector3;
+        gls.setUniform3fv(position, v.storage);
+        break;
+      case UniformType.floatVec4:
+        if (value is Color) {
+          gls.setUniform4fv(position, colorToNormalizedList(value));
+        } else {
+          final v = value as Vector4;
+          gls.setUniform4fv(position, v.storage);
+        }
+        break;
+
+      case UniformType.int:
+      case UniformType.sampler2D:
+      case UniformType.samplerCube:
+        gls.setUniform1i(position, value as int);
+        break;
+      case UniformType.intVec2:
+        final v = value as List<int>;
+        gls.setUniform2iv(position, v);
+        break;
+      case UniformType.intVec3:
+        final v = value as List<int>;
+        gls.setUniform3iv(position, v);
+        break;
+      case UniformType.intVec4:
+        final v = value as List<int>;
+        gls.setUniform4iv(position, v);
+        break;
+
+      case UniformType.bool:
+        gls.setUniform1i(position, (value as bool) ? 1 : 0);
+        break;
+      case UniformType.boolVec2:
+        final v = value as List<bool>;
+        final listInt = [v[0] ? 1 : 0, v[1] ? 1 : 0];
+        gls.setUniform2iv(position, listInt);
+        break;
+      case UniformType.boolVec3:
+        final v = value as List<bool>;
+        final listInt = [v[0] ? 1 : 0, v[1] ? 1 : 0, v[2] ? 1 : 0];
+        gls.setUniform3iv(position, listInt);
+        break;
+      case UniformType.boolVec4:
+        final v = value as List<bool>;
+        final listInt = [
+          v[0] ? 1 : 0,
+          v[1] ? 1 : 0,
+          v[2] ? 1 : 0,
+          v[3] ? 1 : 0,
+        ];
+        gls.setUniform4iv(position, listInt);
+        break;
+
+      case UniformType.floatMat2:
+        // Expects a Float32List or List<double> of length 4
+        gls.setUniformMatrix2fv(position, value as Matrix2);
+        break;
+      case UniformType.floatMat3:
+        // Expects a Float32List or List<double> of length 9
+        gls.setUniformMatrix3fv(position, value as Matrix3);
+        break;
+      case UniformType.floatMat4:
+        // Expects a Float32List or List<double> of length 16
+        gls.setUniformMatrix4fv(position, value as Matrix4);
+        break;
     }
   }
 
 
-  /// Sets a uniform by name using a string representation of its value.
-  /// Derived classes must provide an implementation
-  /// Supported names are: [uResolution], [uScale], [uMajorLineSpacingMM],
-  /// [uMinorLineSpacingMM], [uMajorLineThickness], [uMinorLineThickness],
-  /// [ummLineThickness], [uMajorLineColor], [uMinorLineColor], [ummLineColor].
-  void setUniformValue(String name, String value) {
-    if (name == GlslShader.textureSamplerAttrib) {
-      setTextureSampler(int.parse(value));
-
-    } else {
-      logWarning("setUniformValue not implemented for uniform $name");
-    }
+  /// A utility to set the standard model-view and projection matrices on a shader.
+  void setMatrixUniforms(Matrix4 pMatrix, Matrix4 mvMatrix) {
+    gls.setUniformMatrix4fv(
+      _uProj.position!,
+      pMatrix,
+    );
+    gls.setUniformMatrix4fv(
+      _uModelView.position!,
+      mvMatrix,
+    );
   }
 }

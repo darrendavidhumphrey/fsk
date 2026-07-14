@@ -11,9 +11,6 @@ abstract class FrameNode with LoggableClass {
   void init(GlStateManager gls);
   void draw(GlStateManager gls, Matrix4 pMatrix, MatrixStack mvStack);
   void dispose();
-
-  /// Applies shader parameters to the bound shader.
-  void applyShaderParams(GlStateManager gls);
 }
 
 class FrameGroupNode extends FrameNode {
@@ -48,14 +45,9 @@ class FrameGroupNode extends FrameNode {
       child.dispose();
     }
   }
-
-  @override
-  void applyShaderParams(GlStateManager gls) {
-    // Groups themselves don't have a bound shader.
-  }
 }
 
-abstract class FrameObjectNode<T extends FskSceneObject> extends FrameNode {
+abstract class FrameObjectNode<T extends FskRenderableObject> extends FrameNode {
   T? object;
 
   FrameObjectNode(super.data);
@@ -66,15 +58,7 @@ abstract class FrameObjectNode<T extends FskSceneObject> extends FrameNode {
 
     object?.rebuild(gls);
     object?.drawSetup(gls, pMatrix, mvStack.current);
-    applyShaderParams(gls);
     object?.draw(gls);
-  }
-
-  @override
-  void applyShaderParams(GlStateManager gls) {
-    if (object != null && data.shaderParams.isNotEmpty) {
-      object!.applyShaderParams(data.shaderParams);
-    }
   }
 
   @override
@@ -105,12 +89,15 @@ class FrameQuadNode extends FrameObjectNode<FskQuad> {
 
     object = FskQuad(rect, quadData.textureRect, quadData.texture);
 
+
+
     if (quadData.shader != null) {
       final shader = FSK().shaders.getShaderByName(quadData.shader!);
       object!.setShader(shader);
     }
 
     object!.init(gls);
+    object!.initShaderParams(data.shaderParams);
   }
 }
 
@@ -144,10 +131,8 @@ class FrameTextNode extends FrameObjectNode<FskBitmapText> {
     if (textData.shader != null) {
       final shader = FSK().shaders.getShaderByName(textData.shader!);
       object!.setShader(shader);
-    } else {
-
     }
-
     object!.init(gls);
+    object!.initShaderParams(data.shaderParams);
   }
 }

@@ -1,6 +1,4 @@
-import 'package:flutter_angle/shared/classes.dart';
 import 'package:vector_math/vector_math_64.dart';
-
 import '../angle/gl_state_manager.dart';
 import '../angle/glsl_shader.dart';
 import '../util.dart';
@@ -53,50 +51,52 @@ class BasicLightingShader extends GlslShader {
   static String uKd = "Kd";
   static String uLd = "Ld";
 
-  late UniformLocation _lightPosLocation;
-  late UniformLocation _kdLocation;
-  late UniformLocation _ldLocation;
-
+  late UniformDefinition _lightPos;
+  late UniformDefinition _kd;
+  late UniformDefinition _ld;
+  UniformDefinition get lightPosLocation => _lightPos;
+  UniformDefinition get kdLocation => _kd;
+  UniformDefinition get ldLocation => _ld;
 
   BasicLightingShader(GlStateManager gls)
     : super(
-    gls,
+        gls,
         _lightingFragmentShader,
         _lightingVertexShader,
+        [GlslShader.v3Attrib, GlslShader.t2Attrib, GlslShader.n3Attrib],
         [
-          GlslShader.v3Attrib,
-          GlslShader.t2Attrib,
-          GlslShader.n3Attrib,
+          UniformDefinition(uKd, UniformType.floatVec3),
+          UniformDefinition(uLd, UniformType.floatVec3),
+          UniformDefinition(uLightPos, UniformType.floatVec4),
         ],
-        [uKd, uLd, uLightPos, GlslShader.uModelView, GlslShader.uProj],
       ) {
-    _lightPosLocation = uniforms[uLightPos]!;
-    _kdLocation = uniforms[uKd]!;
-    _ldLocation = uniforms[uLd]!;
+    _lightPos = uniforms[uLightPos]!;
+    _kd = uniforms[uKd]!;
+    _ld = uniforms[uLd]!;
   }
 
   void setLightPos(Vector3 v) {
-    gls.setUniform4fv(_lightPosLocation, [v.x, v.y, v.z, 1.0]);
+    gls.setUniform4fv(_lightPos.position!, [v.x, v.y, v.z, 1.0]);
   }
 
   void setKd(Vector3 v) {
-    gls.setUniform3fv(_kdLocation, [v.x, v.y, v.z]);
+    gls.setUniform3fv(_kd.position!, [v.x, v.y, v.z]);
   }
 
   void setLd(Vector3 v) {
-    gls.setUniform3fv(_ldLocation, [v.x, v.y, v.z]);
+    gls.setUniform3fv(_ld.position!, [v.x, v.y, v.z]);
   }
 
   @override
-  void setUniformValue(String name, String value) {
+  dynamic uniformValueFromString(String name, String value) {
     if (name == uKd) {
-      setKd(parseVector3(value));
+      return(parseVector3(value));
     } else if (name == uLd) {
-      setLd(parseVector3(value));
+      return(parseVector3(value));
     } else if (name == uLightPos) {
-      setLightPos(parseVector3(value));
+      return(parseVector3(value));
     } else {
-      super.setUniformValue(name, value);
+      return super.uniformValueFromString(name, value);
     }
   }
 }

@@ -190,6 +190,32 @@ class GlStateManager {
     return false;
   }
 
+  bool _checkAndUpdateCacheInt(
+      UniformLocation pos,
+      List<int> newValues,
+      bool force,
+      ) {
+    if (_currentProgram == null) return true; // Skip upload if no program
+
+    final uniforms = _shaderUniformCache[_currentProgram]!;
+    final cached = uniforms[pos];
+
+    if (!force && cached is List<int> && cached.length == newValues.length) {
+      bool identical = true;
+      for (int i = 0; i < newValues.length; i++) {
+        if (cached[i] != newValues[i]) {
+          identical = false;
+          break;
+        }
+      }
+      if (identical) return true; // Cache hit: skip upload
+    }
+
+    // Cache miss or forced update: save a copy
+    uniforms[pos] = List<int>.from(newValues);
+    return false;
+  }
+
   void setUniform2fv(
     UniformLocation uniformPos,
     List<double> v, {
@@ -217,7 +243,38 @@ class GlStateManager {
     gl.uniform4fv(uniformPos, v);
   }
 
+  void setUniform2iv(
+      UniformLocation uniformPos,
+      List<int> v, {
+        bool force = false,
+      }) {
+    if (_checkAndUpdateCacheInt(uniformPos, v, force)) return;
+    gl.uniform2iv(uniformPos, v);
+  }
+
+  void setUniform3iv(
+      UniformLocation uniformPos,
+      List<int> v, {
+        bool force = false,
+      }) {
+    if (_checkAndUpdateCacheInt(uniformPos, v, force)) return;
+    gl.uniform3iv(uniformPos, v);
+  }
+
+  void setUniform4iv(
+      UniformLocation uniformPos,
+      List<int> v, {
+        bool force = false,
+      }) {
+    if (_checkAndUpdateCacheInt(uniformPos, v, force)) return;
+    gl.uniform4iv(uniformPos, v);
+  }
+
   // It's expensive to check an entire matrix, so there's not much point in caching it.
+  void setUniformMatrix2fv(UniformLocation uniformPos, Matrix2 m) {
+    gl.uniformMatrix2fv(uniformPos, false, m.storage);
+  }
+
   void setUniformMatrix3fv(UniformLocation uniformPos, Matrix3 m) {
     gl.uniformMatrix3fv(uniformPos, false, m.storage);
   }
