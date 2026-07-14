@@ -25,6 +25,9 @@ class FskQuad extends FskRenderableObject {
   /// The vertex buffer object that holds the geometry for rendering.
   final VertexBuffer _vbo = VertexBuffer.v3t2();
 
+  UniformValue? _modulateColorUniformValue;
+
+
   FskQuad(this._quad, this._textureRect,this._textureId) {
     // Default to the simple texture shader if not set.
     setShader(FSK().shaders.getShader<SimpleTextureShader>());
@@ -47,6 +50,14 @@ class FskQuad extends FskRenderableObject {
   @override
   void init(GlStateManager gls) {
     _vbo.init(gls);
+    var uniformDefinition = shader!.uniforms["uModulateColor"];
+    // TODO: Update this when the shader changes, make an onShaderChanged callback?
+    if (uniformDefinition != null) {
+      _modulateColorUniformValue = getUniformValue(uniformDefinition);
+      // Default to white
+      _modulateColorUniformValue?.value = const Color(0xFFFFFFFF);
+    }
+
     rebuild(gls);
   }
 
@@ -67,7 +78,8 @@ class FskQuad extends FskRenderableObject {
 
     gls.useProgram(shader!.program);
     shader!.setMatrixUniforms(pMatrix, mvMatrix);
-
+//print("Quad draw");
+//dumpShaderParams();
     applyShaderParams();
     gls.setBlend(true);
     gls.setTexturingEnabled(true);

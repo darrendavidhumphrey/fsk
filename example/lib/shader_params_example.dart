@@ -5,6 +5,7 @@ import 'package:fsk/fsk.dart';
 class ShaderParamsExample extends FrameScene {
   ShaderParamsExample({super.navigationDelegate});
   UniformValue? modulateUniform;
+  FskBitmapText? text1;
   bool ready = false;
 
   @override
@@ -18,6 +19,11 @@ class ShaderParamsExample extends FrameScene {
   void onSceneReady() {
     super.onSceneReady();
     modulateUniform = findObjectUniform("PenelopeModulate","uModulateColor");
+
+    var text1Node = findNodeByType<FrameTextNode>("Text1");
+    if (text1Node != null) {
+      text1 = text1Node.object;
+    }
     ready = true;
   }
 
@@ -53,6 +59,10 @@ class ShaderParamsExample extends FrameScene {
 
     modulateUniform?.value = color;
 
+    if (modulateUniform == null) {
+      print("SHIT.");
+    }
+    text1?.setTextColor(color);
 
     super.drawScene();
     requestRepaint();

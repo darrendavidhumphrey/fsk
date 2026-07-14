@@ -167,6 +167,7 @@ class FrameScene extends FskScene {
         if (object.shader != null) {
           var uniformDef = object.shader!.uniforms[uniformName];
           if (uniformDef != null) {
+
             return object.getUniformValue(uniformDef);
           }
         }

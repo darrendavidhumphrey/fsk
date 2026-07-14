@@ -29,7 +29,6 @@ out vec4 FragColor;
 in vec2 vTextureCoord; 
 in vec4 vColor; 
 
-uniform sampler2D uSampler;
 
 void main(void) {
     FragColor = vColor; 
@@ -49,10 +48,6 @@ class FlatShader extends GlslShader {
           GlslShader.c4Attrib,
         ],
         [
-          UniformDefinition(
-            GlslShader.textureSamplerAttrib,
-            UniformType.sampler2D,
-          ),
         ],
       );
 }

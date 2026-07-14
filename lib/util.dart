@@ -246,6 +246,6 @@ Vector4 parseVector4(String value) {
   return Vector4.zero();
 }
 
-List<double> colorToNormalizedList(Color color) {
-  return [color.r, color.g, color.b, color.a];
+Vector4 colorToVector(Color color) {
+  return Vector4(color.r, color.g, color.b, color.a);
 }

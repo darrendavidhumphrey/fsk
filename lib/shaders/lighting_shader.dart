@@ -38,8 +38,6 @@ precision highp float;
 in vec2 vTextureCoord;
 in vec3 LightIntensity; 
 out vec4 FragColor;
-
-uniform sampler2D uSampler;
  
 void main() {
 	FragColor = vec4(LightIntensity, 1.0); 

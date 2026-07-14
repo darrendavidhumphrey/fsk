@@ -5,10 +5,12 @@
     </textures>
 
     <fonts>
+        <font id="SourceCodePro-Black36" fntFile="SourceCodePro-Black36.fnt" texture="SourceCodePro-Black36.png" />
     </fonts>
 
     <!-- Start of SCENE  -->
     <objects>
+
 
        <quad id="PenelopeGrid" texture="Penelope" screenRect="{{447, 459}, {225, 225}}"
        shader="GridShader"
@@ -31,7 +33,8 @@
                      />
 
                      <quad id="Penelope" texture="Penelope" screenRect="{{86, 459}, {186, 201}}" visible="true" opacity="1"  shader="SimpleTextureShader" shaderParams="uModulateColor: #0000FFFF" />
-
+        <text id="Text1" font="SourceCodePro-Black36" text="Text Item "
+            screenRect="{{439, 457}, {162, 21}}" hJustify="center" vJustify="bottom" visible="true" textColor="#000000FF" />
          </objects>
 
       </frameScene>

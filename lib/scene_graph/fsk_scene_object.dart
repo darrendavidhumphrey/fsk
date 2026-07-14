@@ -5,7 +5,7 @@ import '../angle/glsl_shader.dart';
 abstract class FskSceneObject {
 
   // API for dynamically controlling uniforms
-  List<UniformValue> uniformValues = [];
+  final List<UniformValue> uniformValues = [];
   void initShaderParams(Map<String, String> params);
   void applyShaderParams();
 
@@ -44,13 +44,20 @@ class FskRenderableObject extends FskSceneObject {
 
   @override
   void initShaderParams(Map<String, String> params) {
-    if (_shader == null) return;
-    uniformValues.clear();
+    assert(_shader != null, "Shader not set");
     params.forEach((name, value) {
       var location = _shader!.uniforms[name];
       if (location != null) {
         var typedValue = _shader!.uniformValueFromString(name, value);
-        uniformValues.add(UniformValue(location, typedValue));
+
+        final index = uniformValues.indexWhere((u) => u.definition.name == name);
+
+        if (index !=-1) {
+          uniformValues[index].value = typedValue;
+
+        } else {
+          uniformValues.add(UniformValue(location, typedValue));
+        }
       }
     });
   }
@@ -59,6 +66,13 @@ class FskRenderableObject extends FskSceneObject {
   void applyShaderParams() {
     for (var uniform in uniformValues) {
       _shader!.setUniform(uniform.definition, uniform.value);
+    }
+  }
+
+  void dumpShaderParams() {
+    print("Shader params for ${this.runtimeType}");
+    for (var uniform in uniformValues) {
+      print("Uniform ${uniform.definition.name} = ${uniform.value}, ${uniform.definition.type}");
     }
   }
 

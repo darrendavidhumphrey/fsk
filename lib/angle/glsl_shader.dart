@@ -76,9 +76,10 @@ class GlslShader with LoggableClass {
   Map<String, int> get attributes => UnmodifiableMapView(_attributes);
   Map<String, UniformDefinition> get uniforms => UnmodifiableMapView(_uniforms);
 
+  // Common uniforms
   late UniformDefinition _uModelView;
   late UniformDefinition _uProj;
-
+  late UniformDefinition _uTextureSampler;
 
   GlslShader(
     this.gls,
@@ -90,8 +91,13 @@ class GlslShader with LoggableClass {
     // Manually add matrices to all shaders
     _uModelView = UniformDefinition(uModelView, UniformType.floatMat4);
     _uProj = UniformDefinition(uProj, UniformType.floatMat4);
+    _uTextureSampler = UniformDefinition(
+      textureSamplerAttrib,
+      UniformType.sampler2D,
+    );
     uniformDefinitions.add(_uModelView);
     uniformDefinitions.add(_uProj);
+    uniformDefinitions.add(_uTextureSampler);
 
     _compileAndLink(fragSrc, vertSrc);
   }
@@ -199,14 +205,9 @@ class GlslShader with LoggableClass {
     Object.hashAll(uniformDefinitions),
   );
 
-
-  // TODO: FIX THIS CRAP
   void setTextureSampler(int unit) {
-    if (uniforms[GlslShader.textureSamplerAttrib] != null) {
-      gls.setUniform1i(
-        uniforms[GlslShader.textureSamplerAttrib]!.position!,
-        unit,
-      );
+    if (_uTextureSampler.position != null) {
+      gls.setUniform1i(_uTextureSampler.position!, unit);
     }
   }
 
@@ -236,7 +237,8 @@ class GlslShader with LoggableClass {
         break;
       case UniformType.floatVec4:
         if (value is Color) {
-          gls.setUniform4fv(position, colorToNormalizedList(value));
+          final v = colorToVector(value);
+          gls.setUniform4fv(position, v.storage);
         } else {
           final v = value as Vector4;
           gls.setUniform4fv(position, v.storage);
@@ -300,16 +302,9 @@ class GlslShader with LoggableClass {
     }
   }
 
-
   /// A utility to set the standard model-view and projection matrices on a shader.
   void setMatrixUniforms(Matrix4 pMatrix, Matrix4 mvMatrix) {
-    gls.setUniformMatrix4fv(
-      _uProj.position!,
-      pMatrix,
-    );
-    gls.setUniformMatrix4fv(
-      _uModelView.position!,
-      mvMatrix,
-    );
+    gls.setUniformMatrix4fv(_uProj.position!, pMatrix);
+    gls.setUniformMatrix4fv(_uModelView.position!, mvMatrix);
   }
 }

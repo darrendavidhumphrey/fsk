@@ -11,7 +11,7 @@ layout (location = 1) in vec2 aTextureCoord;
 
 uniform mat4 uMVMatrix;
 uniform mat4 uPMatrix;
-uniform sampler2D uSampler;
+
 out vec2 v_uv;
 void main(void) {
     gl_Position = uPMatrix * uMVMatrix * vec4(aVertexPosition, 1.0);

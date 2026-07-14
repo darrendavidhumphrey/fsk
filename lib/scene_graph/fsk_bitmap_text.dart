@@ -104,7 +104,13 @@ class FskBitmapText extends FskRenderableObject {
   }
 
   /// The color applied to modulate the text texture quads.
-  Color textColor = const Color(0xFFFFFFFF);
+  Color _textColor = const Color(0xFFFFFFFF);
+  UniformValue? _textColorUniformValue;
+
+  void setTextColor(Color value) {
+    _textColor = value;
+    _needsRebuild = true;
+  }
 
   /// The vertex buffer object that holds the geometry for rendering.
   final VertexBuffer _vbo = VertexBuffer.v3t2();
@@ -131,7 +137,7 @@ class FskBitmapText extends FskRenderableObject {
     this._font,
     this._text,
     this._screenRect, {
-    this.textColor = const Color(0xFFFFFFFF),
+    this._textColor = const Color(0xFFFFFFFF),
     this._verticalJustification = TextVerticalJustification.bottom,
     this._horizontalJustification = TextHorizontalJustification.left,
     this._maxLen,
@@ -169,7 +175,7 @@ class FskBitmapText extends FskRenderableObject {
       Vector3(0, 0, 1),
     );
     if (color != null) {
-      textColor = color;
+      setTextColor(color);
     }
   }
 
@@ -203,6 +209,12 @@ class FskBitmapText extends FskRenderableObject {
   @override
   void init(GlStateManager gls) {
     _vbo.init(gls);
+    var uniformDefinition = shader!.uniforms[BitmapTextShader.uTextColor];
+
+    // TODO: Update this when the shader changes, make an onShaderChanged callback?
+    if (uniformDefinition != null) {
+      _textColorUniformValue = getUniformValue(uniformDefinition);
+    }
     rebuild(gls);
   }
 
@@ -225,6 +237,10 @@ class FskBitmapText extends FskRenderableObject {
       VboFiller.addTexturedQuads(quads, textureQuads, _vbo);
     }
 
+    // Set text color uniform
+    if (_textColorUniformValue != null) {
+      _textColorUniformValue?.value = _textColor;
+    }
     _vbo.setActiveVertexCount(vertexCount);
     _needsRebuild = false; // Reset the flag after a successful rebuild.
   }
@@ -378,7 +394,7 @@ class FskBitmapText extends FskRenderableObject {
 
     gls.useProgram(shader!.program);
     shader!.setMatrixUniforms(pMatrix, mvMatrix);
-
+    _textColorUniformValue?.value = _textColor;
     applyShaderParams();
 
     gls.setBlend(true);
@@ -386,12 +402,7 @@ class FskBitmapText extends FskRenderableObject {
     gls.activeTexture(WebGL.TEXTURE0);
     gls.setDepthTest(false);
 
-    // TODO: Do both of these better
-    if (shader is BitmapTextShader) {
-      var bitmapShader = shader as BitmapTextShader;
-      bitmapShader.setTextColor(textColor);
-      bitmapShader.setTextureSampler(0);
-    }
+    shader!.setTextureSampler(0);
 
     gls.blendFuncSeparate(
       WebGL.ONE,
