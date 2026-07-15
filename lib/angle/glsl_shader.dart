@@ -130,6 +130,7 @@ class GlslShader with LoggableClass {
         );
       }
 
+      print("GlslShader: Program linked successfully.");
       _fetchAttributeAndUniformLocations(p);
     } catch (e) {
       logError('Error creating GlslShader: $e');
@@ -153,6 +154,7 @@ class GlslShader with LoggableClass {
       gl.deleteShader(shader);
       throw Exception(error);
     }
+    print("GlslShader: ${type == WebGL.VERTEX_SHADER ? 'Vertex' : 'Fragment'} shader compiled.");
     return shader;
   }
 

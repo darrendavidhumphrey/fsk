@@ -81,7 +81,7 @@ class RenderToTextureState
                     '$widget.scene.renderToTextureId!+_RenderToTextureCore'),
                 scene: widget.scene,
                 navigationDelegate: widget.scene.navigationDelegate,
-                child: SizedBox.expand())),
+                child: const SizedBox.expand())),
       ),
     );
   }

@@ -27,9 +27,12 @@ class TestAppState extends State<TestApp> {
   int _pageIndex = 0;
   ExampleScenes? scene;
 
-  Future<void> initAngle() async {
+  Future<void> initAngle(double dpr) async {
     // Override the size of the render to texture buffer here (defaults to 4096)
-    // FSK.renderToTextureSize = 1024;
+    //FSK.renderToTextureSize = 4096;
+
+    // Set a specific device pixel ratio (defaults to 1.0)
+    //FSK.devicePixelRatio = 1.0;
 
     // Initialize FSK. This call immediately sets FSK().state to inProgress
     await FSK().initPlatformState();
@@ -38,7 +41,7 @@ class TestAppState extends State<TestApp> {
     scene = ExampleScenes();
 
     // Register the scene and allocate a texture
-    await FSK().registerSceneAndAllocateTexture(scene!);
+    await FSK().registerSceneAndAllocateTexture(scene!, dpr: dpr);
 
     // Trigger a rebuild of the widget
     setState(() {
@@ -59,7 +62,7 @@ class TestAppState extends State<TestApp> {
     return LayoutBuilder(
       builder: (context, constraints) {
         if (FSK().state == FskState.uninitialized) {
-          initAngle();
+          initAngle(MediaQuery.of(context).devicePixelRatio);
         }
 
         if (scene == null) {
@@ -73,6 +76,7 @@ class TestAppState extends State<TestApp> {
             title: 'FSK Examples',
              //showPerformanceOverlay: true,
             home: Scaffold(
+              backgroundColor: kIsWeb ? Colors.transparent : null,
               body: Stack(
                 children: [
                   IndexedSceneViewer(

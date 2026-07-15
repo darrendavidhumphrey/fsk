@@ -83,8 +83,8 @@ class AnimatedCheckerBoardScene extends FskScene {
     gls.setViewport(
       0,
       0,
-      FSK.renderToTextureSize.toInt(),
-      FSK.renderToTextureSize.toInt(),
+      physicalTextureWidth,
+      physicalTextureHeight,
     );
     gl.clear(WebGL.COLOR_BUFFER_BIT | WebGL.DEPTH_BUFFER_BIT);
 

@@ -44,12 +44,16 @@ class CheckerBoardScene extends FskScene {
   void drawScene() async {
     super.drawScene();
 
+
     gls.setViewport(
       0,
       0,
-      FSK.renderToTextureSize.toInt(),
-      FSK.renderToTextureSize.toInt(),
+      physicalTextureWidth,
+      physicalTextureHeight,
     );
+
+
+
     gls.activeTexture(WebGL.TEXTURE0);
     gls.setTexturingEnabled(false);
 

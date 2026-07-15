@@ -63,10 +63,36 @@ abstract class FskScene with LoggableClass, GlContextManager {
   }
 
   /// The width of the render-to-texture target.
-  int get textureWidth => FSK.renderToTextureSize.toInt();
+  int get textureWidth {
+    if (renderToTextureId != null) {
+      return renderToTextureId!.options.width;
+    }
+    return 2048;
+  }
 
   /// The height of the render-to-texture target.
-  int get textureHeight => FSK.renderToTextureSize.toInt();
+  int get textureHeight {
+    if (renderToTextureId != null) {
+      return renderToTextureId!.options.height;
+    }
+    return 2048;
+  }
+
+  /// The physical width of the render-to-texture target (logical width * dpr).
+  int get physicalTextureWidth {
+    if (renderToTextureId != null) {
+      return (renderToTextureId!.options.width * renderToTextureId!.options.dpr).toInt();
+    }
+    return (FSK.renderToTextureSize * FSK.devicePixelRatio).toInt();
+  }
+
+  /// The physical height of the render-to-texture target (logical height * dpr).
+  int get physicalTextureHeight {
+    if (renderToTextureId != null) {
+      return (renderToTextureId!.options.height * renderToTextureId!.options.dpr).toInt();
+    }
+    return (FSK.renderToTextureSize * FSK.devicePixelRatio).toInt();
+  }
 
   /// Initializes the scene with the WebGL [RenderingContext].
   /// This must be called before any drawing operations can occur.
@@ -148,6 +174,8 @@ abstract class FskScene with LoggableClass, GlContextManager {
 
   bool frameProcessing = false;
 
+  int _renderPrintCount = 0;
+
   Future<void> renderSceneToTexture() async {
     if (frameProcessing) return;
     frameProcessing = true;
@@ -159,6 +187,11 @@ abstract class FskScene with LoggableClass, GlContextManager {
       }
 
       if (_needsRepaint || needsRebuild()) {
+        if (_renderPrintCount < 5) {
+          print("FskScene: Render Loop - Physical Viewport: ${physicalTextureWidth}x${physicalTextureHeight} Logical: ${viewportSize.width}x${viewportSize.height}");
+          _renderPrintCount++;
+        }
+
         // Set [_needsRepaint] to false at the start of the loop.
         // The [drawScene] implementation is expected to call [requestRepaint] if it
         // needs to continue animating.

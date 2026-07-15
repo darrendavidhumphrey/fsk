@@ -26,15 +26,13 @@ class RenderToTextureCore extends StatefulWidget {
 class RenderToTextureCoreState extends State<RenderToTextureCore>
     with WidgetsBindingObserver, TickerProviderStateMixin, LoggableClass {
   Size screenSize = Size.zero;
+  Size lastResizedSize = Size.zero;
   Ticker? ticker;
   bool _tickerIsActive = false;
 
   // For web, track the initialization state to eliminate race conditions
   bool _isWebReady = false;
   bool _engineDataReady = false;
-
-  // This key ensures the HtmlElement gets created again when the widget is ready
-  int _webGenerationKey = 0;
 
   @override
   void initState() {
@@ -45,17 +43,20 @@ class RenderToTextureCoreState extends State<RenderToTextureCore>
 
   void _initRenderLoop() async {
     // Make sure FSK is ready
+    print("RenderToTextureCore: Waiting for FSK to initialize...");
     while (FSK().state != FskState.glInitialized) {
       await Future.delayed(const Duration(milliseconds: 16));
       if (!mounted) return;
     }
 
     // Make sure texture is ready
+    print("RenderToTextureCore: Waiting for scene texture allocation...");
     while (FSK().scenes[widget.scene] == null) {
       await Future.delayed(const Duration(milliseconds: 16));
       if (!mounted) return;
     }
 
+    print("RenderToTextureCore: Engine and texture ready.");
     if (mounted) {
       setState(() {
         _engineDataReady = true;
@@ -65,6 +66,7 @@ class RenderToTextureCoreState extends State<RenderToTextureCore>
     // For non-web platforms start the ticker here
     // For web, wait until the window is ready
     if (!kIsWeb && mounted) {
+      print("RenderToTextureCore: Starting ticker (Non-Web).");
       setState(() {
         _tickerIsActive = true;
       });
@@ -74,12 +76,18 @@ class RenderToTextureCoreState extends State<RenderToTextureCore>
 
   void _startWebTickerSafely() async {
     if (_tickerIsActive || !mounted) return;
+
+    // Add a larger delay to ensure the platform view is fully registered and mounted in the DOM
+    // before we start the rendering loop.
+    await Future.delayed(const Duration(milliseconds: 500));
+    if (!mounted) return;
+
+    print("RenderToTextureCore: Starting ticker (Web).");
     _tickerIsActive = true;
 
     if (mounted) {
       setState(() {
         _isWebReady = true;
-        _webGenerationKey = 1;
       });
 
       ticker ??= createTicker(_onHardwareTick)..start();
@@ -89,6 +97,7 @@ class RenderToTextureCoreState extends State<RenderToTextureCore>
 
   @override
   void dispose() {
+    print("RenderToTextureCore: Disposing.");
     ticker?.dispose();
     WidgetsBinding.instance.removeObserver(this);
     super.dispose();
@@ -96,12 +105,15 @@ class RenderToTextureCoreState extends State<RenderToTextureCore>
 
   @override
   void didChangeMetrics() {
+    print("RenderToTextureCore: didChangeMetrics (Window Resize)");
     onWindowResize();
   }
 
   void onWindowResize() {
     widget.scene.requestRepaint();
   }
+
+  int _framePrintCount = 0;
 
   void _onHardwareTick(Duration elapsed) async {
     if (kIsWeb && (!_isWebReady)) return;
@@ -116,7 +128,35 @@ class RenderToTextureCoreState extends State<RenderToTextureCore>
       return;
     }
 
+    // Dynamic Resizing: Check if the logical size has changed.
+    if (lastResizedSize != screenSize) {
+      FlutterAngleTexture? texture = FSK().scenes[widget.scene];
+      if (texture != null) {
+        lastResizedSize = screenSize;
+        double dpr = MediaQuery.of(context).devicePixelRatio;
+
+        print("RenderToTextureCore: Resize detected: width = ${screenSize.width}, height = ${screenSize.height}, physicalWidth = ${screenSize.width * dpr}");
+        final newOptions = AngleOptions(
+          width: screenSize.width.toInt(),
+          height: screenSize.height.toInt(),
+          dpr: dpr,
+          antialias: texture.options.antialias,
+          useSurfaceProducer: texture.options.useSurfaceProducer,
+        );
+
+        await FSK().resize(texture, newOptions);
+        widget.scene.requestRepaint();
+      }
+    }
+
     widget.scene.setViewportSize(screenSize);
+
+    if (_framePrintCount < 100) {
+      if (_framePrintCount % 20 == 0) {
+        print("RenderToTextureCore: Tick Frame $_framePrintCount. Viewport: ${screenSize.width}x${screenSize.height}");
+      }
+      _framePrintCount++;
+    }
 
     if ((widget.navigationDelegate != null) &&
         (widget.navigationDelegate!.needsUpdate)) {
@@ -156,9 +196,6 @@ class RenderToTextureCoreState extends State<RenderToTextureCore>
           });
         }
 
-        final String elementKey =
-            'canvas-surface-${texture.textureId}-$_webGenerationKey';
-
         return Stack(
           children: [
             SizedBox(
@@ -166,7 +203,7 @@ class RenderToTextureCoreState extends State<RenderToTextureCore>
               height: constraints.maxHeight,
               child: kIsWeb
                   ? HtmlElementView(
-                      key: ValueKey(elementKey),
+                      key: ValueKey(texture.textureId),
                       viewType: texture.textureId.toString(),
                     )
                   : Texture(

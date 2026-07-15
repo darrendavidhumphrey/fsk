@@ -40,8 +40,11 @@ class FSK with LoggableClass {
   FskState _state = FskState.uninitialized;
   FskState get state => _state;
 
-      /// The default size for textures that are rendered to.
-  static double renderToTextureSize = 4096;
+  /// The default size for textures that are rendered to.
+  static double renderToTextureSize = 2048;
+
+  // Default device pixel ratio for rendering to texture
+  static double devicePixelRatio = 1.0;
 
   /// A map of all registered scenes and their corresponding output textures.
   final Map<FskScene, FlutterAngleTexture> scenes = {};
@@ -73,7 +76,6 @@ class FSK with LoggableClass {
   FSK._internal() {
     textureManager = FskTextureManager(glStateManager);
   }
-
 
   /// Initializes the core FlutterAngle engine.
   /// This must be called once before any other operations.
@@ -133,11 +135,13 @@ class FSK with LoggableClass {
       return;
     }
 
+    print("FSK: Initializing GL Context. Viewport size: ${gl.width}x${gl.height}");
     glStateManager.initializeGl(gl);
     textureManager.initializeGl(gl);
     initDefaultMaterial();
     shaders.init(gl);
     _state = FskState.contextInitialized;
+    print("FSK: GL Context initialization complete.");
   }
 
   /// Disposes all scenes, textures, shaders, and other GPU resources.
@@ -160,7 +164,7 @@ class FSK with LoggableClass {
     scenes.clear();
     renderToTextureList.clear();
 
-   // TODO:  Dispose shaders
+    // TODO:  Dispose shaders
     //  shaders.dispose();
     await textureManager.dispose();
 
@@ -172,20 +176,20 @@ class FSK with LoggableClass {
 
   /// Registers a scene with the engine and allocates a texture for it to render to.
   /// This is the primary method for setting up a new renderable scene.
-  Future<bool> registerSceneAndAllocateTexture(FskScene scene) async {
-
+  Future<bool> registerSceneAndAllocateTexture(FskScene scene, {double? dpr}) async {
+    print("FSK: Registering scene and allocating texture...");
     bool useSurface = true;
 
     if (!kIsWeb) {
-       if (Platform.isWindows) {
-         useSurface = false;
-       }
+      if (Platform.isWindows) {
+        useSurface = true;
+      }
     }
 
     final options = AngleOptions(
       width: scene.textureWidth,
       height: scene.textureHeight,
-      dpr: 1,  // TODO:Set this value programmatically based on platform
+      dpr: dpr ?? FSK.devicePixelRatio,
       antialias: true,
       useSurfaceProducer: useSurface,
     );
@@ -195,8 +199,29 @@ class FSK with LoggableClass {
 
     bool success = (textureId != null);
     if (success) {
+      print("FSK: Texture allocation success. ID: ${textureId.textureId}");
       scene.renderToTextureId = textureId;
       scenes[scene] = textureId;
+
+      if (kIsWeb) {
+        // Apply CSS to the canvas to ensure it fills the container and is visible.
+        try {
+          final dynamic canvas = textureId.surfaceId;
+          print("FSK: Web Canvas retrieved: $canvas");
+          canvas.style.width = '100%';
+          canvas.style.height = '100%';
+          canvas.style.display = 'block';
+          canvas.style.position = 'absolute';
+          canvas.style.top = '0px';
+          canvas.style.left = '0px';
+          canvas.style.zIndex = '-1'; // Place behind Flutter UI
+          canvas.style.pointerEvents = 'none'; // Don't block Flutter gestures
+        } catch (e) {
+          logWarning("Failed to apply CSS to web canvas: $e");
+        }
+      }
+    } else {
+      print("FSK: Failed to allocate texture for scene");
     }
     return success;
   }
@@ -204,6 +229,38 @@ class FSK with LoggableClass {
   void reuseTexture(FlutterAngleTexture textureId, FskScene scene) async {
     scene.renderToTextureId = textureId;
     scenes[scene] = textureId;
+  }
+
+  /// Resizes an existing texture.
+  Future<void> resize(FlutterAngleTexture texture, AngleOptions options) async {
+    if (_state == FskState.uninitialized) {
+      return;
+    }
+
+    print("FSK: Resizing texture to ${options.width}x${options.height} @ ${options.dpr}x");
+
+    // The flutter_angle plugin currently does not support resizing textures on Android.
+    // We skip the resize and metadata update to prevent viewport mismatches.
+    if (!kIsWeb && Platform.isAndroid) {
+      return;
+    }
+
+    await angle.resize(texture, options);
+
+    // Ensure the texture object's metadata is updated to match the new size.
+    // This is critical for scene viewport calculations on Windows and Web.
+    texture.options = options;
+
+    if (kIsWeb) {
+      // IMPORTANT: Resizing a canvas on Web resets the WebGL state.
+      // We must force the state manager to resync with the hardware,
+      // but only if it has already been initialized.
+      if (glStateManager.isInitialized) {
+        print("FSK: Web detected - Resetting GL State after resize.");
+        glStateManager.hardReset();
+        glStateManager.resetToDefaultState();
+      }
+    }
   }
 
   static void normalizeUpAxis(Matrix4 mat) {
