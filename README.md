@@ -15,7 +15,10 @@ and the Flutter guide for
 # FSK - Flutter Scene Kit
 A lightweight package for integrating interactive 2D and 3D hardware accelerated content into your flutter apps. FSK is a layer on top of the flutter_angle package.
 ## Why Does This Package Exist?
-As of 2025, Flutter STILL has no officially sanctioned method to integrate performant, cross-platform interactive 3D content into flutter apps.
+When I started FSK, Flutter STILL had no officially sanctioned method to integrate performant, 
+cross-platform interactive 3D content into flutter apps. I wanted to add 3D content to multiple
+apps that I was working on, and thus FSK was born as a reusable package.
+
 While Flutter_angle provides a low level API conformant with OpenGL ES, there is still quite a lot of additional code required to create interactive 3D content.
 FSK simplifies integrating such content into flutter apps by providing a reusable framework to automate much of the drudgery.
 
@@ -29,6 +32,7 @@ FSK provides:
 * Integration of pointer and touch events into 3D scenes using NavigationDelegates
 * A sample OrbitView NavigationDelegate
 * A framework for rendering scenes in multiple layers and combining them
+* Screen Space Overlays
 * A BitMap font system for creating simple 2D texture mapped text that can be drawn inside FSK scenes
 
 Additionally, FSK supplies supporting code for:
