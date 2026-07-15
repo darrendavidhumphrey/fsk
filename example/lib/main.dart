@@ -49,7 +49,7 @@ class TestAppState extends State<TestApp> {
   static final List<DropdownMenuEntry<int>> menuEntries = [
     DropdownMenuEntry(value: 0, label: 'Example 1: Low Level Hello World'),
     DropdownMenuEntry(value: 1, label: 'Example 2: Low Level Animated Shader Uniforms'),
-    DropdownMenuEntry(value: 2, label: 'Example 3: Low Level Grid Shader',),
+    DropdownMenuEntry(value: 2, label: 'Example 3: Orbit View Delegate',),
     DropdownMenuEntry(value: 3, label: 'Example 4: Bitmap Text from XML',),
     DropdownMenuEntry(value: 4, label: 'Example 5: Shader Uniforms From XML',),
   ];

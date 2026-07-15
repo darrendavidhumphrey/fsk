@@ -178,8 +178,9 @@ abstract class FskScene with LoggableClass, GlContextManager {
             gl.finish();
           }
         }
+        renderToTextureId!.signalNewFrameAvailable();
         performanceMonitor.endFrame();
-        await renderToTextureId!.signalNewFrameAvailable();
+
       }
     } finally {
       frameProcessing = false;

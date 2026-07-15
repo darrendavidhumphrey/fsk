@@ -185,7 +185,7 @@ class FSK with LoggableClass {
     final options = AngleOptions(
       width: scene.textureWidth,
       height: scene.textureHeight,
-      dpr: 1,
+      dpr: 1,  // TODO:Set this value programmatically based on platform
       antialias: true,
       useSurfaceProducer: useSurface,
     );

@@ -30,6 +30,10 @@ class OrbitViewDelegate extends FskSceneNavigationDelegate {
   double _yawStart = 0;
   double _pitchStart = 0;
 
+  // State variables for pinch zoom.
+  double _baseDistance = 0;
+  final Set<int> _pointers = {};
+
 /// A plane at z=0 used for calculating logical coordinates from a pick ray.
   final Plane _projectPlane = makePlaneFromVertices(
     Vector3.zero(),
@@ -39,6 +43,7 @@ class OrbitViewDelegate extends FskSceneNavigationDelegate {
 
   @override
   void onPointerDown(PointerDownEvent event) {
+    _pointers.add(event.pointer);
     _dragStart = event.localPosition;
     _yawStart = yaw;
     _pitchStart = pitch;
@@ -47,6 +52,7 @@ class OrbitViewDelegate extends FskSceneNavigationDelegate {
 
   @override
   void onPointerUp(PointerUpEvent event) {
+    _pointers.remove(event.pointer);
     _dragStart = Offset.zero;
     setNeedsUpdate(true);
   }
@@ -54,17 +60,15 @@ class OrbitViewDelegate extends FskSceneNavigationDelegate {
   @override
   void onPointerCancel(PointerCancelEvent event) {
     // Treat cancel as a pointer up event to reset state.
-    onPointerUp(PointerUpEvent(position: event.position));
-  }
-
-  @override
-  void onTapDown(TapDownDetails event) {
-    onPointerDown(PointerDownEvent(position: event.localPosition));
+    onPointerUp(PointerUpEvent(
+      position: event.position,
+      pointer: event.pointer,
+    ));
   }
 
   @override
   void onPointerMove(PointerMoveEvent event) {
-    if (_dragStart == Offset.zero) return;
+    if (_dragStart == Offset.zero || _pointers.length > 1) return;
 
     final deltaX = _dragStart.dx - event.localPosition.dx;
     final deltaY = _dragStart.dy - event.localPosition.dy;
@@ -108,6 +112,31 @@ class OrbitViewDelegate extends FskSceneNavigationDelegate {
     setViewDistance(viewRadius);
     setNeedsUpdate(true);
   }
+
+  @override
+  void onScaleStart(ScaleStartDetails details) {
+    _baseDistance = distance;
+  }
+
+  @override
+  void onScaleUpdate(ScaleUpdateDetails details) {
+    if (_pointers.length < 2 || details.scale == 1.0) return;
+
+    const double minRadius = 3;
+    // Scale the distance inversely proportional to the gesture scale.
+    // If details.scale is 2.0 (pinch open), we want distance to be halved.
+    double newDistance = _baseDistance / details.scale;
+
+    if (newDistance < minRadius) {
+      newDistance = minRadius;
+    }
+
+    setViewDistance(newDistance);
+    setNeedsUpdate(true);
+  }
+
+  @override
+  void onScaleEnd(ScaleEndDetails details) {}
 
   /// Sets the distance of the camera from the orbit center.
   void setViewDistance(double distance) {

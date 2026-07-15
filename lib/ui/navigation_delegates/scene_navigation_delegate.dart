@@ -3,6 +3,8 @@ import 'package:flutter/material.dart';
 import 'package:vector_math/vector_math_64.dart';
 import '../../fsk_scene.dart';
 
+/// Some SceneNavigationDelegates need to subscribe to the screen size by implementing
+/// this interface.
 abstract interface class ScreenRectSubscriber {
   void setViewRect(Rect value);
 }
@@ -106,6 +108,15 @@ abstract class FskSceneNavigationDelegate {
   /// Called when a pointer signal event occurs (e.g., mouse wheel or trackpad scroll).
   /// This is typically used for zooming or dollying the camera.
   void onPointerSignal(PointerSignalEvent event) {}
+
+  /// Called when a scale gesture starts.
+  void onScaleStart(ScaleStartDetails details) {}
+
+  /// Called when a scale gesture updates.
+  void onScaleUpdate(ScaleUpdateDetails details) {}
+
+  /// Called when a scale gesture ends.
+  void onScaleEnd(ScaleEndDetails details) {}
 
   /// Handles a key event from a focused widget.
   ///

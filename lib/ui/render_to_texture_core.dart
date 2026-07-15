@@ -120,7 +120,7 @@ class RenderToTextureCoreState extends State<RenderToTextureCore>
 
     if ((widget.navigationDelegate != null) &&
         (widget.navigationDelegate!.needsUpdate)) {
-      // widget.navigationDelegate.setNeedsUpdate(true);
+      // TODO: deprecated or not? widget.navigationDelegate.setNeedsUpdate(true);
       widget.navigationDelegate!.updateSceneMatrices();
     }
     await widget.scene.renderSceneToTexture();

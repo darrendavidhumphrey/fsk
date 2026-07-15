@@ -48,29 +48,40 @@ class RenderToTextureState
 
   @override
   Widget build(BuildContext context) {
-    return Listener(
-      behavior: HitTestBehavior.opaque,
-      onPointerDown: (event) => widget.scene.navigationDelegate?.onPointerDown(event),
-      onPointerMove: (event) => widget.scene.navigationDelegate?.onPointerMove(event),
-      onPointerUp: (event) => widget.scene.navigationDelegate?.onPointerUp(event),
-      onPointerSignal: (event) => widget.scene.navigationDelegate?.onPointerSignal(event),
-      onPointerCancel: (event) =>
-          widget.scene.navigationDelegate?.onPointerCancel(event),
-      child: Focus(
-        autofocus: true,
-        focusNode: _focusNode,
-        onKeyEvent: (node, event) {
-          if (widget.scene.navigationDelegate == null) {
-            return KeyEventResult.handled;
-          }
-          return widget.scene.navigationDelegate!.onKeyEvent(event);
-        },
-        child: RenderToTextureCore(
-            key: ValueKey('$widget.scene.renderToTextureId!+_RenderToTextureCore'),
-            scene: widget.scene,
-            navigationDelegate: widget.scene.navigationDelegate,
-            child: SizedBox.expand()
-        )
+    return GestureDetector(
+      onScaleStart: (details) =>
+          widget.scene.navigationDelegate?.onScaleStart(details),
+      onScaleUpdate: (details) =>
+          widget.scene.navigationDelegate?.onScaleUpdate(details),
+      onScaleEnd: (details) =>
+          widget.scene.navigationDelegate?.onScaleEnd(details),
+      child: Listener(
+        behavior: HitTestBehavior.opaque,
+        onPointerDown: (event) =>
+            widget.scene.navigationDelegate?.onPointerDown(event),
+        onPointerMove: (event) =>
+            widget.scene.navigationDelegate?.onPointerMove(event),
+        onPointerUp: (event) =>
+            widget.scene.navigationDelegate?.onPointerUp(event),
+        onPointerSignal: (event) =>
+            widget.scene.navigationDelegate?.onPointerSignal(event),
+        onPointerCancel: (event) =>
+            widget.scene.navigationDelegate?.onPointerCancel(event),
+        child: Focus(
+            autofocus: true,
+            focusNode: _focusNode,
+            onKeyEvent: (node, event) {
+              if (widget.scene.navigationDelegate == null) {
+                return KeyEventResult.handled;
+              }
+              return widget.scene.navigationDelegate!.onKeyEvent(event);
+            },
+            child: RenderToTextureCore(
+                key: ValueKey(
+                    '$widget.scene.renderToTextureId!+_RenderToTextureCore'),
+                scene: widget.scene,
+                navigationDelegate: widget.scene.navigationDelegate,
+                child: SizedBox.expand())),
       ),
     );
   }
