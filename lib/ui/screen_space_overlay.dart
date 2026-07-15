@@ -12,10 +12,6 @@ import '../fsk_scene_layer.dart';
 /// the overlay to one vertical edge (top or bottom) and one horizontal edge
 /// (left or right) of the parent viewport.
 abstract class ScreenSpaceOverlay extends FskSceneLayer with LoggableClass {
-  /// The total size of the render-to-texture target. This is used to convert
-  /// screen pixels to texture pixels for GL operations like `scissor` and `viewport`.
-  final double textureSize;
-
   /// The distance in screen pixels from the top edge of the parent viewport.
   /// Must be provided if [bottom] is null.
   final double? top;
@@ -47,7 +43,6 @@ abstract class ScreenSpaceOverlay extends FskSceneLayer with LoggableClass {
     this.right,
     this.bottom,
     required this.screenSpaceSize,
-    required this.textureSize,
   }) {
     // Use XOR to assert that exactly one horizontal and one vertical anchor is set.
     assert((left == null) != (right == null),
@@ -80,14 +75,14 @@ abstract class ScreenSpaceOverlay extends FskSceneLayer with LoggableClass {
         viewportRelative.dy <= screenSpaceSize.height;
   }
 
-  /// Converts a horizontal value from screen space to texture space.
+  /// Converts a horizontal value from logical screen space to texture physical pixels.
   double textureToScreenX(double x) {
-    return (x / viewportSize.width.toDouble()) * textureSize;
+    return (x / viewportSize.width) * parent.physicalTextureWidth;
   }
 
-  /// Converts a vertical value from screen space to texture space.
+  /// Converts a vertical value from logical screen space to texture physical pixels.
   double textureToScreenY(double y) {
-    return (y / viewportSize.height.toDouble()) * textureSize;
+    return (y / viewportSize.height) * parent.physicalTextureHeight;
   }
 
   /// Enables scissoring and sets the GL viewport to the bounds of this overlay.
@@ -97,24 +92,32 @@ abstract class ScreenSpaceOverlay extends FskSceneLayer with LoggableClass {
   /// outside of it.
   void enableScissor() {
     final origin = _topLeftInViewport;
-    final startX = textureToScreenX(origin.dx);
-    final startY = textureToScreenY(origin.dy);
-    final windowWidth = textureToScreenX(screenSpaceSize.width);
-    final windowHeight = textureToScreenY(screenSpaceSize.height);
+    
+    // Logical coordinates from top-left
+    final double logicalLeft = origin.dx;
+    final double logicalTop = origin.dy;
+    final double logicalWidth = screenSpaceSize.width;
+    final double logicalHeight = screenSpaceSize.height;
+
+    // Convert to physical pixels in the texture
+    final double physicalWidth = textureToScreenX(logicalWidth);
+    final double physicalHeight = textureToScreenY(logicalHeight);
+    final double physicalLeft = textureToScreenX(logicalLeft);
+    final double physicalTop = textureToScreenY(logicalTop);
 
     gls.scissorEnabled(true);
 
     gl.scissor(
-      startX.toInt(),
-      startY.toInt(),
-      windowWidth.toInt(),
-      windowHeight.toInt(),
+      physicalLeft.toInt(),
+      physicalTop.toInt(),
+      physicalWidth.toInt(),
+      physicalHeight.toInt(),
     );
     gls.setViewport(
-      startX.toInt(),
-      startY.toInt(),
-      windowWidth.toInt(),
-      windowHeight.toInt(),
+      physicalLeft.toInt(),
+      physicalTop.toInt(),
+      physicalWidth.toInt(),
+      physicalHeight.toInt(),
     );
   }
 }
