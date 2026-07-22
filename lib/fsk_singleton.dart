@@ -11,6 +11,8 @@ import 'angle/gl_state_manager.dart';
 import 'logging.dart';
 
 import 'fsk_scene.dart';
+// 1. Conditionally import: Defaults to stub, switches to web file on Web builds
+import '../web/web_injector_stub.dart' if (dart.library.html) '../web/web_injector_web.dart';
 
 /// Enum to manage the initialization state of the FSK singleton.
 enum FskState {
@@ -81,6 +83,11 @@ class FSK with LoggableClass {
   /// This must be called once before any other operations.
   Future<bool> init() async {
     if (_state != FskState.uninitialized) {
+
+      // Fix web CSS so that render context follows flutter size requests
+      if (kIsWeb) {
+        injectWebCSS();
+      }
       return false;
     }
     _state = FskState.inProgress;
@@ -243,7 +250,6 @@ class FSK with LoggableClass {
       return;
     }
 
-    print("Angle resize called");
     // The flutter_angle plugin currently does not support resizing textures on Android.
     // We skip the resize and metadata update to prevent viewport mismatches.
     if (!kIsWeb && Platform.isAndroid) {
