@@ -128,8 +128,8 @@ abstract class FskScene with LoggableClass, GlContextManager {
 
   /// The core drawing logic to be implemented by subclasses.
   /// This method is called within the rendering loop when a repaint is needed.
-  @mustCallSuper
-  void drawScene() {
+
+  void drawScene2() {
     gls.startFrame();
 
     // 1. CALCULATE CONFINED PHYSICAL BOUNDS FROM FLUTTER METRICS
@@ -137,8 +137,8 @@ abstract class FskScene with LoggableClass, GlContextManager {
     // we use the actual, active logical bounds passed down from your ResizableContainer
     // and convert them to exact physical drawing coordinate pixels.
     final double activeDpr = renderToTextureId?.options.dpr ?? FSK.devicePixelRatio;
-    final int confinedPhysicalWidth = (viewportSize.width * activeDpr).toInt();
-    final int confinedPhysicalHeight = (viewportSize.height * activeDpr).toInt();
+    final int confinedPhysicalWidth = (viewportSize.width).toInt();
+    final int confinedPhysicalHeight = (viewportSize.height).toInt();
 
     // 2. CONVERT VERTICAL ORIGIN COORDINATES FOR THE CANVAS FLIP
     // WebGL tracks its scissor/viewport origin starting from the LOWER-LEFT corner (0,0).
@@ -171,7 +171,8 @@ abstract class FskScene with LoggableClass, GlContextManager {
     _frameCounter++;
   }
 
-  void drawScene2() {
+  @mustCallSuper
+  void drawScene() {
     gls.startFrame();
     // Force the viewport to full texture size at the start of the frame.
     // This prevents state leaks from layers with custom viewports (overlays).
