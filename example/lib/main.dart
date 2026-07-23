@@ -33,11 +33,6 @@ class TestAppState extends State<TestApp> {
   ExampleScenes? _exampleScenes;
   String _titleText = "";
 
-  final GlobalKey<ExtendedExampleScenesState> _extendedSceneKey =
-      GlobalKey<ExtendedExampleScenesState>();
-  final GlobalKey<IndexedSceneViewerState> _exampleScenesKey =
-      GlobalKey<IndexedSceneViewerState>();
-
   Future<void> initAngle(double dpr) async {
     // Initialize FSK. This call immediately sets FSK().state to inProgress
     await FSK().initPlatformState();
@@ -82,7 +77,6 @@ class TestAppState extends State<TestApp> {
       _pageIndex = newIndex;
       if (_isExtendedScene) {
         _extendedSceneIndex = _pageIndex - _basicExampleSceneCount;
-        print("extended scene index is $_extendedSceneIndex");
       } else {
         _exampleScenes!.setCurrentScene(_pageIndex);
       }
@@ -99,7 +93,6 @@ class TestAppState extends State<TestApp> {
         }
 
         if (_exampleScenes == null) {
-          print("example scenes is null");
           return const CircularProgressIndicator();
         }
 
@@ -114,17 +107,14 @@ class TestAppState extends State<TestApp> {
               body: Stack(
                 children: [
                   IndexedStack(
-                      index: _isExtendedScene ? 1 : 0,
-                      children: [
-                        IndexedSceneViewer(
-                          key: _exampleScenesKey,
-                          scene: _exampleScenes!,
-                        ),
-                        ExtendedExampleScenes(
-                          key: _extendedSceneKey,
-                          extendedSceneIndex: _extendedSceneIndex,
-                        )
-                      ]),
+                    index: _isExtendedScene ? 1 : 0,
+                    children: [
+                      IndexedSceneViewer(scene: _exampleScenes!),
+                      ExtendedExampleScenes(
+                        extendedSceneIndex: _extendedSceneIndex,
+                      ),
+                    ],
+                  ),
 
                   // Title text widget
                   PositionedTitleBar(titleText: _titleText),
