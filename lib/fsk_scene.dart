@@ -48,6 +48,12 @@ abstract class FskScene with LoggableClass, GlContextManager {
 
   FskSceneNavigationDelegate? navigationDelegate;
 
+  bool _isPaused = false;
+  bool get isPaused => _isPaused;
+  set isPaused(bool value) {
+    _isPaused = value;
+  }
+
   /// Creates a new scene and its associated performance monitor.
   FskScene({this.navigationDelegate}) {
     performanceMonitor = PerformanceMonitor(tag: runtimeType.toString());

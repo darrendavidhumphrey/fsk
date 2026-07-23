@@ -143,7 +143,7 @@ class FSK with LoggableClass {
     }
 
     // Default to true on Web
-    FSK.isYFlipped = false;
+    FSK.isYFlipped = true;
 
     // If not web, set it on a case by case
     if (!kIsWeb) {
@@ -274,7 +274,7 @@ class FSK with LoggableClass {
   }
 
   static void normalizeUpAxis(Matrix4 mat) {
-    if (isYFlipped) {
+    if (!isYFlipped) {
       // If the viewer (Texture widget) flips the texture (e.g. Android/Web),
       // we must counteract it in the projection matrix to keep the scene right-side up.
       // Net effect: Projection flip (1) + Mapping flip (1) = 2 (Rotation).

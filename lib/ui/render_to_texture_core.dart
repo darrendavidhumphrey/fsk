@@ -119,6 +119,10 @@ class RenderToTextureCoreState extends State<RenderToTextureCore>
       return;
     }
 
+    if (widget.scene.isPaused) {
+      return;
+    }
+
     // Dynamic Resizing: Check if the logical size has changed.
     if (lastResizedSize != screenSize) {
       FlutterAngleTexture? texture = FSK().scenes[widget.scene];
@@ -143,7 +147,7 @@ class RenderToTextureCoreState extends State<RenderToTextureCore>
 
     if ((widget.navigationDelegate != null) &&
         (widget.navigationDelegate!.needsUpdate)) {
-      // TODO: deprecated or not? widget.navigationDelegate.setNeedsUpdate(true);
+
       widget.navigationDelegate!.updateSceneMatrices();
     }
     await widget.scene.renderSceneToTexture();
@@ -168,7 +172,6 @@ class RenderToTextureCoreState extends State<RenderToTextureCore>
         // Continuously update screen size in case it changed.
         // This ensures the viewport is correct for constructing GL matrices
         screenSize = Size(constraints.maxWidth, constraints.maxHeight);
-        // TODO! widget.navigationDelegate.setNeedsUpdate(true);
 
         // On web, only start the ticker once size is non-zero
         if (kIsWeb && constraints.maxWidth > 0 && constraints.maxHeight > 0) {
