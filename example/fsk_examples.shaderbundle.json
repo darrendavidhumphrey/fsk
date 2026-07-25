@@ -1,0 +1,10 @@
+{
+  "BitmapText2Vertex": {
+    "type": "vertex",
+    "file": "shaders/bitmapText.vert"
+  },
+  "BitmapText2Fragment": {
+    "type": "fragment",
+    "file": "shaders/bitmapText.frag"
+  }
+}

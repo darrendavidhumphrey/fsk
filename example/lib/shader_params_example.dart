@@ -1,3 +1,5 @@
+// TODO: Implement this
+/*
 import 'package:flutter/cupertino.dart';
 import 'package:flutter_angle/flutter_angle.dart';
 import 'package:fsk/fsk.dart';
@@ -9,9 +11,9 @@ class ShaderParamsExample extends FrameScene {
   bool ready = false;
 
   @override
-  void init(RenderingContext gl) {
+  void init() {
     String skinPath = "frames/example6.xml";
-    super.init(gl);
+    super.init();
     loadSkin(skinPath);
   }
 
@@ -65,3 +67,6 @@ class ShaderParamsExample extends FrameScene {
     requestRepaint();
   }
 }
+
+
+ */

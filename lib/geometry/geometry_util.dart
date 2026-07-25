@@ -1,6 +1,6 @@
 import 'dart:ui';
 import 'package:fsk/fsk.dart';
-import 'package:vector_math/vector_math_64.dart';
+import 'package:vector_math/vector_math.dart';
 
 /// Creates a [Plane] from three non-collinear points.
 ///

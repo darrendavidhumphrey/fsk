@@ -1,79 +1,41 @@
-import 'package:vector_math/vector_math_64.dart';
-import '../angle/gl_state_manager.dart';
-import '../angle/glsl_shader.dart';
+import 'package:vector_math/vector_math.dart';
+import 'package:flutter_gpu/gpu.dart' as gpu;
 
 abstract class FskSceneObject {
 
-  // API for dynamically controlling uniforms
-  final List<UniformValue> uniformValues = [];
   void initShaderParams(Map<String, String> params);
   void applyShaderParams();
 
 
-  void drawSetup(GlStateManager gls, Matrix4 pMatrix, Matrix4 mvMatrix);
-  void draw(GlStateManager gls);
-  void init(GlStateManager gls);
-  void rebuild(GlStateManager gls);
+  void drawSetup(gpu.RenderPass renderPass, Matrix4 pMatrix, Matrix4 mvMatrix);
+  void draw(gpu.RenderPass renderPass);
+  void init();
+  void rebuild();
   void dispose();
 }
 
 class FskRenderableObject extends FskSceneObject {
 
-  GlslShader? _shader;
+  gpu.Shader? _vertexShader;
+  gpu.Shader? _fragmentShader;
+  gpu.Shader get vertShader => _vertexShader!;
+  gpu.Shader get fragShader => _fragmentShader!;
 
-  GlslShader? get shader => _shader;
 
-  void setShader(GlslShader? s) {
-    _shader = s;
+  void setShader(gpu.Shader? vert, gpu.Shader? frag) {
+    _vertexShader = vert!;
+    _fragmentShader = frag!;
   }
 
-  // Get a pointer to the UniformValue for a given UniformDefinition,
-  // Create one if it doesn't exist
-  UniformValue ? getUniformValue(UniformDefinition uniform) {
-    for (var uniform in uniformValues) {
-      if (uniform.definition == uniform.definition) {
-        return uniform;
-      }
-    }
-
-    // Create an empty value
-    UniformValue newUniform = UniformValue(uniform, null);
-    uniformValues.add(newUniform);
-    return newUniform;
-  }
 
   @override
   void initShaderParams(Map<String, String> params) {
-    assert(_shader != null, "Shader not set");
-    params.forEach((name, value) {
-      var location = _shader!.uniforms[name];
-      if (location != null) {
-        var typedValue = _shader!.uniformValueFromString(name, value);
 
-        final index = uniformValues.indexWhere((u) => u.definition.name == name);
-
-        if (index !=-1) {
-          uniformValues[index].value = typedValue;
-
-        } else {
-          uniformValues.add(UniformValue(location, typedValue));
-        }
-      }
-    });
   }
 
   @override
   void applyShaderParams() {
-    for (var uniform in uniformValues) {
-      _shader!.setUniform(uniform.definition, uniform.value);
-    }
-  }
 
-  void dumpShaderParams() {
-    print("Shader params for ${this.runtimeType}");
-    for (var uniform in uniformValues) {
-       print("Uniform ${uniform.definition.name} = ${uniform.value}, ${uniform.definition.type}");
-    }
   }
 
   @override
@@ -82,22 +44,22 @@ class FskRenderableObject extends FskSceneObject {
   }
 
   @override
-  void draw(GlStateManager gls) {
+  void draw(gpu.RenderPass renderPass) {
     // TODO: implement draw
   }
 
   @override
-  void drawSetup(GlStateManager gls, Matrix4 pMatrix, Matrix4 mvMatrix) {
+  void drawSetup(gpu.RenderPass renderPass,Matrix4 pMatrix, Matrix4 mvMatrix) {
     // TODO: implement drawSetup
   }
 
   @override
-  void init(GlStateManager gls) {
+  void init() {
     // TODO: implement init
   }
 
   @override
-  void rebuild(GlStateManager gls) {
+  void rebuild() {
     // TODO: implement rebuild
   }
 

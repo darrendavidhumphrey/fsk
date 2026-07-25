@@ -1,6 +1,6 @@
-import 'package:flutter/gestures.dart';
-import 'package:flutter/material.dart';
-import 'package:vector_math/vector_math_64.dart';
+import 'package:flutter/gestures.dart' hide Matrix4;
+import 'package:flutter/material.dart' hide Matrix4;
+import 'package:vector_math/vector_math.dart';
 import '../../fsk_scene.dart';
 
 /// Some SceneNavigationDelegates need to subscribe to the screen size by implementing
@@ -21,8 +21,8 @@ abstract class FskSceneNavigationDelegate {
   late Matrix4 _viewMatrix;
 
   FskSceneNavigationDelegate() {
-     _projectionMatrix = Matrix4.identity();
-     _viewMatrix = Matrix4.identity();
+    _projectionMatrix = Matrix4.identity();
+    _viewMatrix = Matrix4.identity();
   }
   bool _needsUpdate = true;
   bool get needsUpdate => _needsUpdate;
@@ -61,21 +61,17 @@ abstract class FskSceneNavigationDelegate {
   Matrix4 createProjectionMatrix();
 
   void updateSceneMatrices() {
-    if (scene.isInitialized) {
-      if (needsUpdate) {
-        Matrix4 view = createViewMatrix();
-        setViewMatrix(view);
+    if (needsUpdate) {
+      Matrix4 view = createViewMatrix();
+      setViewMatrix(view);
 
-        Matrix4 proj = createProjectionMatrix();
-        setProjectionMatrix(proj);
-        setNeedsUpdate(false);
-      }
-
-      scene.mvMatrixStack.current = getViewMatrix();
-      scene.pMatrix = getProjectionMatrix();
-      scene.requestRepaint();
+      Matrix4 proj = createProjectionMatrix();
+      setProjectionMatrix(proj);
+      setNeedsUpdate(false);
     }
-    scene.requestRepaint();
+
+    scene.mvMatrixStack.current = getViewMatrix();
+    scene.pMatrix = getProjectionMatrix();
   }
 
   /// Sets the scene that this delegate will control. This is typically called

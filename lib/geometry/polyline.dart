@@ -1,7 +1,7 @@
 import 'dart:typed_data';
 import 'dart:math';
 import 'geometry_util.dart';
-import 'package:vector_math/vector_math_64.dart';
+import 'package:vector_math/vector_math.dart';
 
 /// An immutable class representing a 3D polyline (a connected sequence of line segments).
 ///

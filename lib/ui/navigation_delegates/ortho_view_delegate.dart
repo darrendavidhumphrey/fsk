@@ -3,7 +3,7 @@ import 'dart:ui';
 
 import 'package:flutter/foundation.dart';
 import 'package:fsk/ui/navigation_delegates/scene_navigation_delegate.dart';
-import 'package:vector_math/vector_math_64.dart';
+import 'package:vector_math/vector_math.dart';
 
 /// A navigation delegate that implements a static orthographic view
 class OrthoViewDelegate extends FskSceneNavigationDelegate implements ScreenRectSubscriber {

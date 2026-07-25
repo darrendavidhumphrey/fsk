@@ -1,4 +1,4 @@
-import 'package:vector_math/vector_math_64.dart';
+import 'package:vector_math/vector_math.dart';
 import 'geometry_util.dart';
 import 'polyline.dart';
 /// Represents an immutable, oriented bounding box in 3D space.

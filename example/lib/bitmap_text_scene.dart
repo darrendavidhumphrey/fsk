@@ -1,3 +1,5 @@
+// TODO: Implement this
+/*
 import 'package:flutter_angle/flutter_angle.dart';
 import 'package:fsk/fsk.dart';
 
@@ -11,7 +13,7 @@ class BitmapTextScene extends FrameScene {
   void dispose() {}
 
   @override
-  void init(RenderingContext gl) {
+  void init() {
     // Load text objects from skin file
     String skinPath = "frames/example4.xml";
     super.init(gl);
@@ -48,3 +50,6 @@ class BitmapTextScene extends FrameScene {
   }
 
 }
+
+
+ */

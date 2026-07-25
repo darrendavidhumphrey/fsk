@@ -3,7 +3,7 @@ import 'dart:collection';
 import 'dart:convert';
 import 'package:flutter/services.dart' show rootBundle;
 import 'package:fsk/fsk.dart';
-import 'package:vector_math/vector_math_64.dart';
+import 'package:vector_math/vector_math.dart';
 
 /// A record type representing a unique combination of position, texture coordinate,
 /// and normal indices. Used as a key to de-duplicate vertices.
@@ -70,8 +70,6 @@ class WavefrontObjModel {
   /// A list of sub-meshes, each corresponding to a different material.
   List<Mesh> meshes = [];
 
-  /// The rendering context used to create the vertex buffer.
-  final GlStateManager gls;
 
   // Internal state for parsing.
   List<Face> _currentMeshFaces = [];
@@ -133,7 +131,6 @@ class WavefrontObjModel {
     // --- MAIN PARSING PASS ---
 
     // Allocate the vertex buffer with the final, correct size.
-    vertexBuffer.init(gls);
     final vboData = vertexBuffer.requestBuffer(uniqueVertexMap.length)!;
     final filler = VboFiller(vboData,vertexBuffer);
 
@@ -200,15 +197,15 @@ class WavefrontObjModel {
   }
 
   /// Creates a model and initializes it with the rendering context.
-  WavefrontObjModel(this.gls);
+  WavefrontObjModel();
 
   /// Creates a [WavefrontObjModel] by loading and parsing a file from the
   /// application's asset bundle.
   static Future<WavefrontObjModel> fromAsset(
-      String assetPath, GlStateManager gls) async {
+      String assetPath) async {
     try {
       final objFileContent = await rootBundle.loadString(assetPath);
-      final objModel = WavefrontObjModel(gls);
+      final objModel = WavefrontObjModel();
       objModel.loadFromString(objFileContent);
       return objModel;
     } catch (e, s) {

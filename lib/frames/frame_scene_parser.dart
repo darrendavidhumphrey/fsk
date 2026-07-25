@@ -1,7 +1,7 @@
 import 'dart:io';
 import 'package:flutter/foundation.dart';
 import 'package:flutter/services.dart';
-import 'package:vector_math/vector_math_64.dart';
+import 'package:vector_math/vector_math.dart';
 import 'package:xml/xml.dart';
 import '../logging.dart';
 import '../scene_graph/fsk_bitmap_text.dart';

@@ -1,12 +1,12 @@
+import 'dart:typed_data';
 import 'dart:ui';
-import 'package:flutter_angle/flutter_angle.dart';
 import 'package:fsk/fsk.dart';
-import 'package:vector_math/vector_math_64.dart';
+import 'package:vector_math/vector_math.dart';
 
 /// A utility class for filling a [VBO] with vertex data.
 class VboFiller {
-  /// The underlying [Float32Array] that is being filled.
-  Float32Array array;
+  /// The underlying [Float32List] that is being filled.
+  Float32List array;
   VertexBuffer buffer;
 
   int _currentPosition = 0;

@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:fsk/fsk.dart';
-
+import 'package:flutter_gpu/gpu.dart' as gpu;
 
 /// An abstract base class for a [FskSceneLayer] that is rendered in 2D screen space
 /// rather than 3D world space.
@@ -9,7 +9,7 @@ import 'package:fsk/fsk.dart';
 /// overlay on top of the main 3D scene. The position is defined by anchoring
 /// the overlay to one vertical edge (top or bottom) and one horizontal edge
 /// (left or right) of the parent viewport.
-abstract class ScreenSpaceOverlay extends FskSceneLayer with LoggableClass {
+abstract class ScreenSpaceOverlay extends FskScene {
   /// The distance in screen pixels from the top edge of the parent viewport.
   /// Must be provided if [bottom] is null.
   final double? top;
@@ -29,8 +29,6 @@ abstract class ScreenSpaceOverlay extends FskSceneLayer with LoggableClass {
   /// The size of the overlay in screen-space pixels.
   final Size screenSpaceSize;
 
-  late GlStateManager gls;
-
   /// Creates a screen-space overlay.
   ///
   /// An overlay must be anchored by providing either [top] or [bottom], and
@@ -47,7 +45,6 @@ abstract class ScreenSpaceOverlay extends FskSceneLayer with LoggableClass {
         'Must provide either left or right, but not both.');
     assert((top == null) != (bottom == null),
         'Must provide either top or bottom, but not both.');
-    gls = FSK().glStateManager;
   }
 
   /// Calculates the top-left corner of this overlay within the parent viewport.
@@ -75,12 +72,16 @@ abstract class ScreenSpaceOverlay extends FskSceneLayer with LoggableClass {
 
   /// Converts a horizontal value from logical screen space to texture physical pixels.
   double textureToScreenX(double x) {
-    return (x / viewportSize.width) * parent.physicalTextureWidth;
+    // TODO: Testing!!!
+    return x;
+   // return (x / viewportSize.width) * physicalTextureWidth;
   }
 
   /// Converts a vertical value from logical screen space to texture physical pixels.
   double textureToScreenY(double y) {
-    return (y / viewportSize.height) * parent.physicalTextureHeight;
+    // TODO: Testing!!!
+    return y;
+    //return (y / viewportSize.height) * physicalTextureHeight;
   }
 
   /// Enables scissoring and sets the GL viewport to the bounds of this overlay.
@@ -88,7 +89,7 @@ abstract class ScreenSpaceOverlay extends FskSceneLayer with LoggableClass {
   /// This is called before drawing the overlay to ensure it only renders within
   /// its designated rectangular area, clipping any content that would draw
   /// outside of it.
-  void enableScissor() {
+  void enableScissor(gpu.RenderPass renderPass) {
     final origin = _topLeftInViewport;
 
     // Logical coordinates from top-left
@@ -102,35 +103,28 @@ abstract class ScreenSpaceOverlay extends FskSceneLayer with LoggableClass {
     final double physicalHeight = textureToScreenY(logicalHeight);
     final double physicalLeft = textureToScreenX(logicalLeft);
 
-    double physicalY;
-    if (FSK.isYFlipped) {
-      // Platform Backend 1 (Android / Inverted Buffer Alignment):
-      // The framework flips the texture vertically under the hood.
-      // Therefore, a logical Y coordinate measuring down from the TOP
-      // corresponds directly to a physical coordinate scaling up from the BOTTOM.
-      physicalY = textureToScreenY(logicalTop);
-    } else {
-      // Platform Backend 2 (Windows / Standard Desktop OpenGL Layout):
-      // OpenGL scissor box space always measures strictly from the lower-left window corner.
-      // Flutter logical coordinates measure from the top-left corner.
-      // We must subtract the full bounding box depth from the window height.
+    final double physicalY = textureToScreenY(logicalTop);
+
+    /*
+      TODO: Saving this in case I picked wrong
       final double logicalBottomY = viewportSize.height - (logicalTop + logicalHeight);
-      physicalY = textureToScreenY(logicalBottomY);
-    }
+      final double physicalY = textureToScreenY(logicalBottomY);
+       */
 
-    gls.scissorEnabled(true);
+    // 1. Set up the Scissor box
+    renderPass.setScissor(gpu.Scissor(
+      x: physicalLeft.toInt(),
+      y: physicalY.toInt(),
+      width: physicalWidth.toInt(),
+      height: physicalHeight.toInt(),
+    ));
 
-    gl.scissor(
-      physicalLeft.toInt(),
-      physicalY.toInt(),
-      physicalWidth.toInt(),
-      physicalHeight.toInt(),
-    );
-    gls.setViewport(
-      physicalLeft.toInt(),
-      physicalY.toInt(),
-      physicalWidth.toInt(),
-      physicalHeight.toInt(),
-    );
+    // 2. Set up the Viewport box
+    renderPass.setViewport(gpu.Viewport(
+      x: physicalLeft.toInt(),
+      y: physicalY.toInt(),
+      width: physicalWidth.toInt(),
+      height: physicalHeight.toInt(),
+    ));
   }
 }

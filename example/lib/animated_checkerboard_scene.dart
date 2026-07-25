@@ -1,3 +1,5 @@
+// TODO: Implement this
+/*
 import 'package:flutter/material.dart';
 import 'package:flutter_angle/flutter_angle.dart';
 import 'package:fsk/fsk.dart';
@@ -20,9 +22,9 @@ class AnimatedCheckerBoardScene extends FskScene {
   CheckerBoardShader? shader;
 
   @override
-  void init(RenderingContext gl) {
-    super.init(gl);
-    exampleVbo.init(gls);
+  void init() {
+    super.init();
+    exampleVbo.init();
     exampleVbo.uploadData();
   }
 
@@ -130,3 +132,5 @@ class AnimatedCheckerBoardScene extends FskScene {
     requestRepaint();
   }
 }
+
+ */

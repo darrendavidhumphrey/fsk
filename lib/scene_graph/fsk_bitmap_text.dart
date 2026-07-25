@@ -1,7 +1,8 @@
 import 'dart:math';
-import 'package:flutter/material.dart'; // Adds the 'Colors' constant utility
-import 'package:flutter_angle/flutter_angle.dart';
-import 'package:vector_math/vector_math_64.dart' hide Colors;
+import 'dart:typed_data';
+import 'dart:ui';
+import 'package:flutter_gpu/gpu.dart' as gpu;
+import 'package:vector_math/vector_math.dart' hide Colors;
 import '../fsk.dart';
 
 enum TextVerticalJustification {
@@ -104,7 +105,6 @@ class FskBitmapText extends FskRenderableObject {
 
   /// The color applied to modulate the text texture quads.
   Color _textColor = const Color(0xFFFFFFFF);
-  UniformValue? _textColorUniformValue;
 
   void setTextColor(Color value) {
     _textColor = value;
@@ -141,9 +141,6 @@ class FskBitmapText extends FskRenderableObject {
     this._horizontalJustification = TextHorizontalJustification.left,
     this._maxLen,
   }) {
-    // Default to the bitmap texture shader if not set.
-    setShader(FSK().shaders.getShader<BitmapTextShader>());
-
     // Cache the target width from the reference box.
     _width = _screenRect.xVector.length;
     _height = _screenRect.yVector.length;
@@ -212,20 +209,13 @@ class FskBitmapText extends FskRenderableObject {
   }
 
   @override
-  void init(GlStateManager gls) {
-    _vbo.init(gls);
-    var uniformDefinition = shader!.uniforms[BitmapTextShader.uTextColor];
-
-    // TODO: Update this when the shader changes, make an onShaderChanged callback?
-    if (uniformDefinition != null) {
-      _textColorUniformValue = getUniformValue(uniformDefinition);
-    }
-    rebuild(gls);
+  void init() {
+    rebuild();
   }
 
   /// Rebuilds the vertex buffer object if the text or font has changed.
   @override
-  void rebuild(GlStateManager gls) {
+  void rebuild() {
     // Guard against unnecessary, expensive rebuilds.
     if (!_needsRebuild) return;
 
@@ -233,17 +223,13 @@ class FskBitmapText extends FskRenderableObject {
 
     int vertexCount = quads.length * 6; // Two triangles per character quad.
 
-    Float32Array? vertexTexCoordArray = _vbo.requestBuffer(vertexCount);
+    Float32List? vertexTexCoordArray = _vbo.requestBuffer(vertexCount);
 
     if (vertexTexCoordArray != null) {
       // Fill the VBO with the generated quad data.
       VboFiller.addTexturedQuads(quads, textureQuads, _vbo);
     }
 
-    // Set text color uniform
-    if (_textColorUniformValue != null) {
-      _textColorUniformValue?.value = _textColor;
-    }
     _vbo.setActiveVertexCount(vertexCount);
     _needsRebuild = false; // Reset the flag after a successful rebuild.
   }
@@ -522,8 +508,11 @@ class FskBitmapText extends FskRenderableObject {
   }
 
   @override
-  void drawSetup(GlStateManager gls, Matrix4 pMatrix, Matrix4 mvMatrix) {
-    if ((font == null) || (shader == null)) return;
+  void drawSetup(gpu.RenderPass renderPass,Matrix4 pMatrix, Matrix4 mvMatrix) {
+    if (font == null)  return;
+
+    /*
+    // TODO: bind the shader and set the uniforms
 
     gls.useProgram(shader!.program);
     shader!.setMatrixUniforms(pMatrix, mvMatrix);
@@ -543,18 +532,23 @@ class FskBitmapText extends FskRenderableObject {
       WebGL.ONE,
       WebGL.ONE_MINUS_SRC_ALPHA,
     );
+
+     */
   }
 
   @override
-  void draw(GlStateManager gls) {
-    if ((font == null) || (!font!.isInitialized) || (shader == null)) return;
+  void draw(gpu.RenderPass renderPass) {
+    if ((font == null) || (!font!.isInitialized) ) return;
 
     // TODO: TEST FORCE always rebuild
-    rebuild(gls);
+    rebuild();
 
+/*
     gls.bindTexture(WebGL.TEXTURE_2D, font!.textureInfo!.texture);
 
     _vbo.bind();
     _vbo.drawTriangles();
+
+ */
   }
 }

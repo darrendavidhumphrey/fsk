@@ -1,6 +1,5 @@
 import 'dart:ui';
-
-import 'package:flutter_angle/flutter_angle.dart';
+import 'package:flutter_gpu/gpu.dart' as gpu;
 import '../fsk.dart';
 import 'frame_data.dart';
 
@@ -78,7 +77,7 @@ class FrameScene extends FskScene {
     logVerbose("Done building tree");
     // 4. Initialize nodes
     for (var node in rootNodes) {
-      node.init(gls);
+      node.init();
     }
     logVerbose("Done initializing tree");
     _sceneIsReady = true;
@@ -111,22 +110,26 @@ class FrameScene extends FskScene {
   }
 
   @override
-  void drawScene() {
-    super.drawScene();
-    gl.clear(WebGL.COLOR_BUFFER_BIT | WebGL.DEPTH_BUFFER_BIT);
+  void drawScene(gpu.RenderPass renderPass,Size size) {
+    super.drawScene(renderPass,size);
 
-    gls.setDepthTest(false);
-    gls.setBlend(true);
-    gls.blendFuncSeparate(
-      WebGL.SRC_ALPHA,
-      WebGL.ONE_MINUS_SRC_ALPHA,
-      WebGL.SRC_ALPHA,
-      WebGL.ONE_MINUS_SRC_ALPHA,
+    renderPass.setColorBlendEnable(true); // Enable alpha blending
+    renderPass.setColorBlendEquation(
+      gpu.ColorBlendEquation(
+        colorBlendOperation: gpu.BlendOperation.add,
+        sourceColorBlendFactor: gpu.BlendFactor.sourceAlpha,        // WebGL.SRC_ALPHA
+        destinationColorBlendFactor: gpu.BlendFactor.oneMinusSourceAlpha, // WebGL.ONE_MINUS_SRC_ALPHA
+        alphaBlendOperation: gpu.BlendOperation.add,
+        sourceAlphaBlendFactor: gpu.BlendFactor.sourceAlpha,       // WebGL.SRC_ALPHA
+        destinationAlphaBlendFactor: gpu.BlendFactor.oneMinusSourceAlpha, // WebGL.ONE_MINUS_SRC_ALPHA
+      ),
     );
+
+
     mvMatrixStack.current = mvMatrix;
 
     for (var node in rootNodes) {
-      node.draw(gls, pMatrix, mvMatrixStack);
+      node.draw(renderPass, pMatrix, mvMatrixStack);
     }
   }
 
@@ -149,30 +152,6 @@ class FrameScene extends FskScene {
       return node as T;
     }
 
-    return null;
-  }
-
-  // Gets a UniformValue for a given node and uniform name
-  // Simply call foo.value on the return result to set the uniform value,
-  // which will be applied on the next frame
-  // The set of uniforms available for a given node depend the shader that is set
-  // Returns null if the node is not found
-  // Returns null if the shader is not set on the node
-  // Returns null if the uniform is not found in the shader
-  UniformValue ?findObjectUniform(String nodeName,String uniformName){
-    var node = findNodeByType<FrameQuadNode>(nodeName);
-    if (node != null) {
-      var object = node.object;
-      if (object != null) {
-        if (object.shader != null) {
-          var uniformDef = object.shader!.uniforms[uniformName];
-          if (uniformDef != null) {
-
-            return object.getUniformValue(uniformDef);
-          }
-        }
-      }
-    }
     return null;
   }
 

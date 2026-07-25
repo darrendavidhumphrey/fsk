@@ -1,7 +1,7 @@
 import 'dart:math';
-import 'package:flutter/gestures.dart';
-import 'package:flutter/material.dart';
-import 'package:vector_math/vector_math_64.dart';
+import 'package:flutter/material.dart' hide Matrix4;
+import 'package:flutter/gestures.dart' hide Matrix4;
+import 'package:vector_math/vector_math.dart';
 import 'package:fsk/fsk.dart';
 
 /// A navigation delegate that implements a classic 3D orbit camera.
@@ -207,8 +207,6 @@ class OrbitViewDelegate extends FskSceneNavigationDelegate {
       5000000,
     );
 
-    // Ensure Y Axis is the same regardless of platform
-    FSK.normalizeUpAxis(proj);
     return proj;
   }
 

@@ -1,80 +1,92 @@
-import 'package:flutter/material.dart';
-import 'package:flutter_angle/flutter_angle.dart';
+import 'package:flutter/material.dart' hide Matrix4;
+import 'package:flutter_gpu/gpu.dart' as gpu;
 import 'package:fsk/fsk.dart';
-class CheckerBoardScene extends FskScene {
+import 'package:vector_math/vector_math.dart' hide Colors;
 
-  CheckerBoardScene({super.navigationDelegate}) {
-    VboFiller.makeTexturedUnitQuad(
-      Rect.fromLTWH(-quadExtents.width/2, -quadExtents.height/2, quadExtents.width, quadExtents.height),
-      0.1,
-      exampleVbo
-    );
-  }
+class CheckerBoardScene extends FskScene {
+  CheckerBoardScene({super.navigationDelegate});
 
   VertexBuffer exampleVbo = VertexBuffer.v3t2();
-  CheckerBoardShader? shader;
+  gpu.Shader? vertexShader;
+  gpu.Shader? fragmentShader;
 
   final Size quadExtents = Size(500, 500);
 
   @override
-  void init(RenderingContext gl) {
-    super.init(gl);
-    exampleVbo.init(gls);
+  void init() {
+    print("CheckerBoardScene init");
+    super.init();
+
+    VboFiller.makeTexturedUnitQuad(
+      Rect.fromLTWH(
+        -quadExtents.width / 2,
+        -quadExtents.height / 2,
+        quadExtents.width,
+        quadExtents.height,
+      ),
+      0.1,
+      exampleVbo,
+    );
+
     exampleVbo.uploadData();
+    vertexShader = FSK().shaderLibrary['CheckerBoardVertex']!;
+    fragmentShader = FSK().shaderLibrary['CheckerBoardFragment']!;
+    print("Checkboard Init done");
   }
 
   @override
   void dispose() {}
 
-  void drawVBO(Matrix4 pMatrix, Matrix4 mvMatrix) {
-    shader ??= FSK().shaders.getShader<CheckerBoardShader>();
-    gls.useProgram(shader!.program);
-    shader!.setMatrixUniforms(pMatrix, mvMatrix);
+  void drawVBO(gpu.RenderPass renderPass, Matrix4 pMatrix, Matrix4 mvMatrix) {
+    if (vertexShader == null || fragmentShader == null) return;
+    CheckerBoardUniforms.setUniforms(
+      renderPass: renderPass,
+      vertexShader: vertexShader!,
+      fragmentShader: fragmentShader!,
+      pMatrix: pMatrix,
+      mvMatrix: mvMatrix,
+      patternColor1: Colors.red,
+      patternColor2: Colors.blue,
+      useTexture: false,
+      textureMix: 0,
+      patternScale: 10,
+    );
 
-    shader!.setPatternColor1(Colors.red);
-    shader!.setPatternColor2(Colors.yellow);
-    shader!.setPatternScale(10);
-
-    exampleVbo.bind();
-    exampleVbo.drawTriangles();
-    exampleVbo.unbind();
+    exampleVbo.bind(renderPass);
+    exampleVbo.drawTriangles(renderPass);
   }
 
   @override
-  void drawScene() async {
-    super.drawScene();
+  void drawScene(gpu.RenderPass renderPass, Size viewportSize) async {
 
-    gls.setViewport(
-      0,
-      0,
-      physicalTextureWidth,
-      physicalTextureHeight,
+    // Call base class to setup scissor and viewport
+    super.drawScene(renderPass, viewportSize);
+
+    renderPass.setCullMode(gpu.CullMode.none);
+
+
+    renderPass.setDepthWriteEnable(false); // Disables depth masking (setDepthMask false)
+
+    renderPass.setDepthCompareOperation(gpu.CompareFunction.always);
+
+
+    renderPass.setColorBlendEnable(true); // Enables alpha blending
+    renderPass.setColorBlendEquation(
+      gpu.ColorBlendEquation(
+        colorBlendOperation: gpu.BlendOperation.add,
+        sourceColorBlendFactor: gpu.BlendFactor.sourceAlpha,               // WebGL.SRC_ALPHA
+        destinationColorBlendFactor: gpu.BlendFactor.oneMinusSourceAlpha,  // WebGL.ONE_MINUS_SRC_ALPHA
+
+        alphaBlendOperation: gpu.BlendOperation.add,
+        sourceAlphaBlendFactor: gpu.BlendFactor.one,                       // WebGL.ONE
+        destinationAlphaBlendFactor: gpu.BlendFactor.oneMinusSourceAlpha, // WebGL.ONE_MINUS_SRC_ALPHA
+      ),
     );
 
-    gls.activeTexture(WebGL.TEXTURE0);
-    gls.setTexturingEnabled(false);
-
-    gls.setBlend(true);
-    gls.setCullFace(false);
-    gls.clearColor(0, 1, 1, 1);
-    gls.setDepthTest(false);
-    gls.setDepthMask(false);
-
-    gls.depthFunc(WebGL.LESS);
-    gls.blendFuncSeparate(
-      WebGL.SRC_ALPHA,
-      WebGL.ONE_MINUS_SRC_ALPHA,
-      WebGL.ONE,
-      WebGL.ONE_MINUS_SRC_ALPHA,
-    );
-
-    gl.clear(WebGL.COLOR_BUFFER_BIT | WebGL.DEPTH_BUFFER_BIT);
-
-    withPushedMatrix( () {
-      drawVBO(pMatrix, mvMatrix);
+    withPushedMatrix(() {
+      drawVBO(renderPass,pMatrix, mvMatrix);
     });
 
-    drawLayers();
     requestRepaint();
   }
 }

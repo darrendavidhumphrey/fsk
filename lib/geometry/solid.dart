@@ -1,4 +1,4 @@
-import 'package:vector_math/vector_math_64.dart';
+import 'package:vector_math/vector_math.dart';
 import 'polyline.dart';
 import 'triangle_mesh.dart';
 import 'mesh_factory.dart';

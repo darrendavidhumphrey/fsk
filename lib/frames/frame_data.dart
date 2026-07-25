@@ -1,5 +1,5 @@
 import 'dart:ui';
-import 'package:vector_math/vector_math_64.dart';
+import 'package:vector_math/vector_math.dart';
 
 import '../logging.dart';
 import '../scene_graph/fsk_bitmap_text.dart';

@@ -1,6 +1,6 @@
 import 'dart:math';
 import 'package:flutter/foundation.dart';
-import 'package:vector_math/vector_math_64.dart'
+import 'package:vector_math/vector_math.dart'
     show Vector3, Triangle, Vector2, Aabb3;
 
 /// A data class that stores the geometry for a collection of triangles.

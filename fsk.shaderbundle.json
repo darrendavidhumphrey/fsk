@@ -1,0 +1,26 @@
+{
+  "BitmapTextVertex": {
+    "type": "vertex",
+    "file": "shaders/bitmapText.vert"
+  },
+  "BitmapTextFragment": {
+    "type": "fragment",
+    "file": "shaders/bitmapText.frag"
+  },
+  "CheckerBoardVertex": {
+    "type": "vertex",
+    "file": "shaders/checkerBoard.vert"
+  },
+  "CheckerBoardFragment": {
+    "type": "fragment",
+    "file": "shaders/checkerBoard.frag"
+  },
+  "SimpleVertex": {
+    "type": "vertex",
+    "file": "shaders/simple.vert"
+  },
+  "SimpleFragment": {
+    "type": "fragment",
+    "file": "shaders/simple.frag"
+  }
+}

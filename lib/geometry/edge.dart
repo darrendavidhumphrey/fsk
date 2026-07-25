@@ -1,5 +1,5 @@
 import 'package:flutter/foundation.dart';
-import 'package:vector_math/vector_math_64.dart';
+import 'package:vector_math/vector_math.dart';
 
 /// Represents a 3D edge with a starting point and an ending point.
 @immutable

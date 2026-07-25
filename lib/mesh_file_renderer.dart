@@ -1,7 +1,10 @@
-import 'package:flutter/material.dart';
-import 'package:flutter_angle/flutter_angle.dart';
+// TODO: Get this working in flutter gpu
+/*
+import 'dart:typed_data';
+
+import 'package:flutter/material.dart' hide Matrix4;
 import 'package:fsk/fsk.dart';
-import 'package:vector_math/vector_math_64.dart' hide Colors;
+import 'package:vector_math/vector_math.dart' hide Colors;
 
 /// A renderer responsible for drawing a [WavefrontObjModel] to the screen.
 ///
@@ -18,17 +21,16 @@ class MeshFileRenderer {
   /// The loaded 3D model data.
   final WavefrontObjModel model;
 
-  /// The WebGL rendering context.
-  final GlStateManager gls;
 
   OneLightShader? shader;
+
 
   /// Creates a renderer for a specific model and initializes its GL resources.
   ///
   /// Upon creation, it immediately builds the index buffer for the given model,
   /// making the renderer ready to be drawn.
-  MeshFileRenderer(this.gls, this.model)
-      : ibo = IndexBuffer(gls),
+  MeshFileRenderer(this.model)
+      : ibo = IndexBuffer(),
         vbo = model.vertexBuffer {
     buildIndexBuffer();
   }
@@ -46,7 +48,7 @@ class MeshFileRenderer {
     }
 
     // Request a buffer from the IBO with the correct size.
-    Int16Array? indexData = ibo.requestBuffer(indexCount);
+    Uint16List? indexData = ibo.requestBuffer(indexCount);
 
     // Fill the buffer with index data from each mesh.
     if (indexData != null) {
@@ -91,7 +93,6 @@ class MeshFileRenderer {
   void draw(Matrix4 pMatrix, Matrix4 mvMatrix) {
     shader ??= FSK().shaders.getShader<OneLightShader>();
 
-    var gls = FSK().glStateManager;
 
     gls.setBlend(true);
     gls.setDepthTest(true);
@@ -119,3 +120,6 @@ class MeshFileRenderer {
     vbo.unbind();
   }
 }
+
+
+ */

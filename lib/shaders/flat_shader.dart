@@ -1,5 +1,5 @@
-import '../angle/gl_state_manager.dart';
-import '../angle/glsl_shader.dart';
+// TODO: Implement this library.
+/*
 
 String _vertexShader = '''
           #version 300 es       
@@ -51,3 +51,6 @@ class FlatShader extends GlslShader {
         ],
       );
 }
+
+
+ */

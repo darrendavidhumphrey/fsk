@@ -1,5 +1,5 @@
 import 'package:test/test.dart';
-import 'package:vector_math/vector_math_64.dart';
+import 'package:vector_math/vector_math.dart';
 import 'package:fsk/fsk.dart';
 
 /// Helper to compare two polylines for equality within a tolerance.

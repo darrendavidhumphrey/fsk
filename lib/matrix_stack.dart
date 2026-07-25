@@ -1,4 +1,4 @@
-import 'package:vector_math/vector_math_64.dart';
+import 'package:vector_math/vector_math.dart';
 
 /// A class to manage a stack of matrices, useful for hierarchical scene graphs.
 class MatrixStack {

@@ -1,5 +1,5 @@
 import 'package:fsk/ui/navigation_delegates/scene_navigation_delegate.dart';
-import 'package:vector_math/vector_math_64.dart';
+import 'package:vector_math/vector_math.dart';
 import '../../fsk_singleton.dart';
 
 /// A navigation delegate that implements a static view
@@ -77,9 +77,6 @@ class StaticViewDelegate extends FskSceneNavigationDelegate {
 
     Matrix4 proj = Matrix4.identity();
     setPerspectiveMatrix(proj, radians(_fovYDegrees), aspectRatio, zNear, zFar);
-
-    // Ensure Y Axis is the same regardless of platform
-    FSK.normalizeUpAxis(proj);
 
     return proj;
   }

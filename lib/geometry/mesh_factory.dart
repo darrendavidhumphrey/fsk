@@ -1,7 +1,7 @@
+import 'dart:typed_data';
 import 'dart:ui';
-import 'package:flutter_angle/native-array/index.dart';
 import 'package:fsk/fsk.dart';
-import 'package:vector_math/vector_math_64.dart';
+import 'package:vector_math/vector_math.dart';
 
 /// A utility class with static methods to create complex [TriangleMesh] objects
 /// or populate [VertexBuffer] objects from geometry.
@@ -23,7 +23,7 @@ class MeshFactory {
     }
 
     int vertexCount = triangleCount * 3;
-    Float32Array? vertexTextureArray = vbo.requestBuffer(vertexCount);
+    Float32List? vertexTextureArray = vbo.requestBuffer(vertexCount);
     if (vertexTextureArray != null) {
       VboFiller filler = VboFiller(vertexTextureArray,vbo);
       for (var face in faces) {

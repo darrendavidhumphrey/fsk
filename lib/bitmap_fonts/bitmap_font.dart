@@ -1,9 +1,10 @@
 import 'package:flutter/material.dart';
-import 'package:flutter_angle/flutter_angle.dart';
 import 'package:xml/xml.dart';
 import '../fsk_singleton.dart';
 import '../logging.dart';
 import '../fsk_texture_manager.dart';
+import 'package:flutter_gpu/gpu.dart' as gpu;
+
 
 /// A data class that holds rendering information for a single character
 /// in a [BitmapFont].
@@ -70,7 +71,7 @@ class BitmapFont with LoggableClass {
   FskTextureInfo? textureInfo;
 
   /// Returns true if the font's texture has been loaded and is ready for use.
-  bool get isInitialized => (textureInfo != null) && (textureInfo!.isBound);
+  bool get isInitialized => (textureInfo != null);
 
   /// Creates a new BitmapFont.
   BitmapFont(
@@ -85,19 +86,20 @@ class BitmapFont with LoggableClass {
 
   Future<void> loadTexture(String textureName) async {
     try {
-      // Execute the asynchronous asset creation
+      // Updated to utilize Flutter GPU sampling and texture structures
+      // Note: Ensure your textureManager is updated to return a gpu.Texture object
       textureInfo = await FSK().textureManager.createTextureFromAsset(
         name,
         textureName,
-        magFilter: WebGL.NEAREST,
-        minFilter: WebGL.NEAREST,
-        wrapS: WebGL.CLAMP_TO_EDGE,
-        wrapT: WebGL.CLAMP_TO_EDGE,
+        minFilter: gpu.MinMagFilter.nearest,
+        magFilter: gpu.MinMagFilter.nearest,
+        wrapS: gpu.SamplerAddressMode.clampToEdge,
+        wrapT: gpu.SamplerAddressMode.clampToEdge,
       );
-      logVerbose("Loaded font texture: $textureName");
+      logVerbose("Loaded font texture into Flutter GPU: $textureName");
     } catch (e) {
-      logError("Failed loading $textureName: $e");
-      rethrow; // Rethrow to let the caller handle individual file failures
+      logError("Failed loading $textureName into Flutter GPU: $e");
+      rethrow;
     }
   }
 

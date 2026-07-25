@@ -1,15 +1,29 @@
-import 'package:vector_math/vector_math_64.dart';
+import 'package:flutter_gpu/gpu.dart' as gpu;
+import 'package:vector_math/vector_math.dart';
 import 'package:fsk/fsk.dart';
 import 'frame_data.dart';
 
 abstract class FrameNode with LoggableClass {
   final FrameObjectData data;
   bool visible = true;
-
+  late final gpu.Shader? vertexShader;
+  late final gpu.Shader? fragmentShader;
   FrameNode(this.data);
 
-  void init(GlStateManager gls);
-  void draw(GlStateManager gls, Matrix4 pMatrix, MatrixStack mvStack);
+  void setupShader({required String defaultShader}) {
+    String shaderName;
+    shaderName = (data.shader != null) ? data.shader! : defaultShader;
+
+    vertexShader = FSK().shaderLibrary['${shaderName}Vertex'];
+    fragmentShader = FSK().shaderLibrary['${shaderName}Fragment'];
+
+    if (vertexShader == null || fragmentShader == null) {
+      throw Exception('Required shader variants for $shaderName were missing from the bundle.');
+    }
+  }
+
+  void init();
+  void draw(gpu.RenderPass renderPass,Matrix4 pMatrix, MatrixStack mvStack);
   void dispose();
 }
 
@@ -19,22 +33,22 @@ class FrameGroupNode extends FrameNode {
   FrameGroupNode(GroupData super.data);
 
   @override
-  void init(GlStateManager gls) {
+  void init() {
     visible = data.visible;
     for (var child in children) {
-      child.init(gls);
+      child.init();
     }
   }
 
   @override
-  void draw(GlStateManager gls, Matrix4 pMatrix, MatrixStack mvStack) {
+  void draw(gpu.RenderPass renderPass,Matrix4 pMatrix, MatrixStack mvStack) {
     if (!visible) return;
 
     final groupData = data as GroupData;
     mvStack.withPushed(() {
       mvStack.current.translateByVector3(groupData.anchor);
       for (var child in children) {
-        child.draw(gls, pMatrix, mvStack);
+        child.draw(renderPass,pMatrix, mvStack);
       }
     });
   }
@@ -53,16 +67,16 @@ abstract class FrameObjectNode<T extends FskRenderableObject> extends FrameNode 
   FrameObjectNode(super.data);
 
   @override
-  void draw(GlStateManager gls, Matrix4 pMatrix, MatrixStack mvStack) {
+  void draw(gpu.RenderPass renderPass,Matrix4 pMatrix, MatrixStack mvStack) {
     if (!visible || object == null) return;
 
-    object?.rebuild(gls);
-    object?.drawSetup(gls, pMatrix, mvStack.current);
-    object?.draw(gls);
+    object?.rebuild();
+    object?.drawSetup( renderPass,pMatrix, mvStack.current);
+    object?.draw(renderPass);
   }
 
   @override
-  void init(GlStateManager gls) {
+  void init() {
     visible = data.visible;
   }
 
@@ -76,8 +90,8 @@ class FrameQuadNode extends FrameObjectNode<FskQuad> {
   FrameQuadNode(QuadData super.data);
 
   @override
-  void init(GlStateManager gls) {
-    super.init(gls);
+  void init() {
+    super.init();
     final quadData = data as QuadData;
 
     final rect = Quad.points(
@@ -89,14 +103,13 @@ class FrameQuadNode extends FrameObjectNode<FskQuad> {
 
     object = FskQuad(rect, quadData.textureRect, quadData.texture);
 
-
-
+    // TODO: Make a define for the default shader name
     if (quadData.shader != null) {
-      final shader = FSK().shaders.getShaderByName(quadData.shader!);
-      object!.setShader(shader);
+      setupShader(defaultShader:"SimpleShader");
+      object!.setShader(vertexShader, fragmentShader);
     }
 
-    object!.init(gls);
+    object!.init();
     object!.initShaderParams(data.shaderParams);
   }
 }
@@ -105,8 +118,8 @@ class FrameTextNode extends FrameObjectNode<FskBitmapText> {
   FrameTextNode(FrameTextData super.data);
 
   @override
-  void init(GlStateManager gls) {
-    super.init(gls);
+  void init() {
+    super.init();
     final textData = data as FrameTextData;
     var font = BitmapFontManager().getFont(textData.font);
 
@@ -128,11 +141,14 @@ class FrameTextNode extends FrameObjectNode<FskBitmapText> {
         textColor: textColorVector,horizontalJustification:  textData.hJustify,
         verticalJustification: textData.vJustify,maxLen:textData.maxLen);
 
+
+    // TODO: Make a define for the default shader name
     if (textData.shader != null) {
-      final shader = FSK().shaders.getShaderByName(textData.shader!);
-      object!.setShader(shader);
+      setupShader(defaultShader:"SimpleShader");
+      object!.setShader(vertexShader, fragmentShader);
     }
-    object!.init(gls);
+
+    object!.init();
     object!.initShaderParams(data.shaderParams);
   }
 }

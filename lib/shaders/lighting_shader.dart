@@ -1,6 +1,6 @@
-import 'package:vector_math/vector_math_64.dart';
-import '../angle/gl_state_manager.dart';
-import '../angle/glsl_shader.dart';
+// TODO: Implement this library.
+/*
+import 'package:vector_math/vector_math.dart';
 import '../util.dart';
 
 const String _lightingVertexShader = """
@@ -98,3 +98,6 @@ class BasicLightingShader extends GlslShader {
     }
   }
 }
+
+
+ */

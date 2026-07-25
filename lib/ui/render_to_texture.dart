@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:fsk/fsk_scene.dart';
-import 'package:fsk/ui/render_to_texture_core.dart';
+import 'package:fsk/ui/gpu_render_widget.dart';
 import 'package:fsk/ui/navigation_delegates/scene_navigation_delegate.dart';
 
 /// A widget that renders a [FskScene] and provides user interaction capabilities.
@@ -12,18 +12,13 @@ class RenderToTexture extends StatefulWidget {
   /// The scene to be rendered.
   final FskScene scene;
 
-  const RenderToTexture({
-    super.key,
-    required this.scene,
-  });
+  const RenderToTexture({super.key, required this.scene});
 
   @override
-  RenderToTextureState createState() =>
-      RenderToTextureState();
+  RenderToTextureState createState() => RenderToTextureState();
 }
 
-class RenderToTextureState
-    extends State<RenderToTexture> {
+class RenderToTextureState extends State<RenderToTexture> {
   late FocusNode _focusNode;
 
   @override
@@ -68,20 +63,16 @@ class RenderToTextureState
         onPointerCancel: (event) =>
             widget.scene.navigationDelegate?.onPointerCancel(event),
         child: Focus(
-            autofocus: true,
-            focusNode: _focusNode,
-            onKeyEvent: (node, event) {
-              if (widget.scene.navigationDelegate == null) {
-                return KeyEventResult.handled;
-              }
-              return widget.scene.navigationDelegate!.onKeyEvent(event);
-            },
-            child: RenderToTextureCore(
-                key: ValueKey(
-                    '$widget.scene.renderToTextureId!+_RenderToTextureCore'),
-                scene: widget.scene,
-                navigationDelegate: widget.scene.navigationDelegate,
-                child: const SizedBox.expand())),
+          autofocus: true,
+          focusNode: _focusNode,
+          onKeyEvent: (node, event) {
+            if (widget.scene.navigationDelegate == null) {
+              return KeyEventResult.handled;
+            }
+            return widget.scene.navigationDelegate!.onKeyEvent(event);
+          },
+          child: GPURenderWidget(scene: widget.scene),
+        ),
       ),
     );
   }

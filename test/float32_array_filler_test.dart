@@ -4,7 +4,7 @@ import 'package:flutter_angle/flutter_angle.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:fsk/float32_array_filler.dart';
 import 'package:fsk/native_array/index.dart';
-import 'package:vector_math/vector_math_64.dart';
+import 'package:vector_math/vector_math.dart';
 
 void main() {
   group('Float32ArrayFiller', () {

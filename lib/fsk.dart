@@ -1,6 +1,4 @@
-export 'angle/gl_context_manager.dart';
-export 'angle/gl_state_manager.dart';
-export 'angle/glsl_shader.dart';
+export 'angle/gpu_shader.dart';
 export 'angle/index_buffer.dart';
 export 'angle/vertex_buffer.dart';
 
@@ -32,10 +30,8 @@ export 'shaders/grid_shader.dart';
 export 'shaders/lighting_shader.dart';
 export 'shaders/materials.dart';
 export 'shaders/one_light_shader.dart';
-export 'shaders/shaders.dart';
 export 'shaders/simple_texture_shader.dart';
 
-export 'ui/indexed_scene_viewer.dart';
 export 'ui/render_to_texture.dart';
 export 'ui/screen_space_overlay.dart';
 export 'ui/navigation_delegates/orbit_view_delegate.dart';
@@ -45,10 +41,8 @@ export 'ui/navigation_delegates/scene_navigation_delegate.dart';
 
 export 'float32_array_filler.dart';
 export 'fsk_scene.dart';
-export 'fsk_scene_layer.dart';
 export 'fsk_singleton.dart';
 export 'fsk_texture_manager.dart';
-export 'indexed_stack_scene.dart';
 export 'logging.dart';
 export 'matrix_stack.dart';
 export 'mesh_file_renderer.dart';

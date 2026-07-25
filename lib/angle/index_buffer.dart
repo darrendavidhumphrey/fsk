@@ -1,16 +1,13 @@
-import 'package:flutter_angle/flutter_angle.dart';
-import 'package:fsk/fsk.dart';
+import 'dart:typed_data';
+import 'package:flutter_gpu/gpu.dart' as gpu;
 
-/// Manages a WebGL Element Array Buffer, also known as an Index Buffer Object (IBO).
+/// Manages a flutter_gpu DeviceBuffer used as an Index Buffer Object (IBO).
 ///
 /// This class handles the creation, allocation, data transfer, and disposal of a
-/// buffer used for indexed drawing with `gl.drawElements`.
+/// buffer used for indexed drawing with `renderPass.drawIndexed`.
 class IndexBuffer {
-  /// The underlying rendering context.
-  final GlStateManager _gls;
-
-  /// The WebGL identifier for the buffer object.
-  final Buffer _iboId;
+  /// The underlying physical GPU hardware memory block allocation pointer.
+  gpu.DeviceBuffer? _deviceBuffer;
 
   /// The number of indices that are currently active and will be used for drawing.
   int _activeIndexCount = 0;
@@ -22,10 +19,11 @@ class IndexBuffer {
   int get indexCount => _activeIndexCount;
 
   /// The client-side array that holds the index data before it's sent to the GPU.
-  Int16Array? _indexData;
+  /// Swapped from signed Int16Array to standard unsigned Uint16List required by graphics APIs.
+  Uint16List? _indexData;
 
-  /// Creates an index buffer for the given rendering context.
-  IndexBuffer(this._gls) : _iboId = _gls.gl.createBuffer();
+  /// Creates an index buffer wrapper. No longer requires an external GLStateManager context.
+  IndexBuffer();
 
   /// Ensures the underlying buffer has at least [newIndexCount] capacity and
   /// returns it.
@@ -33,16 +31,13 @@ class IndexBuffer {
   /// The buffer will grow if the requested count is larger than the current
   /// capacity. It will shrink if the requested count is less than half the
   /// current capacity to save memory.
-  Int16Array? requestBuffer(int newIndexCount) {
+  Uint16List? requestBuffer(int newIndexCount) {
     final bool needsToReallocate =
         newIndexCount > _capacity || (newIndexCount < _capacity / 2);
 
     if (needsToReallocate) {
-      // Dispose the old buffer if it exists.
-      _indexData?.dispose();
-
       if (newIndexCount > 0) {
-        _indexData = Int16Array(newIndexCount);
+        _indexData = Uint16List(newIndexCount);
       } else {
         _indexData = null;
       }
@@ -57,46 +52,68 @@ class IndexBuffer {
     return _indexData;
   }
 
-  /// Disposes of all WebGL resources and the client-side buffer held by this object.
+  /// Disposes of the physical device allocation and host CPU array.
   void dispose() {
-    _gls.deleteBuffer(_iboId);
-    _indexData?.dispose();
+    _deviceBuffer = null; // Memory is safely freed on the hardware layer when unreferenced
     _indexData = null;
   }
 
-  /// Updates the GPU buffer with the data from the local [Int16Array] and
+  /// Updates the GPU buffer with the active data slice from the local [Uint16List] and
   /// sets the number of active indices to be drawn.
   void setActiveIndexCount(int count) {
     assert(count <= _capacity);
     _activeIndexCount = count;
 
     if (count > 0 && _indexData != null) {
-      _gls.bindIndexBuffer(_iboId);
-      _gls.bufferData(WebGL.ELEMENT_ARRAY_BUFFER, _indexData, WebGL.STATIC_DRAW);
-      _gls.bindIndexBuffer(null);
+      // Direct byte-level allocation slice representing only active elements
+      final int activeBytesSize = _activeIndexCount * Uint16List.bytesPerElement;
+      final ByteData view = ByteData.sublistView(
+        _indexData!,
+        0,
+        activeBytesSize,
+      );
+
+      // Instantly generate or update the hardware buffer allocation space
+      _deviceBuffer = gpu.gpuContext.createDeviceBufferWithCopy(view);
     }
   }
 
-  /// Binds the index buffer to make it the active ELEMENT_ARRAY_BUFFER.
-  void bind() {
-    _gls.bindIndexBuffer(_iboId);
+  /// Binds the index buffer into the active recording stream of a RenderPass.
+  ///
+  /// In flutter_gpu, binding is an operation performed explicitly on the transient
+  /// RenderPass object, rather than mutating global WebGL state drivers.
+  void bind(gpu.RenderPass renderPass) {
+    if (_deviceBuffer == null) return;
+
+    final gpu.BufferView view = gpu.BufferView(
+      _deviceBuffer!,
+      offsetInBytes: 0,
+      lengthInBytes: _deviceBuffer!.sizeInBytes,
+    );
+
+    // Bind index buffer and explicitly tell flutter_gpu that we are using 16-bit unsigned ints
+    renderPass.bindIndexBuffer(view, gpu.IndexType.int16);
   }
 
-  /// Unbinds the index buffer by binding `null`.
-  void unbind() {
-    _gls.bindIndexBuffer(null);
+  /// Draws the currently bound indices as triangles.
+  ///
+  /// Replaces global canvas state invocation rules with a direct pass execution pipeline script.
+  void drawTrianglesIndexed(gpu.RenderPass renderPass) {
+    if (_activeIndexCount > 0) {
+      // Executes an indexed draw call with the active index element count
+      renderPass.drawIndexed(_activeIndexCount);
+    }
   }
 
   /// Checks for value equality. Two [IndexBuffer] instances are considered equal
-  /// if they manage the same underlying WebGL buffer object.
+  /// if they manage the same underlying physical device allocation.
   @override
   bool operator ==(Object other) =>
       identical(this, other) ||
-      other is IndexBuffer &&
-          runtimeType == other.runtimeType &&
-          _iboId == other._iboId;
+          other is IndexBuffer &&
+              runtimeType == other.runtimeType &&
+              _deviceBuffer == other._deviceBuffer;
 
-  /// Provides a hash code consistent with value equality.
   @override
-  int get hashCode => _iboId.hashCode;
+  int get hashCode => _deviceBuffer.hashCode;
 }

@@ -2,10 +2,8 @@ import 'package:flutter/foundation.dart';
 import 'package:flutter/services.dart';
 import 'package:fsk/fsk.dart';
 import 'package:flutter/material.dart';
-import 'package:fsk_examples/example_scenes.dart';
+import 'package:fsk_examples/checkerboard_scene.dart';
 import 'package:fsk_examples/positioned_title_bar.dart';
-
-import 'extended_example_scenes.dart';
 
 void main() async {
   Logging.brevity = Brevity.detailed;
@@ -28,43 +26,35 @@ class TestApp extends StatefulWidget {
 
 class TestAppState extends State<TestApp> {
   int _pageIndex = 0;
-  int _extendedSceneIndex = 0;
-  int _basicExampleSceneCount = 0;
-  ExampleScenes? _exampleScenes;
   String _titleText = "";
 
-  Future<void> initAngle(double dpr) async {
-    // Initialize FSK. This call immediately sets FSK().state to inProgress
-    await FSK().initPlatformState();
+  final List<String> menuLabels = [];
+  final List<FskScene> scenes = [];
 
-    // Create the example scenes and add them to the menu
-    // These example scenes all draw a single FskScene
-    _exampleScenes = ExampleScenes();
-    menuLabels.addAll(_exampleScenes!.menuLabels);
-    menuLabels.addAll(ExtendedExampleScenes.menuLabels);
+  @override
+  void initState() {
+    super.initState();
+    print("Before FSK init");
+    FSK().init().then((bool ) {
+      print("Inside then clause for FSK init (success = $bool)");
+      var checker = CheckerBoardScene(navigationDelegate: OrbitViewDelegate());
+      checker.init();
+      scenes.add(checker);
 
-    // Track the number of basic example scenes
-    _basicExampleSceneCount = _exampleScenes!.menuLabels.length;
-
-    // Register the scene and allocate a texture
-    await FSK().registerSceneAndAllocateTexture(_exampleScenes!, dpr: dpr);
-
-    // Trigger a rebuild of the widget
-    setState(() {
-      _exampleScenes!.setCurrentScene(0);
-      _setTitleText();
+      menuLabels.add("Hello World!");
+      setState(() {
+        _pageIndex = 0;
+        _setTitleText();
+      });
     });
   }
-
-  final List<String> menuLabels = [];
-  bool _isExtendedScene = false;
 
   void _setTitleText() {
     _titleText = "Example ${_pageIndex + 1}: ${menuLabels[_pageIndex]}";
   }
 
   // Helper method to update the active scene index safely
-  void _updateScene(int newIndex) {
+  void _chooseExample(int newIndex) {
     // Previous and Next buttons wrap around
     if (newIndex >= menuLabels.length) {
       newIndex = 0;
@@ -73,15 +63,6 @@ class TestAppState extends State<TestApp> {
     }
 
     setState(() {
-      _isExtendedScene = newIndex >= _basicExampleSceneCount;
-      _pageIndex = newIndex;
-      if (_isExtendedScene) {
-        // Ensure basic scenes are paused
-        _exampleScenes!.pauseAll();
-        _extendedSceneIndex = _pageIndex - _basicExampleSceneCount;
-      } else {
-        _exampleScenes!.setCurrentScene(_pageIndex);
-      }
       _setTitleText();
     });
   }
@@ -90,14 +71,6 @@ class TestAppState extends State<TestApp> {
   Widget build(BuildContext context) {
     return LayoutBuilder(
       builder: (context, constraints) {
-        if (FSK().state == FskState.uninitialized) {
-          initAngle(MediaQuery.of(context).devicePixelRatio);
-        }
-
-        if (_exampleScenes == null) {
-          return const CircularProgressIndicator();
-        }
-
         return SizedBox(
           width: constraints.maxWidth,
           height: constraints.maxHeight,
@@ -108,16 +81,7 @@ class TestAppState extends State<TestApp> {
               backgroundColor: kIsWeb ? Colors.transparent : null,
               body: Stack(
                 children: [
-                  IndexedStack(
-                    index: _isExtendedScene ? 1 : 0,
-                    children: [
-                      IndexedSceneViewer(scene: _exampleScenes!),
-                      ExtendedExampleScenes(
-                        isPaused: !_isExtendedScene,
-                        extendedSceneIndex: _extendedSceneIndex,
-                      ),
-                    ],
-                  ),
+                  RenderToTexture(scene: CheckerBoardScene()),
 
                   // Title text widget
                   PositionedTitleBar(titleText: _titleText),
@@ -127,7 +91,7 @@ class TestAppState extends State<TestApp> {
                     bottom: 16.0,
                     left: 16.0,
                     child: FloatingActionButton.extended(
-                      onPressed: () => _updateScene(_pageIndex - 1),
+                      onPressed: () => _chooseExample(_pageIndex - 1),
                       label: const Text('Previous'),
                       icon: const Icon(Icons.arrow_back),
                     ),
@@ -138,7 +102,7 @@ class TestAppState extends State<TestApp> {
                     bottom: 16.0,
                     right: 16.0,
                     child: FloatingActionButton.extended(
-                      onPressed: () => _updateScene(_pageIndex + 1),
+                      onPressed: () => _chooseExample(_pageIndex + 1),
                       label: Row(
                         mainAxisSize: MainAxisSize.min,
                         children: const [
