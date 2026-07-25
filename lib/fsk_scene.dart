@@ -77,6 +77,7 @@ abstract class FskScene with LoggableClass {
       height: viewportSize.height.toInt(),
     ));
 
+
     // 2. Set up the Viewport box
     renderPass.setViewport(gpu.Viewport(
       x: 0,
@@ -84,7 +85,6 @@ abstract class FskScene with LoggableClass {
       width:  viewportSize.width.toInt(),
       height: viewportSize.height.toInt(),
     ));
-    print("Viewport is ${viewportSize.width} x ${viewportSize.height}");
   }
 }
 

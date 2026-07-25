@@ -30,16 +30,19 @@ class TestAppState extends State<TestApp> {
 
   final List<String> menuLabels = [];
   final List<FskScene> scenes = [];
+  CheckerBoardScene? checkerBoardScene;
 
   @override
   void initState() {
     super.initState();
     print("Before FSK init");
-    FSK().init().then((bool ) {
+    FSK().init().then((bool) {
       print("Inside then clause for FSK init (success = $bool)");
-      var checker = CheckerBoardScene(navigationDelegate: OrbitViewDelegate());
-      checker.init();
-      scenes.add(checker);
+      checkerBoardScene = CheckerBoardScene(
+        navigationDelegate: OrbitViewDelegate(),
+      );
+      checkerBoardScene!.init();
+      scenes.add(checkerBoardScene!);
 
       menuLabels.add("Hello World!");
       setState(() {
@@ -76,13 +79,17 @@ class TestAppState extends State<TestApp> {
           height: constraints.maxHeight,
           child: MaterialApp(
             title: 'FSK Examples',
-            //showPerformanceOverlay: true,
+            showPerformanceOverlay: true,
             home: Scaffold(
               backgroundColor: kIsWeb ? Colors.transparent : null,
               body: Stack(
                 children: [
-                  RenderToTexture(scene: CheckerBoardScene()),
-
+                  IndexedStack(
+                    index: (checkerBoardScene == null)?0:1,
+                    children: [
+                      Container(),
+                      RenderToTexture(scene: checkerBoardScene!)],
+                  ),
                   // Title text widget
                   PositionedTitleBar(titleText: _titleText),
 

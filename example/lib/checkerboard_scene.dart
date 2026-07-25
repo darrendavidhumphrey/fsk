@@ -4,7 +4,9 @@ import 'package:fsk/fsk.dart';
 import 'package:vector_math/vector_math.dart' hide Colors;
 
 class CheckerBoardScene extends FskScene {
-  CheckerBoardScene({super.navigationDelegate});
+  CheckerBoardScene({super.navigationDelegate}) {
+    print("CheckerBoardScene constructor");
+  }
 
   VertexBuffer exampleVbo = VertexBuffer.v3t2();
   gpu.Shader? vertexShader;
@@ -14,7 +16,6 @@ class CheckerBoardScene extends FskScene {
 
   @override
   void init() {
-    print("CheckerBoardScene init");
     super.init();
 
     VboFiller.makeTexturedUnitQuad(
@@ -31,14 +32,16 @@ class CheckerBoardScene extends FskScene {
     exampleVbo.uploadData();
     vertexShader = FSK().shaderLibrary['CheckerBoardVertex']!;
     fragmentShader = FSK().shaderLibrary['CheckerBoardFragment']!;
-    print("Checkboard Init done");
+    assert(vertexShader != null);
+    assert(fragmentShader != null);
   }
 
   @override
   void dispose() {}
 
   void drawVBO(gpu.RenderPass renderPass, Matrix4 pMatrix, Matrix4 mvMatrix) {
-    if (vertexShader == null || fragmentShader == null) return;
+
+    exampleVbo.bind(renderPass);
     CheckerBoardUniforms.setUniforms(
       renderPass: renderPass,
       vertexShader: vertexShader!,
@@ -52,7 +55,6 @@ class CheckerBoardScene extends FskScene {
       patternScale: 10,
     );
 
-    exampleVbo.bind(renderPass);
     exampleVbo.drawTriangles(renderPass);
   }
 
@@ -63,13 +65,8 @@ class CheckerBoardScene extends FskScene {
     super.drawScene(renderPass, viewportSize);
 
     renderPass.setCullMode(gpu.CullMode.none);
-
-
     renderPass.setDepthWriteEnable(false); // Disables depth masking (setDepthMask false)
-
     renderPass.setDepthCompareOperation(gpu.CompareFunction.always);
-
-
     renderPass.setColorBlendEnable(true); // Enables alpha blending
     renderPass.setColorBlendEquation(
       gpu.ColorBlendEquation(

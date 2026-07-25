@@ -14,7 +14,6 @@ class GPURenderWidget extends StatefulWidget {
 
 class _GPURenderWidgetState extends State<GPURenderWidget> with SingleTickerProviderStateMixin {
   gpu.RenderPipeline? _pipeline;
-  gpu.DeviceBuffer? _vertexBuffer;
   gpu.Texture? _texture;
   gpu.RenderTarget? _renderTarget;
   gpu.UniformSlot? _mvpUniformSlot;
@@ -56,18 +55,8 @@ class _GPURenderWidgetState extends State<GPURenderWidget> with SingleTickerProv
 
     _mvpUniformSlot = vertexShader.getUniformSlot('UniformBlock');
 
-    final vertices = Float32List.fromList([
-      0.0,  0.5, // Top
-      -0.5, -0.5, // Bottom Left
-      0.5, -0.5, // Bottom Right
-    ]);
-
-    _vertexBuffer = gpu.gpuContext.createDeviceBufferWithCopy(
-      ByteData.sublistView(vertices),
-    );
-
     setState(() {
-      _isInitialized = _pipeline != null && _vertexBuffer != null && _mvpUniformSlot != null;
+      _isInitialized = _pipeline != null && _mvpUniformSlot != null;
     });
   }
 
@@ -125,7 +114,6 @@ class _GPURenderWidgetState extends State<GPURenderWidget> with SingleTickerProv
               painter: FskScenePainter(
                 scene: widget.scene,
                 pipeline: _pipeline!,
-                vertexBuffer: _vertexBuffer!,
                 renderTarget: _renderTarget!,
                 texture: _texture!,
                 mvpSlot: _mvpUniformSlot!,
@@ -141,7 +129,6 @@ class _GPURenderWidgetState extends State<GPURenderWidget> with SingleTickerProv
 class FskScenePainter extends CustomPainter {
   final FskScene scene;
   final gpu.RenderPipeline pipeline;
-  final gpu.DeviceBuffer vertexBuffer;
   final gpu.RenderTarget renderTarget;
   final gpu.Texture texture;
   final gpu.UniformSlot mvpSlot;
@@ -149,7 +136,6 @@ class FskScenePainter extends CustomPainter {
   FskScenePainter({
     required this.scene,
     required this.pipeline,
-    required this.vertexBuffer,
     required this.renderTarget,
     required this.texture,
     required this.mvpSlot,
@@ -177,13 +163,6 @@ class FskScenePainter extends CustomPainter {
 
     renderPass.bindPipeline(pipeline);
 
-    final vertexBufferView = gpu.BufferView(
-      vertexBuffer,
-      offsetInBytes: 0,
-      lengthInBytes: vertexBuffer.sizeInBytes,
-    );
-
-    renderPass.bindVertexBuffer(vertexBufferView, slot: 0);
 
     // 4. Added perspective correction adjustment rule inside matrix initialization sequence
     // This stops the triangle from getting stretched or squished when resizing the window aspect ratio
@@ -215,7 +194,6 @@ class FskScenePainter extends CustomPainter {
   @override
   bool shouldRepaint(covariant FskScenePainter oldDelegate) {
     return oldDelegate.pipeline != pipeline ||
-        oldDelegate.vertexBuffer != vertexBuffer ||
         oldDelegate.renderTarget != renderTarget ||
         oldDelegate.texture != texture;
   }

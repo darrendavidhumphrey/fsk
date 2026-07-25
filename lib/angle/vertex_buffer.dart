@@ -62,6 +62,7 @@ class VertexComponentFlags {
 /// Manages a flutter_gpu DeviceBuffer.
 class VertexBuffer {
   gpu.DeviceBuffer? _deviceBuffer;
+  gpu.DeviceBuffer? get deviceBuffer => _deviceBuffer;
 
   final VertexComponentFlags enabledComponents;
   int _activeVertexCount = 0;
@@ -93,6 +94,7 @@ class VertexBuffer {
 
   /// Sends current CPU data over to physical GPU device memory.
   void uploadData() {
+    print("UploadData called with activeVertexCount: $_activeVertexCount and vertexData: $vertexData");
     if (_activeVertexCount <= 0 || vertexData == null) return;
 
     final int activeBytesSize = _activeVertexCount * _stride;
