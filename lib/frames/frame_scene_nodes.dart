@@ -82,7 +82,6 @@ abstract class FrameObjectNode<T extends FskRenderableObject> extends FrameNode 
 
   @override
   void dispose() {
-    object?.dispose();
   }
 }
 
@@ -103,14 +102,14 @@ class FrameQuadNode extends FrameObjectNode<FskQuad> {
 
     object = FskQuad(rect, quadData.textureRect, quadData.texture);
 
-    // TODO: Make a define for the default shader name
-    if (quadData.shader != null) {
-      setupShader(defaultShader:"SimpleShader");
-      object!.setShader(vertexShader, fragmentShader);
-    }
+   // todo get the shader by name from the factory and then create a gpu.RenderPipeline
+    //then also get the uniforms object from the factory and then set the uniforms
 
-    object!.init();
-    object!.initShaderParams(data.shaderParams);
+    // TODO: Make a define for the default shader name
+  //  if (quadData.shader != null) {
+  //    setupShader(defaultShader:"SimpleShader");
+   //   object!.setShader(vertexShader, fragmentShader);
+   // }
   }
 }
 
@@ -143,12 +142,12 @@ class FrameTextNode extends FrameObjectNode<FskBitmapText> {
 
 
     // TODO: Make a define for the default shader name
-    if (textData.shader != null) {
-      setupShader(defaultShader:"SimpleShader");
-      object!.setShader(vertexShader, fragmentShader);
-    }
+   // if (textData.shader != null) {
+   //   setupShader(defaultShader:"SimpleShader");
+   //   object!.setShader(vertexShader, fragmentShader);
+   // }
 
     object!.init();
-    object!.initShaderParams(data.shaderParams);
+    //object!.initShaderParams(data.shaderParams);
   }
 }

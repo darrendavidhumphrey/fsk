@@ -110,8 +110,9 @@ class FrameScene extends FskScene {
   }
 
   @override
-  void drawScene(gpu.RenderPass renderPass,Size size) {
-    super.setupScissor(renderPass,size);
+  void drawScene(gpu.RenderPass renderPass,Size viewportSize) {
+    super.drawScene(renderPass,viewportSize);
+    super.setupScissor(renderPass,viewportSize);
 
     renderPass.setColorBlendEnable(true); // Enable alpha blending
     renderPass.setColorBlendEquation(

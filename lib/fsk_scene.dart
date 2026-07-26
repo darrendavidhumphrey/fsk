@@ -1,7 +1,6 @@
 import 'package:flutter/material.dart' hide Matrix4;
 import 'package:flutter_gpu/gpu.dart' as gpu;
 import 'package:fsk/fsk.dart';
-import 'package:fsk/gpu/gpu_pipeline_key.dart';
 import 'package:vector_math/vector_math.dart' show Matrix4, Vector4;
 
 /// An abstract base class for a 3D scene, representing the root of a scene graph.
@@ -41,7 +40,7 @@ abstract class FskScene with LoggableClass {
 
   Color _clearColor = Color(0xFF000000);
   Color get clearColor => _clearColor;
-  void set clearColor(Color color) {
+  set clearColor(Color color) {
     _clearColor = color;
     requestRepaint();
   }
@@ -68,8 +67,9 @@ abstract class FskScene with LoggableClass {
     if (width <= 0 || height <= 0) return;
     if (viewportSize.width == width &&
         viewportSize.height == height &&
-        _renderTarget != null)
+        _renderTarget != null) {
       return;
+    }
 
     _viewportSize = Size(width.toDouble(), height.toDouble());
 

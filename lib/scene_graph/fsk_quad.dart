@@ -36,17 +36,6 @@ class FskQuad extends FskRenderableObject {
     _textureInfo = FSK().textureManager.getTextureInfo(_textureId);
   }
 
-  /// Disposes the vertex buffer associated with this text.
-  @override
-  void dispose() {
-    _vbo.dispose();
-  }
-
-  @override
-  void init() {
-    rebuild();
-  }
-
   /// Rebuilds the vertex buffer object if the text or font has changed.
   @override
   void rebuild() {

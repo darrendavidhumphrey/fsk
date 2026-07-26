@@ -1,120 +1,92 @@
 import 'dart:typed_data';
 import 'dart:ui';
-import 'package:flutter_gpu/gpu.dart' as gpu;
-import 'package:vector_math/vector_math.dart';
+import 'base_uniforms.dart';
 
-class GridUniforms {
-  // --- Pipeline Allocation Subsystems ---
-  final gpu.Shader? _vertexShader;
-  final gpu.Shader? _fragmentShader;
+class GridUniforms extends BaseUniforms {
+  // --- Dictionary Key Constants ---
+  static const String _kMajorLineColorKey = 'majorLineColor';
+  static const String _kMinorLineColorKey = 'minorLineColor';
+  static const String _kMmLineColorKey = 'mmLineColor';
+  static const String _kResolutionWidthKey = 'resolutionWidth';
+  static const String _kResolutionHeightKey = 'resolutionHeight';
+  static const String _kScaleKey = 'scale';
+  static const String _kMajorLineSpacingMMKey = 'majorLineSpacingMM';
+  static const String _kMinorLineSpacingMMKey = 'minorLineSpacingMM';
+  static const String _kMajorLineThicknessKey = 'majorLineThickness';
+  static const String _kMinorLineThicknessKey = 'minorLineThickness';
+  static const String _kMmLineThicknessKey = 'mmLineThickness';
 
-  GridUniforms({this._vertexShader, this._fragmentShader});
+  // --- Default Layout Value Constants ---
+  static const Color _kDefaultMajorLineColor = Color(0xFFFFFFFF);
+  static const Color _kDefaultMinorLineColor = Color(0xFFB0B0B0);
+  static const Color _kDefaultMmLineColor = Color(0xFF606060);
+  static const double _kDefaultResolutionWidth = 1000.0;
+  static const double _kDefaultResolutionHeight = 1000.0;
+  static const double _kDefaultScale = 1.0;
+  static const double _kDefaultMajorLineSpacingMM = 10.0;
+  static const double _kDefaultMinorLineSpacingMM = 5.0;
+  static const double _kDefaultMajorLineThickness = 1.5;
+  static const double _kDefaultMinorLineThickness = 1.0;
+  static const double _kDefaultMmLineThickness = 0.5;
 
-  // --- Vertex Transform Variables ---
-  Matrix4 _mvMatrix = Matrix4.identity();
-  Matrix4 _pMatrix = Matrix4.identity();
+  // --- Buffer Structure Allocation Constants ---
+  static const int _kFragmentDataFloatCount = 22;
+  static const double _kPaddingValue = 0.0;
 
-  // --- Fragment Grid Variables ---
-  Color _majorLineColor = const Color(0xFFFFFFFF);
-  Color _minorLineColor = const Color(0xFFB0B0B0);
-  Color _mmLineColor = const Color(0xFF606060);
-
-  double _resolutionWidth = 1024.0;
-  double _resolutionHeight = 768.0;
-
-  double _scale = 1.0;
-  double _majorLineSpacingMM = 10.0;
-  double _minorLineSpacingMM = 5.0;
-  double _majorLineThickness = 1.5;
-  double _minorLineThickness = 1.0;
-  double _mmLineThickness = 0.5;
-
-
-  // --- Vertex Attribute Setters ---
-  set mvMatrix(Matrix4 value) => _mvMatrix = value;
-  set pMatrix(Matrix4 value) => _pMatrix = value;
+  GridUniforms({super.vertexShader, super.fragmentShader}) {
+    this[_kMajorLineColorKey] = _kDefaultMajorLineColor;
+    this[_kMinorLineColorKey] = _kDefaultMinorLineColor;
+    this[_kMmLineColorKey] = _kDefaultMmLineColor;
+    this[_kResolutionWidthKey] = _kDefaultResolutionWidth;
+    this[_kResolutionHeightKey] = _kDefaultResolutionHeight;
+    this[_kScaleKey] = _kDefaultScale;
+    this[_kMajorLineSpacingMMKey] = _kDefaultMajorLineSpacingMM;
+    this[_kMinorLineSpacingMMKey] = _kDefaultMinorLineSpacingMM;
+    this[_kMajorLineThicknessKey] = _kDefaultMajorLineThickness;
+    this[_kMinorLineThicknessKey] = _kDefaultMinorLineThickness;
+    this[_kMmLineThicknessKey] = _kDefaultMmLineThickness;
+  }
 
   // --- Fragment Visual Setters ---
-  set majorLineColor(Color value) => _majorLineColor = value;
-  set minorLineColor(Color value) => _minorLineColor = value;
-  set mmLineColor(Color value) => _mmLineColor = value;
+  set majorLineColor(Color val) => this[_kMajorLineColorKey] = val;
+  set minorLineColor(Color val) => this[_kMinorLineColorKey] = val;
+  set mmLineColor(Color val) => this[_kMmLineColorKey] = val;
 
+  /// Sets the viewport resolution components into the string registry.
   void setResolution(double width, double height) {
-    _resolutionWidth = width;
-    _resolutionHeight = height;
+    this[_kResolutionWidthKey] = width;
+    this[_kResolutionHeightKey] = height;
   }
 
-  set scale(double value) => _scale = value;
-  set majorLineSpacingMM(double value) => _majorLineSpacingMM = value;
-  set minorLineSpacingMM(double value) => _minorLineSpacingMM = value;
-  set majorLineThickness(double value) => _majorLineThickness = value;
-  set minorLineThickness(double value) => _minorLineThickness = value;
-  set mmLineThickness(double value) => _mmLineThickness = value;
+  // --- Grid Sizing and Thickness Setters ---
+  set scale(double val) => this[_kScaleKey] = val;
+  set majorLineSpacingMM(double val) => this[_kMajorLineSpacingMMKey] = val;
+  set minorLineSpacingMM(double value) => this[_kMinorLineSpacingMMKey] = value;
+  set majorLineThickness(double val) => this[_kMajorLineThicknessKey] = val;
+  set minorLineThickness(double val) => this[_kMinorLineThicknessKey] = val;
+  set mmLineThickness(double val) => this[_kMmLineThicknessKey] = val;
 
-  // --- Dry Byte-Packing Helper ---
-  int _packColor(Float32List targetList, int offset, Color color) {
-    targetList[offset++] = color.r;
-    targetList[offset++] = color.g;
-    targetList[offset++] = color.b;
-    targetList[offset++] = color.a;
-    return offset;
-  }
-
-  /// Synchronizes and commits all internal configuration parameters
-  /// straight down to the execution pass uniform slots.
-  void bind(gpu.RenderPass renderPass) {
-    if (_vertexShader == null || _fragmentShader == null) {
-      throw StateError(
-          'Cannot commit grid uniforms: Active pipeline anchors are missing.'
-      );
-    }
-
-    final gpu.HostBuffer transients = gpu.gpuContext.createHostBuffer();
-
-    // =========================================================================
-    // 1. COMMITTING VERTEX MATRIX TRANSLATIONS (std140 -> 32 floats / 128 bytes)
-    // =========================================================================
-    final Float32List vertexData = Float32List(32);
-    vertexData.setAll(0, _mvMatrix.storage);
-    vertexData.setAll(16, _pMatrix.storage);
-
-    final gpu.BufferView vertexBufferView = transients.emplace(
-      vertexData.buffer.asByteData(),
-    );
-    final gpu.UniformSlot vertexSlot = _vertexShader.getUniformSlot('VertexUniforms');
-    renderPass.bindUniform(vertexSlot, vertexBufferView);
-
-    // =========================================================================
-    // 2. COMMITTING FRAGMENT SCHEMAS (std140 -> 22 floats / 88 bytes)
-    // =========================================================================
-    final Float32List fragmentData = Float32List(22);
+  @override
+  Float32List serializeFragmentData() {
+    final Float32List fragmentData = Float32List(_kFragmentDataFloatCount);
     int offset = 0;
 
-    // Phase 1: vec4 lines (Indices 0 - 11)
-    offset = _packColor(fragmentData, offset, _majorLineColor);
-    offset = _packColor(fragmentData, offset, _minorLineColor);
-    offset = _packColor(fragmentData, offset, _mmLineColor);
+    offset = packColor(fragmentData, offset, this[_kMajorLineColorKey] as Color);
+    offset = packColor(fragmentData, offset, this[_kMinorLineColorKey] as Color);
+    offset = packColor(fragmentData, offset, this[_kMmLineColorKey] as Color);
 
-    // Phase 2: vec2 u_resolution (Indices 12, 13)
-    fragmentData[offset++] = _resolutionWidth;
-    fragmentData[offset++] = _resolutionHeight;
+    fragmentData[offset++] = (this[_kResolutionWidthKey] as num).toDouble();
+    fragmentData[offset++] = (this[_kResolutionHeightKey] as num).toDouble();
+    fragmentData[offset++] = (this[_kScaleKey] as num).toDouble();
+    fragmentData[offset++] = (this[_kMajorLineSpacingMMKey] as num).toDouble();
+    fragmentData[offset++] = (this[_kMinorLineSpacingMMKey] as num).toDouble();
+    fragmentData[offset++] = (this[_kMajorLineThicknessKey] as num).toDouble();
+    fragmentData[offset++] = (this[_kMinorLineThicknessKey] as num).toDouble();
+    fragmentData[offset++] = (this[_kMmLineThicknessKey] as num).toDouble();
 
-    // Phase 3: Pack loose configuration scalar parameters tightly (Indices 14 - 19)
-    fragmentData[offset++] = _scale;
-    fragmentData[offset++] = _majorLineSpacingMM;
-    fragmentData[offset++] = _minorLineSpacingMM;
-    fragmentData[offset++] = _majorLineThickness;
-    fragmentData[offset++] = _minorLineThickness;
-    fragmentData[offset++] = _mmLineThickness;
+    fragmentData[offset++] = _kPaddingValue; // Padding
+    fragmentData[offset++] = _kPaddingValue; // Padding
 
-    // Phase 4: Struct tail allocation alignment padding (Indices 20, 21)
-    fragmentData[offset++] = 0.0;
-    fragmentData[offset++] = 0.0;
-
-    final gpu.BufferView fragmentBufferView = transients.emplace(
-      fragmentData.buffer.asByteData(),
-    );
-    final gpu.UniformSlot fragmentSlot = _fragmentShader.getUniformSlot('FragmentUniforms');
-    renderPass.bindUniform(fragmentSlot, fragmentBufferView);
+    return fragmentData;
   }
 }

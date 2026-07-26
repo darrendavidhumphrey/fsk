@@ -1,96 +1,83 @@
 import 'dart:typed_data';
 import 'dart:ui';
 import 'package:flutter_gpu/gpu.dart' as gpu;
-import 'package:vector_math/vector_math.dart';
+import 'base_uniforms.dart';
 
-import '../util.dart';
+class CheckerBoardUniforms extends BaseUniforms {
+  // --- Dictionary Key Constants ---
+  static const String _kPatternColor1Key = 'patternColor1';
+  static const String _kPatternColor2Key = 'patternColor2';
+  static const String _kUseTextureKey = 'useTexture';
+  static const String _kTextureMixKey = 'textureMix';
+  static const String _kPatternScaleKey = 'patternScale';
+  static const String _kSamplerUniformName = 'uSampler';
 
-class CheckerBoardUniforms {
-  // --- Class Instance Variables ---
-  final gpu.Shader? _vertexShader;
-  final gpu.Shader? _fragmentShader;
+  // --- Default Layout Value Constants ---
+  static const Color _kDefaultPatternColor1 = Color(0xFFFFFFFF);
+  static const Color _kDefaultPatternColor2 = Color(0xFF000000);
+  static const bool _kDefaultUseTexture = false;
+  static const double _kDefaultTextureMix = 0.0;
+  static const double _kDefaultPatternScale = 1.0;
 
-  Matrix4 _mvMatrix = Matrix4.identity();
-  Matrix4 _pMatrix = Matrix4.identity();
+  // --- Buffer Structure Allocation Constants ---
+  static const int _kFragmentDataFloatCount = 12;
+  static const int _kUseTextureBufferIndex = 8;
+  static const int _kTextureMixBufferIndex = 9;
+  static const int _kPatternScaleBufferIndex = 10;
+  static const int _kPaddingBufferIndex = 11;
 
-  Color _patternColor1 = const Color(0xFFFFFFFF);
-  Color _patternColor2 = const Color(0xFF000000);
-  bool _useTexture = false;
-  double _textureMix = 0.0;
-  double _patternScale = 1.0;
+  static const double _kBooleanTrueValue = 1.0;
+  static const double _kBooleanFalseValue = 0.0;
+  static const double _kPaddingValue = 0.0;
 
+  // --- Texture State ---
+  gpu.Texture? _texture;
 
-  // --- Vertex Attribute Setters ---
-  set mvMatrix(Matrix4 value) => _mvMatrix = value;
-  set pMatrix(Matrix4 value) => _pMatrix = value;
+  CheckerBoardUniforms({super.vertexShader, super.fragmentShader}) {
+    // Establish initialization values inside the string data store
+    this[_kPatternColor1Key] = _kDefaultPatternColor1;
+    this[_kPatternColor2Key] = _kDefaultPatternColor2;
+    this[_kUseTextureKey] = _kDefaultUseTexture;
+    this[_kTextureMixKey] = _kDefaultTextureMix;
+    this[_kPatternScaleKey] = _kDefaultPatternScale;
+  }
 
-  // --- Fragment Parameter Setters ---
-  set patternColor1(Color value) => _patternColor1 = value;
-  set patternColor2(Color value) => _patternColor2 = value;
-  set useTexture(bool value) => _useTexture = value;
-  set textureMix(double value) => _textureMix = value;
-  set patternScale(double value) => _patternScale = value;
+  // --- Type-Safe Public Setters ---
+  set patternColor1(Color val) => this[_kPatternColor1Key] = val;
+  set patternColor2(Color val) => this[_kPatternColor2Key] = val;
+  set useTexture(bool val) => this[_kUseTextureKey] = val;
+  set textureMix(double val) => this[_kTextureMixKey] = val;
+  set patternScale(double val) => this[_kPatternScaleKey] = val;
+  set texture(gpu.Texture? val) => _texture = val;
 
-  CheckerBoardUniforms({this._vertexShader, this._fragmentShader});
-
-  /// Binds vertex matrices and fragment settings to the modern render pass.
-  /// Reads configuration parameters directly from class instance state variables.
-  void bind(gpu.RenderPass renderPass) {
-    // Safety assertions to ensure context anchors are active before processing
-    if ( _vertexShader == null || _fragmentShader == null) {
-      throw StateError(
-          'Cannot set uniforms: renderPass, vertexShader, and fragmentShader must all be assigned first.'
-      );
-    }
-
-    // 1. Create a transient host allocator for this frames' uniform data
-    final gpu.HostBuffer transients = gpu.gpuContext.createHostBuffer();
-
-    // =========================================================================
-    // VERTEX UNIFORMS: Layout std140
-    // Structural order matching: mat4 uMVMatrix, mat4 uPMatrix
-    // =========================================================================
-    final Float32List vertexData = Float32List(32); // 2 matrices * 16 floats
-
-    // Copy the float storage arrays directly from state
-    vertexData.setAll(0, _mvMatrix.storage);
-    vertexData.setAll(16, _pMatrix.storage);
-
-    // Emplace the raw bytes onto the GPU host memory channel
-    final gpu.BufferView vertexBufferView = transients.emplace(
-      vertexData.buffer.asByteData(),
-    );
-
-    // Fetch the structural block slot configuration and bind it
-    final gpu.UniformSlot vertexSlot = _vertexShader!.getUniformSlot('VertexUniforms');
-    renderPass.bindUniform(vertexSlot, vertexBufferView);
-
-    // =========================================================================
-    // FRAGMENT UNIFORMS: Layout std140
-    // Structural order matching: vec4 c1, vec4 c2, vec4 uConfig
-    // =========================================================================
-    final Float32List fragmentData = Float32List(12); // Exactly 48 bytes (3 x vec4)
+  @override
+  Float32List serializeFragmentData() {
+    final Float32List fragmentData = Float32List(_kFragmentDataFloatCount);
     int offset = 0;
 
-    // Block 1: vec4 uPatternColor1 (Offset: 0 bytes / float indices 0-3)
-    offset = packColor(fragmentData, offset, _patternColor1);
+    // Pull from the map dynamically by constant name
+    offset = packColor(fragmentData, offset, this[_kPatternColor1Key] as Color);
+    offset = packColor(fragmentData, offset, this[_kPatternColor2Key] as Color);
 
-    // Block 2: vec4 uPatternColor2 (Offset: 16 bytes / float indices 4-7)
-    offset = packColor(fragmentData, offset, _patternColor2);
+    final bool useTex = this[_kUseTextureKey] as bool;
+    fragmentData[_kUseTextureBufferIndex] = useTex ? _kBooleanTrueValue : _kBooleanFalseValue;
+    fragmentData[_kTextureMixBufferIndex] = (this[_kTextureMixKey] as num).toDouble();
+    fragmentData[_kPatternScaleBufferIndex] = (this[_kPatternScaleKey] as num).toDouble();
+    fragmentData[_kPaddingBufferIndex] = _kPaddingValue; // Struct alignment padding
 
-    // Block 3: vec4 uConfig (Offset: 32 bytes / float indices 8-11)
-    fragmentData[8] = _useTexture ? 1.0 : 0.0;     // maps to uConfig.x
-    fragmentData[9] = _textureMix.toDouble();      // maps to uConfig.y
-    fragmentData[10] = _patternScale.toDouble();   // maps to uConfig.z
-    fragmentData[11] = 0.0;                        // maps to uConfig.w (safety padding)
+    return fragmentData;
+  }
 
-    // Emplace fragment byte data
-    final gpu.BufferView fragmentBufferView = transients.emplace(
-      fragmentData.buffer.asByteData(),
-    );
+  /// Extends the base bind pass to handle the texture binding step.
+  @override
+  void bind(gpu.RenderPass renderPass) {
+    // 1. Run the base routine to bind Vertex matrices and block configurations
+    super.bind(renderPass);
 
-    // Fetch the structural fragment configuration block slot and bind it
-    final gpu.UniformSlot fragmentSlot = _fragmentShader!.getUniformSlot('FragmentUniforms');
-    renderPass.bindUniform(fragmentSlot, fragmentBufferView);
+    // 2. Safely look up and bind the texture sampling asset
+    if (_texture != null && fragmentShader != null) {
+      final gpu.UniformSlot textureSlot = fragmentShader!.getUniformSlot(_kSamplerUniformName);
+      renderPass.bindTexture(textureSlot, _texture!);
+    }
   }
 }

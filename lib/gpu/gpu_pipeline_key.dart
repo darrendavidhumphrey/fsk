@@ -128,7 +128,7 @@ class PipelineKey {
   ]);
 }
 
-const gpu.VertexLayout v3t2n3c4Layout = const gpu.VertexLayout(
+const gpu.VertexLayout v3t2n3c4Layout = gpu.VertexLayout(
   buffers: [
     // Slot 0: Our main interleaved vertex buffer
     gpu.VertexBuffer(

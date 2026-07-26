@@ -1,4 +1,4 @@
-export 'gpu/gpu_shader.dart';
+export 'gpu/gpu_pipeline_key.dart';
 export 'gpu/index_buffer.dart';
 export 'gpu/vertex_buffer.dart';
 
@@ -32,6 +32,7 @@ export 'shaders/materials.dart';
 export 'shaders/one_light_shader.dart';
 export 'shaders/simple_texture_shader.dart';
 
+export 'ui/gpu_render_widget.dart';
 export 'ui/render_to_texture.dart';
 export 'ui/screen_space_overlay.dart';
 export 'ui/navigation_delegates/orbit_view_delegate.dart';
@@ -41,6 +42,7 @@ export 'ui/navigation_delegates/scene_navigation_delegate.dart';
 
 export 'float32_array_filler.dart';
 export 'fsk_scene.dart';
+export 'fsk_shader_library.dart';
 export 'fsk_singleton.dart';
 export 'fsk_texture_manager.dart';
 export 'logging.dart';

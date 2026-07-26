@@ -1,7 +1,6 @@
 import 'package:flutter/material.dart' hide Matrix4;
 import 'package:flutter_gpu/gpu.dart' as gpu;
 import 'package:fsk/fsk.dart';
-import 'package:fsk/gpu/gpu_pipeline_key.dart';
 import 'package:vector_math/vector_math.dart' hide Colors;
 
 class CheckerBoardScene extends FskScene {
@@ -65,9 +64,7 @@ class CheckerBoardScene extends FskScene {
   void dispose() {}
 
   void drawVBO(gpu.RenderPass renderPass, Matrix4 pMatrix, Matrix4 mvMatrix) {
-
-    var pipeline = pipelineCache.activate(pipelineKey,renderPass,v3t2Layout);
-
+    pipelineCache.activate(pipelineKey,renderPass,v3t2Layout);
     exampleVbo.bind(renderPass);
 
     uniforms!.mvMatrix = mvMatrix;

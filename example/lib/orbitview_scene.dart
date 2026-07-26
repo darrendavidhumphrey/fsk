@@ -1,7 +1,6 @@
 import 'package:flutter/material.dart' hide Matrix4;
 import 'package:flutter_gpu/gpu.dart' as gpu;
 import 'package:fsk/fsk.dart';
-import 'package:fsk/gpu/gpu_pipeline_key.dart';
 import 'package:vector_math/vector_math.dart' hide Colors;
 
 class OrbitViewScene extends FskScene {
