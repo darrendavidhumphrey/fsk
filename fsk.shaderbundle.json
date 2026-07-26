@@ -31,6 +31,14 @@
     "type": "fragment",
     "file": "shaders/grid.frag"
   },
+  "LightingVertex": {
+    "type": "vertex",
+    "file": "shaders/lighting.vert"
+  },
+  "LightingFragment": {
+    "type": "fragment",
+    "file": "shaders/lighting.frag"
+  },
   "SimpleVertex": {
     "type": "vertex",
     "file": "shaders/simple.vert"

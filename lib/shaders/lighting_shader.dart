@@ -1,103 +1,59 @@
-// TODO: Implement this library.
-/*
+import 'dart:typed_data';
 import 'package:vector_math/vector_math.dart';
-import '../util.dart';
+import 'base_uniforms.dart';
 
-const String _lightingVertexShader = """
-#version 300 es
-precision mediump float; // You can adjust this based on your needs
+class LightingUniforms extends BaseUniforms {
+  // --- Dictionary Key Constants ---
+  static const String _kKdKey = 'Kd';
+  static const String _kLdKey = 'Ld';
+  static const String _kLightPosKey = 'lightPos';
 
-layout (location = 0) in vec3 aVertexPosition;
-layout (location = 1) in vec2 aTextureCoord;
-layout (location = 2) in vec3 aNormal; 
-layout (location = 3) in vec4 aVertexColor; 
+  // --- Default Layout Value Constants ---
+  static final Vector3 _kDefaultKd = Vector3(1.0, 1.0, 1.0);
+  static final Vector3 _kDefaultLd = Vector3(1.0, 1.0, 1.0);
+  static final Vector3 _kDefaultLightPos = Vector3(0.0, 0.0, 0.0);
 
-out vec2 vTextureCoord;
-out vec3 LightIntensity;
- 
-uniform vec3 Kd;  
-uniform vec3 Ld;  
-uniform vec4 lightPos; 
-uniform mat4 uMVMatrix;
-uniform mat4 uPMatrix;
+  // --- Buffer Structure Allocation Constants ---
+  static const int _kFragmentDataFloatCount = 12;
 
-
-void main() { 
-   vec3 tnorm = aNormal; 
-	 vec4 eyeCoords = uMVMatrix * vec4(aVertexPosition,1.0); 
-	 vec3 s = normalize(vec3(lightPos - eyeCoords)); 
-   vec3 ambient = vec3(0,0.0,0);
-	 LightIntensity = Ld * Kd * max( dot( s, tnorm ), 0.0 ) + ambient; 
-	 gl_Position =  uPMatrix * uMVMatrix * vec4(aVertexPosition,1.0); 
-}
-""";
-
-const String _lightingFragmentShader = """
-#version 300 es
-precision highp float;
-in vec2 vTextureCoord;
-in vec3 LightIntensity; 
-out vec4 FragColor;
- 
-void main() {
-	FragColor = vec4(LightIntensity, 1.0); 
-}
-""";
-
-class BasicLightingShader extends GlslShader {
-  static String uLightPos = "lightPos";
-  static String uKd = "Kd";
-  static String uLd = "Ld";
-
-  late UniformDefinition _lightPos;
-  late UniformDefinition _kd;
-  late UniformDefinition _ld;
-  UniformDefinition get lightPosLocation => _lightPos;
-  UniformDefinition get kdLocation => _kd;
-  UniformDefinition get ldLocation => _ld;
-
-  BasicLightingShader(GlStateManager gls)
-    : super(
-        gls,
-        _lightingFragmentShader,
-        _lightingVertexShader,
-        [GlslShader.v3Attrib, GlslShader.t2Attrib, GlslShader.n3Attrib],
-        [
-          UniformDefinition(uKd, UniformType.floatVec3),
-          UniformDefinition(uLd, UniformType.floatVec3),
-          UniformDefinition(uLightPos, UniformType.floatVec4),
-        ],
-      ) {
-    _lightPos = uniforms[uLightPos]!;
-    _kd = uniforms[uKd]!;
-    _ld = uniforms[uLd]!;
+  LightingUniforms({super.vertexShader, super.fragmentShader}) {
+    // Establish initialization values inside the string data store
+    this[_kKdKey] = _kDefaultKd;
+    this[_kLdKey] = _kDefaultLd;
+    this[_kLightPosKey] = _kDefaultLightPos;
   }
 
-  void setLightPos(Vector3 v) {
-    gls.setUniform4fv(_lightPos.position!, [v.x, v.y, v.z, 1.0]);
-  }
-
-  void setKd(Vector3 v) {
-    gls.setUniform3fv(_kd.position!, [v.x, v.y, v.z]);
-  }
-
-  void setLd(Vector3 v) {
-    gls.setUniform3fv(_ld.position!, [v.x, v.y, v.z]);
-  }
+  // --- Type-Safe Public Setters ---
+  set kd(Vector3 val) => this[_kKdKey] = val;
+  set ld(Vector3 val) => this[_kLdKey] = val;
+  set lightPos(Vector3 val) => this[_kLightPosKey] = val;
 
   @override
-  dynamic uniformValueFromString(String name, String value) {
-    if (name == uKd) {
-      return(parseVector3(value));
-    } else if (name == uLd) {
-      return(parseVector3(value));
-    } else if (name == uLightPos) {
-      return(parseVector3(value));
-    } else {
-      return super.uniformValueFromString(name, value);
-    }
+  Float32List serializeFragmentData() {
+    final Float32List fragmentData = Float32List(_kFragmentDataFloatCount);
+
+    // Std140 alignment rules:
+    // uKd starts at 0, occupies 0-11. Next vec3 starts at 16.
+    final Vector3 kdVal = this[_kKdKey] as Vector3;
+    fragmentData[0] = kdVal.x;
+    fragmentData[1] = kdVal.y;
+    fragmentData[2] = kdVal.z;
+    fragmentData[3] = 0.0; // Padding
+
+    // uLd starts at offset 16 (index 4). Next vec4 starts at 32.
+    final Vector3 ldVal = this[_kLdKey] as Vector3;
+    fragmentData[4] = ldVal.x;
+    fragmentData[5] = ldVal.y;
+    fragmentData[6] = ldVal.z;
+    fragmentData[7] = 0.0; // Padding
+
+    // uLightPos starts at offset 32 (index 8). Occupies 32-47.
+    final Vector3 lpVal = this[_kLightPosKey] as Vector3;
+    fragmentData[8] = lpVal.x;
+    fragmentData[9] = lpVal.y;
+    fragmentData[10] = lpVal.z;
+    fragmentData[11] = 1.0; // w component for vec4 position
+
+    return fragmentData;
   }
 }
-
-
- */
