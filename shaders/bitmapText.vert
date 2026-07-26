@@ -1,20 +1,18 @@
-#version 450 core
+#version 460 core
 
 // Match the layout definitions explicitly
 layout(location = 0) in vec3 aVertexPosition;
 layout(location = 1) in vec2 aTextureCoord;
 
-// Uniforms must be wrapped in a uniform block
-layout(binding = 0) uniform TransformBlock {
+// Uniform Block (Binding 0, Set 0)
+layout(std140, set = 0, binding = 0) uniform VertexUniforms {
     mat4 uMVMatrix;
     mat4 uPMatrix;
-};
-
+} vertUniforms;
 
 layout(location = 0) out vec2 v_uv;
 
 void main(void) {
-    gl_Position = uPMatrix * uMVMatrix * vec4(aVertexPosition, 1.0);
-
+    gl_Position = vertUniforms.uPMatrix * vertUniforms.uMVMatrix * vec4(aVertexPosition, 1.0);
     v_uv = aTextureCoord;
 }

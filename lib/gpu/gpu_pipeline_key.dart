@@ -155,7 +155,7 @@ const gpu.VertexLayout v3t2n3c4Layout = gpu.VertexLayout(
         // 📍 Normal Attribute (vec3 / float32x3)
         // Takes 12 bytes. Starts at byte 20 (12 + 8).
         gpu.VertexAttribute(
-          name: 'aNormal',
+          name: 'aVertexNormal',
           format: gpu.VertexFormat.float32x3,
           offsetInBytes: 20,
         ),
@@ -163,7 +163,7 @@ const gpu.VertexLayout v3t2n3c4Layout = gpu.VertexLayout(
         // 📍 Color Attribute (vec4 / float32x4)
         // Takes 16 bytes. Starts at byte 32 (20 + 12).
         gpu.VertexAttribute(
-          name: 'aColor',
+          name: 'aVertexColor',
           format: gpu.VertexFormat.float32x4,
           offsetInBytes: 32,
         ),
@@ -172,7 +172,7 @@ const gpu.VertexLayout v3t2n3c4Layout = gpu.VertexLayout(
   ],
 );
 
-// Removing the unreferenced attributes satisfies flutter_gpu perfectly
+// Removing the unreferenced attributes satisfies flutter_gpu
 const gpu.VertexLayout v3t2Layout = gpu.VertexLayout(
   buffers: [
     gpu.VertexBuffer(
@@ -190,7 +190,54 @@ const gpu.VertexLayout v3t2Layout = gpu.VertexLayout(
           format: gpu.VertexFormat.float32x2,
           offsetInBytes: 12,
         ),
-        // ✂️ Removed aNormal and aColor since this shader drops them
+
+      ],
+    ),
+  ],
+);
+
+const gpu.VertexLayout v3n3Layout = gpu.VertexLayout(
+  buffers: [
+    gpu.VertexBuffer(
+      strideInBytes: 48,
+      stepMode: gpu.VertexStepMode.vertex,
+      attributes: [
+        gpu.VertexAttribute(
+          name: 'aVertexPosition',
+          format: gpu.VertexFormat.float32x3,
+          offsetInBytes: 0,
+        ),
+        gpu.VertexAttribute(
+          name: 'aVertexNormal',
+          format: gpu.VertexFormat.float32x3,
+          offsetInBytes: 20,
+        ),
+      ],
+    ),
+  ],
+);
+
+const gpu.VertexLayout v3n3c4Layout = gpu.VertexLayout(
+  buffers: [
+    gpu.VertexBuffer(
+      strideInBytes: 48,
+      stepMode: gpu.VertexStepMode.vertex,
+      attributes: [
+        gpu.VertexAttribute(
+          name: 'aVertexPosition',
+          format: gpu.VertexFormat.float32x3,
+          offsetInBytes: 0,
+        ),
+        gpu.VertexAttribute(
+          name: 'aVertexNormal',
+          format: gpu.VertexFormat.float32x3,
+          offsetInBytes: 20,
+        ),
+        gpu.VertexAttribute(
+          name: 'aVertexColor',
+          format: gpu.VertexFormat.float32x4,
+          offsetInBytes: 32,
+        ),
       ],
     ),
   ],

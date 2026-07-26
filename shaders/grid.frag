@@ -6,9 +6,9 @@ layout(location = 0) in vec2 v_uv;
 // Output Attachment Destination
 layout(location = 0) out vec4 fragColor;
 
-// Uniform Block Block for configuration properties (Binding 0)
+// Uniform Block Block for configuration properties (Binding 1, Set 0)
 // Structured strictly according to size to satisfy cross-platform std140 layout padding
-layout(std140, binding = 0) uniform FragmentUniforms {
+layout(std140, set = 0, binding = 1) uniform FragmentUniforms {
 // 16-byte aligned parameters first
     vec4 u_majorLineColor;
     vec4 u_minorLineColor;
