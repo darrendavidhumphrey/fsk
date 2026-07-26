@@ -39,6 +39,14 @@
     "type": "fragment",
     "file": "shaders/lighting.frag"
   },
+  "OneLightVertex": {
+    "type": "vertex",
+    "file": "shaders/oneLight.vert"
+  },
+  "OneLightFragment": {
+    "type": "fragment",
+    "file": "shaders/oneLight.frag"
+  },
   "SimpleVertex": {
     "type": "vertex",
     "file": "shaders/simple.vert"
