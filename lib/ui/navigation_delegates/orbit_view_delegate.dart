@@ -71,7 +71,7 @@ class OrbitViewDelegate extends FskSceneNavigationDelegate {
     if (_dragStart == Offset.zero || _pointers.length > 1) return;
 
     final deltaX = _dragStart.dx - event.localPosition.dx;
-    final deltaY = _dragStart.dy - event.localPosition.dy;
+    final deltaY = event.localPosition.dy - _dragStart.dy;
 
     // Scale sensitivity by viewport size to make rotation feel consistent
     // regardless of widget size.
