@@ -60,8 +60,8 @@ abstract class FskSceneNavigationDelegate {
   Matrix4 createViewMatrix();
   Matrix4 createProjectionMatrix();
 
-  void updateSceneMatrices() {
-    if (needsUpdate) {
+  void updateSceneMatrices({bool force = false}) {
+    if (needsUpdate || force) {
       Matrix4 view = createViewMatrix();
       setViewMatrix(view);
 

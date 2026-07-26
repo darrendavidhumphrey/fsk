@@ -46,25 +46,32 @@ class OrthoViewDelegate extends FskSceneNavigationDelegate implements ScreenRect
 
   @override
   Matrix4 createProjectionMatrix() {
-    Matrix4 proj = Matrix4.identity();
+    final Matrix4 proj = Matrix4.zero(); // Initialize a blank, flat matrix matrix array
 
-    if (kIsWeb) {
-      setOrthographicMatrix(proj, _viewRect.left, _viewRect.right, _viewRect.top, _viewRect.bottom, _zNear, _zFar);
-    } else {
+    final double left = _viewRect.left;
+    final double right = _viewRect.right;
+    final double top = _viewRect.top;       // Flutter top is smaller value (0.0)
+    final double bottom = _viewRect.bottom; // Flutter bottom is larger value (250.0)
 
-      if (Platform.isAndroid) {
-        setOrthographicMatrix(proj, _viewRect.left, _viewRect.right, _viewRect.top, _viewRect.bottom, _zNear, _zFar);
-      } else {
-        setOrthographicMatrix(
-            proj,
-            _viewRect.left,
-            _viewRect.right,
-            _viewRect.bottom,
-            _viewRect.top,
-            _zNear,
-            _zFar);
-      }
-    }
+    // Calculate boundary translations
+    final double rml = right - left;
+    final double bmt = bottom - top;
+    final double fmn = _zFar - _zNear;
+
+    if (rml == 0 || bmt == 0 || fmn == 0) return Matrix4.identity();
+
+    // 🟢 THE FIX: Build an explicit Vulkan/Metal-aligned matrix layout.
+    // This scales the X and Y screen bounds to [-1, 1] while cleanly scaling
+    // the Z depth range from exactly [0.0 to 1.0].
+    proj.setEntry(0, 0, 2.0 / rml);
+    proj.setEntry(1, 1, 2.0 / bmt);
+    proj.setEntry(2, 2, 1.0 / fmn); // Vulkan/Metal style depth scaling multiplier (1.0 instead of 2.0)
+    proj.setEntry(3, 3, 1.0);
+
+    // Set translation parameters
+    proj.setEntry(0, 3, -(right + left) / rml);
+    proj.setEntry(1, 3, -(bottom + top) / bmt);
+    proj.setEntry(2, 3, -_zNear / fmn); // Vulkan/Metal style depth translation offset
 
     return proj;
   }

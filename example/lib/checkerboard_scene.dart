@@ -13,7 +13,6 @@ class CheckerBoardScene extends FskScene {
     init();
   }
 
-
   void init() {
     final Size quadExtents = Size(500, 500);
     VboFiller.makeTexturedUnitQuad(
@@ -26,6 +25,8 @@ class CheckerBoardScene extends FskScene {
       0.1,
       exampleVbo,
     );
+
+    clearColor = Colors.white;
 
     exampleVbo.uploadData();
 
@@ -47,6 +48,8 @@ class CheckerBoardScene extends FskScene {
       windingOrder: gpu.WindingOrder.counterClockwise,
       cullMode: gpu.CullMode.none,
     );
+
+    navigationDelegate?.updateSceneMatrices(force: true);
   }
 
   @override
@@ -67,7 +70,7 @@ class CheckerBoardScene extends FskScene {
       patternColor2: Colors.green,
       useTexture: false,
       textureMix: 0,
-      patternScale: 5,
+      patternScale: 50,
     );
 
     exampleVbo.drawTriangles(renderPass);
@@ -75,9 +78,9 @@ class CheckerBoardScene extends FskScene {
 
   @override
   void drawScene(gpu.RenderPass renderPass, Size viewportSize) async {
-
-    // Call base class to setup scissor and viewport
     super.drawScene(renderPass, viewportSize);
+    // Scissor and viewport
+    setupScissor(renderPass, viewportSize);
 
     withPushedMatrix(() {
       drawVBO(renderPass,pMatrix, mvMatrix);

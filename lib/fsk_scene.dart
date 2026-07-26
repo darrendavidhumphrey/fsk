@@ -2,7 +2,7 @@ import 'package:flutter/material.dart' hide Matrix4;
 import 'package:flutter_gpu/gpu.dart' as gpu;
 import 'package:fsk/fsk.dart';
 import 'package:fsk/gpu/gpu_pipeline_key.dart';
-import 'package:vector_math/vector_math.dart' show Matrix4,Vector4;
+import 'package:vector_math/vector_math.dart' show Matrix4, Vector4;
 
 /// An abstract base class for a 3D scene, representing the root of a scene graph.
 ///
@@ -41,7 +41,7 @@ abstract class FskScene with LoggableClass {
 
   Color _clearColor = Color(0xFF000000);
   Color get clearColor => _clearColor;
-  void setClearColor(Color color) {
+  void set clearColor(Color color) {
     _clearColor = color;
     requestRepaint();
   }
@@ -63,24 +63,36 @@ abstract class FskScene with LoggableClass {
     navigationDelegate?.dispose();
   }
 
-
   // Dynamic resize function called safely when the parent layout triggers bounds changes
   void updateRenderTargetSize(int width, int height) {
     if (width <= 0 || height <= 0) return;
-    if (viewportSize.width == width && viewportSize.height == height && _renderTarget != null) return;
+    if (viewportSize.width == width &&
+        viewportSize.height == height &&
+        _renderTarget != null)
+      return;
 
     _viewportSize = Size(width.toDouble(), height.toDouble());
 
     // Allocate a brand new texture sized to match the physical container exactly
     _texture = gpu.gpuContext.createTexture(
-      gpu.StorageMode.hostVisible, width,height);
+      gpu.StorageMode.hostVisible,
+      width,
+      height,
+    );
 
     if (_texture != null) {
-      Vector4 clearValue = Vector4(_clearColor.r, _clearColor.g, _clearColor.b, _clearColor.a);
+      Vector4 clearValue = Vector4(
+        _clearColor.r,
+        _clearColor.g,
+        _clearColor.b,
+        _clearColor.a,
+      );
       _renderTarget = gpu.RenderTarget.singleColor(
         gpu.ColorAttachment(texture: _texture!, clearValue: clearValue),
       );
     }
+
+    navigationDelegate?.updateSceneMatrices(force: true);
   }
 
   /// Executes the provided [drawCommands] within a new, pushed matrix state.
@@ -91,32 +103,32 @@ abstract class FskScene with LoggableClass {
     mvMatrixStack.withPushed(drawCommands);
   }
 
-  /// Sets the viewport size for the scene and all its layers.
-  void setViewportSize(Size size) {
-    //logPedantic("setViewportSize: ${size.toString()}");
-    _viewportSize = size;
-  }
-
   /// The core drawing logic to be implemented by subclasses.
   /// This method is called within the rendering loop when a repaint is needed
   @mustCallSuper
-  void drawScene(gpu.RenderPass renderPass,Size viewportSize) {
-    // 1. Set up the Scissor box
-    renderPass.setScissor(gpu.Scissor(
-      x: 0,
-      y: 0,
-      width: viewportSize.width.toInt(),
-      height: viewportSize.height.toInt(),
-    ));
+  void drawScene(gpu.RenderPass renderPass, Size viewportSize) async {
+    navigationDelegate?.updateSceneMatrices();
+  }
 
+  void setupScissor(gpu.RenderPass renderPass, Size viewportSize) {
+    // 1. Set up the Scissor box
+    renderPass.setScissor(
+      gpu.Scissor(
+        x: 0,
+        y: 0,
+        width: viewportSize.width.toInt(),
+        height: viewportSize.height.toInt(),
+      ),
+    );
 
     // 2. Set up the Viewport box
-    renderPass.setViewport(gpu.Viewport(
-      x: 0,
-      y: 0,
-      width:  viewportSize.width.toInt(),
-      height: viewportSize.height.toInt(),
-    ));
+    renderPass.setViewport(
+      gpu.Viewport(
+        x: 0,
+        y: 0,
+        width: viewportSize.width.toInt(),
+        height: viewportSize.height.toInt(),
+      ),
+    );
   }
 }
-

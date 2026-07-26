@@ -7,11 +7,11 @@ layout(location = 0) in vec2 vTextureCoord;
 layout(location = 0) out vec4 FragColor;
 
 // Uniform Block Block for configuration properties (Binding 0)
-// Pack configuration parameters into a single vec4 to guarantee memory alignment
+// Preserved exactly to match your current Float32List(12) Dart packing logic
 layout(std140, binding = 0) uniform FragmentUniforms {
-    vec4 uPatternColor1; // Offset 0  (Bytes 0-15)
-    vec4 uPatternColor2; // Offset 16 (Bytes 16-31)
-    vec4 uConfig;        // Offset 32 (Bytes 32-47)
+    vec4 uPatternColor1; // Bytes 0-15  (Indices 0-3)
+    vec4 uPatternColor2; // Bytes 16-31 (Indices 4-7)
+    vec4 uConfig;        // Bytes 32-47 (Indices 8-11)
 // uConfig.x = uUseTexture
 // uConfig.y = uTextureMix
 // uConfig.z = uPatternScale
@@ -22,29 +22,35 @@ layout(std140, binding = 0) uniform FragmentUniforms {
 layout(binding = 1) uniform sampler2D uSampler;
 
 void main() {
-    // Read the pattern scale cleanly from the config vector's Z component
+    // 🟢 RULE 1: Perform the scale math upfront outside any branch or loop.
+    // This forces ImpellerC to retain the 'uConfig.z' uniform variable path.
     vec2 tiledCoord = vTextureCoord * fragUniforms.uConfig.z;
     vec2 fractionalCoord = fract(tiledCoord);
 
-    // Check if the fractional part is less than 0.5 for each component
+    // Calculate grid step evaluations
     float checkX = step(0.5, fractionalCoord.x);
     float checkY = step(0.5, fractionalCoord.y);
 
-    vec4 color;
-    if (checkX != checkY) {
-        color = fragUniforms.uPatternColor1;
-    } else {
-        color = fragUniforms.uPatternColor2;
-    }
+    // Pick procedural base colors
+    vec4 proceduralColor = (checkX != checkY) ? fragUniforms.uPatternColor1 : fragUniforms.uPatternColor2;
 
-    // Read the texture toggle flag from the config vector's X component
-    if (fragUniforms.uConfig.x > 0.5) {
-        vec4 texColor = texture(uSampler, vTextureCoord);
-        // Read the texture mix percentage from the config vector's Y component
-        vec3 blendedRGB = mix(color.rgb, texColor.rgb, fragUniforms.uConfig.y);
-        float alpha = texColor.a;
-        FragColor = vec4(blendedRGB * alpha, alpha);
-    } else {
-        FragColor = vec4(color.rgb * color.a, color.a);
-    }
+    // 🟢 RULE 2: Pre-sample the texture unconditionally at the top level.
+    // Modern mobile GPUs evaluate textures faster when they aren't hidden inside 'if' branches.
+    vec4 texColor = texture(uSampler, vTextureCoord);
+
+    // 🟢 RULE 3: Eliminate execution branching completely!
+    // Instead of using an 'if-else' block, use a mathematical mix() flag step.
+    // This removes the shader branch and guarantees all scaling parameters execute.
+    float textureSelectFlag = step(0.5, fragUniforms.uConfig.x);
+
+    // Blend the procedural background with the texture sample based on textureMix
+    vec3 mixedRGB = mix(proceduralColor.rgb, texColor.rgb, fragUniforms.uConfig.y);
+    float mixedAlpha = mix(proceduralColor.a, texColor.a, fragUniforms.uConfig.y);
+
+    // Pick between the final texture blend or the pure checkerboard colors
+    vec3 finalRGB = mix(proceduralColor.rgb, mixedRGB, textureSelectFlag);
+    float finalAlpha = mix(proceduralColor.a, mixedAlpha, textureSelectFlag);
+
+    // Render with native premultiplied alpha formatting
+    FragColor = vec4(finalRGB * finalAlpha, finalAlpha);
 }

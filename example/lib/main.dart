@@ -5,6 +5,8 @@ import 'package:flutter/material.dart';
 import 'package:fsk_examples/checkerboard_scene.dart';
 import 'package:fsk_examples/positioned_title_bar.dart';
 
+import 'animated_checkerboard_scene.dart';
+
 void main() async {
   Logging.brevity = Brevity.detailed;
   Logging.defaultLogLevel = LogLevel.pedantic;
@@ -28,22 +30,25 @@ class TestAppState extends State<TestApp> {
   int _pageIndex = 0;
   String _titleText = "";
 
-  final List<String> menuLabels = [];
+  final List<String> menuLabels = [
+    "Checkerboard (OrthoView)",
+    "Animated Checkerboard (PerspectiveView)",
+  ];
   final List<FskScene> scenes = [];
-  CheckerBoardScene? checkerBoardScene;
+
+
+  void makeExamples() {
+    scenes.add(CheckerBoardScene(navigationDelegate: OrthoViewDelegate()));
+    scenes.add(AnimatedCheckerBoardScene(navigationDelegate: StaticViewDelegate()));
+  }
 
   @override
   void initState() {
     super.initState();
 
     FSK().init().then((_) {
-      checkerBoardScene = CheckerBoardScene(
-        navigationDelegate: OrbitViewDelegate(),
-      );
-      checkerBoardScene!.init();
-      scenes.add(checkerBoardScene!);
+      makeExamples();
 
-      menuLabels.add("Hello World!");
       setState(() {
         _pageIndex = 0;
         _setTitleText();
@@ -65,6 +70,7 @@ class TestAppState extends State<TestApp> {
     }
 
     setState(() {
+      _pageIndex = newIndex;
       _setTitleText();
     });
   }
@@ -83,12 +89,8 @@ class TestAppState extends State<TestApp> {
               backgroundColor: kIsWeb ? Colors.transparent : null,
               body: Stack(
                 children: [
-                  IndexedStack(
-                    index: (checkerBoardScene == null)?0:1,
-                    children: [
-                      Container(),
-                      RenderToTexture(scene: checkerBoardScene!)],
-                  ),
+                  RenderToTexture(scene: scenes[_pageIndex]),
+
                   // Title text widget
                   PositionedTitleBar(titleText: _titleText),
 

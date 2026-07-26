@@ -18,25 +18,23 @@ class VboFiller {
 
   /// Checks if there is enough space in the array for the next write.
   /// Throws a [RangeError] if there is not enough space.
-  void _checkSpace(int requiredSpace) {
-    if (_currentPosition > array.length - requiredSpace) {
+  void _checkStrideSpace() {
+    if (_currentPosition > array.length - 12) {
       throw RangeError(
-          'Not enough space in the Float32Array. Required: $requiredSpace, Available: ${array.length - _currentPosition}');
+          'Not enough space in the Float32Array for a full vertex stride. '
+              'Required: 12 elements, Available: ${array.length - _currentPosition}');
     }
   }
 
 
   /// Adds a [Vector3] to the array.
   void _addV3(Vector3 vec) {
-    _checkSpace(3);
-
     array[_currentPosition++] = vec.x;
     array[_currentPosition++] = vec.y;
     array[_currentPosition++] = vec.z;
   }
 
   void _addC4(Color color) {
-    _checkSpace(4);
     array[_currentPosition++] = color.r;
     array[_currentPosition++] = color.g;
     array[_currentPosition++] = color.b;
@@ -45,21 +43,24 @@ class VboFiller {
 
   /// Adds a [Vector3] for position and a [Color] to the array.
   void addV3C4(Vector3 vec, Color color) {
+    _checkStrideSpace();
    _addV3(vec);
+   _currentPosition += 2; // SKip T2
+   _currentPosition += 3; // Skip N3
    _addC4(color);
   }
 
   /// Adds a [Vector2] to the array.
   void _addT2(Vector2 vec) {
-    _checkSpace(2);
     array[_currentPosition++] = vec.x;
     array[_currentPosition++] = vec.y;
   }
 
   /// Adds a [Vector3] for position and a [Vector2] for texture coordinates.
-  void addV3T2(Vector3 v3, Vector2 v2) {
+  void addV3T2(Vector3 v3, Vector2 t2) {
+    _checkStrideSpace();
     _addV3(v3);
-    _addT2(v2);
+    _addT2(t2);
 
     // Skip normal and color
     _currentPosition += 7;
@@ -67,6 +68,7 @@ class VboFiller {
 
   /// Adds a [Vector3] for position, a [Vector2] for texture coordinates, and a [Vector3] for the normal.
   void addV3T2N3(Vector3 v, Vector2 tc, Vector3 n) {
+    _checkStrideSpace();
     _addV3(v);
     _addT2(tc);
     _addV3(n);
@@ -76,6 +78,7 @@ class VboFiller {
 
   /// Adds a [Vector3] for position, a [Vector2] for texture coordinates, a [Vector3] for the normal and a Color for the color.
   void addV3T2N3C4(Vector3 v, Vector2 tc, Vector3 n,Color c) {
+    _checkStrideSpace();
     _addV3(v);
     _addT2(tc);
     _addV3(n);

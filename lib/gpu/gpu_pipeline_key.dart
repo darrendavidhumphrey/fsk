@@ -177,7 +177,7 @@ const gpu.VertexLayout v3t2Layout = gpu.VertexLayout(
   buffers: [
     gpu.VertexBuffer(
       strideInBytes:
-          48, // 🟢 Keep stride at 48 to process your interleaved array correctly!
+          48, // All Vertex Buffers have all 12 component floats
       stepMode: gpu.VertexStepMode.vertex,
       attributes: [
         gpu.VertexAttribute(

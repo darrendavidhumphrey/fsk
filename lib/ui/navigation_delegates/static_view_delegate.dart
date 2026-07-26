@@ -1,13 +1,14 @@
+import 'dart:math' as math;
+
 import 'package:fsk/ui/navigation_delegates/scene_navigation_delegate.dart';
 import 'package:vector_math/vector_math.dart';
-import '../../fsk_singleton.dart';
 
 /// A navigation delegate that implements a static view
 class StaticViewDelegate extends FskSceneNavigationDelegate {
   StaticViewDelegate();
 
   // The rotation of the view, in degrees
-  Vector3 _rotation = Vector3(45,0,180);
+  Vector3 _rotation = Vector3(45,0,0);
   Vector3 _orbitCenter = Vector3(0, 0, 0);
   Vector3 _eyeLocation = Vector3(0, 0, -500);
 
@@ -59,24 +60,53 @@ class StaticViewDelegate extends FskSceneNavigationDelegate {
 
   @override
   Matrix4 createViewMatrix() {
-    Vector3 up = Vector3(0, 1, 0);
+    final Matrix4 view = Matrix4.identity();
 
-    Matrix4 m = makeViewMatrix(_eyeLocation, _orbitCenter, up);
-    m.translateByVector3(_orbitCenter);
-    m.rotateZ(radians(_rotation.z));
-    m.rotateY(radians(_rotation.y));
-    m.rotateX(radians(_rotation.x));
-    m.translateByVector3(-_orbitCenter);
-   return m;
+    // Scale the view matrix Y-axis by -1.0.
+    // This flips the camera's orientation with the top-left projection matrix
+    view.scaleByVector3(Vector3(1.0, -1.0, 1.0));
+
+    // 1. Move the camera back along the Z-axis by the viewing distance
+    // (Assuming _eyeLocation.z acts as your orbit radius distance)
+    view.translateByVector3(Vector3(0.0, 0.0, -_eyeLocation.z));
+
+    // 2. Apply camera orbital rotation angles
+    view.rotateX(radians(_rotation.x));
+    view.rotateY(radians(_rotation.y));
+    view.rotateZ(radians(_rotation.z));
+
+    // 3. Move the world origin to your focal point target
+    view.translateByVector3(-_orbitCenter);
+
+    return view;
   }
 
   @override
   Matrix4 createProjectionMatrix() {
-    final double aspectRatio =
-        scene.viewportSize.width / scene.viewportSize.height;
+    final double aspectRatio = scene.viewportSize.width / scene.viewportSize.height;
+    final double fovYRadians = radians(_fovYDegrees);
 
-    Matrix4 proj = Matrix4.identity();
-    setPerspectiveMatrix(proj, radians(_fovYDegrees), aspectRatio, zNear, zFar);
+    // 1. Calculate focal length components
+    final double g = 1.0 / math.tan(fovYRadians / 2.0);
+    final double depthRange = zFar - zNear;
+
+    if (depthRange == 0 || aspectRatio == 0) return Matrix4.identity();
+
+    final Matrix4 proj = Matrix4.zero();
+
+    // 2. Build explicit Vulkan/Metal perspective mapping
+    proj.setEntry(0, 0, g / aspectRatio);
+
+    // Invert the Y-scale (-g) to align  with Flutter's top-left origin.
+    // This stops geometry from rendering upside down and prevents backface culling bugs.
+    proj.setEntry(1, 1, -g);
+
+    // Map Z depth strictly to the modern [0.0, 1.0] range instead of OpenGL's [-1.0, 1.0].
+    proj.setEntry(2, 2, zFar / depthRange);
+    proj.setEntry(3, 2, 1.0); // W-divide flag for 3D depth perception perspective
+
+    // 3. Set the translation mapping parameters
+    proj.setEntry(2, 3, -(zFar * zNear) / depthRange);
 
     return proj;
   }
