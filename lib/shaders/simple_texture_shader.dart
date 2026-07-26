@@ -1,80 +1,51 @@
-// TODO: Implement this library.
-/*
+import 'dart:typed_data';
 import 'dart:ui';
-import '../util.dart';
+import 'package:flutter_gpu/gpu.dart' as gpu;
+import 'base_uniforms.dart';
 
-String _vertexShader = '''
-#version 300 es
-precision mediump float;
-layout (location = 0) in vec3 aVertexPosition;
-layout (location = 1) in vec2 aTextureCoord;
+class SimpleTextureUniforms extends BaseUniforms {
+  // --- Dictionary Key Constants ---
+  static const String _kModulateColorKey = 'modulateColor';
+  static const String _kSamplerUniformName = 'uSampler';
 
-uniform mat4 uMVMatrix;
-uniform mat4 uPMatrix;
+  // --- Default Layout Value Constants ---
+  static const Color _kDefaultModulateColor = Color(0xFFFFFFFF);
 
-out vec2 v_uv;
-void main(void) {
-    gl_Position = uPMatrix * uMVMatrix * vec4(aVertexPosition, 1.0);
-    v_uv = aTextureCoord;
-}
-''';
+  // --- Buffer Structure Allocation Constants ---
+  static const int _kFragmentDataFloatCount = 4;
 
-String _fragmentShader = '''
-#version 300 es
-precision highp float;
-out vec4 FragColor;
+  // --- Texture State ---
+  gpu.Texture? _texture;
 
-in vec2 v_uv; 
-
-uniform sampler2D uSampler;
-uniform vec4 uModulateColor;
-
-void main(void) {
-    vec4 texColor = texture(uSampler, v_uv);
-    
-    // Modulates the quad texture color
-    FragColor = texColor * uModulateColor; 
-}
-''';
-
-class SimpleTextureShader extends GlslShader {
-  static String uModulateColor = "uModulateColor";
-
-  late UniformDefinition _modulateColor;
-  UniformDefinition get modulateColor => _modulateColor;
-
-  SimpleTextureShader(GlStateManager gls)
-    : super(
-        gls,
-        _fragmentShader,
-        _vertexShader,
-        [GlslShader.v3Attrib, GlslShader.t2Attrib],
-        [
-          UniformDefinition(GlslShader.textureSamplerAttrib,UniformType.sampler2D),
-          UniformDefinition(uModulateColor,UniformType.floatVec4),
-        ],
-      ) {
-    _modulateColor = uniforms[uModulateColor]!;
+  SimpleTextureUniforms({super.vertexShader, super.fragmentShader}) {
+    // Establish initialization values inside the string data store
+    this[_kModulateColorKey] = _kDefaultModulateColor;
   }
 
-  void setModulateColor(Color color) {
-    gls.setUniform4fv(_modulateColor.position!, [
-      color.r,
-      color.g,
-      color.b,
-      color.a,
-    ]);
-  }
+  // --- Type-Safe Public Setters ---
+  set modulateColor(Color val) => this[_kModulateColorKey] = val;
+  set texture(gpu.Texture? val) => _texture = val;
 
   @override
-  dynamic uniformValueFromString(String name, String value) {
-    if (name == uModulateColor) {
-     return parseHexColor(value);
-    } else {
-      return super.uniformValueFromString(name, value);
+  Float32List serializeFragmentData() {
+    final Float32List fragmentData = Float32List(_kFragmentDataFloatCount);
+
+    // Pack modulateColor into the first 4 floats (16 bytes)
+    packColor(fragmentData, 0, this[_kModulateColorKey] as Color);
+
+    return fragmentData;
+  }
+
+  /// Extends the base bind pass to handle the texture binding step.
+  @override
+  void bind(gpu.RenderPass renderPass) {
+    // 1. Run the base routine to bind Vertex matrices and block configurations
+    super.bind(renderPass);
+
+    // 2. Safely look up and bind the texture sampling asset
+    if (_texture != null && fragmentShader != null) {
+      final gpu.UniformSlot textureSlot = fragmentShader!.getUniformSlot(_kSamplerUniformName);
+      renderPass.bindTexture(textureSlot, _texture!);
     }
   }
 }
-
-
- */
