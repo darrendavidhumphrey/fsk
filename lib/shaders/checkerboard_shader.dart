@@ -35,7 +35,7 @@ class CheckerBoardUniforms {
 
   /// Binds vertex matrices and fragment settings to the modern render pass.
   /// Reads configuration parameters directly from class instance state variables.
-  void bind(  gpu.RenderPass renderPass) {
+  void bind(gpu.RenderPass renderPass) {
     // Safety assertions to ensure context anchors are active before processing
     if ( _vertexShader == null || _fragmentShader == null) {
       throw StateError(

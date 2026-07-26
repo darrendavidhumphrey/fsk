@@ -1,258 +1,120 @@
-// TODO: Implement this library.
-/*
+import 'dart:typed_data';
 import 'dart:ui';
-import '../util.dart';
+import 'package:flutter_gpu/gpu.dart' as gpu;
+import 'package:vector_math/vector_math.dart';
 
-String _gridVertexShader = '''
-#version 300 es
-precision mediump float;
-layout (location = 0) in vec3 aVertexPosition;
-layout (location = 1) in vec2 aTextureCoord;
+class GridUniforms {
+  // --- Pipeline Allocation Subsystems ---
+  final gpu.Shader? _vertexShader;
+  final gpu.Shader? _fragmentShader;
 
-uniform mat4 uMVMatrix;
-uniform mat4 uPMatrix;
+  GridUniforms({this._vertexShader, this._fragmentShader});
 
-out vec2 v_uv;
-void main(void) {
-    gl_Position = uPMatrix * uMVMatrix * vec4(aVertexPosition, 1.0);
-    v_uv = aTextureCoord;
-}
-''';
+  // --- Vertex Transform Variables ---
+  Matrix4 _mvMatrix = Matrix4.identity();
+  Matrix4 _pMatrix = Matrix4.identity();
 
-String _gridFragmentShader = '''
-#version 300 es
-#ifdef GL_ES
-precision highp float; // You can adjust this based on your needs
-#endif
+  // --- Fragment Grid Variables ---
+  Color _majorLineColor = const Color(0xFFFFFFFF);
+  Color _minorLineColor = const Color(0xFFB0B0B0);
+  Color _mmLineColor = const Color(0xFF606060);
 
-in vec2 v_uv; // Assuming you have UV coordinates passed from the vertex shader
-out vec4 fragColor;
+  double _resolutionWidth = 1024.0;
+  double _resolutionHeight = 768.0;
 
-uniform vec2 u_resolution; // Resolution of the viewport in pixels
-uniform float u_scale;     // Factor to scale the grid (e.g., world units per pixel)
-
-uniform float u_majorLineSpacingMM;  // spacing of major mines in mm
-uniform float u_minorLineSpacingMM;  // spacing of minor mines in mm
+  double _scale = 1.0;
+  double _majorLineSpacingMM = 10.0;
+  double _minorLineSpacingMM = 5.0;
+  double _majorLineThickness = 1.5;
+  double _minorLineThickness = 1.0;
+  double _mmLineThickness = 0.5;
 
 
-uniform float u_majorLineThickness;
-uniform float u_minorLineThickness;
-uniform float u_mmLineThickness;
+  // --- Vertex Attribute Setters ---
+  set mvMatrix(Matrix4 value) => _mvMatrix = value;
+  set pMatrix(Matrix4 value) => _pMatrix = value;
 
-uniform vec4 u_majorLineColor;   // Major grid color
-uniform vec4 u_minorLineColor;   // minor grid color
-uniform vec4 u_mmLineColor;      // Color of mm Lines spaced every millimeter  
+  // --- Fragment Visual Setters ---
+  set majorLineColor(Color value) => _majorLineColor = value;
+  set minorLineColor(Color value) => _minorLineColor = value;
+  set mmLineColor(Color value) => _mmLineColor = value;
 
-float getCenteredLineAlpha(float pos, float spacing, float thickness, float fwidthVal) {
-    // Adjust the position so the line's center is at 0.0 in a [-spacing/2, spacing/2] range
-    float centeredPos = mod(pos + spacing * 0.5, spacing) - spacing * 0.5;
+  void setResolution(double width, double height) {
+    _resolutionWidth = width;
+    _resolutionHeight = height;
+  }
 
-    // The line should be drawn when `centeredPos` is within [-thickness/2, thickness/2]
-    // The smoothstep will fade it out at the edges
-    float halfThickness = thickness * 0.5;
-    
-    // The width of the anti-aliasing transition region
-    // This makes the transition one "pixel" wide at the current zoom level
-    float antiAliasWidth = fwidthVal; 
+  set scale(double value) => _scale = value;
+  set majorLineSpacingMM(double value) => _majorLineSpacingMM = value;
+  set minorLineSpacingMM(double value) => _minorLineSpacingMM = value;
+  set majorLineThickness(double value) => _majorLineThickness = value;
+  set minorLineThickness(double value) => _minorLineThickness = value;
+  set mmLineThickness(double value) => _mmLineThickness = value;
 
-    // Use smoothstep to create the anti-aliased line
-    // The line will be fully opaque when abs(centeredPos) <= halfThickness - antiAliasWidth
-    // and fully transparent when abs(centeredPos) >= halfThickness + antiAliasWidth
-    float lineAlpha = smoothstep(halfThickness + antiAliasWidth, halfThickness - antiAliasWidth, abs(centeredPos));
-    
-    return lineAlpha;
-}
-    
-void main() {
-    // Convert UV coordinates to screen-space coordinates (or world coordinates)
-    vec2 fragCoord = v_uv * u_resolution * u_scale;
+  // --- Dry Byte-Packing Helper ---
+  int _packColor(Float32List targetList, int offset, Color color) {
+    targetList[offset++] = color.r;
+    targetList[offset++] = color.g;
+    targetList[offset++] = color.b;
+    targetList[offset++] = color.a;
+    return offset;
+  }
 
-    // Use fwidth() for anti-aliasing. {Link: The fwidth() function is equivalent to abs(dFdx(p)) + abs(dFdy(p)), according to Made by Evan https://madebyevan.com/shaders/grid/}
-    float dx = fwidth(fragCoord.x);
-    float dy = fwidth(fragCoord.y);
-
-    // Anti-alias major lines
-    float majorLineX = getCenteredLineAlpha(fragCoord.x, u_majorLineSpacingMM, u_majorLineThickness, dx);
-    float majorLineY = getCenteredLineAlpha(fragCoord.y, u_majorLineSpacingMM, u_majorLineThickness, dy);
-    float majorGrid = max(majorLineX, majorLineY);
-    
-    // Anti-alias minor lines
-    float minorLineX = getCenteredLineAlpha(fragCoord.x, u_minorLineSpacingMM, u_minorLineThickness, dx);
-    float minorLineY = getCenteredLineAlpha(fragCoord.y, u_minorLineSpacingMM, u_minorLineThickness, dy);
-    float minorGrid = max(minorLineX, minorLineY);
-    
-    float mmLineX = getCenteredLineAlpha(fragCoord.x, 1.0, u_mmLineThickness, dx);
-    float mmLineY = getCenteredLineAlpha(fragCoord.y, 1.0, u_mmLineThickness, dy);
-    float mmGrid = max(mmLineX, mmLineY);
-     
-    vec4 backgroundColor = vec4(0.0, 0.0, 0.0,0.0);  
-
-    // Blend the grid lines with the background
-    vec4 color = mix(backgroundColor, u_mmLineColor, mmGrid);
-
-    color = mix(color, u_minorLineColor, minorGrid);
-
-    color = mix(color, u_majorLineColor, majorGrid);
-    if (color.a < 0.1) { // Discard fragments with alpha below a threshold
-        discard;
+  /// Synchronizes and commits all internal configuration parameters
+  /// straight down to the execution pass uniform slots.
+  void bind(gpu.RenderPass renderPass) {
+    if (_vertexShader == null || _fragmentShader == null) {
+      throw StateError(
+          'Cannot commit grid uniforms: Active pipeline anchors are missing.'
+      );
     }
-    
-    fragColor = vec4(color); // Output the final color
-}
-''';
 
-class GridShader extends GlslShader {
-  static String uResolution = "u_resolution";
-  static String uScale = "u_scale";
-  static String uMajorLineSpacingMM = "u_majorLineSpacingMM";
-  static String uMinorLineSpacingMM = "u_minorLineSpacingMM";
-  static String uMajorLineThickness = "u_majorLineThickness";
-  static String uMinorLineThickness = "u_minorLineThickness";
-  static String ummLineThickness = "u_mmLineThickness";
-  static String uMajorLineColor = "u_majorLineColor";
-  static String uMinorLineColor = "u_minorLineColor";
-  static String ummLineColor = "u_mmLineColor";
+    final gpu.HostBuffer transients = gpu.gpuContext.createHostBuffer();
 
-  late UniformDefinition _resolution;
-  late UniformDefinition _scale;
-  late UniformDefinition _majorLineSpacingMM;
-  late UniformDefinition _minorLineSpacingMM;
-  late UniformDefinition _majorLineThickness;
-  late UniformDefinition _minorLineThickness;
-  late UniformDefinition _mmLineThickness;
-  late UniformDefinition _majorLineColor;
-  late UniformDefinition _minorLineColor;
-  late UniformDefinition _mmLineColor;
+    // =========================================================================
+    // 1. COMMITTING VERTEX MATRIX TRANSLATIONS (std140 -> 32 floats / 128 bytes)
+    // =========================================================================
+    final Float32List vertexData = Float32List(32);
+    vertexData.setAll(0, _mvMatrix.storage);
+    vertexData.setAll(16, _pMatrix.storage);
 
-  UniformDefinition get resolutionLocation => _resolution;
-  UniformDefinition get scaleLocation => _scale;
-  UniformDefinition get majorLineSpacingMMLocation => _majorLineSpacingMM;
-  UniformDefinition get minorLineSpacingMMLocation => _minorLineSpacingMM;
-  UniformDefinition get majorLineThicknessLocation => _majorLineThickness;
-  UniformDefinition get minorLineThicknessLocation => _minorLineThickness;
-  UniformDefinition get mmLineThicknessLocation => _mmLineThickness;
-  UniformDefinition get majorLineColorLocation => _majorLineColor;
-  UniformDefinition get minorLineColorLocation => _minorLineColor;
-  UniformDefinition get mmLineColorLocation => _mmLineColor;
+    final gpu.BufferView vertexBufferView = transients.emplace(
+      vertexData.buffer.asByteData(),
+    );
+    final gpu.UniformSlot vertexSlot = _vertexShader.getUniformSlot('VertexUniforms');
+    renderPass.bindUniform(vertexSlot, vertexBufferView);
 
-  GridShader(GlStateManager gls)
-    : super(
-        gls,
-        _gridFragmentShader,
-        _gridVertexShader,
-        [GlslShader.v3Attrib, GlslShader.t2Attrib],
-        [
-          UniformDefinition(uResolution, UniformType.floatVec2),
-          UniformDefinition(uScale, UniformType.float),
-          UniformDefinition(uMajorLineSpacingMM, UniformType.float),
-          UniformDefinition(uMinorLineSpacingMM, UniformType.float),
-          UniformDefinition(uMajorLineThickness, UniformType.float),
-          UniformDefinition(uMinorLineThickness, UniformType.float),
-          UniformDefinition(ummLineThickness, UniformType.float),
-          UniformDefinition(uMajorLineColor, UniformType.floatVec4),
-          UniformDefinition(uMinorLineColor, UniformType.floatVec4),
-          UniformDefinition(ummLineColor, UniformType.floatVec4),
-          UniformDefinition(
-            GlslShader.textureSamplerAttrib,
-            UniformType.sampler2D,
-          ),
-        ],
-      ) {
-    _resolution = uniforms[uResolution]!;
-    _scale = uniforms[uScale]!;
-    _majorLineSpacingMM = uniforms[uMajorLineSpacingMM]!;
-    _minorLineSpacingMM = uniforms[uMinorLineSpacingMM]!;
-    _majorLineThickness = uniforms[uMajorLineThickness]!;
-    _minorLineThickness = uniforms[uMinorLineThickness]!;
-    _mmLineThickness = uniforms[ummLineThickness]!;
-    _majorLineColor = uniforms[uMajorLineColor]!;
-    _minorLineColor = uniforms[uMinorLineColor]!;
-    _mmLineColor = uniforms[ummLineColor]!;
-  }
+    // =========================================================================
+    // 2. COMMITTING FRAGMENT SCHEMAS (std140 -> 22 floats / 88 bytes)
+    // =========================================================================
+    final Float32List fragmentData = Float32List(22);
+    int offset = 0;
 
-  void setResolutionMM(num width, num height) {
-    gls.setUniform2fv(_resolution.position!, [
-      width.toDouble() * 10,
-      height.toDouble() * 10,
-    ]);
-  }
+    // Phase 1: vec4 lines (Indices 0 - 11)
+    offset = _packColor(fragmentData, offset, _majorLineColor);
+    offset = _packColor(fragmentData, offset, _minorLineColor);
+    offset = _packColor(fragmentData, offset, _mmLineColor);
 
-  void setScale(num scale) {
-    gls.setUniform1f(_scale.position!, scale.toDouble());
-  }
+    // Phase 2: vec2 u_resolution (Indices 12, 13)
+    fragmentData[offset++] = _resolutionWidth;
+    fragmentData[offset++] = _resolutionHeight;
 
-  void setMajorLineSpacingMM(num spacing) {
-    gls.setUniform1f(_majorLineSpacingMM.position!, spacing.toDouble());
-  }
+    // Phase 3: Pack loose configuration scalar parameters tightly (Indices 14 - 19)
+    fragmentData[offset++] = _scale;
+    fragmentData[offset++] = _majorLineSpacingMM;
+    fragmentData[offset++] = _minorLineSpacingMM;
+    fragmentData[offset++] = _majorLineThickness;
+    fragmentData[offset++] = _minorLineThickness;
+    fragmentData[offset++] = _mmLineThickness;
 
-  void setMinorLineSpacingMM(num spacing) {
-    gls.setUniform1f(_minorLineSpacingMM.position!, spacing.toDouble());
-  }
+    // Phase 4: Struct tail allocation alignment padding (Indices 20, 21)
+    fragmentData[offset++] = 0.0;
+    fragmentData[offset++] = 0.0;
 
-  void setMajorLineThickness(num thickness) {
-    gls.setUniform1f(_majorLineThickness.position!, thickness.toDouble());
-  }
-
-  void setMinorLineThickness(num thickness) {
-    gls.setUniform1f(_minorLineThickness.position!, thickness.toDouble());
-  }
-
-  void setMmLineThickness(num thickness) {
-    gls.setUniform1f(_mmLineThickness.position!, thickness.toDouble());
-  }
-
-  void setMajorLineColor(Color color) {
-    gls.setUniform4fv(_majorLineColor.position!, [
-      color.r,
-      color.g,
-      color.b,
-      color.a,
-    ]);
-  }
-
-  void setMinorLineColor(Color color) {
-    gls.setUniform4fv(_minorLineColor.position!, [
-      color.r,
-      color.g,
-      color.b,
-      color.a,
-    ]);
-  }
-
-  void setMmLineColor(Color color) {
-    gls.setUniform4fv(_mmLineColor.position!, [
-      color.r,
-      color.g,
-      color.b,
-      color.a,
-    ]);
-  }
-
-  @override
-  dynamic uniformValueFromString(String name, String value) {
-    if (name == uResolution) {
-      return parseVector2(value);
-    } else if (name == uScale) {
-      return double.tryParse(value);
-    } else if (name == uMajorLineSpacingMM) {
-      return double.tryParse(value);
-    } else if (name == uMinorLineSpacingMM) {
-      return double.tryParse(value);
-    } else if (name == uMajorLineThickness) {
-      return double.tryParse(value);
-    } else if (name == uMinorLineThickness) {
-      return double.tryParse(value);
-    } else if (name == ummLineThickness) {
-      return double.tryParse(value);
-    } else if (name == uMajorLineColor) {
-      return (parseHexColor(value));
-    } else if (name == uMinorLineColor) {
-      return (parseHexColor(value));
-    } else if (name == ummLineColor) {
-      return (parseHexColor(value));
-    } else {
-      return super.uniformValueFromString(name, value);
-    }
+    final gpu.BufferView fragmentBufferView = transients.emplace(
+      fragmentData.buffer.asByteData(),
+    );
+    final gpu.UniformSlot fragmentSlot = _fragmentShader.getUniformSlot('FragmentUniforms');
+    renderPass.bindUniform(fragmentSlot, fragmentBufferView);
   }
 }
-*/

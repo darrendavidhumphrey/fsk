@@ -1,0 +1,19 @@
+#version 460 core
+
+// Input Attributes (Mapped by string names in modern VertexLayout configurations)
+layout(location = 0) in vec3 aVertexPosition;
+layout(location = 1) in vec2 aTextureCoord;
+
+// Uniform Block Block (Binding 0)
+layout(std140, binding = 0) uniform VertexUniforms {
+    mat4 uMVMatrix;
+    mat4 uPMatrix;
+} vertUniforms;
+
+// Output Interface
+layout(location = 0) out vec2 v_uv;
+
+void main(void) {
+    gl_Position = vertUniforms.uPMatrix * vertUniforms.uMVMatrix * vec4(aVertexPosition, 1.0);
+    v_uv = aTextureCoord;
+}

@@ -3,6 +3,7 @@ import 'package:flutter/services.dart';
 import 'package:fsk/fsk.dart';
 import 'package:flutter/material.dart';
 import 'package:fsk_examples/checkerboard_scene.dart';
+import 'package:fsk_examples/orbitview_scene.dart';
 import 'package:fsk_examples/positioned_title_bar.dart';
 
 import 'animated_checkerboard_scene.dart';
@@ -31,8 +32,9 @@ class TestAppState extends State<TestApp> {
   String _titleText = "";
 
   final List<String> menuLabels = [
-    "Checkerboard (OrthoView)",
-    "Animated Checkerboard (PerspectiveView)",
+    "Checkerboard (Ortho View)",
+    "Animated Checkerboard (Perspective View)",
+    "OrbitView (Grid Shader)"
   ];
   final List<FskScene> scenes = [];
 
@@ -40,6 +42,7 @@ class TestAppState extends State<TestApp> {
   void makeExamples() {
     scenes.add(CheckerBoardScene(navigationDelegate: OrthoViewDelegate()));
     scenes.add(AnimatedCheckerBoardScene(navigationDelegate: StaticViewDelegate()));
+    scenes.add(OrbitViewScene(navigationDelegate: OrbitViewDelegate()));
   }
 
   @override

@@ -1,11 +1,21 @@
-// TODO: Implement this
-/*
-import 'package:flutter/material.dart';
+import 'package:flutter/material.dart' hide Matrix4;
+import 'package:flutter_gpu/gpu.dart' as gpu;
 import 'package:fsk/fsk.dart';
+import 'package:fsk/gpu/gpu_pipeline_key.dart';
+import 'package:vector_math/vector_math.dart' hide Colors;
 
 class OrbitViewScene extends FskScene {
-  OrbitViewScene({super.navigationDelegate}) {
 
+  VertexBuffer exampleVbo = VertexBuffer();
+  GridUniforms? uniforms;
+  late PipelineKey pipelineKey;
+
+  OrbitViewScene({super.navigationDelegate}) {
+    init();
+  }
+
+  void init() {
+    final Size quadExtents = Size(500, 500);
     VboFiller.makeTexturedUnitQuad(
       Rect.fromLTWH(
         -quadExtents.width / 2,
@@ -16,73 +26,69 @@ class OrbitViewScene extends FskScene {
       0.1,
       exampleVbo,
     );
-  }
 
-  VertexBuffer exampleVbo = VertexBuffer.v3t2();
-  final Size quadExtents = Size(500, 500);
-  GridShader? shader;
+    clearColor = Colors.white;
 
-  @override
-  void init(RenderingContext gl) {
-    super.init(gl);
-    exampleVbo.init(gls);
     exampleVbo.uploadData();
-  }
 
-  void drawVBO(Matrix4 pMatrix, Matrix4 mvMatrix) {
-    shader ??= FSK().shaders.getShader<GridShader>();
+    // Create a pipeline key for this shader and associated settings
+    pipelineKey = PipelineKey(
+      vertShaderName: "GridVertex",
+      fragShaderName: "GridFragment",
+      depthTestEnabled: false,
+      depthWriteEnabled: false,
+      depthCompareOperation: gpu.CompareFunction.greater,
+      texturingEnabled: false,
+      blendEnabled: true,
+      srcColorFactor: gpu.BlendFactor.sourceAlpha,
+      dstColorFactor: gpu.BlendFactor.oneMinusSourceAlpha,
+      srcAlphaFactor: gpu.BlendFactor.one,
+      dstAlphaFactor: gpu.BlendFactor.oneMinusSourceAlpha,
+      colorBlendOp: gpu.BlendOperation.add,
+      alphaBlendOp: gpu.BlendOperation.add,
+      windingOrder: gpu.WindingOrder.counterClockwise,
+      cullMode: gpu.CullMode.none,
+    );
 
-    gls.useProgram(shader!.program);
-    shader!.setMatrixUniforms(pMatrix, mvMatrix);
+    uniforms = GridUniforms(vertexShader: pipelineKey.vertShader, fragmentShader: pipelineKey.fragShader);
 
-    shader!.setResolutionMM(250,250);
-    shader!.setScale(0.1);
-    shader!.setMajorLineSpacingMM(25);
-    shader!.setMinorLineSpacingMM(5);
-    shader!.setMajorLineThickness(1);
-    shader!.setMinorLineThickness(0.25);
-    shader!.setMmLineThickness(0.025);
-    shader!.setMajorLineColor(Colors.red);
-    shader!.setMinorLineColor(Colors.blue);
-    shader!.setMmLineColor(Colors.green);
-    exampleVbo.bind();
-    exampleVbo.drawTriangles();
+    uniforms!.scale = 0.1;
+    uniforms!.setResolution(1000,1000);
+    uniforms!.majorLineSpacingMM = 25;
+    uniforms!.minorLineSpacingMM = 5;
+    uniforms!.majorLineThickness = 0.25;
+    uniforms!.minorLineThickness = 0.125;
+    uniforms!.mmLineThickness    = 0.025;
+    uniforms!.majorLineColor = Colors.red;
+    uniforms!.minorLineColor = Colors.blue;
+    uniforms!.mmLineColor  = Colors.grey;
+
+    navigationDelegate?.updateSceneMatrices(force: true);
   }
 
   @override
-  void drawScene() async {
-    super.drawScene();
+  void dispose() {}
 
-    gls.setViewport(
-      0,
-      0,
-      physicalTextureWidth,
-      physicalTextureHeight,
-    );
-    gls.activeTexture(WebGL.TEXTURE0);
-    gls.setTexturingEnabled(false);
+  void drawVBO(gpu.RenderPass renderPass, Matrix4 pMatrix, Matrix4 mvMatrix) {
+    pipelineCache.activate(pipelineKey,renderPass,v3t2Layout);
 
-    gls.setBlend(true);
-    gls.setCullFace(false);
-    gls.clearColor(1, 1, 1, 1);
-    gls.setDepthTest(false);
-    gls.setDepthMask(false);
+    exampleVbo.bind(renderPass);
 
-    gls.depthFunc(WebGL.LESS);
-    gls.blendFuncSeparate(
-      WebGL.SRC_ALPHA,
-      WebGL.ONE_MINUS_SRC_ALPHA,
-      WebGL.ONE,
-      WebGL.ONE_MINUS_SRC_ALPHA,
-    );
-    gl.clear(WebGL.COLOR_BUFFER_BIT | WebGL.DEPTH_BUFFER_BIT);
+    uniforms!.mvMatrix = mvMatrix;
+    uniforms!.pMatrix = pMatrix;
+    uniforms!.bind(renderPass);
+
+    exampleVbo.drawTriangles(renderPass);
+  }
+
+  @override
+  void drawScene(gpu.RenderPass renderPass, Size viewportSize) async {
+    super.drawScene(renderPass, viewportSize);
+    // Scissor and viewport
+    setupScissor(renderPass, viewportSize);
+
     withPushedMatrix(() {
-      drawVBO(pMatrix, mvMatrix);
+      drawVBO(renderPass,pMatrix, mvMatrix);
     });
-    drawLayers();
-    requestRepaint();
   }
 }
-
-
- */

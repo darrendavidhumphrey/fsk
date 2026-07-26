@@ -7,6 +7,14 @@
     "type": "fragment",
     "file": "shaders/bitmapText.frag"
   },
+  "GridVertex": {
+    "type": "vertex",
+    "file": "shaders/grid.vert"
+  },
+  "GridFragment": {
+    "type": "fragment",
+    "file": "shaders/grid.frag"
+  },
   "CheckerBoardVertex": {
     "type": "vertex",
     "file": "shaders/checkerBoard.vert"
