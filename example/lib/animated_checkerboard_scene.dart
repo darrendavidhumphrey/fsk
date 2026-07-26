@@ -4,11 +4,9 @@ import 'package:fsk/fsk.dart';
 import 'package:fsk/gpu/gpu_pipeline_key.dart';
 import 'package:vector_math/vector_math.dart' hide Colors;
 
-
 Color getCyclingColor({
   required double timeInSeconds,
-  double cycleDurationSeconds =
-  10.0, // Default to 10 seconds for a full cycle
+  double cycleDurationSeconds = 10.0, // Default to 10 seconds for a full cycle
   double saturation = 1.0,
   double value = 1.0,
 }) {
@@ -26,8 +24,7 @@ Color getCyclingColor({
 
 double getCyclingScale({
   required double timeInSeconds,
-  double cycleDurationSeconds =
-  10.0, // Default to 10 seconds for a full cycle
+  double cycleDurationSeconds = 10.0, // Default to 10 seconds for a full cycle
   double saturation = 1.0,
   double value = 1.0,
 }) {
@@ -41,6 +38,7 @@ double getCyclingScale({
 class AnimatedCheckerBoardScene extends FskScene {
   VertexBuffer exampleVbo = VertexBuffer();
   late PipelineKey pipelineKey;
+  CheckerBoardUniforms? uniforms;
 
   AnimatedCheckerBoardScene({super.navigationDelegate}) {
     init();
@@ -81,6 +79,9 @@ class AnimatedCheckerBoardScene extends FskScene {
       windingOrder: gpu.WindingOrder.counterClockwise,
       cullMode: gpu.CullMode.none,
     );
+
+    uniforms = CheckerBoardUniforms(vertexShader: pipelineKey.vertShader, fragmentShader: pipelineKey.fragShader);
+
   }
 
   @override
@@ -110,18 +111,13 @@ class AnimatedCheckerBoardScene extends FskScene {
       cycleDurationSeconds: cycleDuration,
     );
 
-    CheckerBoardUniforms.setUniforms(
-      renderPass: renderPass,
-      vertexShader: pipeline.vertexShader,
-      fragmentShader: pipeline.fragmentShader,
-      pMatrix: pMatrix,
-      mvMatrix: mvMatrix,
-      patternColor1: color1,
-      patternColor2: color2,
-      useTexture: false,
-      textureMix: 0,
-      patternScale: patternScale,
-    );
+    uniforms!.patternColor1 = color1;
+    uniforms!.patternColor2 = color2;
+    uniforms!.patternScale = patternScale;
+    uniforms!.mvMatrix = mvMatrix;
+    uniforms!.pMatrix = pMatrix;
+
+    uniforms!.bind(renderPass);
 
     exampleVbo.drawTriangles(renderPass);
   }

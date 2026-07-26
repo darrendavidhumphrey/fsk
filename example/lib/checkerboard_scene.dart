@@ -7,6 +7,7 @@ import 'package:vector_math/vector_math.dart' hide Colors;
 class CheckerBoardScene extends FskScene {
 
   VertexBuffer exampleVbo = VertexBuffer();
+  CheckerBoardUniforms? uniforms;
   late PipelineKey pipelineKey;
 
   CheckerBoardScene({super.navigationDelegate}) {
@@ -49,6 +50,14 @@ class CheckerBoardScene extends FskScene {
       cullMode: gpu.CullMode.none,
     );
 
+    uniforms = CheckerBoardUniforms(vertexShader: pipelineKey.vertShader, fragmentShader: pipelineKey.fragShader);
+
+    uniforms!.patternColor1 = Colors.red;
+    uniforms!.patternColor2 = Colors.green;
+    uniforms!.useTexture = false;
+    uniforms!.textureMix = 0;
+    uniforms!.patternScale = 50;
+
     navigationDelegate?.updateSceneMatrices(force: true);
   }
 
@@ -60,18 +69,10 @@ class CheckerBoardScene extends FskScene {
     var pipeline = pipelineCache.activate(pipelineKey,renderPass,v3t2Layout);
 
     exampleVbo.bind(renderPass);
-    CheckerBoardUniforms.setUniforms(
-      renderPass: renderPass,
-      vertexShader: pipeline.vertexShader,
-      fragmentShader: pipeline.fragmentShader,
-      pMatrix: pMatrix,
-      mvMatrix: mvMatrix,
-      patternColor1: Colors.red,
-      patternColor2: Colors.green,
-      useTexture: false,
-      textureMix: 0,
-      patternScale: 50,
-    );
+
+    uniforms!.mvMatrix = mvMatrix;
+    uniforms!.pMatrix = pMatrix;
+    uniforms!.bind(renderPass);
 
     exampleVbo.drawTriangles(renderPass);
   }
