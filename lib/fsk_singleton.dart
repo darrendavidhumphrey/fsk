@@ -1,25 +1,16 @@
 import 'package:flutter/material.dart';
-import 'package:flutter_gpu/gpu.dart' as gpu;
 import 'package:fsk/shaders/materials.dart';
 import 'package:fsk/fsk_texture_manager.dart';
 import 'fsk_shader_library.dart';
 import 'logging.dart';
-
-import 'fsk_scene.dart';
 
 /// Enum to manage the initialization state of the FSK singleton.
 enum FskState {
   /// The engine has not been initialized at all.
   uninitialized,
 
-  /// Initialization just started,but engine is not yet ready.
-  inProgress,
-
-  /// The core FlutterAngle engine is ready, but no GL context has been created.
-  glInitialized,
-
-  /// A GL context has been created and context-specific resources are initialized.
-  contextInitialized,
+  /// Ready to go (only two stages now)
+  initialized,
 }
 
 /// The main singleton for the rendering engine.
@@ -65,15 +56,13 @@ class FSK with LoggableClass {
 
   /// This must be called once before any other operations.
   Future<bool> init() async {
-
     try {
       if (_state == FskState.uninitialized) {
 
         shaderLibrary = FskShaderLibrary();
         await shaderLibrary.registerBundle(_builtInShaderBundlePath);
 
-        _state = FskState.inProgress;
-        _state = FskState.glInitialized;
+        _state = FskState.initialized;
         return true;
       }
     } catch (e) {
@@ -96,13 +85,4 @@ class FSK with LoggableClass {
     );
   }
 
-  /// Initializes shared context-specific resources like shaders and textures.
-  /// This is called once a GL context becomes available.
-  void initContext() {
-    if (_state == FskState.contextInitialized) {
-      return;
-    }
-
-    _state = FskState.contextInitialized;
-  }
 }

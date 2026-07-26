@@ -1,23 +1,21 @@
 import 'package:flutter/material.dart' hide Matrix4;
 import 'package:flutter_gpu/gpu.dart' as gpu;
 import 'package:fsk/fsk.dart';
+import 'package:fsk/gpu/gpu_pipeline_key.dart';
 import 'package:vector_math/vector_math.dart' hide Colors;
 
 class CheckerBoardScene extends FskScene {
+
+  VertexBuffer exampleVbo = VertexBuffer();
+  late PipelineKey pipelineKey;
+
   CheckerBoardScene({super.navigationDelegate}) {
-    print("CheckerBoardScene constructor");
+    init();
   }
 
-  VertexBuffer exampleVbo = VertexBuffer.v3t2();
-  gpu.Shader? vertexShader;
-  gpu.Shader? fragmentShader;
 
-  final Size quadExtents = Size(500, 500);
-
-  @override
   void init() {
-    super.init();
-
+    final Size quadExtents = Size(500, 500);
     VboFiller.makeTexturedUnitQuad(
       Rect.fromLTWH(
         -quadExtents.width / 2,
@@ -30,10 +28,25 @@ class CheckerBoardScene extends FskScene {
     );
 
     exampleVbo.uploadData();
-    vertexShader = FSK().shaderLibrary['CheckerBoardVertex']!;
-    fragmentShader = FSK().shaderLibrary['CheckerBoardFragment']!;
-    assert(vertexShader != null);
-    assert(fragmentShader != null);
+
+    // Create a pipeline key for this shader and associated settings
+    pipelineKey = PipelineKey(
+      vertShaderName: "CheckerBoardVertex",
+      fragShaderName: "CheckerBoardFragment",
+      depthTestEnabled: false,
+      depthWriteEnabled: false,
+      depthCompareOperation: gpu.CompareFunction.greater,
+      texturingEnabled: false,
+      blendEnabled: true,
+      srcColorFactor: gpu.BlendFactor.sourceAlpha,
+      dstColorFactor: gpu.BlendFactor.oneMinusSourceAlpha,
+      srcAlphaFactor: gpu.BlendFactor.one,
+      dstAlphaFactor: gpu.BlendFactor.oneMinusSourceAlpha,
+      colorBlendOp: gpu.BlendOperation.add,
+      alphaBlendOp: gpu.BlendOperation.add,
+      windingOrder: gpu.WindingOrder.counterClockwise,
+      cullMode: gpu.CullMode.none,
+    );
   }
 
   @override
@@ -41,18 +54,20 @@ class CheckerBoardScene extends FskScene {
 
   void drawVBO(gpu.RenderPass renderPass, Matrix4 pMatrix, Matrix4 mvMatrix) {
 
+    var pipeline = pipelineCache.activate(pipelineKey,renderPass,v3t2Layout);
+
     exampleVbo.bind(renderPass);
     CheckerBoardUniforms.setUniforms(
       renderPass: renderPass,
-      vertexShader: vertexShader!,
-      fragmentShader: fragmentShader!,
+      vertexShader: pipeline.vertexShader,
+      fragmentShader: pipeline.fragmentShader,
       pMatrix: pMatrix,
       mvMatrix: mvMatrix,
       patternColor1: Colors.red,
-      patternColor2: Colors.blue,
+      patternColor2: Colors.green,
       useTexture: false,
       textureMix: 0,
-      patternScale: 10,
+      patternScale: 5,
     );
 
     exampleVbo.drawTriangles(renderPass);
@@ -64,26 +79,8 @@ class CheckerBoardScene extends FskScene {
     // Call base class to setup scissor and viewport
     super.drawScene(renderPass, viewportSize);
 
-    renderPass.setCullMode(gpu.CullMode.none);
-    renderPass.setDepthWriteEnable(false); // Disables depth masking (setDepthMask false)
-    renderPass.setDepthCompareOperation(gpu.CompareFunction.always);
-    renderPass.setColorBlendEnable(true); // Enables alpha blending
-    renderPass.setColorBlendEquation(
-      gpu.ColorBlendEquation(
-        colorBlendOperation: gpu.BlendOperation.add,
-        sourceColorBlendFactor: gpu.BlendFactor.sourceAlpha,               // WebGL.SRC_ALPHA
-        destinationColorBlendFactor: gpu.BlendFactor.oneMinusSourceAlpha,  // WebGL.ONE_MINUS_SRC_ALPHA
-
-        alphaBlendOperation: gpu.BlendOperation.add,
-        sourceAlphaBlendFactor: gpu.BlendFactor.one,                       // WebGL.ONE
-        destinationAlphaBlendFactor: gpu.BlendFactor.oneMinusSourceAlpha, // WebGL.ONE_MINUS_SRC_ALPHA
-      ),
-    );
-
     withPushedMatrix(() {
       drawVBO(renderPass,pMatrix, mvMatrix);
     });
-
-    requestRepaint();
   }
 }

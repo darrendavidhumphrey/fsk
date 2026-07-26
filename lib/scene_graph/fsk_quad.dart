@@ -28,7 +28,7 @@ class FskQuad extends FskRenderableObject {
   bool get needsRebuild => _needsRebuild;
 
   /// The vertex buffer object that holds the geometry for rendering.
-  final VertexBuffer _vbo = VertexBuffer.v3t2();
+  final VertexBuffer _vbo = VertexBuffer();
 
   /// Sets a new text string and flags the text for a rebuild.
   void setTexture(String textureId) {

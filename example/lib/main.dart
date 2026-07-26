@@ -35,9 +35,8 @@ class TestAppState extends State<TestApp> {
   @override
   void initState() {
     super.initState();
-    print("Before FSK init");
-    FSK().init().then((bool) {
-      print("Inside then clause for FSK init (success = $bool)");
+
+    FSK().init().then((_) {
       checkerBoardScene = CheckerBoardScene(
         navigationDelegate: OrbitViewDelegate(),
       );

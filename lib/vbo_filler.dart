@@ -25,10 +25,6 @@ class VboFiller {
     }
   }
 
-  // Look for an EXACT match on flags for safety
-  void _checkExactAttributeMatch(VertexComponentFlags flags) {
-    assert (buffer.enabledComponents == VertexComponentFlags(flags.value));
-  }
 
   /// Adds a [Vector3] to the array.
   void _addV3(Vector3 vec) {
@@ -39,11 +35,6 @@ class VboFiller {
     array[_currentPosition++] = vec.z;
   }
 
-  /// Adds a [Color] to the array as four float components (R, G, B, A).
-  ///
-  /// Note: This assumes the [Color] object has `r`, `g`, `b`, and `a`
-  /// properties that return float values, which is not standard for `dart:ui.Color`.
-  /// A custom extension on [Color] may be in use.
   void _addC4(Color color) {
     _checkSpace(4);
     array[_currentPosition++] = color.r;
@@ -54,13 +45,12 @@ class VboFiller {
 
   /// Adds a [Vector3] for position and a [Color] to the array.
   void addV3C4(Vector3 vec, Color color) {
-   _checkExactAttributeMatch(VertexComponentFlags(VertexComponentFlags.position|VertexComponentFlags.color));
    _addV3(vec);
    _addC4(color);
   }
 
   /// Adds a [Vector2] to the array.
-  void _addV2(Vector2 vec) {
+  void _addT2(Vector2 vec) {
     _checkSpace(2);
     array[_currentPosition++] = vec.x;
     array[_currentPosition++] = vec.y;
@@ -68,25 +58,26 @@ class VboFiller {
 
   /// Adds a [Vector3] for position and a [Vector2] for texture coordinates.
   void addV3T2(Vector3 v3, Vector2 v2) {
-    _checkExactAttributeMatch(VertexComponentFlags(VertexComponentFlags.position|VertexComponentFlags.texCoord));
     _addV3(v3);
-    _addV2(v2);
+    _addT2(v2);
+
+    // Skip normal and color
+    _currentPosition += 7;
   }
 
   /// Adds a [Vector3] for position, a [Vector2] for texture coordinates, and a [Vector3] for the normal.
   void addV3T2N3(Vector3 v, Vector2 tc, Vector3 n) {
-    _checkExactAttributeMatch(VertexComponentFlags(VertexComponentFlags.position|VertexComponentFlags.texCoord|VertexComponentFlags.normal));
     _addV3(v);
-    _addV2(tc);
+    _addT2(tc);
     _addV3(n);
-
+    // Skip color
+    _currentPosition += 4;
   }
 
   /// Adds a [Vector3] for position, a [Vector2] for texture coordinates, a [Vector3] for the normal and a Color for the color.
   void addV3T2N3C4(Vector3 v, Vector2 tc, Vector3 n,Color c) {
-    _checkExactAttributeMatch(VertexComponentFlags(VertexComponentFlags.position|VertexComponentFlags.texCoord|VertexComponentFlags.normal|VertexComponentFlags.color));
     _addV3(v);
-    _addV2(tc);
+    _addT2(tc);
     _addV3(n);
     _addC4(c);
   }

@@ -65,7 +65,7 @@ class Mesh {
 /// based on the materials defined in the file.
 class WavefrontObjModel {
   /// The vertex buffer containing the unique, interleaved vertex data for the model.
-  final VertexBuffer vertexBuffer = VertexBuffer.v3t2n3();
+  final VertexBuffer vertexBuffer = VertexBuffer();
 
   /// A list of sub-meshes, each corresponding to a different material.
   List<Mesh> meshes = [];

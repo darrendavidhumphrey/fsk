@@ -112,7 +112,7 @@ class FskBitmapText extends FskRenderableObject {
   }
 
   /// The vertex buffer object that holds the geometry for rendering.
-  final VertexBuffer _vbo = VertexBuffer.v3t2();
+  final VertexBuffer _vbo = VertexBuffer();
 
   TextVerticalJustification _verticalJustification;
 

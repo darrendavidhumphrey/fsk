@@ -7,20 +7,23 @@ layout(location = 0) in vec2 vTextureCoord;
 layout(location = 0) out vec4 FragColor;
 
 // Uniform Block Block for configuration properties (Binding 0)
-// Every element follows strict std140 rule mapping (floats/vec4 align perfectly)
+// Pack configuration parameters into a single vec4 to guarantee memory alignment
 layout(std140, binding = 0) uniform FragmentUniforms {
-    vec4 uPatternColor1;
-    vec4 uPatternColor2;
-    float uUseTexture; // converted to float flag (0.0 = false, 1.0 = true)
-    float uTextureMix;
-    float uPatternScale;
+    vec4 uPatternColor1; // Offset 0  (Bytes 0-15)
+    vec4 uPatternColor2; // Offset 16 (Bytes 16-31)
+    vec4 uConfig;        // Offset 32 (Bytes 32-47)
+// uConfig.x = uUseTexture
+// uConfig.y = uTextureMix
+// uConfig.z = uPatternScale
+// uConfig.w = (unassigned padding)
 } fragUniforms;
 
 // Texture Sampler Resource Descriptor Slot (Binding 1)
 layout(binding = 1) uniform sampler2D uSampler;
 
 void main() {
-    vec2 tiledCoord = vTextureCoord * fragUniforms.uPatternScale;
+    // Read the pattern scale cleanly from the config vector's Z component
+    vec2 tiledCoord = vTextureCoord * fragUniforms.uConfig.z;
     vec2 fractionalCoord = fract(tiledCoord);
 
     // Check if the fractional part is less than 0.5 for each component
@@ -34,10 +37,11 @@ void main() {
         color = fragUniforms.uPatternColor2;
     }
 
-    // Evaluate if texture sampling flag is enabled (> 0.5 acts as a true assertion)
-    if (fragUniforms.uUseTexture > 0.5) {
+    // Read the texture toggle flag from the config vector's X component
+    if (fragUniforms.uConfig.x > 0.5) {
         vec4 texColor = texture(uSampler, vTextureCoord);
-        vec3 blendedRGB = mix(color.rgb, texColor.rgb, fragUniforms.uTextureMix);
+        // Read the texture mix percentage from the config vector's Y component
+        vec3 blendedRGB = mix(color.rgb, texColor.rgb, fragUniforms.uConfig.y);
         float alpha = texColor.a;
         FragColor = vec4(blendedRGB * alpha, alpha);
     } else {

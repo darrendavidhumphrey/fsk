@@ -56,35 +56,26 @@ class CheckerBoardUniforms {
 
   // =========================================================================
   // FRAGMENT UNIFORMS: Layout std140
-  // Structural order matching: vec4 c1, vec4 c2, float useTex, float mix, float scale
+  // Structural order matching: vec4 c1, vec4 c2, vec4 uConfig
   // =========================================================================
-  // Total float reservation calculation:
-  // vec4 (4) + vec4 (4) + float (1) + float (1) + float (1) = 11 floats.
-  // std140 structs must be rounded up to the nearest vec4 boundary (12 floats / 48 bytes).
-  final Float32List fragmentData = Float32List(12);
+  final Float32List fragmentData = Float32List(12); // Exactly 48 bytes (3 x vec4)
   int offset = 0;
 
-  // vec4 uPatternColor1 (16 bytes, Offset: 0)
+  // Block 1: vec4 uPatternColor1 (Offset: 0 bytes / float indices 0-3)
   offset = packColor(fragmentData, offset, patternColor1);
 
-  // vec4 uPatternColor2 (16 bytes, Offset: 16)
+  // Block 2: vec4 uPatternColor2 (Offset: 16 bytes / float indices 4-7)
   offset = packColor(fragmentData, offset, patternColor2);
 
-  // float uUseTexture (4 bytes, Offset: 32)
-  fragmentData[offset++] = useTexture ? 1.0 : 0.0;
-
-  // float uTextureMix (4 bytes, Offset: 36)
-  fragmentData[offset++] = textureMix.toDouble();
-
-  // float uPatternScale (4 bytes, Offset: 40)
-  fragmentData[offset++] = patternScale.toDouble();
-
-  // Final Explicit struct boundary padding alignment (4 bytes, Offset: 44)
-  fragmentData[offset++] = 0.0;
+  // Block 3: vec4 uConfig (Offset: 32 bytes / float indices 8-11)
+  fragmentData[8] = useTexture ? 1.0 : 0.0;  // maps to uConfig.x
+  fragmentData[9] = textureMix.toDouble();   // maps to uConfig.y
+  fragmentData[10] = patternScale.toDouble(); // maps to uConfig.z
+  fragmentData[11] = 0.0;                    // maps to uConfig.w (safety padding)
 
   // Emplace fragment byte data
   final gpu.BufferView fragmentBufferView = transients.emplace(
-  fragmentData.buffer.asByteData(),
+    fragmentData.buffer.asByteData(),
   );
 
   // Fetch the structural fragment configuration block slot and bind it

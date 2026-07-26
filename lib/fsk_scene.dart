@@ -1,7 +1,8 @@
 import 'package:flutter/material.dart' hide Matrix4;
 import 'package:flutter_gpu/gpu.dart' as gpu;
 import 'package:fsk/fsk.dart';
-import 'package:vector_math/vector_math.dart' show Matrix4;
+import 'package:fsk/gpu/gpu_pipeline_key.dart';
+import 'package:vector_math/vector_math.dart' show Matrix4,Vector4;
 
 /// An abstract base class for a 3D scene, representing the root of a scene graph.
 ///
@@ -27,9 +28,28 @@ abstract class FskScene with LoggableClass {
 
   FskSceneNavigationDelegate? navigationDelegate;
 
+  // Cache of rendering pipelines for this scene
+  final PipelineCache pipelineCache = PipelineCache();
+
+  // Render to texture for this scene
+  gpu.Texture? _texture;
+  gpu.Texture? get texture => _texture;
+
+  // Render target for this scene
+  gpu.RenderTarget? _renderTarget;
+  gpu.RenderTarget? get renderTarget => _renderTarget;
+
+  Color _clearColor = Color(0xFF000000);
+  Color get clearColor => _clearColor;
+  void setClearColor(Color color) {
+    _clearColor = color;
+    requestRepaint();
+  }
+
   /// Creates a new scene and its associated performance monitor.
   FskScene({this.navigationDelegate}) {
     navigationDelegate?.setScene(this);
+    mvMatrixStack.current = Matrix4.identity();
   }
 
   bool _needsUpdate = false;
@@ -43,20 +63,32 @@ abstract class FskScene with LoggableClass {
     navigationDelegate?.dispose();
   }
 
+
+  // Dynamic resize function called safely when the parent layout triggers bounds changes
+  void updateRenderTargetSize(int width, int height) {
+    if (width <= 0 || height <= 0) return;
+    if (viewportSize.width == width && viewportSize.height == height && _renderTarget != null) return;
+
+    _viewportSize = Size(width.toDouble(), height.toDouble());
+
+    // Allocate a brand new texture sized to match the physical container exactly
+    _texture = gpu.gpuContext.createTexture(
+      gpu.StorageMode.hostVisible, width,height);
+
+    if (_texture != null) {
+      Vector4 clearValue = Vector4(_clearColor.r, _clearColor.g, _clearColor.b, _clearColor.a);
+      _renderTarget = gpu.RenderTarget.singleColor(
+        gpu.ColorAttachment(texture: _texture!, clearValue: clearValue),
+      );
+    }
+  }
+
   /// Executes the provided [drawCommands] within a new, pushed matrix state.
   ///
   /// This is the safest way to apply hierarchical transformations, as it guarantees
   /// that the matrix state is restored even if an error occurs.
   void withPushedMatrix(void Function() drawCommands) {
     mvMatrixStack.withPushed(drawCommands);
-  }
-
-  /// Initializes the scene with the WebGL [RenderingContext].
-  /// This must be called before any drawing operations can occur.
-  void init() {
-    FSK().initContext();
-
-    mvMatrixStack.current = Matrix4.identity();
   }
 
   /// Sets the viewport size for the scene and all its layers.

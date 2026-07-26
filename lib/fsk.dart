@@ -1,6 +1,6 @@
-export 'angle/gpu_shader.dart';
-export 'angle/index_buffer.dart';
-export 'angle/vertex_buffer.dart';
+export 'gpu/gpu_shader.dart';
+export 'gpu/index_buffer.dart';
+export 'gpu/vertex_buffer.dart';
 
 export 'bitmap_fonts/bitmap_font.dart';
 export 'bitmap_fonts/bitmap_font_manager.dart';

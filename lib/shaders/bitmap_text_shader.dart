@@ -1,7 +1,6 @@
 import 'dart:ui';
 import 'package:flutter_gpu/gpu.dart' as gpu;
-import '../angle/gpu_shader.dart';
-import '../util.dart';
+import '../gpu/gpu_shader.dart';
 
 class BitmapTextShader extends GpuShader {
   static String uTextColor = "uTextColor";
