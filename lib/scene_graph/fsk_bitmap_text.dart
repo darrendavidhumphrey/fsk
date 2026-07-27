@@ -133,6 +133,7 @@ class FskBitmapText extends FskRenderableObject {
 
   /// Creates a [FskBitmapText] object.
   FskBitmapText(
+    super.parentScene,
     this._font,
     this._text,
     this._screenRect, {
@@ -146,7 +147,7 @@ class FskBitmapText extends FskRenderableObject {
     _height = _screenRect.yVector.length;
   }
 
-  FskBitmapText.origin({
+  FskBitmapText.origin(super.parentScene, {
     required this._text,
     required BitmapFont font,
     Vector3? origin,
@@ -182,8 +183,35 @@ class FskBitmapText extends FskRenderableObject {
     }
   }
 
+  bool _pipeLineNeedsRebuild = true;
+  void rebuildPipelineIfNeeded() {
+   if (!_pipeLineNeedsRebuild) return;
+    // TODO: Pass this in from the frame node. Combination of using a factory and setting based on object settings
+    // Create a pipeline key for this shader and associated settings
+    pipelineKey = PipelineKey(
+      vertShaderName: "BitmapTextVertex",
+      fragShaderName: "BitmapTextFragment",
+      depthTestEnabled: false,
+      depthWriteEnabled: false,
+      depthCompareOperation: gpu.CompareFunction.always,
+      texturingEnabled: true,
+      blendEnabled: true,
+      srcColorFactor: gpu.BlendFactor.sourceAlpha,
+      dstColorFactor: gpu.BlendFactor.oneMinusSourceAlpha,
+      srcAlphaFactor: gpu.BlendFactor.one,
+      dstAlphaFactor: gpu.BlendFactor.oneMinusSourceAlpha,
+      colorBlendOp: gpu.BlendOperation.add,
+      alphaBlendOp: gpu.BlendOperation.add,
+      windingOrder: gpu.WindingOrder.counterClockwise,
+      cullMode: gpu.CullMode.none,
+    );
+
+    uniforms = TextShaderUniforms(vertexShader: pipelineKey!.vertShader, fragmentShader: pipelineKey!.fragShader);
+    _pipeLineNeedsRebuild = false;
+  }
+
+
   /// Disposes the vertex buffer associated with this text.
-  @override
   void dispose() {
     _vbo.dispose();
   }
@@ -193,6 +221,7 @@ class FskBitmapText extends FskRenderableObject {
     if (_font != font) {
       _font = font;
       _needsRebuild = true;
+      _pipeLineNeedsRebuild = true;
     }
   }
 
@@ -208,14 +237,9 @@ class FskBitmapText extends FskRenderableObject {
     }
   }
 
-  @override
-  void init() {
-    rebuild();
-  }
-
   /// Rebuilds the vertex buffer object if the text or font has changed.
   @override
-  void rebuild() {
+  void rebuildIfNeeded() {
     // Guard against unnecessary, expensive rebuilds.
     if (!_needsRebuild) return;
 
@@ -367,188 +391,25 @@ class FskBitmapText extends FskRenderableObject {
     }
   }
 
-
-  /// Rebuilds the list of geometry and texture quads for the current text string.
-  void rebuildQuadsOld() {
-    if ((text.isEmpty) || (font == null)) {
-      quads = [];
-      textureQuads = [];
-      return;
-    }
-
-    // --- Pass 1: Gather layout information and calculate total width ---
-    final layoutData = <({CharInfo char, double kerning})>[];
-    double lineLength = 0;
-
-    for (int i = 0; i < _text.length; i++) {
-      final charInfo = _font!.chars[_text[i]];
-      if (charInfo == null) continue;
-
-      double kerning = 0.0;
-      if ((i + 1) < _text.length) {
-        kerning = _font!.kerningForPair(
-          _text.codeUnitAt(i),
-          _text.codeUnitAt(i + 1),
-        );
-      }
-      layoutData.add((char: charInfo, kerning: kerning));
-      lineLength += charInfo.xAdvance + kerning;
-    }
-
-    // Nothing to render
-    if (lineLength == 0) {
-      return;
-    }
-
-    // --- Pass 2: Pre-allocate lists and generate scaled quads ---
-    final characterCount = layoutData.length;
-    quads = List<Quad>.filled(characterCount, Quad());
-    textureQuads = List<Rect>.filled(characterCount, Rect.zero);
-
-    // Calculate the ratio needed to fit or size the text horizontally
-    double ratio = (lineLength > 0) ? _width / lineLength : 1.0;
-
-    // Don't let characters get bigger than the box
-    ratio = min(1.0, ratio);
-
-    // --- Pass 3: Horizontal Justification (Calculated in Pure Unscaled Font Space) ---
-    // Bring target width into unscaled font space to prevent drift on small ratios
-
-    final double unscaledBoxWidth = _width / ratio;
-    double currentX = 0.0;
-
-    switch (horizontalJustification) {
-      case TextHorizontalJustification.left:
-        // Text starts flush at X = 0
-        currentX = 0.0;
-        break;
-      case TextHorizontalJustification.center:
-        // Centers the line block cleanly within the unscaled virtual width
-        currentX = (unscaledBoxWidth - lineLength) / 2;
-        break;
-      case TextHorizontalJustification.right:
-        // Pushes the entire line layout flush against the right container wall
-        currentX = unscaledBoxWidth - lineLength;
-        break;
-    }
-
-    // --- Pass 4: Vertical Justification (Calculated in Pure Unscaled Font Space) ---
-    final double boxHeight = _screenRect.yVector.length;
-    final double unscaledLineHeight = _font!.lineHeight.toDouble();
-
-    // Map the box height into unscaled font space using the ratio
-    final double unscaledBoxHeight = boxHeight / ratio;
-    double unscaledVAdjust = 0.0;
-
-    switch (verticalJustification) {
-      case TextVerticalJustification.top:
-        // Pushes the line block to the top ceiling edge of the container box
-        unscaledVAdjust = unscaledBoxHeight - unscaledLineHeight;
-        break;
-      case TextVerticalJustification.center:
-        // Centers the line block cleanly within the unscaled virtual container height
-        unscaledVAdjust = (unscaledBoxHeight - unscaledLineHeight) / 2;
-        break;
-      case TextVerticalJustification.bottom:
-        // Anchors the line block directly to the floor of the box (Y = 0)
-        unscaledVAdjust = 0.0;
-        break;
-    }
-
-    // --- Pass 5: Quad Construction Loop ---
-    for (int i = 0; i < characterCount; i++) {
-      final data = layoutData[i];
-      final charInfo = data.char;
-      final kerning = data.kerning;
-
-      // Horizontal boundaries (unscaled)
-      final left = currentX;
-      final right = left + charInfo.region.width;
-
-      // Vertical boundaries (calculated entirely in unscaled space)
-      // Top of our glyph is the line cell start + cell height - font yOffset
-      double qTop = (unscaledVAdjust + unscaledLineHeight) - charInfo.yOffset;
-
-      // The bottom of the glyph is physically below qTop, so we subtract the visual height
-      double qBottom = qTop - charInfo.region.height;
-
-      // Keep points configured for Y-up projection context
-      final unscaledQuad = Quad.points(
-        Vector3(left, qBottom, 0), // Bottom-left
-        Vector3(right, qBottom, 0), // Bottom-right
-        Vector3(right, qTop, 0), // Top-right
-        Vector3(left, qTop, 0), // Top-left
-      );
-
-      // Uniformly scale the 2D coordinates using the ratio multiplier
-      final blc = Vector2(
-        unscaledQuad.point0.x * ratio,
-        unscaledQuad.point0.y * ratio,
-      );
-      final trc = Vector2(
-        unscaledQuad.point2.x * ratio,
-        unscaledQuad.point2.y * ratio,
-      );
-
-      // Transform the 2D scaled quad into the 3D space of the reference box
-      quads[i] = _screenRect.calcQuadFrom2DVectors(blc, trc);
-
-      // Calculate standard normalized texture coordinates from the font atlas region
-      final tLeft = charInfo.region.left / _font!.scaleW;
-      final tTop = charInfo.region.top / _font!.scaleH;
-      final tRight =
-          (charInfo.region.left + charInfo.region.width) / _font!.scaleW;
-      final tBottom =
-          (charInfo.region.top + charInfo.region.height) / _font!.scaleH;
-      textureQuads[i] = Rect.fromLTRB(tLeft, tTop, tRight, tBottom);
-
-      // Advance the cursor position for the next character
-      currentX += charInfo.xAdvance + kerning;
-    }
-  }
-
   @override
-  void drawSetup(gpu.RenderPass renderPass,Matrix4 pMatrix, Matrix4 mvMatrix) {
-    if (font == null)  return;
+  void draw(gpu.RenderPass renderPass,Matrix4 pMatrix, Matrix4 mvMatrix) {
+   if ((font == null) || (!font!.isInitialized) ) return;
+    rebuildPipelineIfNeeded();
+    rebuildIfNeeded();
 
-    /*
-    // TODO: bind the shader and set the uniforms
+    parentScene.pipelineCache.activate(pipelineKey!,renderPass,v3t2Layout);
+    _vbo.bind(renderPass);
 
-    gls.useProgram(shader!.program);
-    shader!.setMatrixUniforms(pMatrix, mvMatrix);
-    _textColorUniformValue?.value = _textColor;
-    applyShaderParams();
+    if (uniforms case TextShaderUniforms texUniforms) {
+      texUniforms.texture = font!.textureInfo!.texture;
+      texUniforms.textColor = _textColor;
+      texUniforms.mvMatrix = mvMatrix.clone();
+      texUniforms.pMatrix = pMatrix.clone();
+      texUniforms.bind(renderPass);
+    } else {
+      assert(false, "Unexpected uniforms type in FskBitmapText -- Not implemented");
+    }
 
-    gls.setBlend(true);
-    gls.setTexturingEnabled(true);
-    gls.activeTexture(WebGL.TEXTURE0);
-    gls.setDepthTest(false);
-
-    shader!.setTextureSampler(0);
-
-    gls.blendFuncSeparate(
-      WebGL.ONE,
-      WebGL.ONE_MINUS_SRC_ALPHA,
-      WebGL.ONE,
-      WebGL.ONE_MINUS_SRC_ALPHA,
-    );
-
-     */
-  }
-
-  @override
-  void draw(gpu.RenderPass renderPass) {
-    if ((font == null) || (!font!.isInitialized) ) return;
-
-    // TODO: TEST FORCE always rebuild
-    rebuild();
-
-/*
-    gls.bindTexture(WebGL.TEXTURE_2D, font!.textureInfo!.texture);
-
-    _vbo.bind();
-    _vbo.drawTriangles();
-
- */
+    _vbo.drawTriangles(renderPass);
   }
 }

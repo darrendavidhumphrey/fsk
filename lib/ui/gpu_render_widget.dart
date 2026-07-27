@@ -91,7 +91,8 @@ class FskScenePainter extends CustomPainter {
     final commandBuffer = gpu.gpuContext.createCommandBuffer();
     final renderPass = commandBuffer.createRenderPass(scene.renderTarget!);
 
-    scene.drawScene(renderPass,size);
+    scene.viewportSize = size;
+    scene.drawScene(renderPass);
 
     finishFrame(commandBuffer, scene.renderTarget!);
     blitImage(canvas, size, scene.texture!);

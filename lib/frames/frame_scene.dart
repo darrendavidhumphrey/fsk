@@ -14,10 +14,6 @@ class FrameScene extends FskScene {
 
   FrameScene({super.navigationDelegate});
 
-  // Stub: Override this to perform an action as soon as the scene is ready
-  // For example, mapping named nodes to objects
-  void onSceneReady() {}
-
   set frameData(FrameData? value) {
     _frameData = value;
     buildScene();
@@ -69,27 +65,20 @@ class FrameScene extends FskScene {
 
     // 3. Build node tree
     for (var objData in _frameData!.objects) {
-      final node = _createNode(objData);
+      final node = _createNode(
+          objData);
       if (node != null) {
         rootNodes.add(node);
       }
     }
     logVerbose("Done building tree");
-    // 4. Initialize nodes
-    for (var node in rootNodes) {
-      node.init();
-    }
-    logVerbose("Done initializing tree");
     _sceneIsReady = true;
-
-    // Allow derived class to call custom initialization
-    onSceneReady();
   }
 
   FrameNode? _createNode(FrameObjectData objData) {
     FrameNode? node;
     if (objData is GroupData) {
-      final groupNode = FrameGroupNode(objData);
+      final groupNode = FrameGroupNode(this,objData);
       for (var childData in objData.children) {
         final childNode = _createNode(childData);
         if (childNode != null) {
@@ -98,9 +87,9 @@ class FrameScene extends FskScene {
       }
       node = groupNode;
     } else if (objData is QuadData) {
-      node = FrameQuadNode(objData);
+      node = FrameQuadNode(this,objData);
     } else if (objData is FrameTextData) {
-      node = FrameTextNode(objData);
+      node = FrameTextNode(this,objData);
     }
 
     if (node != null) {
@@ -110,22 +99,10 @@ class FrameScene extends FskScene {
   }
 
   @override
-  void drawScene(gpu.RenderPass renderPass,Size viewportSize) {
-    super.drawScene(renderPass,viewportSize);
-    super.setupScissor(renderPass,viewportSize);
+  void drawScene(gpu.RenderPass renderPass) {
+    if (!sceneIsReady) return;
 
-    renderPass.setColorBlendEnable(true); // Enable alpha blending
-    renderPass.setColorBlendEquation(
-      gpu.ColorBlendEquation(
-        colorBlendOperation: gpu.BlendOperation.add,
-        sourceColorBlendFactor: gpu.BlendFactor.sourceAlpha,        // WebGL.SRC_ALPHA
-        destinationColorBlendFactor: gpu.BlendFactor.oneMinusSourceAlpha, // WebGL.ONE_MINUS_SRC_ALPHA
-        alphaBlendOperation: gpu.BlendOperation.add,
-        sourceAlphaBlendFactor: gpu.BlendFactor.sourceAlpha,       // WebGL.SRC_ALPHA
-        destinationAlphaBlendFactor: gpu.BlendFactor.oneMinusSourceAlpha, // WebGL.ONE_MINUS_SRC_ALPHA
-      ),
-    );
-
+    super.setupScissor(renderPass);
 
     mvMatrixStack.current = mvMatrix;
 

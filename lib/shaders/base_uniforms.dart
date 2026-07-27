@@ -3,6 +3,8 @@ import 'dart:ui';
 import 'package:flutter_gpu/gpu.dart' as gpu;
 import 'package:vector_math/vector_math.dart';
 
+import '../fsk_singleton.dart';
+
 abstract class BaseUniforms {
   final gpu.Shader? vertexShader;
   final gpu.Shader? fragmentShader;
@@ -10,6 +12,12 @@ abstract class BaseUniforms {
   // Shared Vertex Uniform State
   Matrix4 mvMatrix = Matrix4.identity();
   Matrix4 pMatrix = Matrix4.identity();
+
+  gpu.Texture? _texture;
+  String get samplerUniformName => 'uSampler';
+  bool get hasSampler => false;
+
+  String get fragmentBlockName => 'FragmentUniforms';
 
   // Unified string-accessible data registry
   final Map<String, dynamic> _values = {};
@@ -19,6 +27,8 @@ abstract class BaseUniforms {
   // Dynamic index operator for loose key-value lookup: uniforms['myProperty']
   dynamic operator [](String key) => _values[key];
   void operator []=(String key, dynamic value) => _values[key] = value;
+
+  set texture(gpu.Texture? val) => _texture = val;
 
   /// Utility method to pack a Flutter color safely into a float array
   int packColor(Float32List targetList, int offset, Color color) {
@@ -37,7 +47,9 @@ abstract class BaseUniforms {
   /// and custom subclass fragment structures in a single step.
   void bind(gpu.RenderPass renderPass) {
     if (vertexShader == null || fragmentShader == null) {
-      throw StateError('Cannot set uniforms: Vertex and Fragment shaders must be assigned.');
+      throw StateError(
+        'Cannot set uniforms: Vertex and Fragment shaders must be assigned.',
+      );
     }
 
     final gpu.HostBuffer transients = gpu.gpuContext.createHostBuffer();
@@ -49,16 +61,32 @@ abstract class BaseUniforms {
     vertexData.setAll(0, mvMatrix.storage);
     vertexData.setAll(16, pMatrix.storage);
 
-    final gpu.BufferView vertexBufferView = transients.emplace(vertexData.buffer.asByteData());
-    final gpu.UniformSlot vertexSlot = vertexShader!.getUniformSlot('VertexUniforms');
+    final gpu.BufferView vertexBufferView = transients.emplace(
+      vertexData.buffer.asByteData(),
+    );
+    final gpu.UniformSlot vertexSlot = vertexShader!.getUniformSlot(
+      'VertexUniforms',
+    );
     renderPass.bindUniform(vertexSlot, vertexBufferView);
 
     // =========================================================================
     // 2. DYNAMIC SUBCLASS FRAGMENT WRITER
     // =========================================================================
     final Float32List fragmentData = serializeFragmentData();
-    final gpu.BufferView fragmentBufferView = transients.emplace(fragmentData.buffer.asByteData());
-    final gpu.UniformSlot fragmentSlot = fragmentShader!.getUniformSlot('FragmentUniforms');
+    final gpu.BufferView fragmentBufferView = transients.emplace(
+      fragmentData.buffer.asByteData(),
+    );
+    final gpu.UniformSlot fragmentSlot = fragmentShader!.getUniformSlot(fragmentBlockName);
     renderPass.bindUniform(fragmentSlot, fragmentBufferView);
+
+    if (hasSampler) {
+      final gpu.UniformSlot textureSlot = fragmentShader!.getUniformSlot(
+        samplerUniformName,
+      );
+
+      final gpu.Texture textureToBind =
+          _texture ?? FSK().textureManager.dummyTexture!;
+      renderPass.bindTexture(textureSlot, textureToBind);
+    }
   }
 }

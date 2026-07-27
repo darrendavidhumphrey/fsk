@@ -18,10 +18,49 @@ class FskQuad extends FskRenderableObject {
   // Pointer to the texture in the texture manager
   FskTextureInfo? _textureInfo;
 
-  bool _needsRebuild = true;
+  bool _premultiplyAlpha = true;
+  bool get premultiplyAlpha => _premultiplyAlpha;
 
-  FskQuad(this._quad, this._textureRect,this._textureId) {
-    _textureInfo = FSK().textureManager.getTextureInfo(_textureId);
+  set premultiplyAlpha(bool value) {
+    _premultiplyAlpha = value;
+    _pipeLineNeedsRebuild = true;
+  }
+
+  bool _needsRebuild = true;
+  bool _pipeLineNeedsRebuild = true;
+  void rebuildPipelineIfNeeded() {
+   if (!_pipeLineNeedsRebuild) return;
+
+    pipelineKey = PipelineKey(
+      vertShaderName: "SimpleTextureVertex",
+      fragShaderName: "SimpleTextureFragment",
+      depthTestEnabled: false,
+      depthWriteEnabled: false,
+      depthCompareOperation: gpu.CompareFunction.always,
+      texturingEnabled: true,
+      blendEnabled: true,
+      srcColorFactor: _premultiplyAlpha
+          ? gpu.BlendFactor.one
+          : gpu.BlendFactor.sourceAlpha,
+      dstColorFactor: gpu.BlendFactor.oneMinusSourceAlpha,
+      srcAlphaFactor: gpu.BlendFactor.one,
+      dstAlphaFactor: gpu.BlendFactor.oneMinusSourceAlpha,
+      colorBlendOp: gpu.BlendOperation.add,
+      alphaBlendOp: gpu.BlendOperation.add,
+      windingOrder: gpu.WindingOrder.counterClockwise,
+      cullMode: gpu.CullMode.none,
+    );
+
+    uniforms = SimpleTextureUniforms(
+      vertexShader: pipelineKey!.vertShader,
+      fragmentShader: pipelineKey!.fragShader,
+    );
+    _pipeLineNeedsRebuild = false;
+  }
+
+  FskQuad(super.parentScene, this._quad, this._textureRect, this._textureId) {
+    setTexture(_textureId);
+    // TODO: Somehow choose the shader and pass in the uniform strings from the xml
   }
 
   /// A flag indicating if the text geometry needs to be recalculated.
@@ -34,53 +73,46 @@ class FskQuad extends FskRenderableObject {
   void setTexture(String textureId) {
     _textureId = textureId;
     _textureInfo = FSK().textureManager.getTextureInfo(_textureId);
+    _pipeLineNeedsRebuild = true;
+  }
+
+  Color _modulateColor = const Color(0xFFFFFFFF);
+  Color get modulateColor => _modulateColor;
+  set modulateColor(Color value) {
+    _modulateColor = value;
+    _needsRebuild = true;
   }
 
   /// Rebuilds the vertex buffer object if the text or font has changed.
   @override
-  void rebuild() {
+  void rebuildIfNeeded() {
     // Guard against unnecessary, expensive rebuilds.
     if (!_needsRebuild) return;
 
-    VboFiller.makeTexturedQuad(_quad, _textureRect,_vbo);
+    VboFiller.makeTexturedQuad(_quad, _textureRect, _vbo);
     _needsRebuild = false;
   }
 
-
   @override
-  void drawSetup(gpu.RenderPass renderPass,Matrix4 pMatrix, Matrix4 mvMatrix) {
-    if (_textureInfo == null)  return;
-/*
-    gls.useProgram(shader!.program);
-    shader!.setMatrixUniforms(pMatrix, mvMatrix);
+  void draw(gpu.RenderPass renderPass, Matrix4 pMatrix, Matrix4 mvMatrix) {
 
+    rebuildPipelineIfNeeded();
+    rebuildIfNeeded();
 
-    applyShaderParams();
-    gls.setBlend(true);
-    gls.setTexturingEnabled(true);
-    gls.activeTexture(WebGL.TEXTURE0);
-    gls.setDepthTest(false);
+    parentScene.pipelineCache.activate(pipelineKey!, renderPass, v3t2Layout );
 
-    gls.blendFuncSeparate(
-      WebGL.ONE,
-      WebGL.ONE_MINUS_SRC_ALPHA,
-      WebGL.ONE,
-      WebGL.ONE_MINUS_SRC_ALPHA,
-    );
-    shader!.setTextureSampler(0);
-
- */
-  }
-
-  @override
-  void draw(gpu.RenderPass renderPass) {
-    if (_textureInfo == null)  return;
-/*
-    gls.bindTexture(WebGL.TEXTURE_2D, _textureInfo!.texture);
-
+    _vbo.uploadData();
     _vbo.bind(renderPass);
-    _vbo.drawTriangles(renderPass);
 
- */
+    if (uniforms case SimpleTextureUniforms texUniforms) {
+      texUniforms.texture = _textureInfo?.texture;
+      texUniforms.setModulateColor(_modulateColor);
+      texUniforms.mvMatrix = mvMatrix.clone();
+      texUniforms.pMatrix = pMatrix.clone();
+      texUniforms.bind(renderPass);
+    } else {
+      assert(false, "Unexpected uniforms type in FskQuad -- Not implemented");
+    }
+    _vbo.drawTriangles(renderPass);
   }
 }

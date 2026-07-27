@@ -1,54 +1,44 @@
-// TODO: Implement this
-/*
+import 'package:flutter/material.dart';
+import 'package:flutter_gpu/gpu.dart' as gpu;
 import 'package:fsk/fsk.dart';
 
 class BitmapTextScene extends FrameScene {
-  BitmapTextScene({super.navigationDelegate});
 
   FrameTextNode? frameCountText;
   FrameTextNode? sourceCode1, sourceCode2, sourceCode3;
+  FrameQuadNode? penelope;
+  BitmapTextScene({super.navigationDelegate}) {
+    // Load skin file
+    String skinPath = "frames/example4.xml";
+
+    clearColor = Colors.green;
+
+    loadSkin(skinPath).then((_) {
+      frameCountText ??= findNodeByType<FrameTextNode>("Text1");
+      sourceCode1 ??= findNodeByType<FrameTextNode>("sourceCode1");
+      sourceCode2 ??= findNodeByType<FrameTextNode>("sourceCode2");
+      sourceCode3 ??= findNodeByType<FrameTextNode>("sourceCode3");
+
+      penelope ??= findNodeByType<FrameQuadNode>("penelope");
+      penelope?.object!.modulateColor = Colors.red;
+
+      sourceCode1?.object!.setText("01234");
+      sourceCode2?.object!.setText("01234");
+      sourceCode3?.object!.setText("01234");
+    });
+  }
+
+
 
   @override
   void dispose() {}
 
   @override
-  void init() {
-    // Load text objects from skin file
-    String skinPath = "frames/example4.xml";
-    super.init(gl);
-
-    loadSkin(skinPath);
-  }
-
-  @override
-  void onSceneReady() {
-    drawScene();
-    frameCountText ??= findNodeByType<FrameTextNode>("Text1");
-    sourceCode1 ??= findNodeByType<FrameTextNode>("sourceCode1");
-    sourceCode2 ??= findNodeByType<FrameTextNode>("sourceCode2");
-    sourceCode3 ??= findNodeByType<FrameTextNode>("sourceCode3");
-
-    sourceCode1?.object!.setText("01234");
-    sourceCode2?.object!.setText("01234");
-    sourceCode3?.object!.setText("01234");
-  }
-
-  @override
-  void drawScene() async {
+  void drawScene(gpu.RenderPass renderPass) {
     if (!skinLoaded) {
-      requestRepaint();
       return;
     }
 
-    gls.clearColor(0,1,0,1);
-    // Access text object by ID in skin file
-    frameCountText?.object!.setText("$frameCounter");
-
-    super.drawScene();
-    requestRepaint();
+    super.drawScene(renderPass);
   }
-
 }
-
-
- */

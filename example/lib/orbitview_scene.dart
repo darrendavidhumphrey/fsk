@@ -73,21 +73,17 @@ class OrbitViewScene extends FskScene {
 
     exampleVbo.bind(renderPass);
 
-    uniforms!.mvMatrix = mvMatrix;
-    uniforms!.pMatrix = pMatrix;
+    uniforms!.mvMatrix = mvMatrix.clone();
+    uniforms!.pMatrix = pMatrix.clone();
     uniforms!.bind(renderPass);
 
     exampleVbo.drawTriangles(renderPass);
   }
 
   @override
-  void drawScene(gpu.RenderPass renderPass, Size viewportSize) async {
-    super.drawScene(renderPass, viewportSize);
+  void drawScene(gpu.RenderPass renderPass) async {
     // Scissor and viewport
-    setupScissor(renderPass, viewportSize);
-
-    withPushedMatrix(() {
-      drawVBO(renderPass,pMatrix, mvMatrix);
-    });
+    setupScissor(renderPass);
+    drawVBO(renderPass,pMatrix, mvMatrix);
   }
 }

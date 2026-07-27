@@ -83,4 +83,19 @@ class VertexBuffer {
     _deviceBuffer = null;
     vertexData = null;
   }
+
+  void printVertices() {
+    print("Printing vertices:");
+    if (vertexData == null) return;
+    for (int i = 0; i < _activeVertexCount; i++) {
+      final int offset = i * _componentCount;
+      final double x = vertexData![offset];
+      final double y = vertexData![offset + 1];
+      final double z = vertexData![offset + 2];
+      final double t1 = vertexData![offset + 3];
+      final double t2 = vertexData![offset + 4];
+
+      print('Vertex $i: ($x, $y, $z), texture coords($t1, $t2)');
+    }
+  }
 }

@@ -1,6 +1,5 @@
 import 'dart:typed_data';
 import 'dart:ui';
-import 'package:flutter_gpu/gpu.dart' as gpu;
 import 'base_uniforms.dart';
 
 class CheckerBoardUniforms extends BaseUniforms {
@@ -10,7 +9,6 @@ class CheckerBoardUniforms extends BaseUniforms {
   static const String _kUseTextureKey = 'useTexture';
   static const String _kTextureMixKey = 'textureMix';
   static const String _kPatternScaleKey = 'patternScale';
-  static const String _kSamplerUniformName = 'uSampler';
 
   // --- Default Layout Value Constants ---
   static const Color _kDefaultPatternColor1 = Color(0xFFFFFFFF);
@@ -30,8 +28,8 @@ class CheckerBoardUniforms extends BaseUniforms {
   static const double _kBooleanFalseValue = 0.0;
   static const double _kPaddingValue = 0.0;
 
-  // --- Texture State ---
-  gpu.Texture? _texture;
+  @override
+  bool get hasSampler => true;
 
   CheckerBoardUniforms({super.vertexShader, super.fragmentShader}) {
     // Establish initialization values inside the string data store
@@ -48,7 +46,6 @@ class CheckerBoardUniforms extends BaseUniforms {
   set useTexture(bool val) => this[_kUseTextureKey] = val;
   set textureMix(double val) => this[_kTextureMixKey] = val;
   set patternScale(double val) => this[_kPatternScaleKey] = val;
-  set texture(gpu.Texture? val) => _texture = val;
 
   @override
   Float32List serializeFragmentData() {
@@ -66,18 +63,5 @@ class CheckerBoardUniforms extends BaseUniforms {
     fragmentData[_kPaddingBufferIndex] = _kPaddingValue; // Struct alignment padding
 
     return fragmentData;
-  }
-
-  /// Extends the base bind pass to handle the texture binding step.
-  @override
-  void bind(gpu.RenderPass renderPass) {
-    // 1. Run the base routine to bind Vertex matrices and block configurations
-    super.bind(renderPass);
-
-    // 2. Safely look up and bind the texture sampling asset
-    if (_texture != null && fragmentShader != null) {
-      final gpu.UniformSlot textureSlot = fragmentShader!.getUniformSlot(_kSamplerUniformName);
-      renderPass.bindTexture(textureSlot, _texture!);
-    }
   }
 }

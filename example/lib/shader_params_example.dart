@@ -18,7 +18,6 @@ class ShaderParamsExample extends FrameScene {
 
   @override
   void onSceneReady() {
-    super.onSceneReady();
     modulateUniform = findObjectUniform("PenelopeModulate","uModulateColor");
 
     var text1Node = findNodeByType<FrameTextNode>("Text1");

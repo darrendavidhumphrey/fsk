@@ -24,6 +24,10 @@ abstract class FskScene with LoggableClass {
   /// The current size of the viewport.
   Size _viewportSize = Size.zero;
   Size get viewportSize => _viewportSize;
+  set viewportSize(Size value) {
+    _viewportSize = value;
+    requestRepaint();
+  }
 
   FskSceneNavigationDelegate? navigationDelegate;
 
@@ -95,22 +99,12 @@ abstract class FskScene with LoggableClass {
     navigationDelegate?.updateSceneMatrices(force: true);
   }
 
-  /// Executes the provided [drawCommands] within a new, pushed matrix state.
-  ///
-  /// This is the safest way to apply hierarchical transformations, as it guarantees
-  /// that the matrix state is restored even if an error occurs.
-  void withPushedMatrix(void Function() drawCommands) {
-    mvMatrixStack.withPushed(drawCommands);
-  }
-
   /// The core drawing logic to be implemented by subclasses.
   /// This method is called within the rendering loop when a repaint is needed
-  @mustCallSuper
-  void drawScene(gpu.RenderPass renderPass, Size viewportSize) async {
-    navigationDelegate?.updateSceneMatrices();
-  }
+  void drawScene(gpu.RenderPass renderPass);
 
-  void setupScissor(gpu.RenderPass renderPass, Size viewportSize) {
+  void setupScissor(gpu.RenderPass renderPass) {
+    navigationDelegate?.updateSceneMatrices();
     // 1. Set up the Scissor box
     renderPass.setScissor(
       gpu.Scissor(

@@ -21,7 +21,17 @@ class FskTextureManager {
 
   static String assetsRoot = "assets/";
 
-  FskTextureManager();
+  gpu.Texture? _dummyTexture;
+  gpu.Texture? get dummyTexture => _dummyTexture;
+
+  FskTextureManager() {
+    _dummyTexture = gpu.gpuContext.createTexture(
+      gpu.StorageMode.hostVisible,
+      1,
+      1,
+      format: gpu.PixelFormat.r8g8b8a8UNormInt,
+    );
+  }
 
   void dump() {
     _textures.forEach((id, textureInfo) {
@@ -78,6 +88,9 @@ class FskTextureManager {
         uiImage.height,
         format: gpu.PixelFormat.r8g8b8a8UNormInt,
       );
+
+      // Actually upload the texture to the GPU!
+      allocatedTexture.overwrite(byteData);
       textureInfo.texture = allocatedTexture;
 
       textureInfo.isLoaded = textureInfo.texture != null;

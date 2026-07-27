@@ -7,6 +7,7 @@ import 'package:fsk_examples/orbitview_scene.dart';
 import 'package:fsk_examples/positioned_title_bar.dart';
 
 import 'animated_checkerboard_scene.dart';
+import 'bitmap_text_scene.dart';
 
 void main() async {
   Logging.brevity = Brevity.detailed;
@@ -34,7 +35,8 @@ class TestAppState extends State<TestApp> {
   final List<String> menuLabels = [
     "Checkerboard (Ortho View)",
     "Animated Checkerboard (Perspective View)",
-    "OrbitView (Grid Shader)"
+    "OrbitView (Grid Shader)",
+    "Bitmap Text (Ortho View)"
   ];
   final List<FskScene> scenes = [];
 
@@ -43,6 +45,7 @@ class TestAppState extends State<TestApp> {
     scenes.add(CheckerBoardScene(navigationDelegate: OrthoViewDelegate()));
     scenes.add(AnimatedCheckerBoardScene(navigationDelegate: StaticViewDelegate()));
     scenes.add(OrbitViewScene(navigationDelegate: OrbitViewDelegate()));
+    scenes.add(BitmapTextScene(navigationDelegate: OrthoViewDelegate()));
   }
 
   @override
@@ -87,7 +90,7 @@ class TestAppState extends State<TestApp> {
           height: constraints.maxHeight,
           child: MaterialApp(
             title: 'FSK Examples',
-            showPerformanceOverlay: true,
+            //showPerformanceOverlay: true,
             home: Scaffold(
               backgroundColor: kIsWeb ? Colors.transparent : null,
               body: Stack(
