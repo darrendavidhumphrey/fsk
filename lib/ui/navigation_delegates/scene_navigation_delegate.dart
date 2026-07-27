@@ -30,7 +30,9 @@ abstract class FskSceneNavigationDelegate {
   void setNeedsUpdate(bool value) {
     _needsUpdate = value;
     if (_needsUpdate) {
-      scene.requestRepaint();
+
+      // TODO: Need a better way to wire this into the GpuRenderWidget animator
+      // scene.requestRepaint();
     }
   }
 

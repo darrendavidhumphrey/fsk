@@ -34,11 +34,11 @@ class BitmapTextScene extends FrameScene {
   void dispose() {}
 
   @override
-  void drawScene(gpu.RenderPass renderPass) {
+  void drawScene(gpu.RenderPass renderPass,gpu.HostBuffer transients) {
     if (!skinLoaded) {
       return;
     }
 
-    super.drawScene(renderPass);
+    super.drawScene(renderPass,transients);
   }
 }

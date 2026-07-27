@@ -131,8 +131,8 @@ class WavefrontObjModel {
     // --- MAIN PARSING PASS ---
 
     // Allocate the vertex buffer with the final, correct size.
-    final vboData = vertexBuffer.requestBuffer(uniqueVertexMap.length)!;
-    final filler = VboFiller(vboData,vertexBuffer);
+    vertexBuffer.requestBuffer(uniqueVertexMap.length)!;
+    final filler = VboFiller(vertexBuffer);
 
     // Reset state for the main parsing pass.
     uniqueVertexMap.clear();
@@ -193,7 +193,6 @@ class WavefrontObjModel {
     }
 
     _finalizeCurrentMesh(); // Finalize the last mesh in the file
-    vertexBuffer.setActiveVertexCount(uniqueVertexMap.length);
   }
 
   /// Creates a model and initializes it with the rendering context.

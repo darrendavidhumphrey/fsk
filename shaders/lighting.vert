@@ -24,7 +24,5 @@ void main(void) {
     vNormal = normalize(mat3(vertUniforms.uMVMatrix) * aVertexNormal);
     vTextureCoord = aTextureCoord;
 
-    vec4 position = vertUniforms.uPMatrix * eyeCoords;
-    position.y = -position.y; // Fix Impeller Y-axis conversion
-    gl_Position = position;
+    gl_Position = vertUniforms.uPMatrix * eyeCoords;
 }

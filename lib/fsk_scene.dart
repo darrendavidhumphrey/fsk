@@ -26,10 +26,16 @@ abstract class FskScene with LoggableClass {
   Size get viewportSize => _viewportSize;
   set viewportSize(Size value) {
     _viewportSize = value;
-    requestRepaint();
   }
 
   FskSceneNavigationDelegate? navigationDelegate;
+
+  // --- Physical Resolution Getters ---
+  /// The actual width of the allocated GPU texture in physical pixels.
+  int get physicalTextureWidth => _texture?.width ?? 0;
+
+  /// The actual height of the allocated GPU texture in physical pixels.
+  int get physicalTextureHeight => _texture?.height ?? 0;
 
   // Cache of rendering pipelines for this scene
   final PipelineCache pipelineCache = PipelineCache();
@@ -46,20 +52,28 @@ abstract class FskScene with LoggableClass {
   Color get clearColor => _clearColor;
   set clearColor(Color color) {
     _clearColor = color;
-    requestRepaint();
+  }
+
+  bool _isReady = true;
+  bool get isReady => _isReady;
+
+  set isReady(bool value) {
+    _isReady = value;
+  }
+
+  // TODO: Test for fixing race condition glitches
+  final List<gpu.DeviceBuffer> retainedOldBuffers = [];
+  void clearRetainedBuffers() {
+    if (retainedOldBuffers.isNotEmpty) {
+      print("Disposing of ${retainedOldBuffers.length} retained buffers");
+    }
+    retainedOldBuffers.clear();
   }
 
   /// Creates a new scene and its associated performance monitor.
   FskScene({this.navigationDelegate}) {
     navigationDelegate?.setScene(this);
     mvMatrixStack.current = Matrix4.identity();
-  }
-
-  bool _needsUpdate = false;
-  bool get needsUpdate => _needsUpdate;
-
-  void requestRepaint() {
-    _needsUpdate = true;
   }
 
   void dispose() {
@@ -76,12 +90,25 @@ abstract class FskScene with LoggableClass {
     }
 
     _viewportSize = Size(width.toDouble(), height.toDouble());
+  }
+  void allocateRenderTarget() {
+    // 🟢 THE FIX: Allocate the texture using PHYSICAL pixels (logical * devicePixelRatio)
+    final int physicalWidth = (_viewportSize.width * FSK.devicePixelRatio).toInt();
+    final int physicalHeight = (_viewportSize.height * FSK.devicePixelRatio).toInt();
 
-    // Allocate a brand new texture sized to match the physical container exactly
+    if (physicalWidth <= 0 || physicalHeight <= 0) return;
+
     _texture = gpu.gpuContext.createTexture(
       gpu.StorageMode.hostVisible,
-      width,
-      height,
+      physicalWidth,
+      physicalHeight,
+    );
+
+    final depthTexture = gpu.gpuContext.createTexture(
+      gpu.StorageMode.deviceTransient, // Optimized for ephemeral depth data
+      physicalWidth,
+      physicalHeight,
+      format: gpu.gpuContext.defaultDepthStencilFormat,
     );
 
     if (_texture != null) {
@@ -92,7 +119,17 @@ abstract class FskScene with LoggableClass {
         _clearColor.a,
       );
       _renderTarget = gpu.RenderTarget.singleColor(
-        gpu.ColorAttachment(texture: _texture!, clearValue: clearValue),
+        gpu.ColorAttachment(
+          texture: _texture!,
+          clearValue: clearValue,
+          loadAction: gpu.LoadAction.clear,
+        ),
+        depthStencilAttachment: gpu.DepthStencilAttachment(
+          texture: depthTexture,
+          depthClearValue: 1.0, // Clear to furthest depth distance
+          stencilLoadAction: gpu.LoadAction.clear,
+          stencilStoreAction: gpu.StoreAction.dontCare,
+        ),
       );
     }
 
@@ -101,17 +138,27 @@ abstract class FskScene with LoggableClass {
 
   /// The core drawing logic to be implemented by subclasses.
   /// This method is called within the rendering loop when a repaint is needed
-  void drawScene(gpu.RenderPass renderPass);
+  void drawScene(gpu.RenderPass renderPass, gpu.HostBuffer transients);
+
+  // Optionally override this to rebuild geometry before rendering
+  void rebuildGeometry() {}
 
   void setupScissor(gpu.RenderPass renderPass) {
     navigationDelegate?.updateSceneMatrices();
+
+    if (_texture == null) return;
+
+    // 🟢 THE FIX: Use PHYSICAL dimensions for Scissor and Viewport
+    final int physicalWidth = _texture!.width;
+    final int physicalHeight = _texture!.height;
+
     // 1. Set up the Scissor box
     renderPass.setScissor(
       gpu.Scissor(
         x: 0,
         y: 0,
-        width: viewportSize.width.toInt(),
-        height: viewportSize.height.toInt(),
+        width: physicalWidth,
+        height: physicalHeight,
       ),
     );
 
@@ -120,8 +167,8 @@ abstract class FskScene with LoggableClass {
       gpu.Viewport(
         x: 0,
         y: 0,
-        width: viewportSize.width.toInt(),
-        height: viewportSize.height.toInt(),
+        width: physicalWidth,
+        height: physicalHeight,
       ),
     );
   }

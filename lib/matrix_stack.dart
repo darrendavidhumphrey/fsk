@@ -3,21 +3,21 @@ import 'package:vector_math/vector_math.dart';
 /// A class to manage a stack of matrices, useful for hierarchical scene graphs.
 class MatrixStack {
   /// The current matrix at the top of the stack.
+  final List<Matrix4> _stack = [];
   Matrix4 current = Matrix4.identity();
 
-  final List<Matrix4> _stack = <Matrix4>[];
-
-  /// Pushes a copy of the current matrix onto the stack.
+  /// Saves the current matrix copy to the stack
   void push() {
-    _stack.add(Matrix4.copy(current));
+    // CRITICAL: You must call .clone() so mutations don't alter the history
+    _stack.add(current.clone());
   }
 
-  /// Pops the last matrix off the stack, restoring the previous state.
-  /// If the stack is empty, this operation does nothing.
+  /// Restores the previous matrix context
   void pop() {
-    if (_stack.isNotEmpty) {
-      current = _stack.removeLast();
+    if (_stack.isEmpty) {
+      throw StateError('MatrixStack underflow: Cannot pop an empty stack.');
     }
+    current = _stack.removeLast();
   }
 
   /// Executes the provided [commands] within a new matrix state.

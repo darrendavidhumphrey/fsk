@@ -58,17 +58,17 @@ class AnimatedCheckerBoardScene extends FskScene {
 
     clearColor = Colors.white;
 
-    exampleVbo.uploadData();
+    exampleVbo.uploadData(this);
 
     // Create a pipeline key for this shader and associated settings
     pipelineKey = PipelineKey(
       vertShaderName: "CheckerBoardVertex",
       fragShaderName: "CheckerBoardFragment",
+      layoutName: "CheckerBoardLayout",
       depthTestEnabled: false,
       depthWriteEnabled: false,
       depthCompareOperation: gpu.CompareFunction.greater,
       texturingEnabled: false,
-      blendEnabled: true,
       srcColorFactor: gpu.BlendFactor.sourceAlpha,
       dstColorFactor: gpu.BlendFactor.oneMinusSourceAlpha,
       srcAlphaFactor: gpu.BlendFactor.one,
@@ -86,8 +86,8 @@ class AnimatedCheckerBoardScene extends FskScene {
   @override
   void dispose() {}
 
-  void drawVBO(gpu.RenderPass renderPass, Matrix4 pMatrix, Matrix4 mvMatrix) {
-    var pipeline = pipelineCache.activate(pipelineKey, renderPass, v3t2Layout);
+  void drawVBO(gpu.RenderPass renderPass,gpu.HostBuffer transients, Matrix4 pMatrix, Matrix4 mvMatrix) {
+    pipelineCache.activate(pipelineKey, renderPass, v3t2Layout);
 
     exampleVbo.bind(renderPass);
 
@@ -116,15 +116,15 @@ class AnimatedCheckerBoardScene extends FskScene {
     uniforms!.mvMatrix = mvMatrix.clone();
     uniforms!.pMatrix = pMatrix.clone();
 
-    uniforms!.bind(renderPass);
+    uniforms!.bind(renderPass,transients);
 
     exampleVbo.drawTriangles(renderPass);
   }
 
   @override
-  void drawScene(gpu.RenderPass renderPass) async {
+  void drawScene(gpu.RenderPass renderPass,gpu.HostBuffer transients) async {
     // Scissor and viewport
     setupScissor(renderPass);
-    drawVBO(renderPass, pMatrix, mvMatrix);
+    drawVBO(renderPass, transients,pMatrix, mvMatrix);
   }
 }

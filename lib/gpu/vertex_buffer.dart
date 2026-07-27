@@ -1,22 +1,19 @@
 import 'dart:typed_data';
 import 'package:flutter_gpu/gpu.dart' as gpu;
 
+import '../fsk_scene.dart';
 
 /// Manages a flutter_gpu DeviceBuffer.
 class VertexBuffer {
   gpu.DeviceBuffer? _deviceBuffer;
   gpu.DeviceBuffer? get deviceBuffer => _deviceBuffer;
 
-  int _activeVertexCount = 0;
-  int _capacity = 0;
-
-
-  static const int _stride = 48;
+  // TODO: Hardcoded
+  int _vertexCount = 0;
+  static const int _strideInBytes = 48;
   static const int _componentCount = 12;
 
-  int get activeVertexCount => _activeVertexCount;
-  int get capacity => _capacity;
-  int get stride => _stride;
+  int get stride => _strideInBytes;
   int get componentCount => _componentCount;
 
   // Layout is V3, T2, N3, C4
@@ -24,38 +21,34 @@ class VertexBuffer {
 
   VertexBuffer();
 
-  /// Sets the active vertex count and automatically uploads the buffer data.
-  void setActiveVertexCount(int count) {
-    _activeVertexCount = count;
-    uploadData();
-  }
-
   /// Sends current CPU data over to physical GPU device memory.
-  void uploadData() {
-    if (_activeVertexCount <= 0 || vertexData == null) return;
+  void uploadData(FskScene parentScene) {
+    if (vertexData == null) {
+      print("Abort. No vertex data to upload!");
+      return;
+    }
 
-    final int activeBytesSize = _activeVertexCount * _stride;
+    final int activeBytesSize = _vertexCount * _strideInBytes;
 
     final ByteData view = vertexData!.buffer.asByteData(
-      vertexData!.offsetInBytes, // Start at byte 0
-      activeBytesSize,           // Total length in bytes (e.g., 120)
+      vertexData!.offsetInBytes,
+      activeBytesSize,
     );
+
+    if (_deviceBuffer != null) {
+      parentScene.retainedOldBuffers.add(_deviceBuffer!);
+    }
 
     _deviceBuffer = gpu.gpuContext.createDeviceBufferWithCopy(view);
   }
 
   /// Allocates host CPU memory arrays to store structural coordinates.
   Float32List? requestBuffer(int newVertexCount) {
-    final bool needsReallocation = newVertexCount > _capacity || (newVertexCount < _capacity / 2);
+    assert(newVertexCount > 0);
 
-    if (needsReallocation) {
-      vertexData = newVertexCount > 0 ? Float32List(newVertexCount * _componentCount) : null;
-      _capacity = newVertexCount;
+    vertexData = Float32List(newVertexCount * _componentCount);
+    _vertexCount = newVertexCount;
 
-      if (_activeVertexCount > _capacity) {
-        _activeVertexCount = _capacity;
-      }
-    }
     return vertexData;
   }
 
@@ -74,9 +67,9 @@ class VertexBuffer {
 
   /// Draws the currently active vertices as triangles.
   void drawTriangles(gpu.RenderPass renderPass) {
-    if (_activeVertexCount > 0) {
-      renderPass.draw(_activeVertexCount);
-    }
+    // TODO: Vertex count of 0 is not possible
+    if (_vertexCount <= 0) return;
+    renderPass.draw(_vertexCount);
   }
 
   void dispose() {
@@ -87,7 +80,7 @@ class VertexBuffer {
   void printVertices() {
     print("Printing vertices:");
     if (vertexData == null) return;
-    for (int i = 0; i < _activeVertexCount; i++) {
+    for (int i = 0; i < _vertexCount; i++) {
       final int offset = i * _componentCount;
       final double x = vertexData![offset];
       final double y = vertexData![offset + 1];

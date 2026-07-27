@@ -76,7 +76,7 @@ class BitmapFontManager with LoggableClass {
 
       logVerbose("createFontFromFile: $fontName, $filename, $textureName");
       // Call the createFont method with the retrieved data
-      createFont(fontName, xmlData, textureName);
+      await createFont(fontName, xmlData, textureName);
     } catch (e, stackTrace) {
       logError("Error loading or parsing font XML '$fontPath': $e");
       logError("StackTrace: $stackTrace");
@@ -86,12 +86,12 @@ class BitmapFontManager with LoggableClass {
   /// Creates a font from XML data, loads its texture, and registers it.
   /// The XML data is processed synchronously, but the texture is loaded asynchronously.
   /// Thus it is possible for fonts to temporarily have no texture loaded
-  void createFont(String fontName, String xmlString, String textureName) {
+  Future<void> createFont(String fontName, String xmlString, String textureName) async {
     try {
       var font = BitmapFont.fromXml(fontName, xmlString);
 
       // NOTE: The texture loads asynchronously
-      font.loadTexture(textureName);
+      await font.loadFontTexture(textureName);
       registerFont(fontName, font);
     } catch (e, stackTrace) {
       logError("Error loading font '$fontName': $e");

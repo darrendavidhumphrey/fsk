@@ -18,12 +18,8 @@ layout(location = 1) out vec4 vColor;
 
 void main(void) {
     // 1. Calculate standard position coordinates
-    vec4 position = vertUniforms.uPMatrix * vertUniforms.uMVMatrix * vec4(aVertexPosition, 1.0);
+    gl_Position = vertUniforms.uPMatrix * vertUniforms.uMVMatrix * vec4(aVertexPosition, 1.0);
 
-    // 2. Flip the Y-axis to match Impeller screen space rules
-    position.y = -position.y;
-
-    gl_Position = position;
     vTextureCoord = aTextureCoord;
 
     // 3. Force reference tracking on aVertexNormal so the attribute is preserved.

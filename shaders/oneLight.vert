@@ -33,7 +33,5 @@ void main(void) {
         vBarycentric = vec3(0.0, 0.0, 1.0);
     }
 
-    vec4 position = vertUniforms.uPMatrix * eyeCoords;
-    position.y = -position.y; // Fix Impeller Y-axis conversion
-    gl_Position = position;
+    gl_Position = vertUniforms.uPMatrix * eyeCoords;
 }

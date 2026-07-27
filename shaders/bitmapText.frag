@@ -15,4 +15,5 @@ layout(location = 0) out vec4 FragColor;
 void main(void) {
     vec4 texColor = texture(uTextSampler, v_uv);
     FragColor = texColor * fragUniforms.uTextColor;
+  //  FragColor = vec4(1,0,0,0.5);
 }

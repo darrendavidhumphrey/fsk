@@ -14,8 +14,6 @@ layout(std140, set = 0, binding = 0) uniform VertexUniforms {
 layout(location = 0) out vec2 vTextureCoord;
 
 void main(void) {
-    vec4 position = vertUniforms.uPMatrix * vertUniforms.uMVMatrix * vec4(aVertexPosition, 1.0);
-    position.y = -position.y; // Fix Impeller Y-axis conversion
-    gl_Position = position;
+    gl_Position = vertUniforms.uPMatrix * vertUniforms.uMVMatrix * vec4(aVertexPosition, 1.0);
     vTextureCoord = aTextureCoord;
 }

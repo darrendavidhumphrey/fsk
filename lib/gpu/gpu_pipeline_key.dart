@@ -2,44 +2,37 @@ import 'package:flutter_gpu/gpu.dart' as gpu;
 import '../fsk_singleton.dart';
 
 class PipelineKey {
-  // 1. Shaders
   final String vertShaderName;
   final String fragShaderName;
+  final String layoutName;
   late gpu.Shader vertShader;
   late gpu.Shader fragShader;
 
-  // 2. Depth State
   final bool depthTestEnabled;
   final bool depthWriteEnabled;
   final gpu.CompareFunction depthCompareOperation;
-
-  // 3. Texturing / Material State
-  // (In modern GPU design, changing textures doesn't require a new pipeline,
-  // but toggling a texture ON/OFF might swap shader logic or input requirements)
   final bool texturingEnabled;
-
-  // 4. Blending Configuration
-  final bool blendEnabled;
   final gpu.BlendFactor srcColorFactor;
   final gpu.BlendFactor dstColorFactor;
   final gpu.BlendFactor srcAlphaFactor;
   final gpu.BlendFactor dstAlphaFactor;
   final gpu.BlendOperation colorBlendOp;
   final gpu.BlendOperation alphaBlendOp;
-
-  // 5. Common Primitive States
   final gpu.WindingOrder windingOrder;
   final gpu.CullMode cullMode;
+
+  // Cache the key string directly at constructor initialization time
+  late final String uniqueStringKey;
 
   PipelineKey({
     required this.vertShaderName,
     required this.fragShaderName,
+    required this.layoutName,
     this.depthTestEnabled = false,
     this.depthWriteEnabled = false,
     this.depthCompareOperation = gpu.CompareFunction.less,
     this.texturingEnabled = false,
-    this.blendEnabled = true,
-    this.srcColorFactor = gpu.BlendFactor.sourceAlpha,
+    this.srcColorFactor = gpu.BlendFactor.one,
     this.dstColorFactor = gpu.BlendFactor.oneMinusSourceAlpha,
     this.srcAlphaFactor = gpu.BlendFactor.one,
     this.dstAlphaFactor = gpu.BlendFactor.oneMinusSourceAlpha,
@@ -50,11 +43,27 @@ class PipelineKey {
   }) {
     var v = FSK().shaderLibrary[vertShaderName];
     var f = FSK().shaderLibrary[fragShaderName];
-
-    assert(v != null, "Vert Shader not found: $vertShaderName");
-    assert(f != null, "Frag Shader not found: $fragShaderName");
     vertShader = v!;
     fragShader = f!;
+
+    // PRE-CREATE AN ABSOLUTE STRING IDENTITY SIGNATURE
+    uniqueStringKey = [
+      vertShaderName,
+      fragShaderName,
+      layoutName,
+      depthTestEnabled ? '1' : '0',
+      depthWriteEnabled ? '1' : '0',
+      depthCompareOperation.index,
+      texturingEnabled ? '1' : '0',
+      srcColorFactor.index,
+      dstColorFactor.index,
+      srcAlphaFactor.index,
+      dstAlphaFactor.index,
+      colorBlendOp.index,
+      alphaBlendOp.index,
+      windingOrder.index,
+      cullMode.index,
+    ].join('|');
   }
 
   void applyPipelineStates(gpu.RenderPass renderPass) {
@@ -64,68 +73,44 @@ class PipelineKey {
 
     // 2. Configure dynamic depth testing structures
     renderPass.setDepthWriteEnable(depthWriteEnabled);
-    if (depthTestEnabled) {
-      renderPass.setDepthCompareOperation(depthCompareOperation);
-    } else {
-      // Bypasses depth checks when explicitly requested off by the node layout
-      renderPass.setDepthCompareOperation(gpu.CompareFunction.always);
-    }
+    renderPass.setDepthCompareOperation(
+        depthTestEnabled ? depthCompareOperation : gpu.CompareFunction.always
+    );
 
     // 3. Configure dynamic blending equations
-    renderPass.setColorBlendEnable(blendEnabled);
-    if (blendEnabled) {
-      renderPass.setColorBlendEquation(
-        gpu.ColorBlendEquation(
-          colorBlendOperation: colorBlendOp,
-          sourceColorBlendFactor: srcColorFactor,
-          destinationColorBlendFactor: dstColorFactor,
-          alphaBlendOperation: alphaBlendOp,
-          sourceAlphaBlendFactor: srcAlphaFactor,
-          destinationAlphaBlendFactor: dstAlphaFactor,
-        ),
-      );
-    }
+    renderPass.setColorBlendEnable(true);
+    renderPass.setColorBlendEquation(
+      gpu.ColorBlendEquation(
+        colorBlendOperation: gpu.BlendOperation.add,
+        sourceColorBlendFactor: gpu.BlendFactor.one,
+        destinationColorBlendFactor: gpu.BlendFactor.oneMinusSourceAlpha,
+        alphaBlendOperation: gpu.BlendOperation.add,
+        sourceAlphaBlendFactor: gpu.BlendFactor.one,
+        destinationAlphaBlendFactor: gpu.BlendFactor.oneMinusSourceAlpha,
+      ),
+    );
+
+    renderPass.setStencilConfig(
+      gpu.StencilConfig(
+        compareFunction: gpu.CompareFunction.always,
+        stencilFailureOperation: gpu.StencilOperation.keep,
+        depthFailureOperation: gpu.StencilOperation.keep,
+        depthStencilPassOperation: gpu.StencilOperation.keep,
+      ),
+      targetFace: gpu.StencilFace.both,
+    );
+    renderPass.setStencilReference(0);
   }
 
+
+  // FORCE equality checking straight over the unique static string signatures
   @override
   bool operator ==(Object other) =>
       identical(this, other) ||
-      other is PipelineKey &&
-          runtimeType == other.runtimeType &&
-          vertShaderName == other.vertShaderName &&
-          fragShaderName == other.fragShaderName &&
-          depthTestEnabled == other.depthTestEnabled &&
-          depthWriteEnabled == other.depthWriteEnabled &&
-          depthCompareOperation == other.depthCompareOperation &&
-          texturingEnabled == other.texturingEnabled &&
-          blendEnabled == other.blendEnabled &&
-          srcColorFactor == other.srcColorFactor &&
-          dstColorFactor == other.dstColorFactor &&
-          srcAlphaFactor == other.srcAlphaFactor &&
-          dstAlphaFactor == other.dstAlphaFactor &&
-          colorBlendOp == other.colorBlendOp &&
-          alphaBlendOp == other.alphaBlendOp &&
-          windingOrder == other.windingOrder &&
-          cullMode == other.cullMode;
+          other is PipelineKey && uniqueStringKey == other.uniqueStringKey;
 
   @override
-  int get hashCode => Object.hashAll([
-    vertShaderName,
-    fragShaderName,
-    depthTestEnabled,
-    depthWriteEnabled,
-    depthCompareOperation,
-    texturingEnabled,
-    blendEnabled,
-    srcColorFactor,
-    dstColorFactor,
-    srcAlphaFactor,
-    dstAlphaFactor,
-    colorBlendOp,
-    alphaBlendOp,
-    windingOrder,
-    cullMode,
-  ]);
+  int get hashCode => uniqueStringKey.hashCode;
 }
 
 const gpu.VertexLayout v3t2n3c4Layout = gpu.VertexLayout(
@@ -243,35 +228,76 @@ const gpu.VertexLayout v3n3c4Layout = gpu.VertexLayout(
   ],
 );
 
+
+const gpu.VertexLayout quadVertexLayout = gpu.VertexLayout(
+  buffers: [
+    gpu.VertexBuffer(
+      strideInBytes: 48, // Keep the 48-byte stride so your float array reading doesn't change
+      stepMode: gpu.VertexStepMode.vertex,
+      attributes: [
+        gpu.VertexAttribute(
+          name: 'aVertexPosition', // Matches: layout(location = 0) in vec3 aVertexPosition;
+          format: gpu.VertexFormat.float32x3,
+          offsetInBytes: 0,
+        ),
+        gpu.VertexAttribute(
+          name: 'aTextureCoord',   // Matches: layout(location = 1) in vec2 aTextureCoord;
+          format: gpu.VertexFormat.float32x2,
+          offsetInBytes: 12,
+        ),
+      ],
+    ),
+  ],
+);
+
+
+const gpu.VertexLayout textVertexLayout = gpu.VertexLayout(
+  buffers: [
+    gpu.VertexBuffer(
+      strideInBytes: 48, // Keep the 48-byte stride so your float array reading doesn't change
+      stepMode: gpu.VertexStepMode.vertex,
+      attributes: [
+        gpu.VertexAttribute(
+          name: 'aVertexPosition', // Matches: layout(location = 0) in vec3 aVertexPosition;
+          format: gpu.VertexFormat.float32x3,
+          offsetInBytes: 0,
+        ),
+        gpu.VertexAttribute(
+          name: 'aTextureCoord',   // Matches: layout(location = 1) in vec2 aTextureCoord;
+          format: gpu.VertexFormat.float32x2,
+          offsetInBytes: 12,
+        ),
+      ],
+    ),
+  ],
+);
+
+
 class PipelineCache {
-  final Map<PipelineKey, gpu.RenderPipeline> _cache = {};
+  // Map against the stable compiled String key profile
+  final Map<String, gpu.RenderPipeline> _cache = {};
 
   PipelineCache();
 
-  void clearCache() {
-    _cache.clear();
-  }
-
-  // Activate an existing pipeline (or instantiate a new one)
-  // Then bind it to the renderpass and set the pipeline states
   gpu.RenderPipeline activate(
-    PipelineKey key,
-    gpu.RenderPass renderPass,
-    gpu.VertexLayout layout,
-  ) {
-    gpu.RenderPipeline? pipeline = _cache[key];
+      PipelineKey key,
+      gpu.RenderPass renderPass,
+      gpu.VertexLayout layout,
+      ) {
+    // Lookup via the pre-calculated string identity token
+    gpu.RenderPipeline? pipeline = _cache[key.uniqueStringKey];
 
     if (pipeline == null) {
+      print("!!! COMPILING PIPELINE FOR: ${key.uniqueStringKey}");
       pipeline = gpu.gpuContext.createRenderPipeline(
         key.vertShader,
         key.fragShader,
         vertexLayout: layout,
       );
 
-      _cache[key] = pipeline;
+      _cache[key.uniqueStringKey] = pipeline;
     }
     renderPass.bindPipeline(pipeline);
-
     key.applyPipelineStates(renderPass);
 
     return pipeline;

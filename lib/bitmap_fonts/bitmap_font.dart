@@ -67,7 +67,7 @@ class BitmapFont with LoggableClass {
   final Map<int, Map<int, double>> kerningPairs;
 
   /// The WebGL texture containing the rendered font characters (the texture atlas).
-  /// This is null until [loadTexture] is called and completes.
+  /// This is null until [loadFontTexture] is called and completes.
   FskTextureInfo? textureInfo;
 
   /// Returns true if the font's texture has been loaded and is ready for use.
@@ -84,7 +84,7 @@ class BitmapFont with LoggableClass {
     this.kerningPairs,
   );
 
-  Future<void> loadTexture(String textureName) async {
+  Future<void> loadFontTexture(String textureName) async {
     try {
       // Updated to utilize Flutter GPU sampling and texture structures
       // Note: Ensure your textureManager is updated to return a gpu.Texture object

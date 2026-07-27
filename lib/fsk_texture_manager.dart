@@ -53,7 +53,7 @@ class FskTextureManager {
       return _textures[id]!;
     }
 
-    // FIX: Bundle sampling parameters directly inside a unified SamplerOptions object
+    //  Bundle sampling parameters directly inside a unified SamplerOptions object
     final gpu.SamplerOptions samplerOptions = gpu.SamplerOptions(
       minFilter: minFilter,
       magFilter: magFilter,
@@ -104,11 +104,6 @@ class FskTextureManager {
 
   FskTextureInfo? getTextureInfo(String id) {
     return _textures[id];
-  }
-
-  /// Optional WebGL fallback shim. Completely bypassed under modern graphics backends.
-  Future<void> bindUnboundTextures() async {
-    return;
   }
 
   /// Disposes all cached textures and unlinks physical memory references.

@@ -184,6 +184,9 @@ class FskBitmapText extends FskRenderableObject {
   }
 
   bool _pipeLineNeedsRebuild = true;
+
+
+  @override
   void rebuildPipelineIfNeeded() {
    if (!_pipeLineNeedsRebuild) return;
     // TODO: Pass this in from the frame node. Combination of using a factory and setting based on object settings
@@ -191,11 +194,11 @@ class FskBitmapText extends FskRenderableObject {
     pipelineKey = PipelineKey(
       vertShaderName: "BitmapTextVertex",
       fragShaderName: "BitmapTextFragment",
-      depthTestEnabled: false,
+      layoutName: "BitmapTextLayout",
+      depthTestEnabled: true,
       depthWriteEnabled: false,
-      depthCompareOperation: gpu.CompareFunction.always,
+      depthCompareOperation: gpu.CompareFunction.less,
       texturingEnabled: true,
-      blendEnabled: true,
       srcColorFactor: gpu.BlendFactor.sourceAlpha,
       dstColorFactor: gpu.BlendFactor.oneMinusSourceAlpha,
       srcAlphaFactor: gpu.BlendFactor.one,
@@ -240,9 +243,18 @@ class FskBitmapText extends FskRenderableObject {
   /// Rebuilds the vertex buffer object if the text or font has changed.
   @override
   void rebuildIfNeeded() {
+
+    if ((font == null) || (!font!.isInitialized) ) {
+      print("Font not ready in rebuild: isFontNull? ${font == null} isFontInitialized? ${font!.isInitialized}");
+      return;
+    }
+
     // Guard against unnecessary, expensive rebuilds.
     if (!_needsRebuild) return;
 
+    print("Rebuild Text VBO");
+
+    // Fill local structure with array of quads
     rebuildQuads();
 
     int vertexCount = quads.length * 6; // Two triangles per character quad.
@@ -254,7 +266,8 @@ class FskBitmapText extends FskRenderableObject {
       VboFiller.addTexturedQuads(quads, textureQuads, _vbo);
     }
 
-    _vbo.setActiveVertexCount(vertexCount);
+    // Upload generated quad data to gpu
+    _vbo.uploadData(parentScene);
     _needsRebuild = false; // Reset the flag after a successful rebuild.
   }
 
@@ -265,7 +278,6 @@ class FskBitmapText extends FskRenderableObject {
       textureQuads = [];
       return;
     }
-
     // Pass 1: Gather layout information and calculate total width
     final (layoutData, lineLength) = _gatherLayoutData();
     if (lineLength == 0) return;
@@ -392,20 +404,26 @@ class FskBitmapText extends FskRenderableObject {
   }
 
   @override
-  void draw(gpu.RenderPass renderPass,Matrix4 pMatrix, Matrix4 mvMatrix) {
-   if ((font == null) || (!font!.isInitialized) ) return;
-    rebuildPipelineIfNeeded();
-    rebuildIfNeeded();
+  void draw(gpu.RenderPass renderPass,gpu.HostBuffer transients,Matrix4 pMatrix, Matrix4 mvMatrix) {
+   if ((font == null) || (!font!.isInitialized) ) {
+     print("Text draw failed: isFontNull? ${font == null} isFontInitialized? ${font!.isInitialized}");
+     if (font != null) {
+       print("Font: ${font!.name}");
+     }
+     return;
+   }
 
-    parentScene.pipelineCache.activate(pipelineKey!,renderPass,v3t2Layout);
+    parentScene.pipelineCache.activate(pipelineKey!,renderPass,textVertexLayout);
+
     _vbo.bind(renderPass);
 
     if (uniforms case TextShaderUniforms texUniforms) {
+      assert (font!.textureInfo != null);
       texUniforms.texture = font!.textureInfo!.texture;
       texUniforms.textColor = _textColor;
       texUniforms.mvMatrix = mvMatrix.clone();
       texUniforms.pMatrix = pMatrix.clone();
-      texUniforms.bind(renderPass);
+      texUniforms.bind(renderPass,transients);
     } else {
       assert(false, "Unexpected uniforms type in FskBitmapText -- Not implemented");
     }

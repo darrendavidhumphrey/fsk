@@ -84,10 +84,6 @@ Ray computePickRay(
   // Convert screen coordinates to Normalized Device Coordinates (NDC) [-1, 1].
   final double ndcX = (winX * 2.0) / viewportSize.width - 1.0;
 
-  // The Y-axis mapping:
-  // 1. If viewer flips Y (isYFlipped=true), winY=0 (top) -> texture bottom -> NDC Y=-1.
-  // 2. If we flip Y in projection (isYFlipped=false), winY=0 (top) -> NDC Y=-1 (mapped to top).
-  // In both cases, winY=0 maps to NDC Y=-1.
   final double ndcY = (winY * 2.0) / viewportSize.height - 1.0;
 
   // Define the start and end points of the ray in NDC space.

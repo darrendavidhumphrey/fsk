@@ -6,39 +6,41 @@ import 'package:vector_math/vector_math.dart';
 /// A utility class for filling a [VBO] with vertex data.
 class VboFiller {
   /// The underlying [Float32List] that is being filled.
-  Float32List array;
+  late Float32List list;
   VertexBuffer buffer;
 
   int _currentPosition = 0;
 
-  /// The current index in the [array] where the next data will be written.
+  /// The current index in the [list] where the next data will be written.
   int get currentPosition => _currentPosition;
 
-  VboFiller(this.array,this.buffer);
+  VboFiller(this.buffer) {
+    list = buffer.vertexData!;
+}
 
   /// Checks if there is enough space in the array for the next write.
   /// Throws a [RangeError] if there is not enough space.
   void _checkStrideSpace() {
-    if (_currentPosition > array.length - 12) {
+    if (_currentPosition > list.length - 12) {
       throw RangeError(
           'Not enough space in the Float32Array for a full vertex stride. '
-              'Required: 12 elements, Available: ${array.length - _currentPosition}');
+              'Required: 12 elements, Available: ${list.length - _currentPosition}');
     }
   }
 
 
   /// Adds a [Vector3] to the array.
   void _addV3(Vector3 vec) {
-    array[_currentPosition++] = vec.x;
-    array[_currentPosition++] = vec.y;
-    array[_currentPosition++] = vec.z;
+    list[_currentPosition++] = vec.x;
+    list[_currentPosition++] = vec.y;
+    list[_currentPosition++] = vec.z;
   }
 
   void _addC4(Color color) {
-    array[_currentPosition++] = color.r;
-    array[_currentPosition++] = color.g;
-    array[_currentPosition++] = color.b;
-    array[_currentPosition++] = color.a;
+    list[_currentPosition++] = color.r;
+    list[_currentPosition++] = color.g;
+    list[_currentPosition++] = color.b;
+    list[_currentPosition++] = color.a;
   }
 
   /// Adds a [Vector3] for position and a [Color] to the array.
@@ -52,8 +54,8 @@ class VboFiller {
 
   /// Adds a [Vector2] to the array.
   void _addT2(Vector2 vec) {
-    array[_currentPosition++] = vec.x;
-    array[_currentPosition++] = vec.y;
+    list[_currentPosition++] = vec.x;
+    list[_currentPosition++] = vec.y;
   }
 
   /// Adds a [Vector3] for position and a [Vector2] for texture coordinates.
@@ -122,22 +124,23 @@ class VboFiller {
 
   // Makes ONE quad only, setting the vbo size to 6 vertices
   static void makeTexturedUnitQuad(Rect r, double z,VertexBuffer vbo) {
-    var filler = VboFiller(vbo.requestBuffer(6)!, vbo);
+    vbo.requestBuffer(6);
+    var filler = VboFiller(vbo);
     filler._addTexturedUnitQuad(r,z);
-    vbo.setActiveVertexCount(6);
+
   }
 
   // Makes ONE quad only, setting the vbo size to 6 vertices with texture
   //   /// coordinates from [0, 0] to [1, 1].
   static void makeTexturedQuad(Quad q, Rect tr,VertexBuffer vbo) {
-    var filler = VboFiller(vbo.requestBuffer(6)!, vbo);
+    vbo.requestBuffer(6);
+    var filler = VboFiller(vbo);
     filler._addTexturedQuad(q,tr);
-    vbo.setActiveVertexCount(6);
   }
 
   // Appends a list of quads to a VBO
   static void addTexturedQuads(List<Quad> quads, List<Rect> tr,VertexBuffer vbo) {
-    var filler = VboFiller(vbo.vertexData!, vbo);
+    var filler = VboFiller(vbo);
     assert (quads.length == tr.length);
 
     for (var i = 0; i < quads.length; i++) {

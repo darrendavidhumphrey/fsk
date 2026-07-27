@@ -25,13 +25,11 @@ class MeshFactory {
     int vertexCount = triangleCount * 3;
     Float32List? vertexTextureArray = vbo.requestBuffer(vertexCount);
     if (vertexTextureArray != null) {
-      VboFiller filler = VboFiller(vertexTextureArray,vbo);
+      VboFiller filler = VboFiller(vbo);
       for (var face in faces) {
         _addTexturedTriFan(filler, face, true);
       }
     }
-    vbo.setActiveVertexCount(vertexCount);
-
   }
 
   /// Creates a [TriangleMesh] by tessellating a list of [faces].
@@ -69,7 +67,7 @@ class MeshFactory {
     _tessellate(vbo, outlines, (filler, outline) {
       _addTexturedTriFan(filler, outline, true,color: color);
     });
-    vbo.uploadData();
+    // TODO: FIX THIS vbo.uploadData();
   }
 
   /// Fills a [vbo] by tessellating a list of [outlines] with texture coordinates.
@@ -79,7 +77,7 @@ class MeshFactory {
     _tessellate(vbo, outlines, (filler, outline) {
       _addTexturedTriFan(filler, outline, generateNormals);
     });
-    vbo.uploadData();
+    // TODO: FIX THIS vbo.uploadData();
   }
 
   /// Generic helper to tessellate a list of outlines into a vertex buffer.
@@ -97,14 +95,13 @@ class MeshFactory {
     final buffer = vbo.requestBuffer(newVertexCount);
 
     if (buffer != null) {
-      final filler = VboFiller(buffer,vbo);
+      final filler = VboFiller(vbo);
       for (var outline in outlines) {
         if (outline.length > 2) {
           addFunction(filler, outline);
         }
       }
     }
-    vbo.setActiveVertexCount(newVertexCount);
   }
 
   /// Private helper to add a textured triangle fan for a single outline.

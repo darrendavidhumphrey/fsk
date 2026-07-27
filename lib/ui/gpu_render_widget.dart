@@ -37,20 +37,15 @@ class _GPURenderWidgetState extends State<GPURenderWidget> with SingleTickerProv
     // Use LayoutBuilder to dynamically read out the exact size allocated by the parent constraints
     return LayoutBuilder(
       builder: (context, constraints) {
-        // Enforce physical constraints integers
-        final int targetWidth = constraints.maxWidth.toInt();
-        final int targetHeight = constraints.maxHeight.toInt();
-
-        // Safe recalculation step before dispatching paint frames
-        widget.scene.updateRenderTargetSize(targetWidth, targetHeight);
-
-        if (widget.scene.renderTarget == null || widget.scene.texture == null) {
-          return const SizedBox.shrink();
-        }
-
         return AnimatedBuilder(
           animation: _animationController,
           builder: (context, child) {
+
+            // Rebuild VBOs and pipelines before drawing
+            if (widget.scene.isReady) {
+              widget.scene.rebuildGeometry();
+            }
+
             return CustomPaint(
               size: Size(constraints.maxWidth, constraints.maxHeight), // Explicitly fills layout bounds
               painter: FskScenePainter(
@@ -71,10 +66,6 @@ class FskScenePainter extends CustomPainter {
     required this.scene,
   });
 
-  void finishFrame(gpu.CommandBuffer commandBuffer, gpu.RenderTarget renderTarget) {
-    commandBuffer.submit();
-  }
-
   void blitImage(Canvas canvas, Size size,gpu.Texture texture) {
     final uiImage = texture.asImage();
     // 5. Blit and scale image properties directly inside our custom canvas space
@@ -88,13 +79,37 @@ class FskScenePainter extends CustomPainter {
 
   @override
   void paint(Canvas canvas, Size size) {
+
+    // Early out if scene is not ready
+    // TODO: Defer to a loading widget here...
+    if (scene.isReady == false) {
+      return;
+    }
+
+    // Recalculate view
+    scene.updateRenderTargetSize(size.width.toInt(), size.height.toInt());
+
+    //  reallocate backing texture
+    scene.allocateRenderTarget();
+
+    // Create per-scene gpu command buffer, render pass, and frameTransients (uniforms?)
     final commandBuffer = gpu.gpuContext.createCommandBuffer();
     final renderPass = commandBuffer.createRenderPass(scene.renderTarget!);
+    final gpu.HostBuffer frameTransients = gpu.gpuContext.createHostBuffer();
 
+    // Inform scene of current viewport size
     scene.viewportSize = size;
-    scene.drawScene(renderPass);
 
-    finishFrame(commandBuffer, scene.renderTarget!);
+    // Draw the scene, accumulating commands into commandBuffer via renderPass
+    print("Start of draw scene");
+    scene.drawScene(renderPass,frameTransients);
+    print("After draw scene");
+    // Submit commands to GPU to draw
+    commandBuffer.submit();
+
+    // Clear any buffers that were disposed during the rebuild
+    scene.clearRetainedBuffers();
+
     blitImage(canvas, size, scene.texture!);
   }
 

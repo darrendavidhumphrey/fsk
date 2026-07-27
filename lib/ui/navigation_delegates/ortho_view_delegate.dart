@@ -1,7 +1,5 @@
-import 'dart:io';
 import 'dart:ui';
 
-import 'package:flutter/foundation.dart';
 import 'package:fsk/ui/navigation_delegates/scene_navigation_delegate.dart';
 import 'package:vector_math/vector_math.dart';
 
@@ -46,32 +44,20 @@ class OrthoViewDelegate extends FskSceneNavigationDelegate implements ScreenRect
 
   @override
   Matrix4 createProjectionMatrix() {
-    final Matrix4 proj = Matrix4.zero(); // Initialize a blank, flat matrix matrix array
+    Matrix4 proj = Matrix4.identity();
 
-    final double left = _viewRect.left;
-    final double right = _viewRect.right;
-    final double top = _viewRect.top;       // Flutter top is smaller value (0.0)
-    final double bottom = _viewRect.bottom; // Flutter bottom is larger value (250.0)
-
-    // Calculate boundary translations
-    final double rml = right - left;
-    final double bmt = bottom - top;
-    final double fmn = _zFar - _zNear;
-
-    if (rml == 0 || bmt == 0 || fmn == 0) return Matrix4.identity();
-
-    // 🟢 THE FIX: Build an explicit Vulkan/Metal-aligned matrix layout.
-    // This scales the X and Y screen bounds to [-1, 1] while cleanly scaling
-    // the Z depth range from exactly [0.0 to 1.0].
-    proj.setEntry(0, 0, 2.0 / rml);
-    proj.setEntry(1, 1, 2.0 / bmt);
-    proj.setEntry(2, 2, 1.0 / fmn); // Vulkan/Metal style depth scaling multiplier (1.0 instead of 2.0)
-    proj.setEntry(3, 3, 1.0);
-
-    // Set translation parameters
-    proj.setEntry(0, 3, -(right + left) / rml);
-    proj.setEntry(1, 3, -(bottom + top) / bmt);
-    proj.setEntry(2, 3, -_zNear / fmn); // Vulkan/Metal style depth translation offset
+    // 🟢 TOP-DOWN PROJECTION: 
+    // logical top (0) maps to NDC -1.0 (Top)
+    // logical bottom (720) maps to NDC 1.0 (Bottom)
+    // This creates a standard screen coordinate system where larger Y moves things DOWN.
+    setOrthographicMatrix(
+        proj,
+        _viewRect.left,
+        _viewRect.right,
+        _viewRect.top,    
+        _viewRect.bottom, 
+        _zNear,
+        _zFar);
 
     return proj;
   }

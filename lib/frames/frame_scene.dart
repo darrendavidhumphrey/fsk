@@ -8,11 +8,11 @@ class FrameScene extends FskScene {
   final List<FrameNode> rootNodes = [];
   final Map<String, FrameNode> nodeMap = {};
 
-  bool _sceneIsReady = false;
-  bool get sceneIsReady => _sceneIsReady;
   bool skinLoaded = false;
 
-  FrameScene({super.navigationDelegate});
+  FrameScene({super.navigationDelegate}) {
+    isReady = false;
+  }
 
   set frameData(FrameData? value) {
     _frameData = value;
@@ -72,7 +72,7 @@ class FrameScene extends FskScene {
       }
     }
     logVerbose("Done building tree");
-    _sceneIsReady = true;
+    isReady = true;
   }
 
   FrameNode? _createNode(FrameObjectData objData) {
@@ -99,15 +99,18 @@ class FrameScene extends FskScene {
   }
 
   @override
-  void drawScene(gpu.RenderPass renderPass) {
-    if (!sceneIsReady) return;
-
+  void drawScene(gpu.RenderPass renderPass,gpu.HostBuffer transients) {
     super.setupScissor(renderPass);
 
-    mvMatrixStack.current = mvMatrix;
-
     for (var node in rootNodes) {
-      node.draw(renderPass, pMatrix, mvMatrixStack);
+      node.draw(renderPass, transients, pMatrix.clone(), mvMatrix.clone());
+    }
+  }
+
+  @override
+  void rebuildGeometry() {
+    for (var node in rootNodes) {
+      node.rebuildGeometry();
     }
   }
 

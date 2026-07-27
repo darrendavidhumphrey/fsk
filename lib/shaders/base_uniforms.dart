@@ -1,23 +1,35 @@
 import 'dart:typed_data';
 import 'dart:ui';
 import 'package:flutter_gpu/gpu.dart' as gpu;
+import 'package:fsk/fsk.dart';
 import 'package:vector_math/vector_math.dart';
 
 import '../fsk_singleton.dart';
 
-abstract class BaseUniforms {
+abstract class BaseUniforms with LoggableClass {
   final gpu.Shader? vertexShader;
   final gpu.Shader? fragmentShader;
 
+  String get vertexBlockName => 'VertexUniforms';
+  String get fragmentBlockName => 'FragmentUniforms';
+
   // Shared Vertex Uniform State
-  Matrix4 mvMatrix = Matrix4.identity();
-  Matrix4 pMatrix = Matrix4.identity();
+  final Matrix4 _mvMatrix = Matrix4.identity();
+  final Matrix4 _pMatrix = Matrix4.identity();
+
+  set mvMatrix(Matrix4 value) {
+    // FIX: Calling .copyInto forces a strict raw value transfer,
+    // breaking the pointer reference thread completely.
+    value.copyInto(_mvMatrix);
+  }
+
+  set pMatrix(Matrix4 value) {
+    value.copyInto(_pMatrix);
+  }
 
   gpu.Texture? _texture;
   String get samplerUniformName => 'uSampler';
   bool get hasSampler => false;
-
-  String get fragmentBlockName => 'FragmentUniforms';
 
   // Unified string-accessible data registry
   final Map<String, dynamic> _values = {};
@@ -45,27 +57,26 @@ abstract class BaseUniforms {
 
   /// Shared engine routine. Compiles and binds both vertex blocks
   /// and custom subclass fragment structures in a single step.
-  void bind(gpu.RenderPass renderPass) {
+  void bind(gpu.RenderPass renderPass,gpu.HostBuffer transients) {
     if (vertexShader == null || fragmentShader == null) {
       throw StateError(
         'Cannot set uniforms: Vertex and Fragment shaders must be assigned.',
       );
     }
 
-    final gpu.HostBuffer transients = gpu.gpuContext.createHostBuffer();
-
     // =========================================================================
     // 1. REUSABLE VERTEX BLOCK WRITER (Identical across your shaders)
     // =========================================================================
     final Float32List vertexData = Float32List(32);
-    vertexData.setAll(0, mvMatrix.storage);
-    vertexData.setAll(16, pMatrix.storage);
+    vertexData.setAll(0, _mvMatrix.storage);
+    vertexData.setAll(16, _pMatrix.storage);
 
     final gpu.BufferView vertexBufferView = transients.emplace(
       vertexData.buffer.asByteData(),
     );
+
     final gpu.UniformSlot vertexSlot = vertexShader!.getUniformSlot(
-      'VertexUniforms',
+      vertexBlockName,
     );
     renderPass.bindUniform(vertexSlot, vertexBufferView);
 
