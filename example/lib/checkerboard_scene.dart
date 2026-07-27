@@ -37,7 +37,7 @@ class CheckerBoardScene extends FskScene {
       layoutName: "CheckerBoardLayout",
       depthTestEnabled: false,
       depthWriteEnabled: false,
-      depthCompareOperation: gpu.CompareFunction.greater,
+      depthCompareOperation: gpu.CompareFunction.less,
       texturingEnabled: false,
       srcColorFactor: gpu.BlendFactor.sourceAlpha,
       dstColorFactor: gpu.BlendFactor.oneMinusSourceAlpha,
@@ -51,12 +51,6 @@ class CheckerBoardScene extends FskScene {
 
     uniforms = CheckerBoardUniforms(vertexShader: pipelineKey.vertShader, fragmentShader: pipelineKey.fragShader);
 
-    uniforms!.patternColor1 = Colors.red;
-    uniforms!.patternColor2 = Colors.green;
-    uniforms!.useTexture = false;
-    uniforms!.textureMix = 0;
-    uniforms!.patternScale = 50;
-
     navigationDelegate?.updateSceneMatrices(force: true);
   }
 
@@ -67,7 +61,22 @@ class CheckerBoardScene extends FskScene {
     pipelineCache.activate(pipelineKey,renderPass,v3t2Layout);
     exampleVbo.bind(renderPass);
 
-    uniforms!.mvMatrix = mvMatrix.clone();
+    Matrix4 finalMvMatrix;
+
+    // Center object in view when using OrthoViewDelegate
+    if (navigationDelegate is OrthoViewDelegate) {
+      finalMvMatrix = mvMatrix.clone()
+        ..translateByVector3(Vector3(viewportSize.width / 2, viewportSize.height / 2, 0.0));
+    } else {
+      finalMvMatrix = mvMatrix.clone();
+    }
+
+    uniforms!.patternColor1 = Colors.red;
+    uniforms!.patternColor2 = Colors.green;
+    uniforms!.useTexture = false;
+    uniforms!.textureMix = 0;
+    uniforms!.patternScale = 50;
+    uniforms!.mvMatrix =  finalMvMatrix;
     uniforms!.pMatrix = pMatrix.clone();
     uniforms!.bind(renderPass,transients);
 
@@ -75,9 +84,10 @@ class CheckerBoardScene extends FskScene {
   }
 
   @override
-  void drawScene(gpu.RenderPass renderPass,gpu.HostBuffer transients) async {
+  void drawScene(gpu.RenderPass renderPass,gpu.HostBuffer transients) {
     // Scissor and viewport
     setupScissor(renderPass);
     drawVBO(renderPass,transients,pMatrix, mvMatrix);
+
   }
 }

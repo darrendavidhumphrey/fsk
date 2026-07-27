@@ -122,7 +122,7 @@ class AnimatedCheckerBoardScene extends FskScene {
   }
 
   @override
-  void drawScene(gpu.RenderPass renderPass,gpu.HostBuffer transients) async {
+  void drawScene(gpu.RenderPass renderPass,gpu.HostBuffer transients) {
     // Scissor and viewport
     setupScissor(renderPass);
     drawVBO(renderPass, transients,pMatrix, mvMatrix);

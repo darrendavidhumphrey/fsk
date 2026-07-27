@@ -1,10 +1,10 @@
 import 'dart:typed_data';
 import 'dart:ui';
 import 'package:flutter_gpu/gpu.dart' as gpu;
-import 'package:fsk/fsk.dart';
 import 'package:vector_math/vector_math.dart';
 
 import '../fsk_singleton.dart';
+import '../logging.dart';
 
 abstract class BaseUniforms with LoggableClass {
   final gpu.Shader? vertexShader;
@@ -14,33 +14,31 @@ abstract class BaseUniforms with LoggableClass {
   String get fragmentBlockName => 'FragmentUniforms';
 
   // Shared Vertex Uniform State
-  final Matrix4 _mvMatrix = Matrix4.identity();
-  final Matrix4 _pMatrix = Matrix4.identity();
+  final Matrix4 mvMatrixLocal = Matrix4.identity();
+  final Matrix4 pMatrixLocal = Matrix4.identity();
 
   set mvMatrix(Matrix4 value) {
-    // FIX: Calling .copyInto forces a strict raw value transfer,
-    // breaking the pointer reference thread completely.
-    value.copyInto(_mvMatrix);
+    value.copyInto(mvMatrixLocal);
   }
 
   set pMatrix(Matrix4 value) {
-    value.copyInto(_pMatrix);
+    value.copyInto(pMatrixLocal);
   }
 
-  gpu.Texture? _texture;
+  gpu.Texture? textureIn;
   String get samplerUniformName => 'uSampler';
   bool get hasSampler => false;
 
+  set texture(gpu.Texture? val) => textureIn = val;
+
   // Unified string-accessible data registry
-  final Map<String, dynamic> _values = {};
+  final Map<String, dynamic> valuesMap = {};
 
   BaseUniforms({this.vertexShader, this.fragmentShader});
 
   // Dynamic index operator for loose key-value lookup: uniforms['myProperty']
-  dynamic operator [](String key) => _values[key];
-  void operator []=(String key, dynamic value) => _values[key] = value;
-
-  set texture(gpu.Texture? val) => _texture = val;
+  dynamic operator [](String key) => valuesMap[key];
+  void operator []=(String key, dynamic value) => valuesMap[key] = value;
 
   /// Utility method to pack a Flutter color safely into a float array
   int packColor(Float32List targetList, int offset, Color color) {
@@ -57,7 +55,7 @@ abstract class BaseUniforms with LoggableClass {
 
   /// Shared engine routine. Compiles and binds both vertex blocks
   /// and custom subclass fragment structures in a single step.
-  void bind(gpu.RenderPass renderPass,gpu.HostBuffer transients) {
+  void bind(gpu.RenderPass renderPass, gpu.HostBuffer transients) {
     if (vertexShader == null || fragmentShader == null) {
       throw StateError(
         'Cannot set uniforms: Vertex and Fragment shaders must be assigned.',
@@ -65,11 +63,11 @@ abstract class BaseUniforms with LoggableClass {
     }
 
     // =========================================================================
-    // 1. REUSABLE VERTEX BLOCK WRITER (Identical across your shaders)
+    // 1. REUSABLE VERTEX BLOCK WRITER
     // =========================================================================
     final Float32List vertexData = Float32List(32);
-    vertexData.setAll(0, _mvMatrix.storage);
-    vertexData.setAll(16, _pMatrix.storage);
+    vertexData.setAll(0, mvMatrixLocal.storage);
+    vertexData.setAll(16, pMatrixLocal.storage);
 
     final gpu.BufferView vertexBufferView = transients.emplace(
       vertexData.buffer.asByteData(),
@@ -87,7 +85,8 @@ abstract class BaseUniforms with LoggableClass {
     final gpu.BufferView fragmentBufferView = transients.emplace(
       fragmentData.buffer.asByteData(),
     );
-    final gpu.UniformSlot fragmentSlot = fragmentShader!.getUniformSlot(fragmentBlockName);
+    final gpu.UniformSlot fragmentSlot =
+        fragmentShader!.getUniformSlot(fragmentBlockName);
     renderPass.bindUniform(fragmentSlot, fragmentBufferView);
 
     if (hasSampler) {
@@ -96,7 +95,7 @@ abstract class BaseUniforms with LoggableClass {
       );
 
       final gpu.Texture textureToBind =
-          _texture ?? FSK().textureManager.dummyTexture!;
+          textureIn ?? FSK().textureManager.dummyTexture!;
       renderPass.bindTexture(textureSlot, textureToBind);
     }
   }

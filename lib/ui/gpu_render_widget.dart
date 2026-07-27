@@ -101,9 +101,8 @@ class FskScenePainter extends CustomPainter {
     scene.viewportSize = size;
 
     // Draw the scene, accumulating commands into commandBuffer via renderPass
-    print("Start of draw scene");
     scene.drawScene(renderPass,frameTransients);
-    print("After draw scene");
+
     // Submit commands to GPU to draw
     commandBuffer.submit();
 

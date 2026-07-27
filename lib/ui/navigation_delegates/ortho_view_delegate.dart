@@ -46,18 +46,23 @@ class OrthoViewDelegate extends FskSceneNavigationDelegate implements ScreenRect
   Matrix4 createProjectionMatrix() {
     Matrix4 proj = Matrix4.identity();
 
-    // 🟢 TOP-DOWN PROJECTION: 
-    // logical top (0) maps to NDC -1.0 (Top)
-    // logical bottom (720) maps to NDC 1.0 (Bottom)
-    // This creates a standard screen coordinate system where larger Y moves things DOWN.
-    setOrthographicMatrix(
-        proj,
-        _viewRect.left,
-        _viewRect.right,
-        _viewRect.top,    
-        _viewRect.bottom, 
-        _zNear,
-        _zFar);
+    // 🟢 VULKAN-COMPATIBLE ORTHOGRAPHIC PROJECTION: 
+    // This manual construction preserves the existing Y-axis mapping (Y-Down)
+    // while fixing the Z-depth mapping to the [0.0, 1.0] range expected by Vulkan/Metal.
+    // world near maps to 0.0, world far maps to 1.0.
+
+    final double rml = _viewRect.right - _viewRect.left;
+    final double rpl = _viewRect.right + _viewRect.left;
+    final double tmb = _viewRect.bottom - _viewRect.top;
+    final double tpb = _viewRect.bottom + _viewRect.top;
+    final double fmn = _zFar - _zNear;
+
+    proj.setValues(
+      2.0 / rml, 0.0, 0.0, 0.0,
+      0.0, 2.0 / tmb, 0.0, 0.0,
+      0.0, 0.0, 1.0 / fmn, 0.0,
+      -rpl / rml, -tpb / tmb, -_zNear / fmn, 1.0,
+    );
 
     return proj;
   }

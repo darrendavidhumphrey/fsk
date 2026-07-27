@@ -90,9 +90,16 @@ abstract class FskScene with LoggableClass {
     }
 
     _viewportSize = Size(width.toDouble(), height.toDouble());
+
+    if (navigationDelegate != null && navigationDelegate is ScreenRectSubscriber) {
+      (navigationDelegate as ScreenRectSubscriber).setViewRect(
+        Rect.fromLTWH(0, 0, _viewportSize.width, _viewportSize.height),
+      );
+    }
   }
   void allocateRenderTarget() {
     // 🟢 THE FIX: Allocate the texture using PHYSICAL pixels (logical * devicePixelRatio)
+    // TODO: This might be obsolete...
     final int physicalWidth = (_viewportSize.width * FSK.devicePixelRatio).toInt();
     final int physicalHeight = (_viewportSize.height * FSK.devicePixelRatio).toInt();
 

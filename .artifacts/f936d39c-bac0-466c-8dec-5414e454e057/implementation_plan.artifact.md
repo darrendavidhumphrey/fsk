@@ -1,29 +1,21 @@
-# Debugging Quad Positioning in Hierarchical Scenes
+# Conditional "Best Fit" for CheckerBoardScene
 
-The user reports that quads in `GameScreenTest2.xml` and `GameScreenTest3.xml` are drawing at incorrect locations. Specifically, `Question8_BackBox` draws at the same location as `Question1_BackBox`, while its sibling text objects draw correctly.
-
-## Research Findings
-
-1.  **Matrix Isolation**: I've already added matrix cloning in `FrameGroupNode.draw` and `FrameScene.drawScene`, which should prevent matrix leakage between sibling nodes.
-2.  **Origin Logic**: I've unified the origin logic for quads to use `ReferenceBox` with a `top` origin, which correctly maps the `screenRect` coordinates into group-relative space.
-3.  **Correctness of Text**: The fact that `Question8_Text` is in the correct place confirms that the hierarchical translation of the `Question8` group is working correctly for some objects.
-4.  **Suspicion of Uniform/State Leakage**: If the quad is drawing at Question 1's location despite a correct matrix being passed to it, it suggests that either the `mvMatrix` is being ignored, or the underlying uniform data is being corrupted or shared improperly.
+I will update the `CheckerBoardScene` to automatically scale and center its geometry when using the dynamic `OrthoViewDelegate`, while maintaining its original origin-centered behavior for perspective views like `OrbitViewDelegate`.
 
 ## Proposed Changes
 
-### [FSK Engine]
+### [Examples]
 
-#### [MODIFY] [frame_scene_nodes.dart](file:///C:/Users/darre/StudioProjects/fsk/lib/frames/frame_scene_nodes.dart)
-- I will add a diagnostic log to `FrameGroupNode.draw` that captures the IDs and matrices being passed down. Since I cannot see standard output, I will temporarily modify the `draw` method to append this info to a global string that I can later dump to an artifact.
-- I will further strengthen the matrix isolation by explicitly clearing the `mvMatrix` stack at the start of each frame if it's being used improperly.
-
-#### [MODIFY] [fsk_quad.dart](file:///C:/Users/darre/StudioProjects/fsk/lib/scene_graph/fsk_quad.dart)
-- I will add a check to ensure `rebuildIfNeeded` is called correctly and that the VBO is indeed unique.
+#### [MODIFY] [checkerboard_scene.dart](file:///C:/Users/darre/StudioProjects/fsk/example/lib/checkerboard_scene.dart)
+- Update `drawVBO` to detect if the active delegate is an `OrthoViewDelegate`.
+- If using Ortho:
+    - Apply a centering translation: `(viewportSize.width / 2, viewportSize.height / 2)`.
+    - Apply a scaling factor to make the `500x500` quad fill the viewport: `(viewportSize.width / 500, viewportSize.height / 500)`.
+- If using any other delegate (like Orbit):
+    - Use the standard `mvMatrix` without extra transformations.
 
 ## Verification Plan
 
-### Automated Tests
-- I will use the `task` tool to create a small diagnostic script that prints the scene hierarchy and calculated matrices to an artifact.
-
 ### Manual Verification
-- Ask the user to check the diagnostic output to see if the matrices for Question 8 are indeed correct.
+- **Ortho View**: Verify the checkerboard pattern fills the screen and is centered.
+- **Orbit View**: Verify the checkerboard remains at the world origin where the camera is looking.
