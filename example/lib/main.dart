@@ -95,7 +95,7 @@ class TestAppState extends State<TestApp> {
               backgroundColor: kIsWeb ? Colors.transparent : null,
               body: Stack(
                 children: [
-                  RenderToTexture(scene: scenes[_pageIndex]),
+                  RenderToTexture(scene: scenes[_pageIndex],useAntiAliasing: (_pageIndex == 2),),
 
                   // Title text widget
                   PositionedTitleBar(titleText: _titleText),

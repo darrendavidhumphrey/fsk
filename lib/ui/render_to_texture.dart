@@ -11,8 +11,9 @@ import 'package:fsk/ui/navigation_delegates/scene_navigation_delegate.dart';
 class RenderToTexture extends StatefulWidget {
   /// The scene to be rendered.
   final FskScene scene;
+  final bool useAntiAliasing;
 
-  const RenderToTexture({super.key, required this.scene});
+  const RenderToTexture({super.key, required this.scene,this.useAntiAliasing=false});
 
   @override
   RenderToTextureState createState() => RenderToTextureState();
@@ -71,7 +72,7 @@ class RenderToTextureState extends State<RenderToTexture> {
             }
             return widget.scene.navigationDelegate!.onKeyEvent(event);
           },
-          child: GPURenderWidget(scene: widget.scene),
+          child: GPURenderWidget(scene: widget.scene,useAntiAliasing: widget.useAntiAliasing,),
         ),
       ),
     );

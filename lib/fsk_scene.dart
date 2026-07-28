@@ -61,10 +61,14 @@ abstract class FskScene with LoggableClass {
     _isReady = value;
   }
 
+  // Possibly unneeded code to track retained buffers and release them after
+  // the render pass
   final List<gpu.DeviceBuffer> retainedOldBuffers = [];
   void clearRetainedBuffers() {
     retainedOldBuffers.clear();
   }
+
+
 
   /// Creates a new scene and its associated performance monitor.
   FskScene({this.navigationDelegate}) {
@@ -93,8 +97,6 @@ abstract class FskScene with LoggableClass {
   }
 
   void allocateRenderTarget() {
-    // 🟢 THE FIX: Allocate the texture using PHYSICAL pixels (logical * devicePixelRatio)
-
     final int physicalWidth = (_viewportSize.width * FSK.devicePixelRatio)
         .round();
     final int physicalHeight = (_viewportSize.height * FSK.devicePixelRatio)
