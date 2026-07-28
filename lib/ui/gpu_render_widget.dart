@@ -4,14 +4,18 @@ import 'package:fsk/fsk.dart';
 
 class GPURenderWidget extends StatefulWidget {
   final FskScene scene;
-  const GPURenderWidget({required this.scene, super.key});
+
+  const GPURenderWidget({
+    required this.scene,
+    super.key,
+  });
 
   @override
   State<GPURenderWidget> createState() => _GPURenderWidgetState();
 }
 
-class _GPURenderWidgetState extends State<GPURenderWidget> with SingleTickerProviderStateMixin {
-
+class _GPURenderWidgetState extends State<GPURenderWidget>
+    with SingleTickerProviderStateMixin {
   late AnimationController _animationController;
 
   @override
@@ -40,17 +44,17 @@ class _GPURenderWidgetState extends State<GPURenderWidget> with SingleTickerProv
         return AnimatedBuilder(
           animation: _animationController,
           builder: (context, child) {
-
             // Rebuild VBOs and pipelines before drawing
             if (widget.scene.isReady) {
               widget.scene.rebuildGeometry();
             }
 
             return CustomPaint(
-              size: Size(constraints.maxWidth, constraints.maxHeight), // Explicitly fills layout bounds
-              painter: FskScenePainter(
-                scene: widget.scene,
-              ),
+              size: Size(
+                constraints.maxWidth,
+                constraints.maxHeight,
+              ), // Explicitly fills layout bounds
+              painter: FskScenePainter(scene: widget.scene),
             );
           },
         );
@@ -62,11 +66,9 @@ class _GPURenderWidgetState extends State<GPURenderWidget> with SingleTickerProv
 class FskScenePainter extends CustomPainter {
   final FskScene scene;
 
-  FskScenePainter({
-    required this.scene,
-  });
+  FskScenePainter({required this.scene});
 
-  void blitImage(Canvas canvas, Size size,gpu.Texture texture) {
+  void blitImage(Canvas canvas, Size size, gpu.Texture texture) {
     final uiImage = texture.asImage();
     // 5. Blit and scale image properties directly inside our custom canvas space
     canvas.drawImageRect(
@@ -79,7 +81,6 @@ class FskScenePainter extends CustomPainter {
 
   @override
   void paint(Canvas canvas, Size size) {
-
     // Early out if scene is not ready
     // TODO: Defer to a loading widget here...
     if (scene.isReady == false) {
@@ -101,7 +102,7 @@ class FskScenePainter extends CustomPainter {
     scene.viewportSize = size;
 
     // Draw the scene, accumulating commands into commandBuffer via renderPass
-    scene.drawScene(renderPass,frameTransients);
+    scene.drawScene(renderPass, frameTransients);
 
     // Submit commands to GPU to draw
     commandBuffer.submit();

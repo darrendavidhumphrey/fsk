@@ -7,7 +7,6 @@ class OrthoViewDelegate extends FskSceneNavigationDelegate {
 
   OrthoViewDelegate({super.viewRect,super.boxFit});
 
-
   double _zNear = -1000;
   double _zFar = 1000;
 
@@ -22,7 +21,6 @@ class OrthoViewDelegate extends FskSceneNavigationDelegate {
     _zFar = value;
     setNeedsUpdate(true);
   }
-
 
   // --- Getters ---
   double get zNear => _zNear;

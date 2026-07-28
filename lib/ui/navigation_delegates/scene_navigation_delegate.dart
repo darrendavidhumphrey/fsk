@@ -17,7 +17,7 @@ enum FskBoxFit {
 /// This decouples the interaction logic (like orbiting, panning, or zooming)
 /// from the rendering widget itself. It defines a contract for a set of event
 /// handlers that a widget like [RenderToTexture] can call in response to user input.
-abstract class FskSceneNavigationDelegate {
+abstract class FskSceneNavigationDelegate with ChangeNotifier {
   /// The scene that this delegate controls.
   late FskScene scene;
   late Matrix4 _projectionMatrix;
@@ -27,15 +27,19 @@ abstract class FskSceneNavigationDelegate {
     _projectionMatrix = Matrix4.identity();
     _viewMatrix = Matrix4.identity();
   }
+
+  /////////////////////////////////////////////////////////////////////////////
+  // Needs Update
+  /////////////////////////////////////////////////////////////////////////////
   bool _needsUpdate = true;
   bool get needsUpdate => _needsUpdate;
 
   void setNeedsUpdate(bool value) {
     _needsUpdate = value;
     if (_needsUpdate) {
-
-      // TODO: Need a better way to wire this into the GpuRenderWidget animator
-      // scene.requestRepaint();
+      if (_needsUpdate) {
+        notifyListeners(); // Alert the listening Widget
+      }
     }
   }
 
