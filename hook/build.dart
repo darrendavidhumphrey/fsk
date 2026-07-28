@@ -1,18 +1,19 @@
+import 'dart:io';
 import 'package:hooks/hooks.dart';
 import 'package:flutter_gpu_shaders/build.dart';
 
 void main(List<String> args) async {
-  // The 'build' function handles processing CLI arguments and orchestrates inputs/outputs
-  await build(args, (BuildInput input, BuildOutputBuilder output) async {
+  await build(args, (config, output) async {
 
-    // Call the updated buildShaderBundleJson with the structured types
-    await buildShaderBundleJson(
-      buildInput: input,
+    final result = await buildShaderBundleJson(
+      buildInput: config,
       buildOutput: output,
-      manifestFileName: 'fsk.shaderbundle.json',
-      // Optional defaults included implicitly:
-      // includeDirectories: const [],
-      // assetMode: ShaderBundleAssetMode.legacyOnly,
+      manifestFileName: 'shaders/fsk.shaderbundle.json',
+      assetMode: ShaderBundleAssetMode.dataAssetsRequired,
     );
+    // This will print the EXACT key you need to pass into fromAsset()
+    stderr.writeln('==================================================');
+    stderr.writeln('YOUR DYNAMIC SHADER KEY IS: ${result.flutterAssetKey}');
+    stderr.writeln('==================================================');
   });
 }

@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_gpu/gpu.dart';
 import 'package:fsk/shaders/materials.dart';
 import 'package:fsk/fsk_texture_manager.dart';
 import 'fsk_shader_library.dart';
@@ -36,10 +37,7 @@ class FSK with LoggableClass {
   /// The singleton instance.
   static final FSK _singleton = FSK._internal();
 
-  static final String _builtInShaderBundlePath =
-      'packages/fsk/build/shaderbundles/fsk.shaderbundle';
-
-  late final FskShaderLibrary shaderLibrary;
+  final FskShaderLibrary shaderLibrary = FskShaderLibrary();
 
   /// Factory constructor to return the singleton instance.
   factory FSK() {
@@ -56,11 +54,9 @@ class FSK with LoggableClass {
   Future<bool> init() async {
     try {
       if (_state == FskState.uninitialized) {
-
-        shaderLibrary = FskShaderLibrary();
-        await shaderLibrary.registerBundle(_builtInShaderBundlePath);
-
+        await shaderLibrary.registerBuiltInShaderLibrary('packages/fsk/flutter_gpu_shaders/shaderbundles/fsk.shaderbundle');
         _state = FskState.initialized;
+
         return true;
       }
     } catch (e) {

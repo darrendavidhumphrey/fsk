@@ -91,8 +91,8 @@ class BitmapFont with LoggableClass {
       textureInfo = await FSK().textureManager.createTextureFromAsset(
         name,
         textureName,
-        minFilter: gpu.MinMagFilter.nearest,
-        magFilter: gpu.MinMagFilter.nearest,
+        minFilter: gpu.MinMagFilter.linear,
+        magFilter: gpu.MinMagFilter.linear,
         wrapS: gpu.SamplerAddressMode.clampToEdge,
         wrapT: gpu.SamplerAddressMode.clampToEdge,
       );

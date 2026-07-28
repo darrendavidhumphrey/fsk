@@ -67,7 +67,7 @@ class MeshFactory {
     _tessellate(vbo, outlines, (filler, outline) {
       _addTexturedTriFan(filler, outline, true,color: color);
     });
-    // TODO: FIX THIS vbo.uploadData();
+
   }
 
   /// Fills a [vbo] by tessellating a list of [outlines] with texture coordinates.
@@ -77,7 +77,6 @@ class MeshFactory {
     _tessellate(vbo, outlines, (filler, outline) {
       _addTexturedTriFan(filler, outline, generateNormals);
     });
-    // TODO: FIX THIS vbo.uploadData();
   }
 
   /// Generic helper to tessellate a list of outlines into a vertex buffer.

@@ -10,25 +10,8 @@ abstract class FrameNode with LoggableClass {
 
   FrameNode(this.parentScene, this.data);
 
-  /* TODO: Deprecated?
-  late final gpu.Shader? vertexShader;
-  late final gpu.Shader? fragmentShader;
-  void setupShader({required String defaultShader}) {
-    String shaderName;
-    shaderName = (data.shader != null) ? data.shader! : defaultShader;
-
-    vertexShader = FSK().shaderLibrary['${shaderName}Vertex'];
-    fragmentShader = FSK().shaderLibrary['${shaderName}Fragment'];
-
-    if (vertexShader == null || fragmentShader == null) {
-      throw Exception(
-        'Required shader variants for $shaderName were missing from the bundle.',
-      );
-    }
-  }
- */
-
-  // BEFORE drawing, traverse all nodes and ensure their VBOs are up to date
+  // Before drawing, traverse all nodes and ensure their VBOs are up to date
+  // to avoid mucking with the GPU state during the draw traversal
   void rebuildGeometry();
 
   void draw(
@@ -59,13 +42,11 @@ class FrameGroupNode extends FrameNode {
     Matrix4 pMatrix,
     Matrix4 mvMatrix,
   ) {
-    // TODO: Cleaup
-    // 1. Visbility Guard
     if (!visible) return;
 
     final groupData = data as GroupData;
 
-    // 2. Create isolated child displacement frame
+    // Create the child object's local translation matrix
     final Matrix4 localTranslation = Matrix4.identity()
       ..translateByVector3(groupData.anchor);
 

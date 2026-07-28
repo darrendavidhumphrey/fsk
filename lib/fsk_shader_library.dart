@@ -7,18 +7,32 @@ class FskShaderLibrary with LoggableClass {
 
   /// Register and initialize an isolated shader bundle file
   Future<void> registerBundle(String assetPath) async {
-    // Uses the .then() callback chain to wait for the Future asset to load
-    await gpu.ShaderLibrary.fromAsset(assetPath).then((library) {
-      if (library != null) {
-        _libraries.add(library);
-        logVerbose('Successfully added shader bundle to registry: $assetPath');
-      } else {
-        logWarning('Warning: Shader library resolved to null for path: $assetPath');
-      }
-    }).catchError((error) {
-      logError('Failed to asynchronously load shader bundle $assetPath: $error');
-    });
+    try {
+      // Uses the .then() callback chain to wait for the Future asset to load
+      await gpu.ShaderLibrary.fromAsset(assetPath).then((library) {
+        _registerShaderLibrary(library, assetPath);
+      }).catchError((error) {
+        logError(
+            'Failed to asynchronously load shader bundle $assetPath: $error');
+      });
+    }
+    catch (e) {
+      logError('Failed to load shader bundle $assetPath: $e');
+    }
+  }
 
+  void _registerShaderLibrary(gpu.ShaderLibrary? library,String assetPath) {
+    if (library != null) {
+      _libraries.add(library);
+      logVerbose('Successfully added shader bundle to registry: $assetPath');
+    } else {
+      logWarning('Warning: Shader library resolved to null for path: $assetPath');
+    }
+  }
+
+  Future<void> registerBuiltInShaderLibrary(String assetPath) async {
+    var library = await gpu.ShaderLibrary.fromAsset(assetPath);
+    _registerShaderLibrary(library,assetPath);
   }
 
   /// Searches all registered libraries sequentially for the shader name
