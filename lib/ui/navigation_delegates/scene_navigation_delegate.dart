@@ -3,7 +3,6 @@ import 'package:flutter/material.dart' hide Matrix4;
 import 'package:vector_math/vector_math.dart';
 import '../../fsk_scene.dart';
 
-
 enum FskBoxFit {
   none,
   fitWidth,
