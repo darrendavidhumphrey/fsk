@@ -1,17 +1,15 @@
 import 'dart:ui';
-
 import 'package:fsk/ui/navigation_delegates/scene_navigation_delegate.dart';
 import 'package:vector_math/vector_math.dart';
 
 /// A navigation delegate that implements a static orthographic view
-class OrthoViewDelegate extends FskSceneNavigationDelegate implements ScreenRectSubscriber {
-  static const Rect defaultViewRect = Rect.fromLTWH(0, 0, 250, 250);
-  OrthoViewDelegate({this._viewRect=defaultViewRect});
+class OrthoViewDelegate extends FskSceneNavigationDelegate {
 
-  Rect _viewRect;
+  OrthoViewDelegate({super.viewRect,super.boxFit});
+
+
   double _zNear = -1000;
   double _zFar = 1000;
-
 
   set zNear(double value) {
     if (_zNear == value) return;
@@ -25,11 +23,6 @@ class OrthoViewDelegate extends FskSceneNavigationDelegate implements ScreenRect
     setNeedsUpdate(true);
   }
 
-  @override
-  void setViewRect(Rect value) {
-    _viewRect = value;
-    setNeedsUpdate(true);
-  }
 
   // --- Getters ---
   double get zNear => _zNear;
@@ -51,10 +44,10 @@ class OrthoViewDelegate extends FskSceneNavigationDelegate implements ScreenRect
     // while fixing the Z-depth mapping to the [0.0, 1.0] range expected by Vulkan/Metal.
     // world near maps to 0.0, world far maps to 1.0.
 
-    final double rml = _viewRect.right - _viewRect.left;
-    final double rpl = _viewRect.right + _viewRect.left;
-    final double tmb = _viewRect.bottom - _viewRect.top;
-    final double tpb = _viewRect.bottom + _viewRect.top;
+    final double rml = viewRect.right - viewRect.left;
+    final double rpl = viewRect.right + viewRect.left;
+    final double tmb = viewRect.bottom - viewRect.top;
+    final double tpb = viewRect.bottom + viewRect.top;
     final double fmn = _zFar - _zNear;
 
     proj.setValues(

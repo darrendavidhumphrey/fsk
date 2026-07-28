@@ -1,5 +1,6 @@
 import 'dart:ui';
 import 'package:flutter_gpu/gpu.dart' as gpu;
+import 'package:vector_math/vector_math.dart';
 import '../fsk.dart';
 import 'frame_data.dart';
 
@@ -65,8 +66,7 @@ class FrameScene extends FskScene {
 
     // 3. Build node tree
     for (var objData in _frameData!.objects) {
-      final node = _createNode(
-          objData);
+      final node = _createNode(objData);
       if (node != null) {
         rootNodes.add(node);
       }
@@ -78,7 +78,7 @@ class FrameScene extends FskScene {
   FrameNode? _createNode(FrameObjectData objData) {
     FrameNode? node;
     if (objData is GroupData) {
-      final groupNode = FrameGroupNode(this,objData);
+      final groupNode = FrameGroupNode(this, objData);
       for (var childData in objData.children) {
         final childNode = _createNode(childData);
         if (childNode != null) {
@@ -87,9 +87,9 @@ class FrameScene extends FskScene {
       }
       node = groupNode;
     } else if (objData is QuadData) {
-      node = FrameQuadNode(this,objData);
+      node = FrameQuadNode(this, objData);
     } else if (objData is FrameTextData) {
-      node = FrameTextNode(this,objData);
+      node = FrameTextNode(this, objData);
     }
 
     if (node != null) {
@@ -99,11 +99,32 @@ class FrameScene extends FskScene {
   }
 
   @override
-  void drawScene(gpu.RenderPass renderPass,gpu.HostBuffer transients) {
+  void drawScene(gpu.RenderPass renderPass, gpu.HostBuffer transients) {
+    if (!skinLoaded || _frameData == null) {
+      return;
+    }
+
     super.setupScissor(renderPass);
 
+    Matrix4 finalMvMatrix = mvMatrix.clone();
+
+    Matrix4? boxFitMatrix = navigationDelegate?.createBoxFitMatrix(_frameData!.frameSize);
+
+    if (boxFitMatrix != null) {
+      finalMvMatrix = finalMvMatrix * boxFitMatrix;
+    }
+
+    // Center object in view
+    finalMvMatrix.translateByVector3(
+      Vector3(
+        -frameData!.frameSize.width / 2,
+        -frameData!.frameSize.height / 2,
+        0,
+      ),
+    );
+
     for (var node in rootNodes) {
-      node.draw(renderPass, transients, pMatrix.clone(), mvMatrix.clone());
+      node.draw(renderPass, transients, pMatrix.clone(), finalMvMatrix.clone());
     }
   }
 
@@ -139,20 +160,6 @@ class FrameScene extends FskScene {
   Future<void> loadSkin(String skinPath) async {
     try {
       frameData = await FrameSceneParser.parseFromAssets(skinPath);
-
-      if ((navigationDelegate != null) &&
-          (frameData != null) &&
-          (navigationDelegate is ScreenRectSubscriber)) {
-        var viewRect = Rect.fromLTWH(
-          0,
-          0,
-          frameData!.frameSize.width,
-          frameData!.frameSize.height,
-        );
-
-        var screenRectSub = navigationDelegate as ScreenRectSubscriber;
-        screenRectSub.setViewRect(viewRect);
-      }
       skinLoaded = true;
       if (frameData != null) {
         frameData!.dumpTree();

@@ -10,7 +10,7 @@ import 'package:fsk/fsk.dart';
 /// and zoom (dolly) the camera towards and away from that point.
 class OrbitViewDelegate extends FskSceneNavigationDelegate {
 
-  OrbitViewDelegate();
+  OrbitViewDelegate({super.viewRect,super.boxFit});
   static const double _initialYaw = 0;
   static const double _initialPitch = 0;
 

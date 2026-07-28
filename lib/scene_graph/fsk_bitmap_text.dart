@@ -244,15 +244,13 @@ class FskBitmapText extends FskRenderableObject {
   @override
   void rebuildIfNeeded() {
 
+    // Don't try to rebuild if font isn't loaded
     if ((font == null) || (!font!.isInitialized) ) {
-      print("Font not ready in rebuild: isFontNull? ${font == null} isFontInitialized? ${font!.isInitialized}");
       return;
     }
 
     // Guard against unnecessary, expensive rebuilds.
     if (!_needsRebuild) return;
-
-    print("Rebuild Text VBO");
 
     // Fill local structure with array of quads
     rebuildQuads();
@@ -406,10 +404,6 @@ class FskBitmapText extends FskRenderableObject {
   @override
   void draw(gpu.RenderPass renderPass,gpu.HostBuffer transients,Matrix4 pMatrix, Matrix4 mvMatrix) {
    if ((font == null) || (!font!.isInitialized) ) {
-     print("Text draw failed: isFontNull? ${font == null} isFontInitialized? ${font!.isInitialized}");
-     if (font != null) {
-       print("Font: ${font!.name}");
-     }
      return;
    }
 

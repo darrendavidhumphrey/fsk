@@ -9,18 +9,18 @@ class CheckerBoardScene extends FskScene {
   CheckerBoardUniforms? uniforms;
   late PipelineKey pipelineKey;
 
+  final Size contentSize = Size(500, 500);
   CheckerBoardScene({super.navigationDelegate}) {
     init();
   }
 
   void init() {
-    final Size quadExtents = Size(500, 500);
     VboFiller.makeTexturedUnitQuad(
       Rect.fromLTWH(
-        -quadExtents.width / 2,
-        -quadExtents.height / 2,
-        quadExtents.width,
-        quadExtents.height,
+        -contentSize.width / 2,
+        -contentSize.height / 2,
+        contentSize.width,
+        contentSize.height,
       ),
       0.1,
       exampleVbo,
@@ -63,13 +63,8 @@ class CheckerBoardScene extends FskScene {
 
     Matrix4 finalMvMatrix;
 
-    // Center object in view when using OrthoViewDelegate
-    if (navigationDelegate is OrthoViewDelegate) {
-      finalMvMatrix = mvMatrix.clone()
-        ..translateByVector3(Vector3(viewportSize.width / 2, viewportSize.height / 2, 0.0));
-    } else {
-      finalMvMatrix = mvMatrix.clone();
-    }
+    // Center object in view
+    finalMvMatrix = mvMatrix * navigationDelegate?.createBoxFitMatrix(contentSize);
 
     uniforms!.patternColor1 = Colors.red;
     uniforms!.patternColor2 = Colors.green;

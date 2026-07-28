@@ -1,21 +1,30 @@
-# Conditional "Best Fit" for CheckerBoardScene
+# Add BoxFit support to OrthoViewDelegate
 
-I will update the `CheckerBoardScene` to automatically scale and center its geometry when using the dynamic `OrthoViewDelegate`, while maintaining its original origin-centered behavior for perspective views like `OrbitViewDelegate`.
+This plan outlines the changes needed to add `BoxFit`-like functionality to `OrthoViewDelegate`, allowing scenes to easily scale and position content within the viewport.
+
+## User Review Required
+
+> [!IMPORTANT]
+> The new `createBoxFitMatrix` method will assume that the content's origin is at `(0,0)` (local space) by default. If your content is centered at `(0,0)`, you may need to apply a pre-translation or we can add a parameter to handle it.
 
 ## Proposed Changes
 
-### [Examples]
+### [FSK Engine]
 
-#### [MODIFY] [checkerboard_scene.dart](file:///C:/Users/darre/StudioProjects/fsk/example/lib/checkerboard_scene.dart)
-- Update `drawVBO` to detect if the active delegate is an `OrthoViewDelegate`.
-- If using Ortho:
-    - Apply a centering translation: `(viewportSize.width / 2, viewportSize.height / 2)`.
-    - Apply a scaling factor to make the `500x500` quad fill the viewport: `(viewportSize.width / 500, viewportSize.height / 500)`.
-- If using any other delegate (like Orbit):
-    - Use the standard `mvMatrix` without extra transformations.
+#### [MODIFY] [ortho_view_delegate.dart](file:///C:/Users/darre/StudioProjects/fsk/lib/ui/navigation_delegates/ortho_view_delegate.dart)
+- Define `OrthoBoxFit` enum: `none`, `fitWidth`, `fitHeight`, `fill`.
+- Add `boxFit` property to `OrthoViewDelegate`, defaulting to `none`.
+- Add `createBoxFitMatrix(Size contentSize)` method. This method will:
+    - Return `Matrix4.identity()` if `boxFit` is `none`.
+    - Calculate a scale and translation based on the selected `boxFit`, the provided `contentSize`, and the current viewport size (`_viewRect`).
+    - `fitWidth`: Scales content to match viewport width and centers it vertically.
+    - `fitHeight`: Scales content to match viewport height and centers it horizontally.
+    - `fill`: Stretches content to exactly fill the viewport.
 
 ## Verification Plan
 
+### Automated Tests
+- I will verify the matrix calculations manually against expected values for common scenarios (e.g., fitting a square content into a widescreen viewport).
+
 ### Manual Verification
-- **Ortho View**: Verify the checkerboard pattern fills the screen and is centered.
-- **Orbit View**: Verify the checkerboard remains at the world origin where the camera is looking.
+- Update `CheckerBoardScene` to use the new `createBoxFitMatrix` method and verify it renders correctly with different `boxFit` options.

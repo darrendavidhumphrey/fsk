@@ -61,12 +61,8 @@ abstract class FskScene with LoggableClass {
     _isReady = value;
   }
 
-  // TODO: Test for fixing race condition glitches
   final List<gpu.DeviceBuffer> retainedOldBuffers = [];
   void clearRetainedBuffers() {
-    if (retainedOldBuffers.isNotEmpty) {
-      print("Disposing of ${retainedOldBuffers.length} retained buffers");
-    }
     retainedOldBuffers.clear();
   }
 
@@ -91,17 +87,18 @@ abstract class FskScene with LoggableClass {
 
     _viewportSize = Size(width.toDouble(), height.toDouble());
 
-    if (navigationDelegate != null && navigationDelegate is ScreenRectSubscriber) {
-      (navigationDelegate as ScreenRectSubscriber).setViewRect(
-        Rect.fromLTWH(0, 0, _viewportSize.width, _viewportSize.height),
-      );
-    }
+    navigationDelegate?.setViewRect(
+      Rect.fromLTWH(0, 0, _viewportSize.width, _viewportSize.height),
+    );
   }
+
   void allocateRenderTarget() {
     // 🟢 THE FIX: Allocate the texture using PHYSICAL pixels (logical * devicePixelRatio)
     // TODO: This might be obsolete...
-    final int physicalWidth = (_viewportSize.width * FSK.devicePixelRatio).toInt();
-    final int physicalHeight = (_viewportSize.height * FSK.devicePixelRatio).toInt();
+    final int physicalWidth = (_viewportSize.width * FSK.devicePixelRatio)
+        .toInt();
+    final int physicalHeight = (_viewportSize.height * FSK.devicePixelRatio)
+        .toInt();
 
     if (physicalWidth <= 0 || physicalHeight <= 0) return;
 
@@ -161,22 +158,12 @@ abstract class FskScene with LoggableClass {
 
     // 1. Set up the Scissor box
     renderPass.setScissor(
-      gpu.Scissor(
-        x: 0,
-        y: 0,
-        width: physicalWidth,
-        height: physicalHeight,
-      ),
+      gpu.Scissor(x: 0, y: 0, width: physicalWidth, height: physicalHeight),
     );
 
     // 2. Set up the Viewport box
     renderPass.setViewport(
-      gpu.Viewport(
-        x: 0,
-        y: 0,
-        width: physicalWidth,
-        height: physicalHeight,
-      ),
+      gpu.Viewport(x: 0, y: 0, width: physicalWidth, height: physicalHeight),
     );
   }
 }

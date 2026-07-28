@@ -42,10 +42,10 @@ class TestAppState extends State<TestApp> {
 
 
   void makeExamples() {
-    scenes.add(CheckerBoardScene(navigationDelegate: OrthoViewDelegate()));
-    scenes.add(AnimatedCheckerBoardScene(navigationDelegate: StaticViewDelegate()));
-    scenes.add(OrbitViewScene(navigationDelegate: OrbitViewDelegate()));
-    scenes.add(BitmapTextScene(navigationDelegate: OrthoViewDelegate()));
+    scenes.add(CheckerBoardScene(navigationDelegate: OrthoViewDelegate(boxFit: FskBoxFit.bestFit)));
+    scenes.add(AnimatedCheckerBoardScene(navigationDelegate: StaticViewDelegate(boxFit: FskBoxFit.bestFit)));
+    scenes.add(OrbitViewScene(navigationDelegate: OrbitViewDelegate(boxFit: FskBoxFit.bestFit)));
+    scenes.add(BitmapTextScene(navigationDelegate: OrthoViewDelegate(boxFit: FskBoxFit.bestFit)));
   }
 
   @override

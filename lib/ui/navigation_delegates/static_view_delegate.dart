@@ -5,7 +5,7 @@ import 'package:vector_math/vector_math.dart';
 
 /// A navigation delegate that implements a static view
 class StaticViewDelegate extends FskSceneNavigationDelegate {
-  StaticViewDelegate();
+  StaticViewDelegate({super.viewRect,super.boxFit});
 
   // The rotation of the view, in degrees
   Vector3 _rotation = Vector3(45,0,0);

@@ -3,10 +3,13 @@ import 'package:flutter/material.dart' hide Matrix4;
 import 'package:vector_math/vector_math.dart';
 import '../../fsk_scene.dart';
 
-/// Some SceneNavigationDelegates need to subscribe to the screen size by implementing
-/// this interface.
-abstract interface class ScreenRectSubscriber {
-  void setViewRect(Rect value);
+
+enum FskBoxFit {
+  none,
+  fitWidth,
+  fitHeight,
+  fill,
+  bestFit,
 }
 
 /// An abstract interface for classes that handle user input to navigate a [FskScene].
@@ -20,7 +23,7 @@ abstract class FskSceneNavigationDelegate {
   late Matrix4 _projectionMatrix;
   late Matrix4 _viewMatrix;
 
-  FskSceneNavigationDelegate() {
+  FskSceneNavigationDelegate({this._viewRect = defaultViewRect, this._boxFit = FskBoxFit.none}) {
     _projectionMatrix = Matrix4.identity();
     _viewMatrix = Matrix4.identity();
   }
@@ -34,6 +37,28 @@ abstract class FskSceneNavigationDelegate {
       // TODO: Need a better way to wire this into the GpuRenderWidget animator
       // scene.requestRepaint();
     }
+  }
+
+  /////////////////////////////////////////////////////////////////////////////
+  // BoxFit
+  /////////////////////////////////////////////////////////////////////////////
+  FskBoxFit _boxFit;
+  FskBoxFit get boxFit => _boxFit;
+  set boxFit(FskBoxFit value) {
+    _boxFit = value;
+    setNeedsUpdate(true);
+  }
+
+  /////////////////////////////////////////////////////////////////////////////
+  // ViewRect
+  /////////////////////////////////////////////////////////////////////////////
+  static const Rect defaultViewRect = Rect.fromLTWH(0, 0, 250, 250);
+  Rect _viewRect;
+  Rect get viewRect => _viewRect;
+
+  void setViewRect(Rect value) {
+    _viewRect = value;
+    setNeedsUpdate(true);
   }
 
   void setViewMatrix(Matrix4 matrix) {
@@ -125,4 +150,43 @@ abstract class FskSceneNavigationDelegate {
 
   /// Child class should override if they need to clean up resources.
   void dispose() {}
+
+  /// Creates a matrix that scales and translates content of [contentSize] to fit
+  /// the current view according to the selected [boxFit] strategy.
+  ///
+  /// This assumes the content is centered at its own origin (0,0).
+  Matrix4 createBoxFitMatrix(Size contentSize) {
+    double scaleX = 1.0;
+    double scaleY = 1.0;
+
+    final viewWidth = _viewRect.width;
+    final viewHeight = _viewRect.height;
+
+    switch (boxFit) {
+      case FskBoxFit.none:
+        break;
+      case FskBoxFit.fitWidth:
+        scaleX = viewWidth / contentSize.width;
+        scaleY = scaleX;
+        break;
+      case FskBoxFit.fitHeight:
+        scaleY = viewHeight / contentSize.height;
+        scaleX = scaleY;
+        break;
+      case FskBoxFit.fill:
+        scaleX = viewWidth / contentSize.width;
+        scaleY = viewHeight / contentSize.height;
+        break;
+      case FskBoxFit.bestFit:
+        final sX = viewWidth / contentSize.width;
+        final sY = viewHeight / contentSize.height;
+        scaleX = sX < sY ? sX : sY;
+        scaleY = scaleX;
+        break;
+    }
+
+    return Matrix4.identity()
+      ..translate(_viewRect.left + viewWidth / 2, _viewRect.top + viewHeight / 2, 0.0)
+      ..scale(scaleX, scaleY, 1.0);
+  }
 }
