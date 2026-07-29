@@ -11,7 +11,7 @@ class FskVertexBuffer {
   gpu.DeviceBuffer? get deviceBuffer => _deviceBuffer;
 
   // Constants for the vertex buffer stride and component count
-  // Currently, vertex buffers always allocate all 12 components for VTNC
+  // Currently, vertex buffers always allocate all 12 components for V3T2N3C4
   // even if not used. Shaders all need to use that layout
   static const int strideInBytes = 48;
   static const int componentCount = 12;
@@ -28,14 +28,7 @@ class FskVertexBuffer {
 
   /// Sends current CPU data over to physical GPU device memory.
   void uploadData() {
-    assert(
-      _vertexCount > 0,
-      "FskVertexBuffer::uploadData called with zero vertex count",
-    );
-    assert(
-      vertexData != null,
-      "FskVertexBuffer::uploadData called and vertexData is null",
-    );
+    if ((_vertexCount == 0) || (vertexData == null)) return;
 
     final int activeBytesSize = _vertexCount * strideInBytes;
 
@@ -65,19 +58,22 @@ class FskVertexBuffer {
 
   /// Allocate host CPU memory arrays to store structural coordinates.
   Float32List? requestBuffer(int newVertexCount) {
-    assert(
-      newVertexCount > 0,
-      "FskVertexBuffer::requestBuffer called with zero vertex count",
-    );
 
-    vertexData = Float32List(newVertexCount * componentCount);
-    _vertexCount = newVertexCount;
+    if (newVertexCount == 0) {
+      clear();
+      return null;
+    }
 
+    if (newVertexCount != _vertexCount) {
+      vertexData = Float32List(newVertexCount * componentCount);
+      _vertexCount = newVertexCount;
+    }
     return vertexData;
   }
 
   /// Records buffer bindings to a specific binding slot on an active RenderPass.
   void bind(gpu.RenderPass renderPass, {int slot = 0}) {
+    if (_deviceBuffer == null) return;
     assert(
       _deviceBuffer != null,
       "FskVertexBuffer::bind called with null device buffer",
@@ -94,6 +90,7 @@ class FskVertexBuffer {
 
   /// Draws the currently active vertices as triangles.
   void drawTriangles(gpu.RenderPass renderPass) {
+    if (_deviceBuffer == null) return;
     assert(
       _deviceBuffer != null,
       "FskVertexBuffer::drawTriangles called with null device buffer",
@@ -141,24 +138,6 @@ class FskVertexBuffer {
     for (int i = 0; i < quads.length; i++) {
       final q = quads[i];
       final tr = textureQuads[i];
-
-      /*
-          Vector2 tTlc = Vector2(tr.left, tr.top);
-    Vector2 tTrc = Vector2(tr.right, tr.top);
-    Vector2 tBlc = Vector2(tr.left, tr.bottom);
-    Vector2 tBrc = Vector2(tr.right, tr.bottom);
-
-    // First triangle: bottom-left, bottom-right, top-right
-    addV3T2(q.point0, tBlc);
-    addV3T2(q.point1, tBrc);
-    addV3T2(q.point2, tTrc);
-
-    // Second triangle: bottom-left, top-right, top-left
-    addV3T2(q.point0, tBlc);
-    addV3T2(q.point2, tTrc);
-    addV3T2(q.point3, tTlc);
-       */
-
 
       // First triangle: bottom-left, bottom-right, top-right
       index = addV3T2(
@@ -217,11 +196,10 @@ class FskVertexBuffer {
   }
 
   bool setFromUnrolledQuads(int numQuads, Float32List xyzuv) {
-    const int arrayStride =
-    5; // Unrolled array is 5 components per vertex (XYZUV)
+    const int arrayStride = 5; // Unrolled array is 5 components per vertex (XYZUV)
 
     // Guard that array length is correct
-    if ((numQuads == 0) || xyzuv.isEmpty || xyzuv.length != arrayStride * numQuads) {
+    if ((numQuads == 0) || xyzuv.isEmpty || xyzuv.length != arrayStride * numQuads*4) {
       clear();
       return false;
     }
@@ -237,12 +215,11 @@ class FskVertexBuffer {
     int currentVboIndex = 0;
     for (int i = 0; i < numQuads; i++) {
       // Calculate array indices for this quad
-      int v0Index = (i * arrayStride);
+      int v0Index = (i * arrayStride*4);
       int v1Index = v0Index + arrayStride;
       int v2Index = v1Index + arrayStride;
       int v3Index = v2Index + arrayStride;
 
-      // TODO: Ensure the builder follows this pattern
       // Calculate texture indices for this quad
       int blIndex = v0Index + 3;
       int brIndex = v1Index + 3;

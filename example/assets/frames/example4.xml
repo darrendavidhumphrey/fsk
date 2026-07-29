@@ -21,7 +21,8 @@
 -->
         <quad id="Penelope1" texture="Penelope" screenRect="{{730, 199}, {221, 238}}" visible="true" premultiplyAlpha="true" modulateColor="#FF0000FF"/>
 
-
+        <text id="EmptyTest" font="ArialMT36" text=""
+            screenRect="{{245, 634}, {198, 26}}" hJustify="left" vJustify="bottom" visible="true" textColor="#FF0000FF" />
 
                <text id="Text2" font="ArialMT36" text="Left Justified"
                    screenRect="{{245, 634}, {198, 26}}" hJustify="left" vJustify="bottom" visible="true" textColor="#FF0000FF" />

@@ -131,7 +131,7 @@ class ReferenceBox {
   /// Returns a new [ReferenceBox] offset from this one using 2D coordinates.
   ReferenceBox subBoxFromOffsets(
       Vector2 startOffset2D, Vector2 endOffset2D, Vector3 zVector) {
-    final corners = _calcCornersFrom2DVectors(
+    final corners = calcCornersFrom2DVectors(
       origin,
       startOffset2D,
       endOffset2D,
@@ -144,7 +144,7 @@ class ReferenceBox {
   }
 
   /// Helper to calculate 3D corner positions from 2D offsets in the box's local space.
-  static List<Vector3> _calcCornersFrom2DVectors(
+  static List<Vector3> calcCornersFrom2DVectors(
     Vector3 origin3D,
     Vector2 startOffset2D,
     Vector2 endOffset2D,
@@ -161,7 +161,7 @@ class ReferenceBox {
 
   /// Calculates a [Quad] from 2D offsets in the box's local space.
   Quad calcQuadFrom2DVectors(Vector2 startOffset2D, Vector2 endOffset2D) {
-    final corners = _calcCornersFrom2DVectors(
+    final corners = calcCornersFrom2DVectors(
       origin,
       startOffset2D,
       endOffset2D,
@@ -173,7 +173,7 @@ class ReferenceBox {
 
   /// Creates a [Polyline] from 2D offsets in the box's local space.
   Polyline polylineFrom2DVectors(Vector2 startOffset2D, Vector2 endOffset2D) {
-    final corners = _calcCornersFrom2DVectors(
+    final corners = calcCornersFrom2DVectors(
       origin,
       startOffset2D,
       endOffset2D,

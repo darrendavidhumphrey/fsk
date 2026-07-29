@@ -1,14 +1,14 @@
 import 'dart:math';
-import 'dart:ui';
+import 'dart:typed_data';
 import 'package:vector_math/vector_math.dart' hide Colors;
 import '../fsk.dart';
 
 class FskBitmapTextQuadBuilderResult {
-  final List<Quad> quads;
-  final List<Rect> textureQuads;
+  int numQuads = 0;
+  final Float32List vertexData;
 
-  FskBitmapTextQuadBuilderResult(this.quads, this.textureQuads);
-  FskBitmapTextQuadBuilderResult.empty() : quads = [], textureQuads = [];
+  FskBitmapTextQuadBuilderResult(this.numQuads, this.vertexData);
+  FskBitmapTextQuadBuilderResult.empty(): numQuads = 0, vertexData = Float32List(0);
 }
 
 class CharLayoutInfo {
@@ -25,13 +25,15 @@ class FskBitmapTextQuadBuilder {
   final TextVerticalJustification verticalJustification;
   final double _width;
 
+  static final int _vertexStride = 5;
+
   // Computed Internally
   late double _ratio;
   late double _lineLength;
 
   final List<CharLayoutInfo> layoutData = [];
-  late List<Quad> quads = [];
-  late List<Rect> textureQuads = [];
+  int _numQuads;
+  Float32List _vertexData;
 
   FskBitmapTextQuadBuilder({
     required this.text,
@@ -40,12 +42,12 @@ class FskBitmapTextQuadBuilder {
     required this._width,
     required this.horizontalJustification,
     required this.verticalJustification,
-  });
+  }) : _numQuads = 0, _vertexData = Float32List(0);
 
   FskBitmapTextQuadBuilderResult build() {
     layoutData.clear();
-    quads.clear();
-    textureQuads.clear();
+    _numQuads = 0;
+    _vertexData = Float32List(0);
 
     _lineLength = 0;
     _ratio = 0;
@@ -73,7 +75,7 @@ class FskBitmapTextQuadBuilder {
     // Pass 5: Quad Construction Loop (CRITICAL: Make sure unscaledVAdjust is passed here!)
     _constructQuads(currentX, unscaledVAdjust);
 
-    return FskBitmapTextQuadBuilderResult(quads, textureQuads);
+    return FskBitmapTextQuadBuilderResult(_numQuads, _vertexData);
   }
 
   /// Pass 1: Gathers character bounding information and computes unscaled text line length.
@@ -100,8 +102,10 @@ class FskBitmapTextQuadBuilder {
   void _allocateListsAndCalculateRatio() {
     int characterCount = layoutData.length;
 
-    quads = List<Quad>.filled(characterCount, Quad());
-    textureQuads = List<Rect>.filled(characterCount, Rect.zero);
+    _numQuads = characterCount;
+
+    // Allocate 4 vertices per quad, each of which has _vertexStride components
+    _vertexData = Float32List(_numQuads * _vertexStride*4);
 
     _ratio = (_lineLength > 0) ? _width / _lineLength : 1.0;
     _ratio = min(1.0, _ratio);
@@ -142,6 +146,35 @@ class FskBitmapTextQuadBuilder {
     }
   }
 
+  int  _addQuad(int index, Vector2 blc,Vector2 trc,double tLeft,double tTop,double tRight,double tBottom) {
+    Quad q = screenRect.calcQuadFrom2DVectors(blc, trc);
+    _vertexData[index++] = q.point0.x;
+    _vertexData[index++] = q.point0.y;
+    _vertexData[index++] = q.point0.z;
+    _vertexData[index++] = tLeft;
+    _vertexData[index++] = tBottom;
+
+    _vertexData[index++] = q.point1.x;
+    _vertexData[index++] = q.point1.y;
+    _vertexData[index++] = q.point1.z;
+    _vertexData[index++] = tRight;
+    _vertexData[index++] = tBottom;
+
+    _vertexData[index++] = q.point2.x;
+    _vertexData[index++] = q.point2.y;
+    _vertexData[index++] = q.point2.z;
+    _vertexData[index++] = tRight;
+    _vertexData[index++] = tTop;
+
+    _vertexData[index++] = q.point3.x;
+    _vertexData[index++] = q.point3.y;
+    _vertexData[index++] = q.point3.z;
+    _vertexData[index++] = tLeft;
+    _vertexData[index++] = tTop;
+
+    return index;
+  }
+
   /// Pass 5: Builds spatial transformation matrices and coordinates texture mapping vectors.
   void _constructQuads(
     double startX,
@@ -150,6 +183,7 @@ class FskBitmapTextQuadBuilder {
     double currentX = startX;
     final double unscaledLineHeight = font.lineHeight.toDouble();
 
+    int vDataIndex = 0;
     for (int i = 0; i < layoutData.length; i++) {
       final data = layoutData[i];
       final charInfo = data.char;
@@ -164,9 +198,6 @@ class FskBitmapTextQuadBuilder {
 
       final blc = Vector2(left * _ratio, qBottom * _ratio);
       final trc = Vector2(right * _ratio, qTop * _ratio);
-
-      quads[i] = screenRect.calcQuadFrom2DVectors(blc, trc);
-
       final tLeft = charInfo.region.left / font.scaleW;
       final tTop = charInfo.region.top / font.scaleH;
       final tRight =
@@ -174,8 +205,7 @@ class FskBitmapTextQuadBuilder {
       final tBottom =
           (charInfo.region.top + charInfo.region.height) / font.scaleH;
 
-      textureQuads[i] = Rect.fromLTRB(tLeft, tTop, tRight, tBottom);
-
+      vDataIndex = _addQuad(vDataIndex, blc, trc, tLeft, tTop, tRight, tBottom);
       currentX += charInfo.xAdvance + kerning;
     }
   }

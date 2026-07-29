@@ -172,7 +172,7 @@ class FskBitmapText extends FskRenderableObject {
       width: _width);
 
     final result = quadBuilder.build();
-    _renderer.setFromQuads(result.quads, result.textureQuads);
+    _renderer.setFromUnrolledQuads(result.numQuads, result.vertexData);
   }
 
   @override
