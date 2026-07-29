@@ -2,17 +2,10 @@ import 'dart:typed_data';
 import 'dart:ui';
 import 'package:vector_math/vector_math.dart';
 import 'package:flutter_gpu/gpu.dart' as gpu;
+import 'package:fsk/fsk.dart';
+import 'fsk_renderer_base.dart';
 
-import '../fsk_scene.dart';
-import '../fsk_texture_manager.dart';
-import '../gpu/fsk_vertex_buffer.dart';
-import '../gpu/gpu_pipeline_key.dart';
-import '../shaders/simple_texture_shader.dart';
-
-// TODO: Inherit from a base class
-
-class FskQuadsRenderer {
-  final FskScene parentScene;
+class FskQuadsRenderer extends FskRendererBase {
   SimpleTextureUniforms? uniforms;
   PipelineKey? pipelineKey;
 
@@ -28,6 +21,8 @@ class FskQuadsRenderer {
 
   bool isValid = false;
 
+  bool pipeLineNeedsRebuild = true;
+
   /// The vertex buffer object that holds the geometry for rendering.
   final FskVertexBuffer _vbo = FskVertexBuffer();
 
@@ -35,10 +30,12 @@ class FskQuadsRenderer {
   // Public API
   /////////////////////////////////////////////////////////////////////////////
 
-  // TODO: This should trigger a pipeline rebuild
+  // TODO: This should trigger a pipeline rebuild ... and need to figure out managing pipeline rebuilds
   bool get premultiplyAlpha => _premultiplyAlpha;
   set premultiplyAlpha(bool value) {
     _premultiplyAlpha = value;
+    pipeLineNeedsRebuild = true;
+
   }
 
   void setModulateColor(Color color) {
@@ -46,6 +43,8 @@ class FskQuadsRenderer {
   }
 
   void rebuildPipeline() {
+    if (!pipeLineNeedsRebuild) return;
+
     // Create a pipeline key for this shader and associated settings
     pipelineKey = PipelineKey(
       vertShaderName: "SimpleTextureVertex",
@@ -71,6 +70,7 @@ class FskQuadsRenderer {
       vertexShader: pipelineKey!.vertShader,
       fragmentShader: pipelineKey!.fragShader,
     );
+    pipeLineNeedsRebuild = false;
   }
 
   /// Sets a new text string and flags the text for a rebuild.
@@ -81,10 +81,7 @@ class FskQuadsRenderer {
   /////////////////////////////////////////////////////////////////////////////
   // Constructor
   /////////////////////////////////////////////////////////////////////////////
-  FskQuadsRenderer(this.parentScene) {
-    _vbo.parentScene = parentScene;
-  }
-
+  FskQuadsRenderer();
 
   void _checkIsValid() {
     isValid =
@@ -104,7 +101,6 @@ class FskQuadsRenderer {
     _vbo.uploadData();
   }
 
-
   void setFromQuads(List<Quad> quads, List<Rect> textureQuads) {
     // Generate triangle mesh from quads
     _vertsDownloaded = _vbo.setFromQuads(quads, textureQuads);
@@ -113,6 +109,7 @@ class FskQuadsRenderer {
     _vbo.uploadData();
   }
 
+  @override
   void draw(
     gpu.RenderPass renderPass,
     gpu.HostBuffer transients,
@@ -122,7 +119,7 @@ class FskQuadsRenderer {
     _checkIsValid();
     if (!isValid) return;
 
-    parentScene.pipelineCache.activate(
+    FSK().activatePipeline(
       pipelineKey!,
       renderPass,
       textVertexLayout,

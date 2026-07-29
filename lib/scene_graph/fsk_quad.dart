@@ -17,7 +17,6 @@ class FskQuad extends FskRenderableObject {
   final FskQuadsRenderer _renderer;
 
   bool _premultiplyAlpha = true;
-  bool pipeLineNeedsRebuild = true;
   Color _modulateColor = const Color(0xFFFFFFFF);
 
   /////////////////////////////////////////////////////////////////////////////
@@ -27,35 +26,17 @@ class FskQuad extends FskRenderableObject {
 
   set premultiplyAlpha(bool value) {
     _premultiplyAlpha = value;
-    pipeLineNeedsRebuild = true;
     _renderer.premultiplyAlpha = value;
   }
 
   @override
   void rebuildPipelineIfNeeded() {
-    if (!pipeLineNeedsRebuild) return;
     _renderer.rebuildPipeline();
-    pipeLineNeedsRebuild = false;
-  }
-
-  FskQuad(
-    super.parentScene,
-    this._quad,
-    this._textureRect,
-    this._modulateColor,
-    String textureId) :
-      _renderer = FskQuadsRenderer(parentScene)
-  {
-    setTexture(textureId);
-
-    // Trigger the setter
-    modulateColor = _modulateColor;
   }
 
   /// Sets a new texture and flags the text for a rebuild.
   void setTexture(String textureId) {
     _renderer.setTexture(FSK().textureManager.getTextureInfo(textureId));
-    pipeLineNeedsRebuild = true;
   }
 
   Color get modulateColor => _modulateColor;
@@ -64,14 +45,28 @@ class FskQuad extends FskRenderableObject {
     _renderer.setModulateColor(value);
   }
 
-  /// Rebuilds the vertex buffer object if the text or font has changed.
-  @override
-  void rebuildIfNeeded() {
-    // Guard against unnecessary, expensive rebuilds.
-    if (!needsRebuild) return;
+  /////////////////////////////////////////////////////////////////////////////
+  // Constructor
+  /////////////////////////////////////////////////////////////////////////////
+  FskQuad(
+    super.parentScene,
+    this._quad,
+    this._textureRect,
+    this._modulateColor,
+    String textureId) :
+      _renderer = FskQuadsRenderer()
+  {
+    setTexture(textureId);
 
+    // Trigger the setter
+    modulateColor = _modulateColor;
+  }
+
+
+  /// Rebuilds the vertex buffer object
+  @override
+  void doRebuild() {
     _renderer.setFromQuads([_quad], [_textureRect]);
-    needsRebuild = false;
   }
 
   @override

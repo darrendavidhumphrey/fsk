@@ -37,9 +37,6 @@ abstract class FskScene with LoggableClass {
   /// The actual height of the allocated GPU texture in physical pixels.
   int get physicalTextureHeight => _texture?.height ?? 0;
 
-  // Cache of rendering pipelines for this scene
-  final PipelineCache pipelineCache = PipelineCache();
-
   // Render to texture for this scene
   gpu.Texture? _texture;
   gpu.Texture? get texture => _texture;

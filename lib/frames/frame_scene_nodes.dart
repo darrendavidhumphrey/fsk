@@ -94,7 +94,7 @@ abstract class FrameObjectNode<T extends FskRenderableObject>
 
   @override
   void rebuildGeometry() {
-    object?.rebuildIfNeeded();
+    object?.rebuildGeometryIfNeeded();
     object?.rebuildPipelineIfNeeded();
   }
 }

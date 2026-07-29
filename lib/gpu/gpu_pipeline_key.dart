@@ -32,7 +32,7 @@ class PipelineKey {
     this.depthWriteEnabled = false,
     this.depthCompareOperation = gpu.CompareFunction.less,
     this.texturingEnabled = false,
-    this.srcColorFactor = gpu.BlendFactor.one,
+    this.srcColorFactor = gpu.BlendFactor.sourceAlpha,
     this.dstColorFactor = gpu.BlendFactor.oneMinusSourceAlpha,
     this.srcAlphaFactor = gpu.BlendFactor.one,
     this.dstAlphaFactor = gpu.BlendFactor.oneMinusSourceAlpha,

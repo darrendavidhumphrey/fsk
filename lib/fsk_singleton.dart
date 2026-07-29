@@ -1,8 +1,9 @@
 import 'package:flutter/material.dart';
-import 'package:flutter_gpu/gpu.dart';
+import 'package:flutter_gpu/gpu.dart' as gpu;
 import 'package:fsk/shaders/materials.dart';
 import 'package:fsk/fsk_texture_manager.dart';
 import 'fsk_shader_library.dart';
+import 'gpu/gpu_pipeline_key.dart';
 import 'logging.dart';
 
 
@@ -44,6 +45,14 @@ class FSK with LoggableClass {
     return _singleton;
   }
 
+  // Cache of rendering pipelines -- NOW GLOBAL
+  final PipelineCache _pipelineCache = PipelineCache();
+
+  void activatePipeline( PipelineKey key,
+      gpu.RenderPass renderPass,
+      gpu.VertexLayout layout) {
+    _pipelineCache.activate(key, renderPass, layout);
+  }
   /// Internal constructor for the singleton.
   FSK._internal() {
     textureManager = FskTextureManager();

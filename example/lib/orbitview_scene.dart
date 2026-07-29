@@ -27,8 +27,6 @@ class OrbitViewScene extends FskScene {
     );
 
     clearColor = Colors.white;
-
-    exampleVbo.parentScene = this;
     exampleVbo.uploadData();
 
     // Create a pipeline key for this shader and associated settings
@@ -36,18 +34,6 @@ class OrbitViewScene extends FskScene {
       vertShaderName: "GridVertex",
       fragShaderName: "GridFragment",
       layoutName: "GridLayout",
-      depthTestEnabled: false,
-      depthWriteEnabled: false,
-      depthCompareOperation: gpu.CompareFunction.greater,
-      texturingEnabled: false,
-      srcColorFactor: gpu.BlendFactor.sourceAlpha,
-      dstColorFactor: gpu.BlendFactor.oneMinusSourceAlpha,
-      srcAlphaFactor: gpu.BlendFactor.one,
-      dstAlphaFactor: gpu.BlendFactor.oneMinusSourceAlpha,
-      colorBlendOp: gpu.BlendOperation.add,
-      alphaBlendOp: gpu.BlendOperation.add,
-      windingOrder: gpu.WindingOrder.counterClockwise,
-      cullMode: gpu.CullMode.none,
     );
 
     uniforms = GridUniforms(vertexShader: pipelineKey.vertShader, fragmentShader: pipelineKey.fragShader);
@@ -70,7 +56,7 @@ class OrbitViewScene extends FskScene {
   void dispose() {}
 
   void drawVBO(gpu.RenderPass renderPass,gpu.HostBuffer transients, Matrix4 pMatrix, Matrix4 mvMatrix) {
-    pipelineCache.activate(pipelineKey,renderPass,v3t2Layout);
+    FSK().activatePipeline(pipelineKey,renderPass,v3t2Layout);
 
     exampleVbo.bind(renderPass);
 

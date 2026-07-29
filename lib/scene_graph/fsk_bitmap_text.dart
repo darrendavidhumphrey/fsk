@@ -1,4 +1,5 @@
 import 'dart:math';
+import 'dart:typed_data';
 import 'dart:ui';
 import 'package:flutter_gpu/gpu.dart' as gpu;
 import 'package:fsk/scene_graph/fsk_quads_renderer.dart';
@@ -11,22 +12,22 @@ import 'fsk_text_quad_builder.dart';
 /// using a [BitmapFont].
 ///
 /// It generates a set of quads for the text, scaled to fit within a target
-/// [ReferenceBox], and manages the associated [FskVertexBuffer] for rendering.
+/// [ReferenceBox], and renders them using a [FskQuadsRenderer].
 class FskBitmapText extends FskRenderableObject {
   /// The string to render
   String _text;
 
   /// The [ReferenceBox] that defines the target area for the text to be rendered into.
-  late final ReferenceBox _screenRect;
+  final ReferenceBox _screenRect;
 
   /// The font to render the text with
-  late BitmapFont _font;
+  BitmapFont _font;
 
   /// The [BitmapFont] to use for rendering.
   BitmapFont get font => _font;
 
   /// The target width of the text.
-  late double _width;
+  final double _width;
 
   /// Text justification mode
   TextVerticalJustification _verticalJustification;
@@ -107,7 +108,9 @@ class FskBitmapText extends FskRenderableObject {
     needsRebuild = true;
   }
 
-  /// Creates a [FskBitmapText] object.
+  /////////////////////////////////////////////////////////////////////////////
+  // Constructor
+  /////////////////////////////////////////////////////////////////////////////
   FskBitmapText(
     super.parentScene,
     this._font,
@@ -117,25 +120,17 @@ class FskBitmapText extends FskRenderableObject {
     this._verticalJustification = TextVerticalJustification.bottom,
     this._horizontalJustification = TextHorizontalJustification.left,
     this._maxLen,
-  }): _renderer = FskQuadsRenderer(parentScene) {
-    // Cache the target width from the reference box.
-    _width = _screenRect.xVector.length;
-
+  }): _renderer = FskQuadsRenderer(), _width = _screenRect.xVector.length
+  {
     _renderer.setTexture(font.textureInfo);
 
     // Trigger the setter
     textColor = _textColor;
   }
 
-
-  // TODO: promote to base or renderer
-  bool pipeLineNeedsRebuild = true;
-
   @override
   void rebuildPipelineIfNeeded() {
-   if (!pipeLineNeedsRebuild) return;
     _renderer.rebuildPipeline();
-    pipeLineNeedsRebuild = false;
   }
 
   /// Disposes the vertex buffer associated with this text.
@@ -143,26 +138,16 @@ class FskBitmapText extends FskRenderableObject {
     _renderer.dispose();
   }
 
-  /// Rebuilds the vertex buffer object if the text or font has changed.
+  /// Rebuilds the vertex buffer object
   @override
-  void rebuildIfNeeded() {
-    // Guard against unnecessary, expensive rebuilds.
-    if (!needsRebuild) return;
-
+  void doRebuild() {
     // If anything is wrong, just bail out and create an empty set
     if ((!font.isInitialized) || (text.isEmpty)) {
-      _renderer.setFromQuads([],[]);
+      _renderer.setFromUnrolledQuads(0, Float32List(0));
       return;
     }
 
-    // Fill local structure with array of quads
-    rebuildQuads();
-
-    needsRebuild = false; // Reset the flag after a successful rebuild.
-  }
-
-  /// Rebuilds the list of geometry and texture quads for the current text string.
-  void rebuildQuads() {
+    /// Rebuilds the list of geometry and texture quads for the current text string.
     FskBitmapTextQuadBuilder quadBuilder = FskBitmapTextQuadBuilder(
       text: text,
       font: font,

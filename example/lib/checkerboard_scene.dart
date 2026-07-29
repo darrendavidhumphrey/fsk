@@ -27,7 +27,6 @@ class CheckerBoardScene extends FskScene {
     );
 
     clearColor = Colors.white;
-    exampleVbo.parentScene = this;
     exampleVbo.uploadData();
 
     // Create a pipeline key for this shader and associated settings
@@ -35,18 +34,7 @@ class CheckerBoardScene extends FskScene {
       vertShaderName: "CheckerBoardVertex",
       fragShaderName: "CheckerBoardFragment",
       layoutName: "CheckerBoardLayout",
-      depthTestEnabled: false,
-      depthWriteEnabled: false,
-      depthCompareOperation: gpu.CompareFunction.less,
       texturingEnabled: false,
-      srcColorFactor: gpu.BlendFactor.sourceAlpha,
-      dstColorFactor: gpu.BlendFactor.oneMinusSourceAlpha,
-      srcAlphaFactor: gpu.BlendFactor.one,
-      dstAlphaFactor: gpu.BlendFactor.oneMinusSourceAlpha,
-      colorBlendOp: gpu.BlendOperation.add,
-      alphaBlendOp: gpu.BlendOperation.add,
-      windingOrder: gpu.WindingOrder.counterClockwise,
-      cullMode: gpu.CullMode.none,
     );
 
     uniforms = CheckerBoardUniforms(vertexShader: pipelineKey.vertShader, fragmentShader: pipelineKey.fragShader);
@@ -58,13 +46,10 @@ class CheckerBoardScene extends FskScene {
   void dispose() {}
 
   void drawVBO(gpu.RenderPass renderPass,gpu.HostBuffer transients, Matrix4 pMatrix, Matrix4 mvMatrix) {
-    pipelineCache.activate(pipelineKey,renderPass,v3t2Layout);
+    FSK().activatePipeline(pipelineKey,renderPass,v3t2Layout);
     exampleVbo.bind(renderPass);
 
-    Matrix4 finalMvMatrix;
-
-    // Center object in view
-    finalMvMatrix = mvMatrix * navigationDelegate?.createBoxFitMatrix(contentSize);
+    Matrix4  finalMvMatrix = mvMatrix * navigationDelegate?.createBoxFitMatrix(contentSize);
 
     uniforms!.patternColor1 = Colors.red;
     uniforms!.patternColor2 = Colors.green;

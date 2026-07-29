@@ -14,7 +14,23 @@ abstract class FskSceneObject {
   FskSceneObject(this.parentScene);
 
   bool needsRebuild = true;
-  void rebuildIfNeeded();
+  void setNeedsRebuild() {
+    needsRebuild = true;
+  }
+
+
+  /// Rebuilds the vertex buffer object if the text or font has changed.
+  void rebuildGeometryIfNeeded() {
+    // Guard against unnecessary, expensive rebuilds.
+    if (!needsRebuild) return;
+    doRebuild();
+    needsRebuild = false;
+  }
+
+  /// Actually does the work of rebuilding the object. Child class
+  /// must override
+  void doRebuild();
+
   void rebuildPipelineIfNeeded();
 
   // TODO: Get rid of the need for this, promote RefBox from bitmap text?

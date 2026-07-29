@@ -2,7 +2,6 @@ import 'dart:typed_data';
 import 'dart:ui';
 import 'package:flutter_gpu/gpu.dart' as gpu;
 import 'package:vector_math/vector_math.dart';
-import '../fsk_scene.dart';
 
 /// Manages a flutter_gpu DeviceBuffer.
 class FskVertexBuffer {
@@ -22,8 +21,6 @@ class FskVertexBuffer {
   // The number of vertices in vertexData
   int _vertexCount = 0;
 
-  late FskScene parentScene;
-
   FskVertexBuffer();
 
   /// Sends current CPU data over to physical GPU device memory.
@@ -37,20 +34,10 @@ class FskVertexBuffer {
       activeBytesSize,
     );
 
-    // If the vertex buffer is reallocated, don't delete the old buffer immediately
-    // Instead, place it in a list to be cleared after the rendering completed
-    // This is POSSIBLY necessary to prevent weird rendering bugs
-    if (_deviceBuffer != null) {
-      parentScene.retainedOldBuffers.add(_deviceBuffer!);
-    }
-
     _deviceBuffer = gpu.gpuContext.createDeviceBufferWithCopy(view);
   }
 
   void clear() {
-    if (_deviceBuffer != null) {
-      parentScene.retainedOldBuffers.add(_deviceBuffer!);
-    }
     _deviceBuffer = null;
     vertexData = null;
     _vertexCount = 0;
