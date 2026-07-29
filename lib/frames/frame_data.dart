@@ -1,8 +1,6 @@
 import 'dart:ui';
 import 'package:vector_math/vector_math.dart';
-
-import '../logging.dart';
-import '../scene_graph/fsk_bitmap_text.dart';
+import '../fsk.dart';
 
 class FrameData with LoggableClass {
   final String version;
@@ -120,6 +118,8 @@ class QuadData extends FrameObjectData {
   final Rect screenRect;
   final Rect textureRect;
   final bool premultiplyAlpha;
+  final String? modulateColor;
+
 
   QuadData({
     required super.id,
@@ -129,6 +129,7 @@ class QuadData extends FrameObjectData {
     required this.texture,
     required this.screenRect,
     required this.textureRect,
+    this.modulateColor,
     this.premultiplyAlpha = false,
   });
 }

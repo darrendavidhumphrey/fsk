@@ -56,6 +56,7 @@ class _GPURenderWidgetState extends State<GPURenderWidget> with SingleTickerProv
         width: physicalWidth,
         height: physicalHeight,
         enableMsaa: widget.useAntiAliasing,
+        clearColor: widget.scene.clearColor,
       );
     }
 

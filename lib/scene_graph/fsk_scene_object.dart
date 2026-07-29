@@ -12,18 +12,17 @@ abstract class FskSceneObject {
   final FskScene parentScene;
 
   FskSceneObject(this.parentScene);
-  void draw(gpu.RenderPass renderPass,gpu.HostBuffer transients, Matrix4 pMatrix, Matrix4 mvMatrix);
 
+  bool needsRebuild = true;
   void rebuildIfNeeded();
   void rebuildPipelineIfNeeded();
 
-  // TODO: testing
+  // TODO: Get rid of the need for this, promote RefBox from bitmap text?
   Rect screenRect = Rect.zero;
 }
 
 abstract class FskRenderableObject extends FskSceneObject {
-  BaseUniforms? uniforms;
-  PipelineKey? pipelineKey;
-
   FskRenderableObject(super.parentScene);
+
+  void draw(gpu.RenderPass renderPass,gpu.HostBuffer transients, Matrix4 pMatrix, Matrix4 mvMatrix);
 }

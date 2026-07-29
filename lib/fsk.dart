@@ -1,6 +1,6 @@
 export 'gpu/gpu_pipeline_key.dart';
-export 'gpu/index_buffer.dart';
-export 'gpu/vertex_buffer.dart';
+export 'gpu/fsk_index_buffer.dart';
+export 'gpu/fsk_vertex_buffer.dart';
 
 export 'bitmap_fonts/bitmap_font.dart';
 export 'bitmap_fonts/bitmap_font_manager.dart';
@@ -22,6 +22,7 @@ export 'geometry/triangle_mesh.dart';
 export 'scene_graph/fsk_bitmap_text.dart';
 export 'scene_graph/fsk_quad.dart';
 export 'scene_graph/fsk_scene_object.dart';
+export 'scene_graph/fsk_text_alignment.dart';
 
 export 'shaders/bitmap_text_shader.dart';
 export 'shaders/checkerboard_shader.dart';

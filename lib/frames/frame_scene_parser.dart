@@ -3,8 +3,7 @@ import 'package:flutter/foundation.dart';
 import 'package:flutter/services.dart';
 import 'package:vector_math/vector_math.dart';
 import 'package:xml/xml.dart';
-import '../logging.dart';
-import '../scene_graph/fsk_bitmap_text.dart';
+import '../fsk.dart';
 import 'frame_data.dart';
 
 class FrameSceneParser with LoggableClass {
@@ -134,6 +133,7 @@ class FrameSceneParser with LoggableClass {
           textureRect: _parseTextureRect(node.getAttribute('textureRect')),
           premultiplyAlpha: node.getAttribute('premultiplyAlpha') == 'true',
           shader: shaderName,
+          modulateColor: node.getAttribute('modulateColor'),
           shaderParams: shaderParamsMap,
         );
       case 'group':

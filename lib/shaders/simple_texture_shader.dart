@@ -1,12 +1,11 @@
 import 'dart:typed_data';
 import 'dart:ui';
-import 'package:vector_math/vector_math.dart';
 
 import 'base_uniforms.dart';
 
 class SimpleTextureUniforms extends BaseUniforms {
   // --- Dictionary Key Constants ---
-  static const String _kModulateColorKey = 'modulateColor';
+  static const String _kModulateColorKey = 'uModulateColor';
   @override
   String get vertexBlockName => 'QuadVertexUniforms';
   @override
@@ -22,8 +21,6 @@ class SimpleTextureUniforms extends BaseUniforms {
     // Establish initialization values inside the string data store
     this[_kModulateColorKey] = _kDefaultModulateColor;
   }
-
-
 
   @override
   bool get hasSampler => true;

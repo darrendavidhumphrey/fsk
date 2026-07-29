@@ -110,9 +110,11 @@ class FrameQuadNode extends FrameObjectNode<FskQuad> {
       Vector3(0.0, quadData.screenRect.height, 0.0),
     );
 
+    // Parse the hex string or default to solid white Vector4(1.0, 1.0, 1.0, 1.0)
+    final colorVector = parseHexColor(quadData.modulateColor);
+
     object = FskQuad(
-        parentScene, rect, quadData.textureRect, quadData.texture,
-        id: data.id);
+        parentScene, rect, quadData.textureRect, colorVector, quadData.texture);
     object?.premultiplyAlpha = quadData.premultiplyAlpha;
     object?.screenRect = quadData.screenRect;
     // TODO: Send in shader here and uniform class and string list of params
@@ -137,10 +139,9 @@ class FrameTextNode extends FrameObjectNode<FskBitmapText> {
 
     // Parse the hex string or default to solid white Vector4(1.0, 1.0, 1.0, 1.0)
     final textColorVector = parseHexColor(textData.textColor);
-
     object = FskBitmapText(
       parentScene,
-      font,
+      font!,
       textData.text,
       refBox,
       textColor: textColorVector,

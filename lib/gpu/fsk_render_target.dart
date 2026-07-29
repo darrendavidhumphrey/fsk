@@ -1,5 +1,8 @@
+import 'dart:ui' as ui;
 import 'package:flutter_gpu/gpu.dart' as gpu;
 import 'package:vector_math/vector_math.dart';
+
+import '../util.dart';
 
 class FskRenderTarget {
   final int width;
@@ -9,11 +12,13 @@ class FskRenderTarget {
   gpu.Texture? _msaaColorTexture;
   gpu.Texture? _resolveTexture;
   gpu.RenderTarget? _renderTarget;
+  ui.Color clearColor;
 
   FskRenderTarget({
     required this.width,
     required this.height,
     required this.enableMsaa,
+    required this.clearColor,
   }) {
     _allocateResources();
   }
@@ -62,7 +67,7 @@ class FskRenderTarget {
     } else {
       final standardAttachment = gpu.ColorAttachment(
         texture: _resolveTexture!,
-        clearValue: Vector4(0, 0, 0, 0),
+        clearValue: colorToVector(clearColor),
         loadAction: gpu.LoadAction.clear,
         storeAction: gpu.StoreAction.store,
       );

@@ -2,12 +2,12 @@ import 'package:flutter/material.dart';
 import 'package:flutter_gpu/gpu.dart' as gpu;
 import 'package:fsk/fsk.dart';
 
-class BitmapTextScene extends FrameScene {
+class FrameSceneExample extends FrameScene {
 
   FrameTextNode? frameCountText;
   FrameTextNode? sourceCode1, sourceCode2, sourceCode3;
   FrameQuadNode? penelope;
-  BitmapTextScene({super.navigationDelegate}) {
+  FrameSceneExample({super.navigationDelegate}) {
     // Load skin file
     String skinPath = "frames/example4.xml";
 

@@ -65,7 +65,7 @@ class Mesh {
 /// based on the materials defined in the file.
 class WavefrontObjModel {
   /// The vertex buffer containing the unique, interleaved vertex data for the model.
-  final VertexBuffer vertexBuffer = VertexBuffer();
+  final FskVertexBuffer vertexBuffer = FskVertexBuffer();
 
   /// A list of sub-meshes, each corresponding to a different material.
   List<Mesh> meshes = [];
@@ -94,7 +94,7 @@ class WavefrontObjModel {
   ///
   /// This method uses an efficient two-pass approach:
   /// 1. A pre-scan pass counts the number of unique vertices to pre-allocate the
-  ///    [VertexBuffer] with the exact required size.
+  ///    [FskVertexBuffer] with the exact required size.
   /// 2. The main pass parses all vertex attributes, populates the vertex buffer,
   ///    builds the face indices, and groups them into meshes.
   void loadFromString(String objFileContent) {

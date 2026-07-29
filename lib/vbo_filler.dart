@@ -7,7 +7,7 @@ import 'package:vector_math/vector_math.dart';
 class VboFiller {
   /// The underlying [Float32List] that is being filled.
   late Float32List list;
-  VertexBuffer buffer;
+  FskVertexBuffer buffer;
 
   int _currentPosition = 0;
 
@@ -123,7 +123,7 @@ class VboFiller {
   }
 
   // Makes ONE quad only, setting the vbo size to 6 vertices
-  static void makeTexturedUnitQuad(Rect r, double z,VertexBuffer vbo) {
+  static void makeTexturedUnitQuad(Rect r, double z,FskVertexBuffer vbo) {
     vbo.requestBuffer(6);
     var filler = VboFiller(vbo);
     filler._addTexturedUnitQuad(r,z);
@@ -132,14 +132,14 @@ class VboFiller {
 
   // Makes ONE quad only, setting the vbo size to 6 vertices with texture
   //   /// coordinates from [0, 0] to [1, 1].
-  static void makeTexturedQuad(Quad q, Rect tr,VertexBuffer vbo) {
+  static void makeTexturedQuad(Quad q, Rect tr,FskVertexBuffer vbo) {
     vbo.requestBuffer(6);
     var filler = VboFiller(vbo);
     filler._addTexturedQuad(q,tr);
   }
 
   // Appends a list of quads to a VBO
-  static void addTexturedQuads(List<Quad> quads, List<Rect> tr,VertexBuffer vbo) {
+  static void addTexturedQuads(List<Quad> quads, List<Rect> tr,FskVertexBuffer vbo) {
     var filler = VboFiller(vbo);
     assert (quads.length == tr.length);
 

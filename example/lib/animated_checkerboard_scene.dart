@@ -35,7 +35,7 @@ double getCyclingScale({
 }
 
 class AnimatedCheckerBoardScene extends FskScene {
-  VertexBuffer exampleVbo = VertexBuffer();
+  FskVertexBuffer exampleVbo = FskVertexBuffer();
   late PipelineKey pipelineKey;
   CheckerBoardUniforms? uniforms;
 

@@ -3,11 +3,11 @@ import 'package:flutter/services.dart';
 import 'package:fsk/fsk.dart';
 import 'package:flutter/material.dart';
 import 'package:fsk_examples/checkerboard_scene.dart';
+import 'package:fsk_examples/frame_scene_example.dart';
 import 'package:fsk_examples/orbitview_scene.dart';
 import 'package:fsk_examples/positioned_title_bar.dart';
-
 import 'animated_checkerboard_scene.dart';
-import 'bitmap_text_scene.dart';
+
 
 void main() async {
   Logging.brevity = Brevity.detailed;
@@ -45,7 +45,7 @@ class TestAppState extends State<TestApp> {
     scenes.add(CheckerBoardScene(navigationDelegate: OrthoViewDelegate(boxFit: FskBoxFit.bestFit)));
     scenes.add(AnimatedCheckerBoardScene(navigationDelegate: StaticViewDelegate(boxFit: FskBoxFit.bestFit)));
     scenes.add(OrbitViewScene(navigationDelegate: OrbitViewDelegate(boxFit: FskBoxFit.bestFit)));
-    scenes.add(BitmapTextScene(navigationDelegate: OrthoViewDelegate(boxFit: FskBoxFit.bestFit)));
+    scenes.add(FrameSceneExample(navigationDelegate: OrthoViewDelegate(boxFit: FskBoxFit.bestFit)));
   }
 
   @override
@@ -95,7 +95,7 @@ class TestAppState extends State<TestApp> {
               backgroundColor: kIsWeb ? Colors.transparent : null,
               body: Stack(
                 children: [
-                  RenderToTexture(scene: scenes[_pageIndex],useAntiAliasing: (_pageIndex == 2),),
+                  RenderToTexture(scene: scenes[_pageIndex],useAntiAliasing:false,),
 
                   // Title text widget
                   PositionedTitleBar(titleText: _titleText),

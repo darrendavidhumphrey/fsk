@@ -5,7 +5,7 @@ import 'package:vector_math/vector_math.dart' hide Colors;
 
 class OrbitViewScene extends FskScene {
 
-  VertexBuffer exampleVbo = VertexBuffer();
+  FskVertexBuffer exampleVbo = FskVertexBuffer();
   GridUniforms? uniforms;
   late PipelineKey pipelineKey;
 

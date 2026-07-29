@@ -5,7 +5,7 @@ import 'package:vector_math/vector_math.dart' hide Colors;
 
 class CheckerBoardScene extends FskScene {
 
-  VertexBuffer exampleVbo = VertexBuffer();
+  FskVertexBuffer exampleVbo = FskVertexBuffer();
   CheckerBoardUniforms? uniforms;
   late PipelineKey pipelineKey;
 
