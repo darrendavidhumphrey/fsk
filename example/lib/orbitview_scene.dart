@@ -28,7 +28,8 @@ class OrbitViewScene extends FskScene {
 
     clearColor = Colors.white;
 
-    exampleVbo.uploadData(this);
+    exampleVbo.parentScene = this;
+    exampleVbo.uploadData();
 
     // Create a pipeline key for this shader and associated settings
     pipelineKey = PipelineKey(

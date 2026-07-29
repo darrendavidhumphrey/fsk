@@ -8,16 +8,15 @@ import '../fsk_texture_manager.dart';
 import '../gpu/fsk_vertex_buffer.dart';
 import '../gpu/gpu_pipeline_key.dart';
 import '../shaders/simple_texture_shader.dart';
-import '../vbo_filler.dart';
 
 // TODO: Inherit from a base class
 
 class FskQuadsRenderer {
-  List<Quad> quads = [];
-  List<Rect> textureQuads = [];
   final FskScene parentScene;
   SimpleTextureUniforms? uniforms;
   PipelineKey? pipelineKey;
+
+  bool _vertsDownloaded = false;
 
   bool _premultiplyAlpha = true;
 
@@ -47,7 +46,6 @@ class FskQuadsRenderer {
   }
 
   void rebuildPipeline() {
-    print("Rebuild pipeline called");
     // Create a pipeline key for this shader and associated settings
     pipelineKey = PipelineKey(
       vertShaderName: "SimpleTextureVertex",
@@ -80,37 +78,39 @@ class FskQuadsRenderer {
     _textureInfo = textureInfo;
   }
 
-  FskQuadsRenderer(this.parentScene);
+  /////////////////////////////////////////////////////////////////////////////
+  // Constructor
+  /////////////////////////////////////////////////////////////////////////////
+  FskQuadsRenderer(this.parentScene) {
+    _vbo.parentScene = parentScene;
+  }
 
 
   void _checkIsValid() {
     isValid =
         (_textureInfo != null) &&
         (_textureInfo!.texture != null) &&
-        (quads.isNotEmpty) &&
-        (textureQuads.isNotEmpty);
+        (_vertsDownloaded);
   }
 
   void dispose() {
     _vbo.dispose();
   }
 
-  void setQuads(List<Quad> newQuads, List<Rect> newTextureQuads) {
-    quads = newQuads;
-    textureQuads = newTextureQuads;
-
-    // TODO: Clean this up. VboFiller should properly allocate the vertex buffer
-    int vertexCount = quads.length * 6; // Two triangles per character quad.
-
-    Float32List? vertexTexCoordArray = _vbo.requestBuffer(vertexCount);
-
-    if (vertexTexCoordArray != null) {
-      // Fill the VBO with the generated quad data.
-      VboFiller.addTexturedQuads(quads, textureQuads, _vbo);
-    }
+  void setFromUnrolledQuads(int numQuads,Float32List vertexTexCoordArray) {
+    _vertsDownloaded = _vbo.setFromUnrolledQuads(numQuads, vertexTexCoordArray);
 
     // Upload generated quad data to gpu
-    _vbo.uploadData(parentScene);
+    _vbo.uploadData();
+  }
+
+
+  void setFromQuads(List<Quad> quads, List<Rect> textureQuads) {
+    // Generate triangle mesh from quads
+    _vertsDownloaded = _vbo.setFromQuads(quads, textureQuads);
+
+    // Upload generated quad data to gpu
+    _vbo.uploadData();
   }
 
   void draw(

@@ -90,7 +90,7 @@ class VboFiller {
   /// Adds a textured quad to the array using two triangles.
   /// The quad's vertex positions are defined by [q], and the texture coordinates
   /// are derived from the rectangle [tr].
-  void _addTexturedQuad(Quad q, Rect tr) {
+  void addTexturedQuad(Quad q, Rect tr) {
     Vector2 tTlc = Vector2(tr.left, tr.top);
     Vector2 tTrc = Vector2(tr.right, tr.top);
     Vector2 tBlc = Vector2(tr.left, tr.bottom);
@@ -119,7 +119,7 @@ class VboFiller {
       Vector3(r.left, r.top, z),
     );
 
-    _addTexturedQuad(q, tr);
+    addTexturedQuad(q, tr);
   }
 
   // Makes ONE quad only, setting the vbo size to 6 vertices
@@ -127,7 +127,6 @@ class VboFiller {
     vbo.requestBuffer(6);
     var filler = VboFiller(vbo);
     filler._addTexturedUnitQuad(r,z);
-
   }
 
   // Makes ONE quad only, setting the vbo size to 6 vertices with texture
@@ -135,7 +134,7 @@ class VboFiller {
   static void makeTexturedQuad(Quad q, Rect tr,FskVertexBuffer vbo) {
     vbo.requestBuffer(6);
     var filler = VboFiller(vbo);
-    filler._addTexturedQuad(q,tr);
+    filler.addTexturedQuad(q,tr);
   }
 
   // Appends a list of quads to a VBO
@@ -144,7 +143,7 @@ class VboFiller {
     assert (quads.length == tr.length);
 
     for (var i = 0; i < quads.length; i++) {
-      filler._addTexturedQuad(quads[i], tr[i]);
+      filler.addTexturedQuad(quads[i], tr[i]);
     }
   }
 }

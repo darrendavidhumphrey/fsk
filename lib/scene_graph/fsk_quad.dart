@@ -70,7 +70,7 @@ class FskQuad extends FskRenderableObject {
     // Guard against unnecessary, expensive rebuilds.
     if (!needsRebuild) return;
 
-    _renderer.setQuads([_quad], [_textureRect]);
+    _renderer.setFromQuads([_quad], [_textureRect]);
     needsRebuild = false;
   }
 

@@ -151,7 +151,7 @@ class FskBitmapText extends FskRenderableObject {
 
     // If anything is wrong, just bail out and create an empty set
     if ((!font.isInitialized) || (text.isEmpty)) {
-      _renderer.setQuads([],[]);
+      _renderer.setFromQuads([],[]);
       return;
     }
 
@@ -172,7 +172,7 @@ class FskBitmapText extends FskRenderableObject {
       width: _width);
 
     final result = quadBuilder.build();
-    _renderer.setQuads(result.quads, result.textureQuads);
+    _renderer.setFromQuads(result.quads, result.textureQuads);
   }
 
   @override
