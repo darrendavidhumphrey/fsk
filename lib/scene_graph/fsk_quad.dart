@@ -26,10 +26,7 @@ class FrameQuadData extends FrameObjectData {
 }
 
 /// A class that manages the geometry and rendering for a single textured quad
-class FskQuad extends FskRenderableObject {
-  // The quad to render
-  late final ReferenceBox _refBox;
-
+class FskQuad extends Fsk2DRenderableObject {
   // The texture coordinates for the quad
   late final Rect _textureRect;
 
@@ -58,7 +55,8 @@ class FskQuad extends FskRenderableObject {
 
     FskSceneObjectFactory.register(FrameQuadData, (scene, data, createNode) {
       final quadData = data as FrameQuadData;
-      return FskQuad.fromData(quadData.id, scene, quadData);
+      final refBox = FrameObjectData.screenRectToRefBox(quadData.screenRect);
+      return FskQuad.fromData(quadData.id, scene, refBox, quadData);
     });
   }
 
@@ -94,7 +92,7 @@ class FskQuad extends FskRenderableObject {
   FskQuad(
     super.id,
     super.parentScene,
-    this._refBox,
+    super.refBox,
     this._textureRect,
     this._modulateColor,
     String textureId,
@@ -106,9 +104,8 @@ class FskQuad extends FskRenderableObject {
     modulateColor = _modulateColor;
   }
 
-  FskQuad.fromData(super.id,super.parentScene, FrameQuadData quadData) {
+  FskQuad.fromData(super.id,super.parentScene,super.refBox, FrameQuadData quadData) {
     setRenderer(_renderer);
-    _refBox = FrameObjectData.screenRectToRefBox(quadData.screenRect);
     _textureRect = quadData.textureRect;
 
     // Parse the hex string or default to solid white
@@ -123,9 +120,9 @@ class FskQuad extends FskRenderableObject {
   /// Rebuilds the vertex buffer object
   @override
   void doRebuild() {
-    Vector2 blc = Vector2(0, -_refBox.yVector.length);
-    Vector2 trc = Vector2(_refBox.xVector.length, 0);
-    Quad q = _refBox.calcQuadFrom2DVectors(blc, trc);
+    Vector2 blc = Vector2(0, -refBox.yVector.length);
+    Vector2 trc = Vector2(refBox.xVector.length, 0);
+    Quad q = refBox.calcQuadFrom2DVectors(blc, trc);
     _renderer.setFromQuads([q], [_textureRect]);
   }
 }

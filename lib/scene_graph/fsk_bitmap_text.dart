@@ -38,12 +38,9 @@ class FrameTextData extends FrameObjectData {
 ///
 /// It generates a set of quads for the text, scaled to fit within a target
 /// [ReferenceBox], and renders them using a [FskQuadsRenderer].
-class FskBitmapText extends FskRenderableObject {
+class FskBitmapText extends Fsk2DRenderableObject {
   /// The string to render
   late String _text;
-
-  /// The [ReferenceBox] that defines the target area for the text to be rendered into.
-  late final ReferenceBox _refBox;
 
   /// The font to render the text with
   late BitmapFont _font;
@@ -95,7 +92,9 @@ class FskBitmapText extends FskRenderableObject {
 
     FskSceneObjectFactory.register(FrameTextData, (scene, data, createNode) {
       final textData = data as FrameTextData;
-      return FskBitmapText.fromData(textData.id, scene, textData);
+
+      final refBox = FrameObjectData.screenRectToRefBox(textData.screenRect);
+      return FskBitmapText.fromData(textData.id, scene, refBox,textData);
     });
   }
 
@@ -173,12 +172,12 @@ class FskBitmapText extends FskRenderableObject {
     super.parentScene,
     this._font,
     this._text,
-    this._refBox, {
+    super.refBox, {
     this._textColor = Colors.white,
     this._verticalJustification = TextVerticalJustification.bottom,
     this._horizontalJustification = TextHorizontalJustification.left,
     this._maxLen,
-  }) : _width = _refBox.xVector.length {
+  }) : _width = refBox.xVector.length {
     setRenderer(_renderer);
     _renderer.setTexture(font.textureInfo);
 
@@ -186,10 +185,9 @@ class FskBitmapText extends FskRenderableObject {
     textColor = _textColor;
   }
 
-  FskBitmapText.fromData(super.id,super.parentScene, FrameTextData textData) {
+  FskBitmapText.fromData(super.id,super.parentScene, super.refBox,FrameTextData textData) {
     setRenderer(_renderer);
-    _refBox = FrameObjectData.screenRectToRefBox(textData.screenRect);
-    _width = _refBox.xVector.length;
+    _width = refBox.xVector.length;
 
     var fontToUse = BitmapFontManager().getFont(textData.font);
     if (fontToUse == null) {
@@ -225,7 +223,7 @@ class FskBitmapText extends FskRenderableObject {
     FskBitmapTextQuadBuilder quadBuilder = FskBitmapTextQuadBuilder(
       text: text,
       font: font,
-      screenRect: _refBox,
+      screenRect: refBox,
       horizontalJustification: horizontalJustification,
       verticalJustification: verticalJustification,
       width: _width,

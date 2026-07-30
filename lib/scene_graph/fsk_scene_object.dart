@@ -2,6 +2,7 @@ import 'package:fsk/scene_graph/fsk_renderer_base.dart';
 import 'package:vector_math/vector_math.dart';
 import 'package:flutter_gpu/gpu.dart' as gpu;
 import '../fsk_scene.dart';
+import '../geometry/reference_box.dart';
 import '../logging.dart';
 
 abstract class FskSceneObject with LoggableClass {
@@ -50,4 +51,12 @@ abstract class FskRenderableObject extends FskSceneObject {
   void setRenderer(FskRendererBase newRenderer) {
     renderer = newRenderer;
   }
+}
+
+/// Base class for 2D renderable objects defined in terms of a [ReferenceBox].
+abstract class Fsk2DRenderableObject extends FskRenderableObject {
+  Fsk2DRenderableObject(super.id,super.parentScene,this.refBox);
+
+  /// The [ReferenceBox] that defines the target area for the text to be rendered into.
+  final ReferenceBox refBox;
 }
