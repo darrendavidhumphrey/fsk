@@ -151,9 +151,6 @@ abstract class FskSceneNavigationDelegate with ChangeNotifier {
     return KeyEventResult.ignored;
   }
 
-  /// Child class should override if they need to clean up resources.
-  void dispose() {}
-
   /// Creates a matrix that scales and translates content of [contentSize] to fit
   /// the current view according to the selected [boxFit] strategy.
   ///

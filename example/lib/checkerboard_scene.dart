@@ -42,9 +42,6 @@ class CheckerBoardScene extends FskScene {
     navigationDelegate?.updateSceneMatrices(force: true);
   }
 
-  @override
-  void dispose() {}
-
   void drawVBO(gpu.RenderPass renderPass,gpu.HostBuffer transients, Matrix4 pMatrix, Matrix4 mvMatrix) {
     FSK().activatePipeline(pipelineKey,renderPass,v3t2Layout);
     exampleVbo.bind(renderPass);

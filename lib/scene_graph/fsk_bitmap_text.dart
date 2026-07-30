@@ -153,11 +153,6 @@ class FskBitmapText extends FskRenderableObject {
     _renderer.rebuildPipeline();
   }
 
-  /// Disposes the vertex buffer associated with this text.
-  void dispose() {
-    _renderer.dispose();
-  }
-
   /// Rebuilds the vertex buffer object
   @override
   void doRebuild() {

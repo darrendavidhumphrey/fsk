@@ -73,10 +73,6 @@ abstract class FskScene with LoggableClass {
     mvMatrixStack.current = Matrix4.identity();
   }
 
-  void dispose() {
-    navigationDelegate?.dispose();
-  }
-
   // Dynamic resize function called safely when the parent layout triggers bounds changes
   void updateRenderTargetSize(int width, int height) {
     if (width <= 0 || height <= 0) return;

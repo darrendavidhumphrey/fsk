@@ -105,12 +105,4 @@ class FskTextureManager {
   FskTextureInfo? getTextureInfo(String id) {
     return _textures[id];
   }
-
-  /// Disposes all cached textures and unlinks physical memory references.
-  void dispose() {
-    for (var info in _textures.values) {
-      info.texture = null; // Unlocks reference chains so the GPU can safely clean up hardware memory
-    }
-    _textures.clear();
-  }
 }

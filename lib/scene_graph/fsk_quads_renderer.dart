@@ -88,10 +88,6 @@ class FskQuadsRenderer extends FskRendererBase {
         (_vertsDownloaded);
   }
 
-  void dispose() {
-    _vbo.dispose();
-  }
-
   void setFromUnrolledQuads(int numQuads,Float32List vertexTexCoordArray) {
     _vertsDownloaded = _vbo.setFromUnrolledQuads(numQuads, vertexTexCoordArray);
 

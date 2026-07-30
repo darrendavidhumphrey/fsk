@@ -52,12 +52,6 @@ class IndexBuffer {
     return _indexData;
   }
 
-  /// Disposes of the physical device allocation and host CPU array.
-  void dispose() {
-    _deviceBuffer = null; // Memory is safely freed on the hardware layer when unreferenced
-    _indexData = null;
-  }
-
   /// Updates the GPU buffer with the active data slice from the local [Uint16List] and
   /// sets the number of active indices to be drawn.
   void setActiveIndexCount(int count) {

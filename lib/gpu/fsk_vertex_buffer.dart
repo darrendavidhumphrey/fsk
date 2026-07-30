@@ -89,11 +89,6 @@ class FskVertexBuffer {
     renderPass.draw(_vertexCount);
   }
 
-  void dispose() {
-    _deviceBuffer = null;
-    vertexData = null;
-  }
-
   int addV3T2(int index, double x, double y, double z, double u, double v) {
     const int padding =
         componentCount - 5; // Storing first 5 components per vertex
