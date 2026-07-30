@@ -6,7 +6,6 @@ export 'bitmap_fonts/bitmap_font.dart';
 export 'bitmap_fonts/bitmap_font_manager.dart';
 
 export 'frames/frame_scene.dart';
-export 'frames/frame_scene_nodes.dart';
 export 'frames/frame_scene_parser.dart';
 
 export 'geometry/edge.dart';
@@ -20,6 +19,7 @@ export 'geometry/solid.dart';
 export 'geometry/triangle_mesh.dart';
 
 export 'scene_graph/fsk_bitmap_text.dart';
+export 'scene_graph/fsk_group.dart';
 export 'scene_graph/fsk_quad.dart';
 export 'scene_graph/fsk_scene_object.dart';
 export 'scene_graph/fsk_text_alignment.dart';

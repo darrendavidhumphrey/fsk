@@ -29,8 +29,6 @@ class FskQuadsRenderer extends FskRendererBase {
   /////////////////////////////////////////////////////////////////////////////
   // Public API
   /////////////////////////////////////////////////////////////////////////////
-
-  // TODO: This should trigger a pipeline rebuild ... and need to figure out managing pipeline rebuilds
   bool get premultiplyAlpha => _premultiplyAlpha;
   set premultiplyAlpha(bool value) {
     _premultiplyAlpha = value;

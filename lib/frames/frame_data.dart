@@ -33,7 +33,7 @@ class FrameData with LoggableClass {
 
   void _registerObject(FrameObjectData obj) {
     _objectMap[obj.id] = obj;
-    if (obj is GroupData) {
+    if (obj is FrameGroupData) {
       for (var child in obj.children) {
         _registerObject(child);
       }
@@ -62,13 +62,13 @@ class FrameData with LoggableClass {
     final marker = isLast ? '└── ' : '├── ';
     final nextIndent = indent + (isLast ? '    ' : '│   ');
 
-    if (obj is GroupData) {
+    if (obj is FrameGroupData) {
       logInfo('$indent$marker📁 Group [ID: ${obj.id}] (Anchor: ${obj.anchor.x}, ${obj.anchor.y}, ${obj.anchor.z})');
       for (int i = 0; i < obj.children.length; i++) {
         final isChildLast = i == obj.children.length - 1;
         _printNode(obj.children[i], nextIndent, isChildLast);
       }
-    } else if (obj is QuadData) {
+    } else if (obj is FrameQuadData) {
       final rect = obj.screenRect;
       logInfo('$indent$marker🖼️ Quad [ID: ${obj.id}] (Tex: ${obj.texture}, Rect: [L:${rect.left}, T:${rect.top}, W:${rect.width}, H:${rect.height}])');
     } else if (obj is FrameTextData) {
@@ -111,9 +111,18 @@ abstract class FrameObjectData {
   final String? shader;
   final Map<String, String> shaderParams;
   FrameObjectData({required this.id,required this.visible,this.shader,required this.shaderParams});
+
+  static  ReferenceBox screenRectToRefBox(Rect screenRect) {
+    return ReferenceBox(
+      Vector3(screenRect.left, screenRect.bottom, 0),
+      Vector3(screenRect.width, 0, 0),
+      Vector3(0, screenRect.height, 0),
+      Vector3(0, 0, 1),
+    );
+  }
 }
 
-class QuadData extends FrameObjectData {
+class FrameQuadData extends FrameObjectData {
   final String texture;
   final Rect screenRect;
   final Rect textureRect;
@@ -121,7 +130,7 @@ class QuadData extends FrameObjectData {
   final String? modulateColor;
 
 
-  QuadData({
+  FrameQuadData({
     required super.id,
     required super.visible,
     super.shader,
@@ -134,11 +143,11 @@ class QuadData extends FrameObjectData {
   });
 }
 
-class GroupData extends FrameObjectData {
+class FrameGroupData extends FrameObjectData {
   final Vector3 anchor;
   final List<FrameObjectData> children;
 
-  GroupData({
+  FrameGroupData({
     required super.id,
     required super.visible,
     super.shader,

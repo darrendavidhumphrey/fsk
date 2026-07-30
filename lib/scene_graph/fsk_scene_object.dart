@@ -1,24 +1,25 @@
-import 'dart:ui';
-
 import 'package:fsk/scene_graph/fsk_renderer_base.dart';
-import 'package:fsk/shaders/base_uniforms.dart';
 import 'package:vector_math/vector_math.dart';
 import 'package:flutter_gpu/gpu.dart' as gpu;
-
 import '../fsk_scene.dart';
-import '../gpu/gpu_pipeline_key.dart';
+import '../logging.dart';
 
-abstract class FskSceneObject {
+abstract class FskSceneObject with LoggableClass {
 
+  final String id;
   final FskScene parentScene;
 
-  FskSceneObject(this.parentScene);
+  FskSceneObject(this.id,this.parentScene);
 
   bool needsRebuild = true;
   void setNeedsRebuild() {
     needsRebuild = true;
   }
 
+  void rebuildGeometry() {
+    rebuildGeometryIfNeeded();
+    rebuildPipelineIfNeeded();
+  }
 
   /// Rebuilds the vertex buffer object if the text or font has changed.
   void rebuildGeometryIfNeeded() {
@@ -36,10 +37,13 @@ abstract class FskSceneObject {
 }
 
 abstract class FskRenderableObject extends FskSceneObject {
-  FskRenderableObject(super.parentScene);
+  bool visible = true;
+
+  FskRenderableObject(super.id,super.parentScene);
   late FskRendererBase renderer;
 
   void draw(gpu.RenderPass renderPass,gpu.HostBuffer transients, Matrix4 pMatrix, Matrix4 mvMatrix) {
+    if (!visible) return;
     renderer.draw(renderPass, transients, pMatrix, mvMatrix);
   }
 

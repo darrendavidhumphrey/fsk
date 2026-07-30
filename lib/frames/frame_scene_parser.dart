@@ -125,7 +125,7 @@ class FrameSceneParser with LoggableClass {
 
     switch (node.name.local) {
       case 'quad':
-        return QuadData(
+        return FrameQuadData(
           id: node.getAttribute('id')!,
           visible: FrameSceneParser.isVisible(node),
           texture: node.getAttribute('texture')!,
@@ -144,7 +144,7 @@ class FrameSceneParser with LoggableClass {
             children.add(child);
           }
         }
-        return GroupData(
+        return FrameGroupData(
           id: node.getAttribute('id')!,
           visible: FrameSceneParser.isVisible(node),
           anchor: _parseVector3(node.getAttribute('anchor')!, anchors),

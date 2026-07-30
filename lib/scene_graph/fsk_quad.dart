@@ -1,17 +1,16 @@
 import 'dart:ui';
-
-import 'package:flutter_gpu/gpu.dart' as gpu;
 import 'package:vector_math/vector_math.dart' hide Colors;
+import '../frames/frame_data.dart';
 import '../fsk.dart';
 import 'fsk_quads_renderer.dart';
 
 /// A class that manages the geometry and rendering for a single textured quad
 class FskQuad extends FskRenderableObject {
   // The quad to render
-  final ReferenceBox _refBox;
+  late final ReferenceBox _refBox;
 
   // The texture coordinates for the quad
-  final Rect _textureRect;
+  late final Rect _textureRect;
 
   /// Object that renders the quads
   final FskQuadsRenderer _renderer = FskQuadsRenderer();
@@ -49,6 +48,7 @@ class FskQuad extends FskRenderableObject {
   // Constructor
   /////////////////////////////////////////////////////////////////////////////
   FskQuad(
+    super.id,
     super.parentScene,
     this._refBox,
     this._textureRect,
@@ -60,6 +60,20 @@ class FskQuad extends FskRenderableObject {
 
     // Trigger the setter
     modulateColor = _modulateColor;
+  }
+
+  FskQuad.fromData(super.id,super.parentScene, FrameQuadData quadData) {
+    setRenderer(_renderer);
+    _refBox = FrameObjectData.screenRectToRefBox(quadData.screenRect);
+    _textureRect = quadData.textureRect;
+
+    // Parse the hex string or default to solid white Vector4(1.0, 1.0, 1.0, 1.0)
+    final colorVector = parseHexColor(quadData.modulateColor);
+    modulateColor = colorVector;
+
+    setTexture(quadData.texture);
+    premultiplyAlpha = quadData.premultiplyAlpha;
+    visible = quadData.visible;
   }
 
   /// Rebuilds the vertex buffer object

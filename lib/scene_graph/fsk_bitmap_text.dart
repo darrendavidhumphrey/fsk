@@ -1,12 +1,10 @@
 import 'dart:math';
 import 'dart:typed_data';
 import 'dart:ui';
-import 'package:flutter_gpu/gpu.dart' as gpu;
 import 'package:fsk/scene_graph/fsk_quads_renderer.dart';
-import 'package:vector_math/vector_math.dart' hide Colors;
+import '../frames/frame_data.dart';
 import '../fsk.dart';
 import 'fsk_text_quad_builder.dart';
-
 
 /// A class that manages the geometry and rendering for a single line of text
 /// using a [BitmapFont].
@@ -15,23 +13,23 @@ import 'fsk_text_quad_builder.dart';
 /// [ReferenceBox], and renders them using a [FskQuadsRenderer].
 class FskBitmapText extends FskRenderableObject {
   /// The string to render
-  String _text;
+  late String _text;
 
   /// The [ReferenceBox] that defines the target area for the text to be rendered into.
-  final ReferenceBox _screenRect;
+  late final ReferenceBox _refBox;
 
   /// The font to render the text with
-  BitmapFont _font;
+  late BitmapFont _font;
 
   /// The [BitmapFont] to use for rendering.
   BitmapFont get font => _font;
 
   /// The target width of the text.
-  final double _width;
+  late final double _width;
 
   /// Text justification mode
-  TextVerticalJustification _verticalJustification;
-  TextHorizontalJustification _horizontalJustification;
+  late TextVerticalJustification _verticalJustification;
+  late TextHorizontalJustification _horizontalJustification;
 
   /// Object that renders the quads
   final FskQuadsRenderer _renderer = FskQuadsRenderer();
@@ -112,21 +110,42 @@ class FskBitmapText extends FskRenderableObject {
   // Constructor
   /////////////////////////////////////////////////////////////////////////////
   FskBitmapText(
+    super.id,
     super.parentScene,
     this._font,
     this._text,
-    this._screenRect, {
+    this._refBox, {
     this._textColor = const Color(0xFFFFFFFF),
     this._verticalJustification = TextVerticalJustification.bottom,
     this._horizontalJustification = TextHorizontalJustification.left,
     this._maxLen,
-  }): _width = _screenRect.xVector.length
-  {
+  }) : _width = _refBox.xVector.length {
     setRenderer(_renderer);
     _renderer.setTexture(font.textureInfo);
 
     // Trigger the setter
     textColor = _textColor;
+  }
+
+  FskBitmapText.fromData(super.id,super.parentScene, FrameTextData textData) {
+    setRenderer(_renderer);
+    _refBox = FrameObjectData.screenRectToRefBox(textData.screenRect);
+    _width = _refBox.xVector.length;
+
+    var fontToUse = BitmapFontManager().getFont(textData.font);
+    if (fontToUse == null) {
+      fontToUse = BitmapFontManager().defaultFont;
+      logWarning("Font not found for $id, using default font");
+    }
+    _font = fontToUse!;
+    _renderer.setTexture(font.textureInfo);
+
+    _text = textData.text;
+    textColor = parseHexColor(textData.textColor);
+    horizontalJustification = textData.hJustify;
+    verticalJustification = textData.vJustify;
+    maxLen = textData.maxLen;
+    visible = textData.visible;
   }
 
   @override
@@ -152,10 +171,11 @@ class FskBitmapText extends FskRenderableObject {
     FskBitmapTextQuadBuilder quadBuilder = FskBitmapTextQuadBuilder(
       text: text,
       font: font,
-      screenRect: _screenRect,
+      screenRect: _refBox,
       horizontalJustification: horizontalJustification,
       verticalJustification: verticalJustification,
-      width: _width);
+      width: _width,
+    );
 
     final result = quadBuilder.build();
     _renderer.setFromUnrolledQuads(result.numQuads, result.vertexData);
