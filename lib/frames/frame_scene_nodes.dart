@@ -1,3 +1,5 @@
+import 'dart:ui';
+
 import 'package:flutter_gpu/gpu.dart' as gpu;
 import 'package:vector_math/vector_math.dart';
 import 'package:fsk/fsk.dart';
@@ -97,26 +99,28 @@ abstract class FrameObjectNode<T extends FskRenderableObject>
     object?.rebuildGeometryIfNeeded();
     object?.rebuildPipelineIfNeeded();
   }
+
+  ReferenceBox makeRefBox(Rect screenRect) {
+    return ReferenceBox(
+      Vector3(screenRect.left, screenRect.bottom, 0),
+      Vector3(screenRect.width, 0, 0),
+      Vector3(0, screenRect.height, 0),
+      Vector3(0, 0, 1),
+    );
+  }
 }
 
 class FrameQuadNode extends FrameObjectNode<FskQuad> {
   FrameQuadNode(super.parentScene, super.data) {
     final quadData = data as QuadData;
-
-    final rect = Quad.points(
-      Vector3(0.0, 0.0, 0.0),
-      Vector3(quadData.screenRect.width, 0.0, 0.0),
-      Vector3(quadData.screenRect.width, quadData.screenRect.height, 0.0),
-      Vector3(0.0, quadData.screenRect.height, 0.0),
-    );
+    final refBox = makeRefBox(quadData.screenRect);
 
     // Parse the hex string or default to solid white Vector4(1.0, 1.0, 1.0, 1.0)
     final colorVector = parseHexColor(quadData.modulateColor);
 
     object = FskQuad(
-        parentScene, rect, quadData.textureRect, colorVector, quadData.texture);
+        parentScene, refBox, quadData.textureRect, colorVector, quadData.texture);
     object?.premultiplyAlpha = quadData.premultiplyAlpha;
-    object?.screenRect = quadData.screenRect;
     // TODO: Send in shader here and uniform class and string list of params
   }
 }
@@ -130,12 +134,8 @@ class FrameTextNode extends FrameObjectNode<FskBitmapText> {
       font = BitmapFontManager().defaultFont;
       logWarning("Font not found for ${data.id}, using default font");
     }
-    final refBox = ReferenceBox(
-      Vector3(textData.screenRect.left, textData.screenRect.bottom, 0),
-      Vector3(textData.screenRect.width, 0, 0),
-      Vector3(0, textData.screenRect.height, 0),
-      Vector3(0, 0, 1),
-    );
+
+    final refBox = makeRefBox(textData.screenRect);
 
     // Parse the hex string or default to solid white Vector4(1.0, 1.0, 1.0, 1.0)
     final textColorVector = parseHexColor(textData.textColor);

@@ -1,5 +1,6 @@
 import 'dart:ui';
 
+import 'package:fsk/scene_graph/fsk_renderer_base.dart';
 import 'package:fsk/shaders/base_uniforms.dart';
 import 'package:vector_math/vector_math.dart';
 import 'package:flutter_gpu/gpu.dart' as gpu;
@@ -32,13 +33,17 @@ abstract class FskSceneObject {
   void doRebuild();
 
   void rebuildPipelineIfNeeded();
-
-  // TODO: Get rid of the need for this, promote RefBox from bitmap text?
-  Rect screenRect = Rect.zero;
 }
 
 abstract class FskRenderableObject extends FskSceneObject {
   FskRenderableObject(super.parentScene);
+  late FskRendererBase renderer;
 
-  void draw(gpu.RenderPass renderPass,gpu.HostBuffer transients, Matrix4 pMatrix, Matrix4 mvMatrix);
+  void draw(gpu.RenderPass renderPass,gpu.HostBuffer transients, Matrix4 pMatrix, Matrix4 mvMatrix) {
+    renderer.draw(renderPass, transients, pMatrix, mvMatrix);
+  }
+
+  void setRenderer(FskRendererBase newRenderer) {
+    renderer = newRenderer;
+  }
 }

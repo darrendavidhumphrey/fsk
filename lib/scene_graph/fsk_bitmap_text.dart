@@ -34,7 +34,7 @@ class FskBitmapText extends FskRenderableObject {
   TextHorizontalJustification _horizontalJustification;
 
   /// Object that renders the quads
-  final FskQuadsRenderer _renderer;
+  final FskQuadsRenderer _renderer = FskQuadsRenderer();
 
   /// Optional maxLen field can truncate the text
   int? _maxLen;
@@ -120,8 +120,9 @@ class FskBitmapText extends FskRenderableObject {
     this._verticalJustification = TextVerticalJustification.bottom,
     this._horizontalJustification = TextHorizontalJustification.left,
     this._maxLen,
-  }): _renderer = FskQuadsRenderer(), _width = _screenRect.xVector.length
+  }): _width = _screenRect.xVector.length
   {
+    setRenderer(_renderer);
     _renderer.setTexture(font.textureInfo);
 
     // Trigger the setter
@@ -158,10 +159,5 @@ class FskBitmapText extends FskRenderableObject {
 
     final result = quadBuilder.build();
     _renderer.setFromUnrolledQuads(result.numQuads, result.vertexData);
-  }
-
-  @override
-  void draw(gpu.RenderPass renderPass,gpu.HostBuffer transients,Matrix4 pMatrix, Matrix4 mvMatrix) {
-    _renderer.draw(renderPass, transients, pMatrix, mvMatrix);
   }
 }

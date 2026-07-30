@@ -8,13 +8,13 @@ import 'fsk_quads_renderer.dart';
 /// A class that manages the geometry and rendering for a single textured quad
 class FskQuad extends FskRenderableObject {
   // The quad to render
-  final Quad _quad;
+  final ReferenceBox _refBox;
 
   // The texture coordinates for the quad
   final Rect _textureRect;
 
   /// Object that renders the quads
-  final FskQuadsRenderer _renderer;
+  final FskQuadsRenderer _renderer = FskQuadsRenderer();
 
   bool _premultiplyAlpha = true;
   Color _modulateColor = const Color(0xFFFFFFFF);
@@ -50,35 +50,24 @@ class FskQuad extends FskRenderableObject {
   /////////////////////////////////////////////////////////////////////////////
   FskQuad(
     super.parentScene,
-    this._quad,
+    this._refBox,
     this._textureRect,
     this._modulateColor,
-    String textureId) :
-      _renderer = FskQuadsRenderer()
-  {
+    String textureId,
+  ) {
     setTexture(textureId);
+    setRenderer(_renderer);
 
     // Trigger the setter
     modulateColor = _modulateColor;
   }
 
-
   /// Rebuilds the vertex buffer object
   @override
   void doRebuild() {
-    _renderer.setFromQuads([_quad], [_textureRect]);
-  }
-
-  @override
-  void draw(
-    gpu.RenderPass renderPass,
-    gpu.HostBuffer transients,
-    Matrix4 pMatrix,
-    Matrix4 mvMatrix,
-  ) {
-    // Apply the local screenRect offset to the matrix
-    final Matrix4 finalMvMatrix = mvMatrix.clone()
-      ..translateByVector3(Vector3(screenRect.left, screenRect.top, 0.0));
-    _renderer.draw(renderPass, transients, pMatrix.clone(), finalMvMatrix);
+    Vector2 blc = Vector2(0, -_refBox.yVector.length);
+    Vector2 trc = Vector2(_refBox.xVector.length, 0);
+    Quad q = _refBox.calcQuadFrom2DVectors(blc, trc);
+    _renderer.setFromQuads([q], [_textureRect]);
   }
 }

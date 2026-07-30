@@ -22,5 +22,5 @@ void main() {
     vec4 combinedColor = texColor * fragUniforms.uModulateColor;
 
     // 3. Output using native premultiplied alpha formatting.
-    FragColor = vec4(combinedColor.rgb * combinedColor.a, combinedColor.a);
+    FragColor = vec4(combinedColor.rgb * combinedColor.a, combinedColor.a*0.5);
 }
