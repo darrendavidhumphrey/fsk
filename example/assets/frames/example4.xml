@@ -1,5 +1,5 @@
 <?xml version="1.0" encoding="utf-8"?>
-<frameScene version="1.0" width="1080" height="720" assetsPath="frames">
+<frameScene version="1.0" width="1080" height="720" clearColor="#00FF00FF" assetsPath="frames">
     <textures>
         <texture id="Penelope" file="Penelope.png" />
     </textures>

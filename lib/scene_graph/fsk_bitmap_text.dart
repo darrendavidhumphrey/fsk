@@ -1,6 +1,6 @@
 import 'dart:math';
 import 'dart:typed_data';
-import 'dart:ui';
+import 'package:flutter/material.dart';
 import 'package:fsk/scene_graph/fsk_quads_renderer.dart';
 import '../frames/frame_data.dart';
 import '../fsk.dart';
@@ -38,7 +38,7 @@ class FskBitmapText extends FskRenderableObject {
   int? _maxLen;
 
   /// The color applied to modulate the text texture quads.
-  Color _textColor = const Color(0xFFFFFFFF);
+  late Color _textColor;
 
   /////////////////////////////////////////////////////////////////////////////
   // Public API
@@ -58,7 +58,7 @@ class FskBitmapText extends FskRenderableObject {
   String get text => _text;
 
   /// Sets a new text string and flags the text for a rebuild.
-  void setText(String newText) {
+  set text(String newText) {
     if (_maxLen != null) {
       newText = text.substring(0, min(_maxLen!, newText.length));
     }
@@ -115,7 +115,7 @@ class FskBitmapText extends FskRenderableObject {
     this._font,
     this._text,
     this._refBox, {
-    this._textColor = const Color(0xFFFFFFFF),
+    this._textColor = Colors.white,
     this._verticalJustification = TextVerticalJustification.bottom,
     this._horizontalJustification = TextHorizontalJustification.left,
     this._maxLen,
@@ -141,7 +141,7 @@ class FskBitmapText extends FskRenderableObject {
     _renderer.setTexture(font.textureInfo);
 
     _text = textData.text;
-    textColor = parseHexColor(textData.textColor);
+    textColor = parseHexColor(textData.textColor, defaultColor: Colors.white);
     horizontalJustification = textData.hJustify;
     verticalJustification = textData.vJustify;
     maxLen = textData.maxLen;

@@ -10,10 +10,12 @@ class FrameData with LoggableClass {
   final List<FrameObjectData> objects;
   final Map<String, FrameObjectData> _objectMap = {};
   final Size _frameSize;
+  final String? _clearColor;
   final String? _assetsPath;
 
   Size get frameSize => _frameSize;
   String? get assetsPath => _assetsPath;
+  String? get clearColor => _clearColor;
 
   FrameData({
     required this.version,
@@ -22,6 +24,7 @@ class FrameData with LoggableClass {
     required List<FrameAnchorData> anchors,
     required this.objects,
     required this._frameSize,
+    required this._clearColor,
     required this._assetsPath,
   })  : textures = {for (var t in textures) t.id: t},
         fonts = {for (var f in fonts) f.id: f},
@@ -43,7 +46,7 @@ class FrameData with LoggableClass {
   FrameObjectData? findObject(String id) => _objectMap[id];
 
   void dumpTree() {
-    logInfo('📂 FrameData (Version: $version, Size: ${_frameSize.width}x${_frameSize.height} AssetsPath "$_assetsPath")');
+    logInfo('📂 FrameData (Version: $version, Size: ${_frameSize.width}x${_frameSize.height} ClearColor ${_clearColor?.toString()} AssetsPath "$_assetsPath")');
 
     // Print metadata summaries
     logInfo(' ├── 🖼️ Textures (${textures.length}): ${textures.keys.join(', ')}');

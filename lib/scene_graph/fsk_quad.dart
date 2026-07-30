@@ -1,4 +1,5 @@
 import 'dart:ui';
+import 'package:flutter/material.dart' show Colors;
 import 'package:vector_math/vector_math.dart' hide Colors;
 import '../frames/frame_data.dart';
 import '../fsk.dart';
@@ -67,8 +68,8 @@ class FskQuad extends FskRenderableObject {
     _refBox = FrameObjectData.screenRectToRefBox(quadData.screenRect);
     _textureRect = quadData.textureRect;
 
-    // Parse the hex string or default to solid white Vector4(1.0, 1.0, 1.0, 1.0)
-    final colorVector = parseHexColor(quadData.modulateColor);
+    // Parse the hex string or default to solid white
+    final colorVector = parseHexColor(quadData.modulateColor,defaultColor: Colors.white);
     modulateColor = colorVector;
 
     setTexture(quadData.texture);

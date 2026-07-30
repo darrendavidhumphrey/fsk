@@ -1,11 +1,5 @@
-import '../bitmap_fonts/bitmap_font_manager.dart';
-import '../fsk_singleton.dart';
-import '../logging.dart';
-import '../scene_graph/fsk_bitmap_text.dart';
-import '../scene_graph/fsk_group.dart';
-import '../scene_graph/fsk_quad.dart';
-import '../scene_graph/fsk_scene_object.dart';
-import 'frame_scene.dart';
+import 'package:flutter/material.dart';
+import 'package:fsk/fsk.dart';
 import 'frame_data.dart';
 
 class FrameSceneBuilder with LoggableClass {
@@ -54,6 +48,10 @@ class FrameSceneBuilder with LoggableClass {
       return false;
     }
 
+    // Set clear color, default to black if not set
+    scene.clearColor = parseHexColor(frameData!.clearColor, defaultColor: Colors.black);
+
+    print("clearColor: ${scene.clearColor}");
     // 1. Load textures
     for (var textureData in frameData!.textures.values) {
       logVerbose(

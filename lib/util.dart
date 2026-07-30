@@ -177,24 +177,24 @@ List<Vector2> computeTexCoords(
 }
 
 /// Parses a #RRGGBBAA hex string into a flutter Color(r, g, b, a).
-/// Returns solid white  on failure or if null.
-Color parseHexColor(String? hex) {
+/// Returns default color  on failure or if null.
+Color parseHexColor(String? hex,{required Color defaultColor}) {
   if (hex == null || !hex.startsWith('#') || hex.length != 9) {
-    return const Color(0xFFFFFFFF); // Default to solid white
+    return defaultColor;
   }
 
   try {
     final String cleanHex = hex.substring(
       1,
     ); // Drops the '#' character to leave RRGGBBAA
-    final String rrgg = cleanHex.substring(0, 6);
+    final String rrggbb = cleanHex.substring(0, 6);
     final String aa = cleanHex.substring(6, 8);
 
     // Re-orders bytes from RRGGBBAA to Flutter's expected AARRGGBB format
-    return Color(int.parse('0x$aa$rrgg'));
+    return Color(int.parse('0x$aa$rrggbb'));
   } catch (_) {
     Logging.logError('Error parsing hex color: $hex', source: 'parseHexColor');
-    return const Color(0xFFFFFFFF); // Fallback on parsing exceptions
+    return defaultColor; // Fallback on parsing exceptions
   }
 }
 

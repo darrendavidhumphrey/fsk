@@ -91,6 +91,7 @@ class FrameSceneParser with LoggableClass {
 
       return FrameData(
         frameSize: Size(width, height),
+        clearColor: root.getAttribute('clearColor'),
         assetsPath: assetsPath,
         version: version,
         textures: textures,

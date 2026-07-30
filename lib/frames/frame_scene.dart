@@ -17,6 +17,9 @@ class FskFrameScene extends FskScene {
     loadSkin(skinPath);
   }
 
+  /// Optional callback to fire when skin loads successfully
+  Future<void> onSkinReady() async {}
+
   @override
   void drawScene(gpu.RenderPass renderPass, gpu.HostBuffer transients) {
     if (!isReady) {
@@ -57,12 +60,9 @@ class FskFrameScene extends FskScene {
     }
   }
 
-  // Generic findNode function
   // NOTE: Assumes a unique ID for each node, not dotted notation
-  FskSceneObject? findNode(String id) => nodeMap[id];
-
   // Type safe findNode function
-  T? findNodeByType<T>(String id) {
+  T? findNode<T>(String id) {
     var node = nodeMap[id];
 
     if (node is T) {
@@ -80,6 +80,10 @@ class FskFrameScene extends FskScene {
         frameSize = frameData.frameSize;
 
         isReady = await builder.buildScene();
+
+        if (isReady) {
+          await onSkinReady();
+        }
       }
 
     } catch (e, stackTrace) {
