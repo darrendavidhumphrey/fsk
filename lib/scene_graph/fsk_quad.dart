@@ -5,6 +5,26 @@ import '../frames/frame_data.dart';
 import '../fsk.dart';
 import 'fsk_quads_renderer.dart';
 
+class FrameQuadData extends FrameObjectData {
+  final String texture;
+  final Rect screenRect;
+  final Rect textureRect;
+  final bool premultiplyAlpha;
+  final String? modulateColor;
+
+  FrameQuadData({
+    required super.id,
+    required super.visible,
+    super.shader,
+    required super.shaderParams,
+    required this.texture,
+    required this.screenRect,
+    required this.textureRect,
+    this.modulateColor,
+    this.premultiplyAlpha = false,
+  });
+}
+
 /// A class that manages the geometry and rendering for a single textured quad
 class FskQuad extends FskRenderableObject {
   // The quad to render
@@ -18,6 +38,29 @@ class FskQuad extends FskRenderableObject {
 
   bool _premultiplyAlpha = true;
   Color _modulateColor = const Color(0xFFFFFFFF);
+
+  static void registerWithFactories() {
+    FrameObjectDataFactory.register('quad', (node, anchors, parseObject) {
+      final String? shaderName = node.getAttribute('shader');
+      final Map<String, String> shaderParamsMap = FrameSceneParser.parseShaderParams(node.getAttribute('shaderParams'));
+      return FrameQuadData(
+        id: node.getAttribute('id')!,
+        visible: FrameSceneParser.isVisible(node),
+        texture: node.getAttribute('texture')!,
+        screenRect: FrameSceneParser.parseRect(node.getAttribute('screenRect')!),
+        textureRect: FrameSceneParser.parseTextureRect(node.getAttribute('textureRect')),
+        premultiplyAlpha: node.getAttribute('premultiplyAlpha') == 'true',
+        shader: shaderName,
+        modulateColor: node.getAttribute('modulateColor'),
+        shaderParams: shaderParamsMap,
+      );
+    });
+
+    FskSceneObjectFactory.register(FrameQuadData, (scene, data, createNode) {
+      final quadData = data as FrameQuadData;
+      return FskQuad.fromData(quadData.id, scene, quadData);
+    });
+  }
 
   /////////////////////////////////////////////////////////////////////////////
   // Public API

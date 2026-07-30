@@ -23,7 +23,7 @@ class FskRenderTarget {
     _allocateResources();
   }
 
-  /// Expose the underlying render target configuration required by the CommandBuffer.
+  /// Expose the render target configuration required by the CommandBuffer.
   gpu.RenderTarget get renderTarget => _renderTarget!;
 
   /// Expose the final single-sample texture read by the canvas/samplers.
@@ -44,7 +44,7 @@ class FskRenderTarget {
 
     if (enableMsaa && gpu.gpuContext.doesSupportOffscreenMSAA) {
       _msaaColorTexture = gpu.gpuContext.createTexture(
-        gpu.StorageMode.deviceTransient, // Keeps memory processing ultra-fast on-chip
+        gpu.StorageMode.deviceTransient,
         width,
         height,
         format: gpu.PixelFormat.r8g8b8a8UNormInt,
@@ -58,8 +58,6 @@ class FskRenderTarget {
         resolveTexture: _resolveTexture!,
         clearValue: Vector4(0, 0, 0, 0),
         loadAction: gpu.LoadAction.clear,
-        // FIX: Remove 'storeAndMultisampleResolve' and use 'multisampleResolve'
-        // This resolves into your output texture and safely discards the transient data
         storeAction: gpu.StoreAction.multisampleResolve,
       );
 

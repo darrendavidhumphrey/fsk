@@ -67,7 +67,7 @@ class IndexBuffer {
         activeBytesSize,
       );
 
-      // Instantly generate or update the hardware buffer allocation space
+      // Create the hardware buffer in the gpu memory
       _deviceBuffer = gpu.gpuContext.createDeviceBufferWithCopy(view);
     }
   }

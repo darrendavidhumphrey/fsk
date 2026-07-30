@@ -1,6 +1,59 @@
 import 'dart:ui';
 import 'package:vector_math/vector_math.dart';
+import 'package:xml/xml.dart';
 import '../fsk.dart';
+
+typedef FrameObjectDataParser = FrameObjectData? Function(
+  XmlElement node,
+  Map<String, FrameAnchorData> anchors,
+  FrameObjectData? Function(XmlElement, Map<String, FrameAnchorData>) parseObject,
+);
+
+class FrameObjectDataFactory {
+  static final Map<String, FrameObjectDataParser> _parsers = {};
+
+  static void register(String type, FrameObjectDataParser parser) {
+    _parsers[type] = parser;
+  }
+
+  static FrameObjectData? parse(
+    XmlElement node,
+    Map<String, FrameAnchorData> anchors,
+    FrameObjectData? Function(XmlElement, Map<String, FrameAnchorData>) parseObject,
+  ) {
+    final parser = _parsers[node.name.local];
+    if (parser != null) {
+      return parser(node, anchors, parseObject);
+    }
+    return null;
+  }
+}
+
+typedef FskSceneObjectBuilder = FskSceneObject? Function(
+  FskFrameScene scene,
+  FrameObjectData data,
+  FskSceneObject? Function(FrameObjectData) createNode,
+);
+
+class FskSceneObjectFactory {
+  static final Map<Type, FskSceneObjectBuilder> _builders = {};
+
+  static void register(Type dataType, FskSceneObjectBuilder builder) {
+    _builders[dataType] = builder;
+  }
+
+  static FskSceneObject? create(
+    FskFrameScene scene,
+    FrameObjectData data,
+    FskSceneObject? Function(FrameObjectData) createNode,
+  ) {
+    final builder = _builders[data.runtimeType];
+    if (builder != null) {
+      return builder(scene, data, createNode);
+    }
+    return null;
+  }
+}
 
 class FrameData with LoggableClass {
   final String version;
@@ -36,8 +89,10 @@ class FrameData with LoggableClass {
 
   void _registerObject(FrameObjectData obj) {
     _objectMap[obj.id] = obj;
-    if (obj is FrameGroupData) {
-      for (var child in obj.children) {
+    // Note: We'll need a generic way to traverse children if we want to keep findObject working for custom groups
+    // For now, we'll keep it as is, but we might need a "children" property in FrameObjectData
+    if (obj is FrameGroupDataExplicit) {
+       for (var child in obj.children) {
         _registerObject(child);
       }
     }
@@ -65,21 +120,21 @@ class FrameData with LoggableClass {
     final marker = isLast ? '└── ' : '├── ';
     final nextIndent = indent + (isLast ? '    ' : '│   ');
 
-    if (obj is FrameGroupData) {
-      logInfo('$indent$marker📁 Group [ID: ${obj.id}] (Anchor: ${obj.anchor.x}, ${obj.anchor.y}, ${obj.anchor.z})');
-      for (int i = 0; i < obj.children.length; i++) {
+    // We'll need to use some pattern matching or a generic way to print nodes
+    logInfo('$indent$marker${obj.runtimeType} [ID: ${obj.id}]');
+    if (obj is FrameGroupDataExplicit) {
+       for (int i = 0; i < obj.children.length; i++) {
         final isChildLast = i == obj.children.length - 1;
         _printNode(obj.children[i], nextIndent, isChildLast);
       }
-    } else if (obj is FrameQuadData) {
-      final rect = obj.screenRect;
-      logInfo('$indent$marker🖼️ Quad [ID: ${obj.id}] (Tex: ${obj.texture}, Rect: [L:${rect.left}, T:${rect.top}, W:${rect.width}, H:${rect.height}])');
-    } else if (obj is FrameTextData) {
-      logInfo('$indent$marker🔤 Text [ID: ${obj.id}] (Font: ${obj.font}, Text: "${obj.text}")');
-    } else {
-      logInfo('$indent$marker❓ Unknown Object [ID: ${obj.id}]');
     }
   }
+}
+
+// Helper interface for groups so FrameData can still traverse them
+abstract class FrameGroupDataExplicit extends FrameObjectData {
+  FrameGroupDataExplicit({required super.id, required super.visible, super.shader, required super.shaderParams});
+  List<FrameObjectData> get children;
 }
 
 class FrameTextureData {
@@ -123,65 +178,4 @@ abstract class FrameObjectData {
       Vector3(0, 0, 1),
     );
   }
-}
-
-class FrameQuadData extends FrameObjectData {
-  final String texture;
-  final Rect screenRect;
-  final Rect textureRect;
-  final bool premultiplyAlpha;
-  final String? modulateColor;
-
-
-  FrameQuadData({
-    required super.id,
-    required super.visible,
-    super.shader,
-    required super.shaderParams,
-    required this.texture,
-    required this.screenRect,
-    required this.textureRect,
-    this.modulateColor,
-    this.premultiplyAlpha = false,
-  });
-}
-
-class FrameGroupData extends FrameObjectData {
-  final Vector3 anchor;
-  final List<FrameObjectData> children;
-
-  FrameGroupData({
-    required super.id,
-    required super.visible,
-    super.shader,
-    required super.shaderParams,
-    required this.anchor,
-    required this.children,
-  });
-}
-
-class FrameTextData extends FrameObjectData {
-  final String font;
-  final String text;
-  final Rect screenRect;
-  final TextHorizontalJustification hJustify;
-  final TextVerticalJustification vJustify;
-  final int? maxLen;
-  final bool scaleToFit;
-  final String? textColor;
-
-  FrameTextData({
-    required super.id,
-    required super.visible,
-    required this.font,
-    required this.text,
-    required this.screenRect,
-    required this.hJustify,
-    required this.vJustify,
-    super.shader,
-    required super.shaderParams,
-    this.maxLen,
-    this.scaleToFit = false,
-    this.textColor,
-  });
 }

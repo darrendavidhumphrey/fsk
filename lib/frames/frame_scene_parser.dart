@@ -7,6 +7,16 @@ import '../fsk.dart';
 import 'frame_data.dart';
 
 class FrameSceneParser with LoggableClass {
+  static bool _initialized = false;
+
+  static void registerDefaults() {
+    if (_initialized) return;
+    _initialized = true;
+
+    FskQuad.registerWithFactories();
+    FskGroup.registerWithFactories();
+    FskBitmapText.registerWithFactories();
+  }
 
   static String assetsRoot = "assets/";
   static Future<FrameData?> parseFromAssets(String assetPath) async {
@@ -33,6 +43,7 @@ class FrameSceneParser with LoggableClass {
   }
 
   static FrameData? parse(String xmlString) {
+    registerDefaults();
     try {
       final document = XmlDocument.parse(xmlString);
       final root = document.getElement('frameScene')!;
@@ -73,7 +84,7 @@ class FrameSceneParser with LoggableClass {
           final id = node.getAttribute('id')!;
           anchors[id] = FrameAnchorData(
             id: id,
-            val: _parseVector3(node.getAttribute('val')!, {}),
+            val: parseVector3(node.getAttribute('val')!, {}),
           );
         }
       }
@@ -109,9 +120,9 @@ class FrameSceneParser with LoggableClass {
 
   }
 
-  static Rect _parseTextureRect(String ?rectString) {
+  static Rect parseTextureRect(String ?rectString) {
     if (rectString != null) {
-      return _parseRect(rectString);
+      return parseRect(rectString);
     }
 
     // If no rectString is provided, return a default value
@@ -119,67 +130,10 @@ class FrameSceneParser with LoggableClass {
   }
 
   static FrameObjectData? _parseObject(XmlElement node, Map<String, FrameAnchorData> anchors) {
-    final String? shaderName = node.getAttribute('shader');
-
-    // Parse shader parameters down into a safe Key-Value profile Map structure
-    final Map<String, String> shaderParamsMap = _parseShaderParams(node.getAttribute('shaderParams'));
-
-    switch (node.name.local) {
-      case 'quad':
-        return FrameQuadData(
-          id: node.getAttribute('id')!,
-          visible: FrameSceneParser.isVisible(node),
-          texture: node.getAttribute('texture')!,
-          screenRect: _parseRect(node.getAttribute('screenRect')!),
-          textureRect: _parseTextureRect(node.getAttribute('textureRect')),
-          premultiplyAlpha: node.getAttribute('premultiplyAlpha') == 'true',
-          shader: shaderName,
-          modulateColor: node.getAttribute('modulateColor'),
-          shaderParams: shaderParamsMap,
-        );
-      case 'group':
-        final children = <FrameObjectData>[];
-        for (final childNode in node.children.whereType<XmlElement>()) {
-          final child = _parseObject(childNode, anchors);
-          if (child != null) {
-            children.add(child);
-          }
-        }
-        return FrameGroupData(
-          id: node.getAttribute('id')!,
-          visible: FrameSceneParser.isVisible(node),
-          anchor: _parseVector3(node.getAttribute('anchor')!, anchors),
-          children: children,
-          shader: shaderName,
-          shaderParams: shaderParamsMap,
-        );
-      case 'text':
-        final String rawHJustify = node.getAttribute('hJustify') ?? 'left';
-        final String rawVJustify = node.getAttribute('vJustify') ?? 'top';
-
-        final hJustification = TextHorizontalJustification.fromString(rawHJustify, defaultValue: TextHorizontalJustification.left);
-        final vJustification = TextVerticalJustification.fromString(rawVJustify, defaultValue: TextVerticalJustification.top);
-
-        return FrameTextData(
-          id: node.getAttribute('id')!,
-          visible: FrameSceneParser.isVisible(node),
-          font: node.getAttribute('font')!,
-          text: node.getAttribute('text')!,
-          screenRect: _parseRect(node.getAttribute('screenRect')!),
-          hJustify: hJustification,
-          vJustify: vJustification,
-          maxLen: int.tryParse(node.getAttribute('maxLen') ?? ''),
-          scaleToFit: node.getAttribute('scaleToFit') == 'YES',
-          textColor: node.getAttribute('textColor'),
-          shader: shaderName,
-          shaderParams: shaderParamsMap,
-        );
-      default:
-        return null;
-    }
+    return FrameObjectDataFactory.parse(node, anchors, _parseObject);
   }
 
-  static Rect _parseRect(String s) {
+  static Rect parseRect(String s) {
     final regex = RegExp(
         r'\{\{\s*(-?\d+\.?\d*)\s*,\s*(-?\d+\.?\d*)\s*\}\s*,\s*\{\s*(-?\d+\.?\d*)\s*,\s*(-?\d+\.?\d*)\s*\}\}');
     final match = regex.firstMatch(s);
@@ -193,7 +147,7 @@ class FrameSceneParser with LoggableClass {
     return Rect.zero;
   }
 
-  static Vector3 _parseVector3(String s, Map<String, FrameAnchorData> anchors) {
+  static Vector3 parseVector3(String s, Map<String, FrameAnchorData> anchors) {
     if (anchors.containsKey(s)) {
       return anchors[s]!.val.clone();
     }
@@ -211,7 +165,7 @@ class FrameSceneParser with LoggableClass {
 
   /// Converts a semicolon or comma-separated key:value string into a Map configuration profile.
   /// Semicolons are preferred as delimiters when values (like vectors) contain commas.
-  static Map<String, String> _parseShaderParams(String? rawParams) {
+  static Map<String, String> parseShaderParams(String? rawParams) {
     final Map<String, String> paramsMap = {};
     if (rawParams == null || rawParams.trim().isEmpty) {
       return paramsMap;

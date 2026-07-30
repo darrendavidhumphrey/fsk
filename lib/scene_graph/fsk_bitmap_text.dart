@@ -1,10 +1,37 @@
 import 'dart:math';
 import 'dart:typed_data';
-import 'package:flutter/material.dart';
+import 'dart:ui';
+import 'package:flutter/material.dart' show Colors;
 import 'package:fsk/scene_graph/fsk_quads_renderer.dart';
 import '../frames/frame_data.dart';
 import '../fsk.dart';
 import 'fsk_text_quad_builder.dart';
+
+class FrameTextData extends FrameObjectData {
+  final String font;
+  final String text;
+  final Rect screenRect;
+  final TextHorizontalJustification hJustify;
+  final TextVerticalJustification vJustify;
+  final int? maxLen;
+  final bool scaleToFit;
+  final String? textColor;
+
+  FrameTextData({
+    required super.id,
+    required super.visible,
+    required this.font,
+    required this.text,
+    required this.screenRect,
+    required this.hJustify,
+    required this.vJustify,
+    super.shader,
+    required super.shaderParams,
+    this.maxLen,
+    this.scaleToFit = false,
+    this.textColor,
+  });
+}
 
 /// A class that manages the geometry and rendering for a single line of text
 /// using a [BitmapFont].
@@ -39,6 +66,38 @@ class FskBitmapText extends FskRenderableObject {
 
   /// The color applied to modulate the text texture quads.
   late Color _textColor;
+
+  static void registerWithFactories() {
+    FrameObjectDataFactory.register('text', (node, anchors, parseObject) {
+      final String? shaderName = node.getAttribute('shader');
+      final Map<String, String> shaderParamsMap = FrameSceneParser.parseShaderParams(node.getAttribute('shaderParams'));
+      final String rawHJustify = node.getAttribute('hJustify') ?? 'left';
+      final String rawVJustify = node.getAttribute('vJustify') ?? 'top';
+
+      final hJustification = TextHorizontalJustification.fromString(rawHJustify, defaultValue: TextHorizontalJustification.left);
+      final vJustification = TextVerticalJustification.fromString(rawVJustify, defaultValue: TextVerticalJustification.top);
+
+      return FrameTextData(
+        id: node.getAttribute('id')!,
+        visible: FrameSceneParser.isVisible(node),
+        font: node.getAttribute('font')!,
+        text: node.getAttribute('text')!,
+        screenRect: FrameSceneParser.parseRect(node.getAttribute('screenRect')!),
+        hJustify: hJustification,
+        vJustify: vJustification,
+        maxLen: int.tryParse(node.getAttribute('maxLen') ?? ''),
+        scaleToFit: node.getAttribute('scaleToFit') == 'YES',
+        textColor: node.getAttribute('textColor'),
+        shader: shaderName,
+        shaderParams: shaderParamsMap,
+      );
+    });
+
+    FskSceneObjectFactory.register(FrameTextData, (scene, data, createNode) {
+      final textData = data as FrameTextData;
+      return FskBitmapText.fromData(textData.id, scene, textData);
+    });
+  }
 
   /////////////////////////////////////////////////////////////////////////////
   // Public API

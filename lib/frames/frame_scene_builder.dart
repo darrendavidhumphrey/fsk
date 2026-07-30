@@ -3,11 +3,23 @@ import 'package:fsk/fsk.dart';
 import 'frame_data.dart';
 
 class FrameSceneBuilder with LoggableClass {
+  static bool _initialized = false;
+
+  static void registerDefaults() {
+    if (_initialized) return;
+    _initialized = true;
+
+    FskQuad.registerWithFactories();
+    FskGroup.registerWithFactories();
+    FskBitmapText.registerWithFactories();
+  }
 
   final FskFrameScene scene;
   final FrameData? frameData;
 
-  FrameSceneBuilder(this.scene, this.frameData);
+  FrameSceneBuilder(this.scene, this.frameData) {
+    registerDefaults();
+  }
 
   String getResourcePath(String textureName) {
     if (frameData == null) {
@@ -21,21 +33,7 @@ class FrameSceneBuilder with LoggableClass {
   }
 
   FskSceneObject? _createNode(FrameObjectData objData) {
-    FskSceneObject? node;
-    if (objData is FrameGroupData) {
-      final groupNode = FskGroup.fromData(objData.id,scene, objData);
-      for (var childData in objData.children) {
-        final childNode = _createNode(childData);
-        if (childNode != null) {
-          groupNode.children.add(childNode);
-        }
-      }
-      node = groupNode;
-    } else if (objData is FrameQuadData) {
-      node = FskQuad.fromData(objData.id,scene, objData);
-    } else if (objData is FrameTextData) {
-      node = FskBitmapText.fromData(objData.id,scene,objData);
-    }
+    final node = FskSceneObjectFactory.create(scene, objData, _createNode);
 
     if (node != null) {
       scene.nodeMap[objData.id] = node;
@@ -50,8 +48,7 @@ class FrameSceneBuilder with LoggableClass {
 
     // Set clear color, default to black if not set
     scene.clearColor = parseHexColor(frameData!.clearColor, defaultColor: Colors.black);
-
-    print("clearColor: ${scene.clearColor}");
+    
     // 1. Load textures
     for (var textureData in frameData!.textures.values) {
       logVerbose(

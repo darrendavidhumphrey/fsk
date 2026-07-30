@@ -1,12 +1,61 @@
 import 'package:flutter_gpu/gpu.dart' as gpu;
 import 'package:fsk/fsk.dart';
 import 'package:vector_math/vector_math.dart';
-
+import 'package:xml/xml.dart';
 import '../frames/frame_data.dart';
+
+class FrameGroupData extends FrameGroupDataExplicit {
+  final Vector3 anchor;
+  @override
+  final List<FrameObjectData> children;
+
+  FrameGroupData({
+    required super.id,
+    required super.visible,
+    super.shader,
+    required super.shaderParams,
+    required this.anchor,
+    required this.children,
+  });
+}
 
 class FskGroup extends FskRenderableObject {
   final List<FskSceneObject> children = [];
   late final Vector3 _anchor;
+
+  static void registerWithFactories() {
+    FrameObjectDataFactory.register('group', (node, anchors, parseObject) {
+      final String? shaderName = node.getAttribute('shader');
+      final Map<String, String> shaderParamsMap = FrameSceneParser.parseShaderParams(node.getAttribute('shaderParams'));
+      final children = <FrameObjectData>[];
+      for (final childNode in node.children.whereType<XmlElement>()) {
+        final child = parseObject(childNode, anchors);
+        if (child != null) {
+          children.add(child);
+        }
+      }
+      return FrameGroupData(
+        id: node.getAttribute('id')!,
+        visible: FrameSceneParser.isVisible(node),
+        anchor: FrameSceneParser.parseVector3(node.getAttribute('anchor')!, anchors),
+        children: children,
+        shader: shaderName,
+        shaderParams: shaderParamsMap,
+      );
+    });
+
+    FskSceneObjectFactory.register(FrameGroupData, (scene, data, createNode) {
+      final groupData = data as FrameGroupData;
+      final groupNode = FskGroup.fromData(groupData.id, scene, groupData);
+      for (var childData in groupData.children) {
+        final childNode = createNode(childData);
+        if (childNode != null) {
+          groupNode.children.add(childNode);
+        }
+      }
+      return groupNode;
+    });
+  }
 
   /////////////////////////////////////////////////////////////////////////////
   // Constructor
