@@ -6,6 +6,7 @@ import 'package:fsk/scene_graph/fsk_quads_renderer.dart';
 import '../frames/frame_data.dart';
 import '../fsk.dart';
 import 'fsk_text_quad_builder.dart';
+import 'fsk_transformable.dart';
 
 class FrameTextData extends FrameObjectData {
   final String font;
@@ -38,7 +39,7 @@ class FrameTextData extends FrameObjectData {
 ///
 /// It generates a set of quads for the text, scaled to fit within a target
 /// [ReferenceBox], and renders them using a [FskQuadsRenderer].
-class FskBitmapText extends Fsk2DRenderableObject {
+class FskBitmapText extends Fsk2DRenderableObject with FskTransformableMixin {
   /// The string to render
   late String _text;
 

@@ -1,4 +1,5 @@
 import 'package:fsk/scene_graph/fsk_renderer_base.dart';
+import 'package:fsk/scene_graph/fsk_transformable.dart';
 import 'package:vector_math/vector_math.dart';
 import 'package:flutter_gpu/gpu.dart' as gpu;
 import '../fsk_scene.dart';
@@ -31,13 +32,14 @@ abstract class FskSceneObject with LoggableClass {
   }
 
   /// Actually does the work of rebuilding the object. Child class
-  /// must override
-  void doRebuild();
+  /// should override this method if it needs to do anything.
+  void doRebuild() {}
 
   void rebuildPipelineIfNeeded();
 }
 
 abstract class FskRenderableObject extends FskSceneObject {
+  final FskTransformable transformable = FskTransformable();
   bool visible = true;
 
   FskRenderableObject(super.id,super.parentScene);
@@ -45,6 +47,12 @@ abstract class FskRenderableObject extends FskSceneObject {
 
   void draw(gpu.RenderPass renderPass,gpu.HostBuffer transients, Matrix4 pMatrix, Matrix4 mvMatrix) {
     if (!visible) return;
+
+    if (transformable.isTransformed()) {
+      // Apply the transform to the matrix
+      mvMatrix =  transformable.getTransform() * mvMatrix;
+    }
+
     renderer.draw(renderPass, transients, pMatrix, mvMatrix);
   }
 

@@ -4,6 +4,7 @@ import 'package:vector_math/vector_math.dart' hide Colors;
 import '../frames/frame_data.dart';
 import '../fsk.dart';
 import 'fsk_quads_renderer.dart';
+import 'fsk_transformable.dart';
 
 class FrameQuadData extends FrameObjectData {
   final String texture;
@@ -26,7 +27,7 @@ class FrameQuadData extends FrameObjectData {
 }
 
 /// A class that manages the geometry and rendering for a single textured quad
-class FskQuad extends Fsk2DRenderableObject {
+class FskQuad extends Fsk2DRenderableObject with FskTransformableMixin {
   // The texture coordinates for the quad
   late final Rect _textureRect;
 

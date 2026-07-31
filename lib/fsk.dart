@@ -24,7 +24,6 @@ export 'scene_graph/fsk_quad.dart';
 export 'scene_graph/fsk_scene_object.dart';
 export 'scene_graph/fsk_text_alignment.dart';
 
-export 'shaders/bitmap_text_shader.dart';
 export 'shaders/checkerboard_shader.dart';
 export 'shaders/flat_shader.dart';
 export 'shaders/grid_shader.dart';

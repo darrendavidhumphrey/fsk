@@ -3,6 +3,7 @@ import 'package:fsk/fsk.dart';
 import 'package:vector_math/vector_math.dart';
 import 'package:xml/xml.dart';
 import '../frames/frame_data.dart';
+import 'fsk_transformable.dart';
 
 class FrameGroupData extends FrameGroupDataExplicit {
   final Vector3 anchor;
@@ -19,9 +20,8 @@ class FrameGroupData extends FrameGroupDataExplicit {
   });
 }
 
-class FskGroup extends FskRenderableObject {
+class FskGroup extends FskRenderableObject with FskTransformableMixin {
   final List<FskSceneObject> children = [];
-  late final Vector3 _anchor;
 
   static void registerWithFactories() {
     FrameObjectDataFactory.register('group', (node, anchors, parseObject) {
@@ -60,10 +60,13 @@ class FskGroup extends FskRenderableObject {
   /////////////////////////////////////////////////////////////////////////////
   // Constructor
   /////////////////////////////////////////////////////////////////////////////
-  FskGroup(super.id,super.parentScene,this._anchor);
+  FskGroup(super.id,super.parentScene);
 
   FskGroup.fromData(super.id,super.parentScene, FrameGroupData data) {
-    _anchor = data.anchor;
+
+    if (data.anchor != Vector3.zero) {
+      transformable.anchor = data.anchor;
+    }
     visible = data.visible;
   }
 
@@ -77,9 +80,12 @@ class FskGroup extends FskRenderableObject {
     if (!visible) return;
 
     // Create the child object's local translation matrix
-    final Matrix4 localTranslation = Matrix4.identity()
-      ..translateByVector3(_anchor);
+    final Matrix4 localTranslation = Matrix4.identity();
 
+    // Handle dynamic translations
+    if (transformable.isTransformed()) {
+      localTranslation.setFrom(transformable.getTransform());
+    }
 
     // Pass down the fully computed local-to-world context downward
     for (var child in children) {
@@ -100,12 +106,9 @@ class FskGroup extends FskRenderableObject {
   }
 
   @override
-  void doRebuild() {
-    // TODO: implement doRebuild
-  }
-
-  @override
   void rebuildPipelineIfNeeded() {
-    // TODO: implement rebuildPipelineIfNeeded
+    for (var child in children) {
+      child.rebuildPipelineIfNeeded();
+    }
   }
 }

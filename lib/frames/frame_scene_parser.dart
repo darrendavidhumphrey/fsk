@@ -114,10 +114,8 @@ class FrameSceneParser with LoggableClass {
     catch (e, stackTrace) {
       Logging.log(LogLevel.error, "Error loading frame file': $e", source: "FrameSceneParser");
       Logging.log(LogLevel.error, "StackTrace: $stackTrace", source: "FrameSceneParser");
-
       return null;
     }
-
   }
 
   static Rect parseTextureRect(String ?rectString) {
