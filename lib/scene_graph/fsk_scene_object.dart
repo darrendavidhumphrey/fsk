@@ -4,6 +4,7 @@ import 'package:vector_math/vector_math.dart';
 import 'package:flutter_gpu/gpu.dart' as gpu;
 import '../fsk_scene.dart';
 import '../geometry/reference_box.dart';
+import '../gpu/fsk_shader_material.dart';
 import '../logging.dart';
 
 abstract class FskSceneObject with LoggableClass {
@@ -59,6 +60,12 @@ abstract class FskRenderableObject extends FskSceneObject {
 
   void setRenderer(FskRendererBase newRenderer) {
     renderer = newRenderer;
+  }
+
+  /// Syntactic sugar to set a custom material on the renderer
+  set material(FskShaderMaterial value) {
+    renderer.customMaterial = value;
+    renderer.rebuildPipeline();
   }
 }
 

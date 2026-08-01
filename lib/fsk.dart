@@ -19,6 +19,7 @@ export 'gpu/fsk_index_buffer.dart';
 export 'gpu/gpu_pipeline_key.dart';
 export 'gpu/fsk_render_target.dart';
 export 'gpu/fsk_shader_library.dart';
+export 'gpu/fsk_shader_material.dart';
 export 'gpu/fsk_texture_manager.dart';
 export 'gpu/fsk_vertex_buffer.dart';
 

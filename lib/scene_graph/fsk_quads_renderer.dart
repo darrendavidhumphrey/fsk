@@ -3,10 +3,10 @@ import 'dart:ui';
 import 'package:vector_math/vector_math.dart';
 import 'package:flutter_gpu/gpu.dart' as gpu;
 import 'package:fsk/fsk.dart';
+import '../shaders/base_uniforms.dart';
 import 'fsk_renderer_base.dart';
 
 class FskQuadsRenderer extends FskRendererBase {
-  SimpleTextureUniforms? uniforms;
   PipelineKey? pipelineKey;
 
   bool _vertsDownloaded = false;
@@ -23,6 +23,10 @@ class FskQuadsRenderer extends FskRendererBase {
 
   bool pipeLineNeedsRebuild = true;
 
+  String vertShaderName = "SimpleTextureVertex";
+  String fragShaderName = "SimpleTextureFragment";
+  gpu.VertexLayout layout = textVertexLayout;
+
   /// The vertex buffer object that holds the geometry for rendering.
   final FskVertexBuffer _vbo = FskVertexBuffer();
 
@@ -33,21 +37,23 @@ class FskQuadsRenderer extends FskRendererBase {
   set premultiplyAlpha(bool value) {
     _premultiplyAlpha = value;
     pipeLineNeedsRebuild = true;
-
   }
 
   void setModulateColor(Color color) {
     _modulateColor = color;
   }
 
+  @override
   void rebuildPipeline() {
-    if (!pipeLineNeedsRebuild) return;
+    if (!pipeLineNeedsRebuild && pipelineKey != null) return;
+
+    final material = customMaterial ?? FskShaderMaterial.simpleTexture;
 
     // Create a pipeline key for this shader and associated settings
     pipelineKey = PipelineKey(
-      vertShaderName: "SimpleTextureVertex",
-      fragShaderName: "SimpleTextureFragment",
-      layoutName: "QuadVertexLayout",
+      vertShaderName: material.vertShaderName,
+      fragShaderName: material.fragShaderName,
+      layoutName: "${material.vertShaderName}_${material.fragShaderName}_Pipeline",
       depthTestEnabled: true,
       depthWriteEnabled: false,
       depthCompareOperation: gpu.CompareFunction.less,
@@ -64,10 +70,12 @@ class FskQuadsRenderer extends FskRendererBase {
       cullMode: gpu.CullMode.none,
     );
 
-    uniforms = SimpleTextureUniforms(
-      vertexShader: pipelineKey!.vertShader,
-      fragmentShader: pipelineKey!.fragShader,
+    uniforms = material.uniformsFactory(
+      pipelineKey!.vertShader,
+      pipelineKey!.fragShader,
     );
+    
+    layout = material.layout;
     pipeLineNeedsRebuild = false;
   }
 
@@ -82,13 +90,10 @@ class FskQuadsRenderer extends FskRendererBase {
   FskQuadsRenderer();
 
   void _checkIsValid() {
-    isValid =
-        (_textureInfo != null) &&
-        (_textureInfo!.texture != null) &&
-        (_vertsDownloaded);
+    isValid = (_textureInfo != null || uniforms is GridUniforms) && (_vertsDownloaded);
   }
 
-  void setFromUnrolledQuads(int numQuads,Float32List vertexTexCoordArray) {
+  void setFromUnrolledQuads(int numQuads, Float32List vertexTexCoordArray) {
     _vertsDownloaded = _vbo.setFromUnrolledQuads(numQuads, vertexTexCoordArray);
 
     // Upload generated quad data to gpu
@@ -113,16 +118,25 @@ class FskQuadsRenderer extends FskRendererBase {
     _checkIsValid();
     if (!isValid) return;
 
+    rebuildPipeline();
+
     FSK().activatePipeline(
       pipelineKey!,
       renderPass,
-      textVertexLayout,
+      layout,
     );
 
     _vbo.bind(renderPass);
 
-    uniforms!.setModulateColor(_modulateColor);
-    uniforms!.texture = _textureInfo!.texture;
+    if (uniforms is SimpleTextureUniforms) {
+      (uniforms as SimpleTextureUniforms).setModulateColor(_modulateColor);
+    }
+    
+    if (_textureInfo != null) {
+      uniforms!.texture = _textureInfo!.texture;
+      uniforms!.samplerOptions = _textureInfo!.samplerOptions;
+    }
+    
     uniforms!.mvMatrix = mvMatrix.clone();
     uniforms!.pMatrix = pMatrix.clone();
     uniforms!.bind(renderPass, transients);

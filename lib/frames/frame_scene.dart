@@ -9,12 +9,22 @@ class FskFrameScene extends FskScene {
   final Map<String, FskSceneObject> nodeMap = {};
   Size frameSize = Size.zero;
 
+  /// If true, applies 2D box-fit and centering logic.
+  /// Set to false for 3D scenes using the graph for object management.
+  bool use2DLayout = true;
+
   FskFrameScene({super.navigationDelegate}) {
     isReady = false;
   }
 
   FskFrameScene.fromSkinFile(String skinPath, {super.navigationDelegate}) {
     loadSkin(skinPath);
+  }
+
+  /// Adds a node to the scene graph
+  void addNode(FskSceneObject node) {
+    rootNodes.add(node);
+    nodeMap[node.id] = node;
   }
 
   /// Optional callback to fire when skin loads successfully
@@ -30,20 +40,22 @@ class FskFrameScene extends FskScene {
 
     Matrix4 finalMvMatrix = mvMatrix.clone();
 
-    Matrix4? boxFitMatrix = navigationDelegate?.createBoxFitMatrix(frameSize);
+    if (use2DLayout) {
+      Matrix4? boxFitMatrix = navigationDelegate?.createBoxFitMatrix(frameSize);
 
-    if (boxFitMatrix != null) {
-      finalMvMatrix = finalMvMatrix * boxFitMatrix;
+      if (boxFitMatrix != null) {
+        finalMvMatrix = finalMvMatrix * boxFitMatrix;
+      }
+
+      // Center object in view
+      finalMvMatrix.translateByVector3(
+        Vector3(
+          -frameSize.width / 2,
+          -frameSize.height / 2,
+          0,
+        ),
+      );
     }
-
-    // Center object in view
-    finalMvMatrix.translateByVector3(
-      Vector3(
-        -frameSize.width / 2,
-        -frameSize.height / 2,
-        0,
-      ),
-    );
 
     for (var node in rootNodes) {
       if (node is FskRenderableObject) {

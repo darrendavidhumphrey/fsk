@@ -28,8 +28,6 @@ class FskIndexedMeshRenderer extends FskRendererBase {
   bool isValid = false;
   bool pipeLineNeedsRebuild = true;
 
-  String vertShaderName = "LightingVertex";
-  String fragShaderName = "LightingFragment";
   gpu.VertexLayout layout = v3t2n3Layout;
 
   /// The vertex buffer object that holds the geometry for rendering.
@@ -62,11 +60,13 @@ class FskIndexedMeshRenderer extends FskRendererBase {
   void rebuildPipeline() {
     if (!pipeLineNeedsRebuild && pipelineKey != null) return;
 
+    final material = customMaterial ?? FskShaderMaterial.lighting;
+
     // Create a pipeline key for this shader and associated settings
     pipelineKey = PipelineKey(
-      vertShaderName: vertShaderName,
-      fragShaderName: fragShaderName,
-      layoutName: "IndexedMeshLayout",
+      vertShaderName: material.vertShaderName,
+      fragShaderName: material.fragShaderName,
+      layoutName: "${material.vertShaderName}_${material.fragShaderName}_Pipeline",
       depthTestEnabled: true,
       depthWriteEnabled: true,
       depthCompareOperation: gpu.CompareFunction.less,
@@ -81,20 +81,12 @@ class FskIndexedMeshRenderer extends FskRendererBase {
       cullMode: gpu.CullMode.backFace,
     );
 
-    // TODO: Fix this AI slop
-    if (fragShaderName.contains("Lighting")) {
-      uniforms = LightingUniforms(
-        vertexShader: pipelineKey!.vertShader,
-        fragmentShader: pipelineKey!.fragShader,
-      );
-      layout = v3t2n3Layout;
-    } else {
-      uniforms = SimpleTextureUniforms(
-        vertexShader: pipelineKey!.vertShader,
-        fragmentShader: pipelineKey!.fragShader,
-      );
-      layout = v3t2Layout;
-    }
+    uniforms = material.uniformsFactory(
+      pipelineKey!.vertShader,
+      pipelineKey!.fragShader,
+    );
+    
+    layout = material.layout;
     pipeLineNeedsRebuild = false;
   }
 
@@ -130,10 +122,18 @@ class FskIndexedMeshRenderer extends FskRendererBase {
     for (var subMesh in _subMeshes) {
       if (subMesh.textureInfo != null) {
         uniforms!.texture = subMesh.textureInfo!.texture;
+        uniforms!.samplerOptions = subMesh.textureInfo!.samplerOptions;
       }
 
       // If using lighting uniforms, apply material properties
-      if (uniforms is LightingUniforms) {
+      if (uniforms is OneLightUniforms) {
+        final olu = uniforms as OneLightUniforms;
+        final mat = subMesh.material ?? FSK().materials.getMaterial("default");
+        olu.materialAmbient = mat.ambient;
+        olu.materialDiffuse = mat.diffuse;
+        olu.materialSpecular = mat.specular;
+        olu.materialShininess = mat.shininess;
+      } else if (uniforms is LightingUniforms) {
         final lu = uniforms as LightingUniforms;
         final mat = subMesh.material ?? FSK().materials.getMaterial("default");
         // Map GlMaterial to Kd (Diffuse)

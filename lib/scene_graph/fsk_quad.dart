@@ -4,7 +4,6 @@ import 'package:vector_math/vector_math.dart' hide Colors;
 import '../frames/frame_data.dart';
 import '../fsk.dart';
 import 'fsk_quads_renderer.dart';
-import 'fsk_transformable.dart';
 
 class FrameQuadData extends FrameObjectData {
   final String texture;
@@ -118,11 +117,35 @@ class FskQuad extends Fsk2DRenderableObject with FskTransformableMixin {
     visible = quadData.visible;
   }
 
+  /// Creates a centered 2D quad of the specified [size] at [z] depth.
+  factory FskQuad.centered(
+    String id,
+    FskScene scene,
+    Size size, {
+    Color modulateColor = Colors.white,
+    String? textureId,
+  }) {
+    final refBox = ReferenceBox(
+      Vector3(-size.width / 2, -size.height / 2, 0.0),
+      Vector3(size.width, 0, 0),
+      Vector3(0, size.height, 0),
+      Vector3(0, 0, 1),
+    );
+    return FskQuad(
+      id,
+      scene,
+      refBox,
+      const Rect.fromLTWH(0, 0, 1, 1),
+      modulateColor,
+      textureId ?? 'dummy',
+    );
+  }
+
   /// Rebuilds the vertex buffer object
   @override
   void doRebuild() {
-    Vector2 blc = Vector2(0, -refBox.yVector.length);
-    Vector2 trc = Vector2(refBox.xVector.length, 0);
+    Vector2 blc = Vector2(0, 0);
+    Vector2 trc = Vector2(refBox.xVector.length, refBox.yVector.length);
     Quad q = refBox.calcQuadFrom2DVectors(blc, trc);
     _renderer.setFromQuads([q], [_textureRect]);
   }
