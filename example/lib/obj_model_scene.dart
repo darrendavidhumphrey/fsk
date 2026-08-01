@@ -31,6 +31,7 @@ class ObjModelScene extends FskScene {
       if (teapotMesh != null) {
         teapotMesh!.transformable.scale = Vector3.all(5.0);
         teapotMesh!.transformable.position = Vector3(0, 0, 0);
+        teapotMesh!.transformable.rotation = Vector3(0, 0, radians(180));
       }
 
       navigationDelegate?.updateSceneMatrices(force: true);

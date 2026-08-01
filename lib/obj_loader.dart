@@ -217,37 +217,37 @@ class WavefrontObjModel {
   /// Creates an [FskIndexedMesh] from this model.
   FskIndexedMesh createIndexedMesh(FskScene scene, String id) {
     final indexedMesh = FskIndexedMesh(id, scene);
-    final renderer = indexedMesh.renderer;
 
-    // 1. Copy vertex data
+    // 1. Assign vertex data to Mesh
     if (vertexBuffer.vertexData != null) {
-      renderer.vbo.setFrom(vertexBuffer.vertexData!);
+      indexedMesh.vertices = Float32List.fromList(vertexBuffer.vertexData!);
     }
 
-    // 2. Build consolidated index buffer
+    // 2. Build consolidated index buffer for Mesh
     int totalIndices = 0;
     for (var mesh in meshes) {
       totalIndices += mesh.triangleIndices.length;
     }
 
-    final iboData = renderer.ibo.requestBuffer(totalIndices)!;
+    final meshIndices = Uint16List(totalIndices);
     int j = 0;
     for (var mesh in meshes) {
       for (int i = 0; i < mesh.triangleIndices.length; i++, j++) {
-        iboData[j] = mesh.triangleIndices[i];
+        meshIndices[j] = mesh.triangleIndices[i];
       }
 
       // Add submesh to renderer
-      renderer.addSubMesh(SubMesh(
+      indexedMesh.renderer.addSubMesh(SubMesh(
         indexCount: mesh.triangleIndices.length,
         firstIndex: mesh.bufferOffset,
         materialName: mesh.materialName,
         material: mesh.materialName != null ? FSK().materials.getMaterial(mesh.materialName!) : null,
       ));
     }
+    indexedMesh.indices = meshIndices;
 
-    renderer.ibo.setActiveIndexCount(totalIndices);
-    renderer.finalizeData();
+    indexedMesh.uploadToGpu();
+    indexedMesh.renderer.finalizeData();
     return indexedMesh;
   }
 

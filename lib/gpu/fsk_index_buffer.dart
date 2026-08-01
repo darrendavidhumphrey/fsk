@@ -19,7 +19,7 @@ class FskIndexBuffer {
   int get indexCount => _activeIndexCount;
 
   /// The client-side array that holds the index data before it's sent to the GPU.
-  /// Uses Uint16List for maximum compatibility with mobile hardware.
+  /// Now optional as the Mesh may own the data.
   Uint16List? _indexData;
 
   /// Creates an index buffer wrapper.
@@ -27,10 +27,6 @@ class FskIndexBuffer {
 
   /// Ensures the underlying buffer has at least [newIndexCount] capacity and
   /// returns it.
-  ///
-  /// The buffer will grow if the requested count is larger than the current
-  /// capacity. It will shrink if the requested count is less than half the
-  /// current capacity to save memory.
   Uint16List? requestBuffer(int newIndexCount) {
     final bool needsToReallocate =
         newIndexCount > _capacity || (newIndexCount < _capacity / 2);
@@ -43,7 +39,6 @@ class FskIndexBuffer {
       }
       _capacity = newIndexCount;
 
-      // Ensure the active count doesn't exceed the new, smaller capacity.
       if (_activeIndexCount > _capacity) {
         _activeIndexCount = _capacity;
       }
@@ -53,34 +48,40 @@ class FskIndexBuffer {
   }
 
   /// Sets the number of active indices to be drawn.
-  /// Call uploadData() after updating the contents of the buffer.
   void setActiveIndexCount(int count) {
-    assert(count <= _capacity);
     _activeIndexCount = count;
-
     if (count == 0) {
       _deviceBuffer = null;
     }
   }
 
-  /// Sends current CPU data over to physical GPU device memory.
-  void uploadData() {
-    if (_activeIndexCount == 0 || _indexData == null) {
+  /// Sends CPU data over to physical GPU device memory.
+  void uploadData([Uint16List? data]) {
+    final uploadSource = data ?? _indexData;
+    if (uploadSource == null || uploadSource.isEmpty) {
+      _deviceBuffer = null;
+      return;
+    }
+
+    final count = data != null ? data.length : _activeIndexCount;
+    if (count == 0) {
       _deviceBuffer = null;
       return;
     }
 
     final int bytesPerElement = Uint16List.bytesPerElement;
-    final int activeBytesSize = _activeIndexCount * bytesPerElement;
+    final int activeBytesSize = count * bytesPerElement;
     
     // Use ByteData.view on the buffer for explicit byte-level control
-    final ByteData view = _indexData!.buffer.asByteData(
-      _indexData!.offsetInBytes,
+    final ByteData view = uploadSource.buffer.asByteData(
+      uploadSource.offsetInBytes,
       activeBytesSize,
     );
 
     // Create the hardware buffer in the gpu memory
     _deviceBuffer = gpu.gpuContext.createDeviceBufferWithCopy(view);
+    _activeIndexCount = count;
+    _capacity = uploadSource.length;
   }
 
   /// Clears the local data and the GPU buffer reference.

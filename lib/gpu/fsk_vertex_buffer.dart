@@ -15,26 +15,29 @@ class FskVertexBuffer {
   static const int strideInBytes = 48;
   static const int componentCount = 12;
 
-  // The host buffer for the vertices
+  // The host buffer for the vertices. Now optional as the Mesh may own the data.
   Float32List? vertexData;
 
-  // The number of vertices in vertexData
+  // The number of vertices
   int _vertexCount = 0;
 
   FskVertexBuffer();
 
-  /// Sends current CPU data over to physical GPU device memory.
-  void uploadData() {
-    if ((_vertexCount == 0) || (vertexData == null)) return;
+  /// Sends CPU data over to physical GPU device memory.
+  void uploadData([Float32List? data]) {
+    final uploadSource = data ?? vertexData;
+    if (uploadSource == null || uploadSource.isEmpty) return;
 
-    final int activeBytesSize = _vertexCount * strideInBytes;
+    final int count = uploadSource.length ~/ componentCount;
+    final int activeBytesSize = count * strideInBytes;
 
-    final ByteData view = vertexData!.buffer.asByteData(
-      vertexData!.offsetInBytes,
+    final ByteData view = uploadSource.buffer.asByteData(
+      uploadSource.offsetInBytes,
       activeBytesSize,
     );
 
     _deviceBuffer = gpu.gpuContext.createDeviceBufferWithCopy(view);
+    _vertexCount = count;
   }
 
   void clear() {

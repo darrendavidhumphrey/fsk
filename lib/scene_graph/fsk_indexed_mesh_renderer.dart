@@ -55,8 +55,7 @@ class FskIndexedMeshRenderer extends FskRendererBase {
   }
 
   void finalizeData() {
-    _vbo.uploadData();
-    _ibo.uploadData();
+    // This is now handled by the Mesh object calling uploadToGpu()
     _dataUploaded = true;
   }
 
@@ -82,13 +81,8 @@ class FskIndexedMeshRenderer extends FskRendererBase {
       cullMode: gpu.CullMode.backFace,
     );
 
-    if (fragShaderName.contains("OneLight")) {
-      uniforms = OneLightUniforms(
-        vertexShader: pipelineKey!.vertShader,
-        fragmentShader: pipelineKey!.fragShader,
-      );
-      layout = v3t2n3Layout;
-    } else if (fragShaderName.contains("Lighting")) {
+    // TODO: Fix this AI slop
+    if (fragShaderName.contains("Lighting")) {
       uniforms = LightingUniforms(
         vertexShader: pipelineKey!.vertShader,
         fragmentShader: pipelineKey!.fragShader,
@@ -139,14 +133,7 @@ class FskIndexedMeshRenderer extends FskRendererBase {
       }
 
       // If using lighting uniforms, apply material properties
-      if (uniforms is OneLightUniforms) {
-        final olu = uniforms as OneLightUniforms;
-        final mat = subMesh.material ?? FSK().materials.getMaterial("default");
-        olu.materialAmbient = mat.ambient;
-        olu.materialDiffuse = mat.diffuse;
-        olu.materialSpecular = mat.specular;
-        olu.materialShininess = mat.shininess;
-      } else if (uniforms is LightingUniforms) {
+      if (uniforms is LightingUniforms) {
         final lu = uniforms as LightingUniforms;
         final mat = subMesh.material ?? FSK().materials.getMaterial("default");
         // Map GlMaterial to Kd (Diffuse)
