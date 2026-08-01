@@ -51,11 +51,18 @@ class FskVertexBuffer {
       return null;
     }
 
-    if (newVertexCount != _vertexCount) {
+    if (newVertexCount != _vertexCount || vertexData == null) {
       vertexData = Float32List(newVertexCount * componentCount);
       _vertexCount = newVertexCount;
     }
     return vertexData;
+  }
+
+  /// Copies vertex data from another list.
+  void setFrom(Float32List source) {
+    final int count = source.length ~/ componentCount;
+    requestBuffer(count);
+    vertexData!.setAll(0, source);
   }
 
   /// Records buffer bindings to a specific binding slot on an active RenderPass.

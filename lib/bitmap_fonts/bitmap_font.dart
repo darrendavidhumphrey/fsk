@@ -2,7 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:xml/xml.dart';
 import '../fsk_singleton.dart';
 import '../logging.dart';
-import '../fsk_texture_manager.dart';
+import '../gpu/fsk_texture_manager.dart';
 import 'package:flutter_gpu/gpu.dart' as gpu;
 
 

@@ -3,7 +3,7 @@ import 'dart:ui';
 import 'package:vector_math/vector_math.dart';
 import 'base_uniforms.dart';
 
-class OneLightUniforms extends BaseUniforms {
+class WireFrameUniforms extends BaseUniforms {
   // --- Dictionary Key Constants ---
   static const String kLightPosKey = 'uLightPos';
   static const String kAmbientLightKey = 'uAmbientLight';
@@ -13,16 +13,23 @@ class OneLightUniforms extends BaseUniforms {
   static const String kMaterialDiffuseKey = 'uMaterialDiffuse';
   static const String kMaterialSpecularKey = 'uMaterialSpecular';
   static const String kMaterialShininessKey = 'uMaterialShininess';
+  static const String kOutlineEnabledKey = 'uOutlineEnabled';
+  static const String kDrawFillKey = 'uDrawFill';
+  static const String kOutlineColorKey = 'uOutlineColor';
+  static const String kOutlineWidthKey = 'uOutlineWidth';
 
   // --- Default Layout Value Constants ---
   static final Vector3 _kDefaultLightPos = Vector3(100.0, 100.0, 200.0);
   static const Color _kDefaultLightColor = Color(0xFFFFFFFF);
   static const double _kDefaultShininess = 32.0;
+  static const bool _kDefaultOutlineEnabled = true;
+  static const bool _kDefaultDrawFill = true;
+  static const double _kDefaultOutlineWidth = 1.0;
 
   // --- Buffer Structure Allocation Constants ---
-  static const int _kFragmentDataFloatCount = 32;
+  static const int _kFragmentDataFloatCount = 36;
 
-  OneLightUniforms({super.vertexShader, super.fragmentShader}) {
+  WireFrameUniforms({super.vertexShader, super.fragmentShader}) {
     this[kLightPosKey] = _kDefaultLightPos;
     this[kAmbientLightKey] = _kDefaultLightColor;
     this[kDiffuseLightKey] = _kDefaultLightColor;
@@ -31,6 +38,10 @@ class OneLightUniforms extends BaseUniforms {
     this[kMaterialDiffuseKey] = _kDefaultLightColor;
     this[kMaterialSpecularKey] = _kDefaultLightColor;
     this[kMaterialShininessKey] = _kDefaultShininess;
+    this[kOutlineEnabledKey] = _kDefaultOutlineEnabled;
+    this[kDrawFillKey] = _kDefaultDrawFill;
+    this[kOutlineColorKey] = const Color(0xFF000000);
+    this[kOutlineWidthKey] = _kDefaultOutlineWidth;
   }
 
   // --- Type-Safe Public Setters ---
@@ -42,6 +53,10 @@ class OneLightUniforms extends BaseUniforms {
   set materialDiffuse(Color val) => this[kMaterialDiffuseKey] = val;
   set materialSpecular(Color val) => this[kMaterialSpecularKey] = val;
   set materialShininess(double val) => this[kMaterialShininessKey] = val;
+  set outlineEnabled(bool val) => this[kOutlineEnabledKey] = val;
+  set drawFill(bool val) => this[kDrawFillKey] = val;
+  set outlineColor(Color val) => this[kOutlineColorKey] = val;
+  set outlineWidth(double val) => this[kOutlineWidthKey] = val;
 
   @override
   Float32List serializeFragmentData() {
@@ -66,9 +81,14 @@ class OneLightUniforms extends BaseUniforms {
     packColor(fragmentData, 20, this[kMaterialDiffuseKey] as Color);
     // 24-27: uMaterialSpecular (vec4)
     packColor(fragmentData, 24, this[kMaterialSpecularKey] as Color);
+    // 28-31: uOutlineColor (vec4)
+    packColor(fragmentData, 28, this[kOutlineColorKey] as Color);
 
-    // 28-31: uConfig (vec4)
-    fragmentData[28] = (this[kMaterialShininessKey] as num).toDouble();
+    // 32-35: uConfig (vec4)
+    fragmentData[32] = (this[kMaterialShininessKey] as num).toDouble();
+    fragmentData[33] = (this[kOutlineEnabledKey] as bool) ? 1.0 : 0.0;
+    fragmentData[34] = (this[kDrawFillKey] as bool) ? 1.0 : 0.0;
+    fragmentData[35] = (this[kOutlineWidthKey] as num).toDouble();
 
     return fragmentData;
   }

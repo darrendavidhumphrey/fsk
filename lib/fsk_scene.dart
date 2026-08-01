@@ -45,7 +45,7 @@ abstract class FskScene with LoggableClass {
   gpu.RenderTarget? _renderTarget;
   gpu.RenderTarget? get renderTarget => _renderTarget;
 
-  Color _clearColor = Color(0xFF000000);
+  Color _clearColor = Colors.black;
   Color get clearColor => _clearColor;
   set clearColor(Color color) {
     _clearColor = color;
@@ -126,6 +126,8 @@ abstract class FskScene with LoggableClass {
         depthStencilAttachment: gpu.DepthStencilAttachment(
           texture: depthTexture,
           depthClearValue: 1.0, // Clear to furthest depth distance
+          depthLoadAction: gpu.LoadAction.clear,
+          depthStoreAction: gpu.StoreAction.store,
           stencilLoadAction: gpu.LoadAction.clear,
           stencilStoreAction: gpu.StoreAction.dontCare,
         ),

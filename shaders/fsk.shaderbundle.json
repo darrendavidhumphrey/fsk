@@ -54,5 +54,13 @@
   "SimpleVertex": {
     "type": "vertex",
     "file": "shaders/simple.vert"
+  },
+  "WireFrameVertex": {
+    "type": "vertex",
+    "file": "shaders/wireFrame.vert"
+  },
+  "WireFrameFragment": {
+    "type": "fragment",
+    "file": "shaders/wireFrame.frag"
   }
 }

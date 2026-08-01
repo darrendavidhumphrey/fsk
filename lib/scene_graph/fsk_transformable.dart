@@ -27,28 +27,27 @@ class FskTransformable with LoggableClass {
     // Clear the matrix first
     _transform.setIdentity();
 
-    // Step 3: Scale (Logically Last -> Coded First)
-
-    if (_isScaled) {
-      _transform.scaleByVector3(_scale);
-    }
-
-    // Step 2: Translate relative to the anchor (Coded Second)
+    // With post-multiplication (View * Model), we apply transforms in sequence:
+    // 1. World position
     if (_isTranslated) {
       _transform.translateByVector3(_position);
     }
 
-    // Step 1: Rotate around anchor point (Logically First -> Coded Last)
-    // Move the anchor to the origin, rotate, then move it back.
-    if (_isAnchorSet) {
-      _transform.translateByVector3(_anchor);
-    }
-
+    // 2. Rotation around the pivot
     if (_isRotated) {
-      // 1c. Move origin back to anchor
-      _transform.rotateZ(_rotation.z); // 1b. Apply your rotations
+      _transform.rotateZ(_rotation.z);
       _transform.rotateY(_rotation.y);
       _transform.rotateX(_rotation.x);
+    }
+
+    // 3. Scaling
+    if (_isScaled) {
+      _transform.scaleByVector3(_scale);
+    }
+
+    // 4. Anchor shift (Offset the geometry's local origin)
+    if (_isAnchorSet) {
+      _transform.translateByVector3(_anchor);
     }
 
     _dirty = false;
@@ -87,14 +86,8 @@ class FskTransformable with LoggableClass {
 
   set scale(Vector3 value) {
     _scale.setFrom(value);
-    logWarning("scaling not implemented yet");
-    // TODO: scaling not implemented yet
-    // Need to make scale matrix and add to shader something like
-    // Math executes right-to-left: Raw position is scaled first
-    // gl_Position = u_ScaleMatrix * vec4(aPos, 1.0);
-    _isScaled = false;
-    //_isScaled = _scale != Vector3.all(1.0);
-    //_dirty = true;
+    _isScaled = (_scale.x != 1.0 || _scale.y != 1.0 || _scale.z != 1.0);
+    _dirty = true;
   }
 
   Matrix4 getTransform() {

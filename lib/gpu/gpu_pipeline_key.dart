@@ -202,6 +202,32 @@ const gpu.VertexLayout v3n3Layout = gpu.VertexLayout(
   ],
 );
 
+const gpu.VertexLayout v3t2n3Layout = gpu.VertexLayout(
+  buffers: [
+    gpu.VertexBuffer(
+      strideInBytes: 48,
+      stepMode: gpu.VertexStepMode.vertex,
+      attributes: [
+        gpu.VertexAttribute(
+          name: 'aVertexPosition',
+          format: gpu.VertexFormat.float32x3,
+          offsetInBytes: 0,
+        ),
+        gpu.VertexAttribute(
+          name: 'aTextureCoord',
+          format: gpu.VertexFormat.float32x2,
+          offsetInBytes: 12,
+        ),
+        gpu.VertexAttribute(
+          name: 'aVertexNormal',
+          format: gpu.VertexFormat.float32x3,
+          offsetInBytes: 20,
+        ),
+      ],
+    ),
+  ],
+);
+
 const gpu.VertexLayout v3n3c4Layout = gpu.VertexLayout(
   buffers: [
     gpu.VertexBuffer(

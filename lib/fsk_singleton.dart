@@ -1,8 +1,8 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_gpu/gpu.dart' as gpu;
 import 'package:fsk/shaders/materials.dart';
-import 'package:fsk/fsk_texture_manager.dart';
-import 'fsk_shader_library.dart';
+import 'package:fsk/gpu/fsk_texture_manager.dart';
+import 'gpu/fsk_shader_library.dart';
 import 'gpu/gpu_pipeline_key.dart';
 import 'logging.dart';
 

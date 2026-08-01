@@ -1,7 +1,3 @@
-export 'gpu/gpu_pipeline_key.dart';
-export 'gpu/fsk_index_buffer.dart';
-export 'gpu/fsk_vertex_buffer.dart';
-
 export 'bitmap_fonts/bitmap_font.dart';
 export 'bitmap_fonts/bitmap_font_manager.dart';
 
@@ -18,11 +14,23 @@ export 'geometry/reference_box.dart';
 export 'geometry/solid.dart';
 export 'geometry/triangle_mesh.dart';
 
+
+export 'gpu/fsk_index_buffer.dart';
+export 'gpu/gpu_pipeline_key.dart';
+export 'gpu/fsk_render_target.dart';
+export 'gpu/fsk_shader_library.dart';
+export 'gpu/fsk_texture_manager.dart';
+export 'gpu/fsk_vertex_buffer.dart';
+
+
 export 'scene_graph/fsk_bitmap_text.dart';
 export 'scene_graph/fsk_group.dart';
+export 'scene_graph/fsk_indexed_mesh.dart';
+export 'scene_graph/fsk_indexed_mesh_renderer.dart';
 export 'scene_graph/fsk_quad.dart';
 export 'scene_graph/fsk_scene_object.dart';
 export 'scene_graph/fsk_text_alignment.dart';
+export 'scene_graph/fsk_transformable.dart';
 
 export 'shaders/checkerboard_shader.dart';
 export 'shaders/flat_shader.dart';
@@ -31,6 +39,7 @@ export 'shaders/lighting_shader.dart';
 export 'shaders/materials.dart';
 export 'shaders/one_light_shader.dart';
 export 'shaders/simple_texture_shader.dart';
+export 'shaders/wire_frame_shader.dart';
 
 export 'ui/gpu_render_widget.dart';
 export 'ui/render_to_texture.dart';
@@ -40,16 +49,12 @@ export 'ui/navigation_delegates/ortho_view_delegate.dart';
 export 'ui/navigation_delegates/static_view_delegate.dart';
 export 'ui/navigation_delegates/scene_navigation_delegate.dart';
 
-export 'float32_array_filler.dart';
-export 'fsk_scene.dart';
-export 'fsk_shader_library.dart';
 export 'fsk_singleton.dart';
-export 'fsk_texture_manager.dart';
+export 'fsk_scene.dart';
+
 export 'logging.dart';
 export 'matrix_stack.dart';
-export 'mesh_file_renderer.dart';
 export 'obj_loader.dart';
-
 export 'util.dart';
 export 'vbo_filler.dart';
 

@@ -48,12 +48,13 @@ abstract class FskRenderableObject extends FskSceneObject {
   void draw(gpu.RenderPass renderPass,gpu.HostBuffer transients, Matrix4 pMatrix, Matrix4 mvMatrix) {
     if (!visible) return;
 
+    Matrix4 finalMvMatrix = mvMatrix;
     if (transformable.isTransformed()) {
-      // Apply the transform to the matrix
-      mvMatrix =  transformable.getTransform() * mvMatrix;
+      // Apply the transform to the matrix (View * Model)
+      finalMvMatrix = mvMatrix.clone()..multiply(transformable.getTransform());
     }
 
-    renderer.draw(renderPass, transients, pMatrix, mvMatrix);
+    renderer.draw(renderPass, transients, pMatrix, finalMvMatrix);
   }
 
   void setRenderer(FskRendererBase newRenderer) {

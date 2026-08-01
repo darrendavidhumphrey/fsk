@@ -1,6 +1,7 @@
 import 'dart:async';
 import 'dart:collection';
 import 'dart:convert';
+import 'dart:typed_data';
 import 'package:flutter/services.dart' show rootBundle;
 import 'package:fsk/fsk.dart';
 import 'package:vector_math/vector_math.dart';
@@ -70,7 +71,6 @@ class WavefrontObjModel {
   /// A list of sub-meshes, each corresponding to a different material.
   List<Mesh> meshes = [];
 
-
   // Internal state for parsing.
   List<Face> _currentMeshFaces = [];
   String _currentMaterialName = 'defaultMaterial';
@@ -107,39 +107,46 @@ class WavefrontObjModel {
     int nextAvailableIndex = 0;
 
     // --- PRE-SCAN PASS ---
-    // Pre-scan the file to determine the exact number of unique vertices needed.
-    // This is more efficient than incrementally growing the buffer.
     List<String> lines = LineSplitter().convert(objFileContent);
     for (String line in lines) {
-      if (line.startsWith('f ')) {
-        List<String> parts = line.split(' ');
-        for (int i = 1; i < parts.length; i++) {
-          List<String> indicesStr = parts[i].split('/');
-          if (indicesStr.length == 3) {
-            final combo = (
-              int.parse(indicesStr[0]) - 1, // pos
-              int.parse(indicesStr[1]) - 1, // tex
-              int.parse(indicesStr[2]) - 1, // norm
-            );
-            // If this combination of attributes is new, assign it a new index.
-            uniqueVertexMap.putIfAbsent(combo, () => nextAvailableIndex++);
-          }
-        }
+      final trimmed = line.trim();
+      if (trimmed.isEmpty || trimmed.startsWith('#')) continue;
+      
+      List<String> parts = trimmed.split(RegExp(r'\s+'));
+      if (parts[0] != 'f') continue;
+
+      for (int i = 1; i < parts.length; i++) {
+        List<String> indicesStr = parts[i].split('/');
+        
+        int p = -1, t = -1, n = -1;
+        if (indicesStr.isNotEmpty && indicesStr[0].isNotEmpty) p = int.parse(indicesStr[0]) - 1;
+        if (indicesStr.length > 1 && indicesStr[1].isNotEmpty) t = int.parse(indicesStr[1]) - 1;
+        if (indicesStr.length > 2 && indicesStr[2].isNotEmpty) n = int.parse(indicesStr[2]) - 1;
+        
+        final combo = (p, t, n);
+        uniqueVertexMap.putIfAbsent(combo, () => nextAvailableIndex++);
       }
     }
 
     // --- MAIN PARSING PASS ---
 
     // Allocate the vertex buffer with the final, correct size.
-    vertexBuffer.requestBuffer(uniqueVertexMap.length)!;
+    final totalUniqueVertices = uniqueVertexMap.length;
+    print("ObjLoader: Total unique vertices found: $totalUniqueVertices");
+    vertexBuffer.requestBuffer(totalUniqueVertices);
     final filler = VboFiller(vertexBuffer);
 
     // Reset state for the main parsing pass.
     uniqueVertexMap.clear();
     nextAvailableIndex = 0;
+    
+    // ...
 
     for (String line in lines) {
-      List<String> parts = line.split(' ');
+      final trimmed = line.trim();
+      if (trimmed.isEmpty) continue;
+      
+      List<String> parts = trimmed.split(RegExp(r'\s+'));
       String prefix = parts[0];
 
       if (prefix == "v") {
@@ -166,25 +173,35 @@ class WavefrontObjModel {
         List<int> faceCorners = [];
         for (int i = 1; i < parts.length; i++) {
           List<String> indicesStr = parts[i].split('/');
-          if (indicesStr.length == 3) {
-            final currentCombination = (
-              int.parse(indicesStr[0]) - 1, // pos
-              int.parse(indicesStr[1]) - 1, // tex
-              int.parse(indicesStr[2]) - 1, // norm
-            );
+          
+          int p = -1, t = -1, n = -1;
+          if (indicesStr.isNotEmpty && indicesStr[0].isNotEmpty) p = int.parse(indicesStr[0]) - 1;
+          if (indicesStr.length > 1 && indicesStr[1].isNotEmpty) t = int.parse(indicesStr[1]) - 1;
+          if (indicesStr.length > 2 && indicesStr[2].isNotEmpty) n = int.parse(indicesStr[2]) - 1;
+          
+          final currentCombination = (p, t, n);
 
-            int vertexIndex = uniqueVertexMap.putIfAbsent(currentCombination, () {
-              final newIndex = nextAvailableIndex++;
-              // This is a new, unique vertex. Write its data to the buffer.
-              filler.addV3T2N3(
-                tempPositions[currentCombination.$1],
-                tempTextureCoordinates[currentCombination.$2],
-                tempNormals[currentCombination.$3],
-              );
-              return newIndex;
-            });
-            faceCorners.add(vertexIndex);
-          }
+          int vertexIndex = uniqueVertexMap.putIfAbsent(currentCombination, () {
+            final newIndex = nextAvailableIndex++;
+            
+            // Get position (required)
+            final pos = tempPositions[currentCombination.$1];
+            
+            // Get texture coords or default to zero
+            final tex = (currentCombination.$2 >= 0 && currentCombination.$2 < tempTextureCoordinates.length)
+                ? tempTextureCoordinates[currentCombination.$2]
+                : Vector2.zero();
+                
+            // Get normal or default to zero
+            final norm = (currentCombination.$3 >= 0 && currentCombination.$3 < tempNormals.length)
+                ? tempNormals[currentCombination.$3]
+                : Vector3.zero();
+
+            // This is a new, unique vertex. Write its data to the buffer.
+            filler.addV3T2N3(pos, tex, norm);
+            return newIndex;
+          });
+          faceCorners.add(vertexIndex);
         }
         _currentMeshFaces.add(Face(faceCorners));
       } else if (prefix == "o" || prefix == "g") {
@@ -197,6 +214,51 @@ class WavefrontObjModel {
 
   /// Creates a model and initializes it with the rendering context.
   WavefrontObjModel();
+
+  /// Creates an [FskIndexedMesh] from this model.
+  FskIndexedMesh createIndexedMesh(FskScene scene, String id) {
+    final indexedMesh = FskIndexedMesh(id, scene);
+    final renderer = indexedMesh.renderer;
+
+    // 1. Copy vertex data
+    if (vertexBuffer.vertexData != null) {
+      renderer.vbo.setFrom(vertexBuffer.vertexData!);
+    }
+
+    // 2. Build consolidated index buffer
+    int totalIndices = 0;
+    for (var mesh in meshes) {
+      totalIndices += mesh.triangleIndices.length;
+    }
+    print("ObjLoader: Building IBO with $totalIndices indices");
+
+    final iboData = renderer.ibo.requestBuffer(totalIndices);
+    if (iboData == null) {
+      print("ObjLoader ERROR: renderer.ibo.requestBuffer returned null for $totalIndices indices");
+      return indexedMesh;
+    }
+    print("ObjLoader: IBO Data length: ${iboData.length}");
+
+    int j = 0;
+    for (var mesh in meshes) {
+      for (int i = 0; i < mesh.triangleIndices.length; i++, j++) {
+        iboData[j] = mesh.triangleIndices[i];
+      }
+
+      print("Adding submesh to renderer with ${mesh.triangleIndices.length} indices");
+      // Add submesh to renderer
+      renderer.addSubMesh(SubMesh(
+        indexCount: mesh.triangleIndices.length,
+        firstIndex: mesh.bufferOffset,
+        materialName: mesh.materialName,
+        material: mesh.materialName != null ? FSK().materials.getMaterial(mesh.materialName!) : null,
+      ));
+    }
+
+    renderer.ibo.setActiveIndexCount(totalIndices);
+    renderer.finalizeData();
+    return indexedMesh;
+  }
 
   /// Creates a [WavefrontObjModel] by loading and parsing a file from the
   /// application's asset bundle.
@@ -211,5 +273,14 @@ class WavefrontObjModel {
       // Re-throw with more context for easier debugging.
       throw Exception('Failed to load OBJ asset from "$assetPath": $e\n$s');
     }
+  }
+
+  static Future<FskIndexedMesh> indexedMeshFromAsset(
+      String assetPath,
+      FskScene scene,
+      String id,
+      ) async {
+    final model = await WavefrontObjModel.fromAsset(assetPath);
+    return model.createIndexedMesh(scene, id);
   }
 }

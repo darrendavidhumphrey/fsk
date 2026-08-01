@@ -7,6 +7,7 @@ import 'package:fsk_examples/frame_scene_example.dart';
 import 'package:fsk_examples/orbitview_scene.dart';
 import 'package:fsk_examples/positioned_title_bar.dart';
 import 'animated_checkerboard_scene.dart';
+import 'obj_model_scene.dart';
 
 
 void main() async {
@@ -36,7 +37,8 @@ class TestAppState extends State<TestApp> {
     "Checkerboard (Ortho View)",
     "Animated Checkerboard (Perspective View)",
     "OrbitView (Grid Shader)",
-    "Bitmap Text (Ortho View)"
+    "Bitmap Text (Ortho View)",
+    "Teapot OBJ (Orbit View)"
   ];
   final List<FskScene> scenes = [];
 
@@ -46,6 +48,7 @@ class TestAppState extends State<TestApp> {
     scenes.add(AnimatedCheckerBoardScene(navigationDelegate: StaticViewDelegate(boxFit: FskBoxFit.bestFit)));
     scenes.add(OrbitViewScene(navigationDelegate: OrbitViewDelegate(boxFit: FskBoxFit.bestFit)));
     scenes.add(FrameSceneExample(navigationDelegate: OrthoViewDelegate(boxFit: FskBoxFit.bestFit)));
+    scenes.add(ObjModelScene(navigationDelegate: OrbitViewDelegate(boxFit: FskBoxFit.bestFit)));
   }
 
   @override
