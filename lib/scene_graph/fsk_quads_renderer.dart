@@ -92,7 +92,7 @@ class FskQuadsRenderer extends FskRendererBase {
   FskQuadsRenderer();
 
   void _checkIsValid() {
-    isValid = (_textureInfo != null || uniforms is GridUniforms) && (_vertsDownloaded);
+    isValid = _vertsDownloaded;
   }
 
   void setFromUnrolledQuads(int numQuads, Float32List vertexTexCoordArray) {

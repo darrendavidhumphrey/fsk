@@ -1,71 +1,45 @@
+import 'dart:ui';
 import 'package:flutter/material.dart' hide Matrix4;
-import 'package:flutter_gpu/gpu.dart' as gpu;
 import 'package:fsk/fsk.dart';
 import 'package:vector_math/vector_math.dart' hide Colors;
 
-class CheckerBoardScene extends FskScene {
-
-  FskVertexBuffer exampleVbo = FskVertexBuffer();
-  CheckerBoardUniforms? uniforms;
-  late PipelineKey pipelineKey;
-
-  final Size contentSize = Size(500, 500);
+class CheckerBoardScene extends FskFrameScene {
   CheckerBoardScene({super.navigationDelegate}) {
     init();
   }
 
   void init() {
-    VboFiller.makeTexturedUnitQuad(
-      Rect.fromLTWH(
-        -contentSize.width / 2,
-        -contentSize.height / 2,
-        contentSize.width,
-        contentSize.height,
-      ),
-      0.1,
-      exampleVbo,
-    );
-
     clearColor = Colors.white;
-    exampleVbo.uploadData();
+    frameSize = const Size(500, 500);
+    use2DLayout = true; // Use the 2D box-fit and centering logic
 
-    // Create a pipeline key for this shader and associated settings
-    pipelineKey = PipelineKey(
-      vertShaderName: "CheckerBoardVertex",
-      fragShaderName: "CheckerBoardFragment",
-      layoutName: "CheckerBoardLayout",
-      texturingEnabled: false,
+    // Create a ReferenceBox that matches the 2D layout expectation (Origin at 0,0)
+    final refBox = ReferenceBox(
+      Vector3.zero(),
+      Vector3(500, 0, 0),
+      Vector3(0, 500, 0),
+      Vector3(0, 0, 1),
     );
 
-    uniforms = CheckerBoardUniforms(vertexShader: pipelineKey.vertShader, fragmentShader: pipelineKey.fragShader);
+    final gridQuad = FskQuad(
+      'checker',
+      this,
+      refBox,
+      const Rect.fromLTWH(0, 0, 1, 1),
+      Colors.white,
+      'dummy',
+      shaderMaterial: FskShaderMaterial.checkerboard,
+    );
 
+    final uniforms = gridQuad.uniforms as CheckerBoardUniforms;
+    uniforms.patternColor1 = Colors.red;
+    uniforms.patternColor2 = Colors.green;
+    uniforms.useTexture = false;
+    uniforms.patternScale = 50;
+
+    addNode(gridQuad);
+
+    isReady = true;
     navigationDelegate?.updateSceneMatrices(force: true);
-  }
-
-  void drawVBO(gpu.RenderPass renderPass,gpu.HostBuffer transients, Matrix4 pMatrix, Matrix4 mvMatrix, Size viewportSize) {
-    FSK().activatePipeline(pipelineKey,renderPass,v3t2Layout);
-    exampleVbo.bind(renderPass);
-
-    Matrix4  finalMvMatrix = mvMatrix * navigationDelegate?.createBoxFitMatrix(contentSize);
-
-    uniforms!.patternColor1 = Colors.red;
-    uniforms!.patternColor2 = Colors.green;
-    uniforms!.useTexture = false;
-    uniforms!.textureMix = 0;
-    uniforms!.patternScale = 50;
-
-    uniforms!.onUpdate(viewportSize);
-    uniforms!.mvMatrix =  finalMvMatrix;
-    uniforms!.pMatrix = pMatrix.clone();
-    uniforms!.bind(renderPass,transients);
-
-    exampleVbo.drawTriangles(renderPass);
-  }
-
-  @override
-  void drawScene(gpu.RenderPass renderPass,gpu.HostBuffer transients) {
-    // Scissor and viewport
-    setupScissor(renderPass);
-    drawVBO(renderPass,transients,pMatrix, mvMatrix, viewportSize);
   }
 }

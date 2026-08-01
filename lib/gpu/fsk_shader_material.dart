@@ -47,4 +47,11 @@ class FskShaderMaterial {
     layout: v3t2n3Layout,
     uniformsFactory: (v, f) => OneLightUniforms(vertexShader: v, fragmentShader: f),
   );
+
+  static final FskShaderMaterial checkerboard = FskShaderMaterial(
+    vertShaderName: "CheckerBoardVertex",
+    fragShaderName: "CheckerBoardFragment",
+    layout: v3t2Layout,
+    uniformsFactory: (v, f) => CheckerBoardUniforms(vertexShader: v, fragmentShader: f),
+  );
 }
