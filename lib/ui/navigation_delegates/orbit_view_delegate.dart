@@ -196,18 +196,26 @@ class OrbitViewDelegate extends FskSceneNavigationDelegate {
   /// Creates the perspective projection matrix.
   @override
   Matrix4 createProjectionMatrix() {
-    final double aspectRatio = scene.viewportSize.width / scene.viewportSize.height;
+    final double aspectRatio =
+        scene.viewportSize.width / scene.viewportSize.height;
 
     Matrix4 proj = Matrix4.identity();
     setPerspectiveMatrix(
       proj,
       verticalFieldOfView,
       aspectRatio,
-      0.1,
-      5000000,
+      1.0, // Near plane moved slightly further to improve precision
+      10000.0, // Far plane reduced from 5,000,000 to improve depth precision
     );
 
-    return proj;
+    // flutter_gpu (Impeller) expects Z in [0, 1] (Vulkan style).
+    // The vector_math matrix produces Z in [-1, 1] (OpenGL style).
+    // We remap: Z_new = 0.5 * Z_old + 0.5
+    final Matrix4 remap = Matrix4.identity();
+    remap.setEntry(2, 2, 0.5);
+    remap.setEntry(2, 3, 0.5);
+    
+    return remap * proj;
   }
 
   @override

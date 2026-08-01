@@ -1,6 +1,6 @@
 #version 460 core
 
-// Input Interface (Matches vertex location layout indices perfectly)
+// Input Interface (Matches vertex location layout indices)
 layout(location = 0) in vec2 vTextureCoord;
 layout(location = 1) in vec3 vNormal;
 layout(location = 2) in vec3 vEyeCoords;
@@ -16,11 +16,16 @@ layout(std140, set = 0, binding = 1) uniform FragmentUniforms {
     vec4 uLightPos;  // Index 8-11
 } fragUniforms;
 
+layout(set = 0, binding = 2) uniform sampler2D uSampler;
+
 void main() {
     vec3 s = normalize(vec3(fragUniforms.uLightPos.xyz - vEyeCoords));
-    vec3 ambient = vec3(0.0);
+    vec3 ambient = vec3(0.1); // Small ambient term
     vec3 lightIntensity = fragUniforms.uLd.rgb * fragUniforms.uKd.rgb * max(dot(s, vNormal), 0.0) + ambient;
 
-    // Render with native premultiplied alpha formatting (assuming opacity 1.0)
-    FragColor = vec4(lightIntensity, 1.0);
+    vec4 texColor = texture(uSampler, vTextureCoord);
+
+    // Render with native premultiplied alpha formatting
+    vec3 finalColor = texColor.rgb * lightIntensity;
+    FragColor = vec4(finalColor * texColor.a, texColor.a);
 }

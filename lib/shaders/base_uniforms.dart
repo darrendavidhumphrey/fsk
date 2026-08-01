@@ -26,6 +26,7 @@ abstract class BaseUniforms with LoggableClass {
   }
 
   gpu.Texture? textureIn;
+  gpu.SamplerOptions? samplerOptions;
   String get samplerUniformName => 'uSampler';
   bool get hasSampler => false;
 
@@ -96,7 +97,7 @@ abstract class BaseUniforms with LoggableClass {
 
       final gpu.Texture textureToBind =
           textureIn ?? FSK().textureManager.dummyTexture!;
-      renderPass.bindTexture(textureSlot, textureToBind);
+      renderPass.bindTexture(textureSlot, textureToBind, sampler: samplerOptions);
     }
   }
 }

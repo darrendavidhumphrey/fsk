@@ -132,7 +132,6 @@ class WavefrontObjModel {
 
     // Allocate the vertex buffer with the final, correct size.
     final totalUniqueVertices = uniqueVertexMap.length;
-    print("ObjLoader: Total unique vertices found: $totalUniqueVertices");
     vertexBuffer.requestBuffer(totalUniqueVertices);
     final filler = VboFiller(vertexBuffer);
 
@@ -230,22 +229,14 @@ class WavefrontObjModel {
     for (var mesh in meshes) {
       totalIndices += mesh.triangleIndices.length;
     }
-    print("ObjLoader: Building IBO with $totalIndices indices");
 
-    final iboData = renderer.ibo.requestBuffer(totalIndices);
-    if (iboData == null) {
-      print("ObjLoader ERROR: renderer.ibo.requestBuffer returned null for $totalIndices indices");
-      return indexedMesh;
-    }
-    print("ObjLoader: IBO Data length: ${iboData.length}");
-
+    final iboData = renderer.ibo.requestBuffer(totalIndices)!;
     int j = 0;
     for (var mesh in meshes) {
       for (int i = 0; i < mesh.triangleIndices.length; i++, j++) {
         iboData[j] = mesh.triangleIndices[i];
       }
 
-      print("Adding submesh to renderer with ${mesh.triangleIndices.length} indices");
       // Add submesh to renderer
       renderer.addSubMesh(SubMesh(
         indexCount: mesh.triangleIndices.length,

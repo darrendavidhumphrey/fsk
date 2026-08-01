@@ -73,10 +73,6 @@ class FskIndexBuffer {
     final int bytesPerElement = Uint16List.bytesPerElement;
     final int activeBytesSize = _activeIndexCount * bytesPerElement;
     
-    print("FskIndexBuffer: Uploading $_activeIndexCount indices. "
-          "Data length: ${_indexData!.length}, Bytes per element: $bytesPerElement. "
-          "Target byte range: 0 to $activeBytesSize");
-
     // Use ByteData.view on the buffer for explicit byte-level control
     final ByteData view = _indexData!.buffer.asByteData(
       _indexData!.offsetInBytes,

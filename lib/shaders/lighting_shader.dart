@@ -23,6 +23,11 @@ class LightingUniforms extends BaseUniforms {
     this[_kLightPosKey] = _kDefaultLightPos;
   }
 
+  @override
+  bool get hasSampler => true;
+  @override
+  String get samplerUniformName => 'uSampler';
+
   // --- Type-Safe Public Setters ---
   set kd(Vector3 val) => this[_kKdKey] = val;
   set ld(Vector3 val) => this[_kLdKey] = val;

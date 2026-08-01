@@ -28,8 +28,8 @@ class FskIndexedMeshRenderer extends FskRendererBase {
   bool isValid = false;
   bool pipeLineNeedsRebuild = true;
 
-  String vertShaderName = "OneLightVertex";
-  String fragShaderName = "OneLightFragment";
+  String vertShaderName = "LightingVertex";
+  String fragShaderName = "LightingFragment";
   gpu.VertexLayout layout = v3t2n3Layout;
 
   /// The vertex buffer object that holds the geometry for rendering.
@@ -79,11 +79,17 @@ class FskIndexedMeshRenderer extends FskRendererBase {
       colorBlendOp: gpu.BlendOperation.add,
       alphaBlendOp: gpu.BlendOperation.add,
       windingOrder: gpu.WindingOrder.counterClockwise,
-      cullMode: gpu.CullMode.none,
+      cullMode: gpu.CullMode.backFace,
     );
 
     if (fragShaderName.contains("OneLight")) {
       uniforms = OneLightUniforms(
+        vertexShader: pipelineKey!.vertShader,
+        fragmentShader: pipelineKey!.fragShader,
+      );
+      layout = v3t2n3Layout;
+    } else if (fragShaderName.contains("Lighting")) {
+      uniforms = LightingUniforms(
         vertexShader: pipelineKey!.vertShader,
         fragmentShader: pipelineKey!.fragShader,
       );
@@ -140,6 +146,13 @@ class FskIndexedMeshRenderer extends FskRendererBase {
         olu.materialDiffuse = mat.diffuse;
         olu.materialSpecular = mat.specular;
         olu.materialShininess = mat.shininess;
+      } else if (uniforms is LightingUniforms) {
+        final lu = uniforms as LightingUniforms;
+        final mat = subMesh.material ?? FSK().materials.getMaterial("default");
+        // Map GlMaterial to Kd (Diffuse)
+        lu.kd = Vector3(mat.diffuse.r, mat.diffuse.g, mat.diffuse.b);
+        lu.ld = Vector3(1.0, 1.0, 1.0); // Default light color
+        lu.lightPos = Vector3(200, 200, 200);
       }
 
       uniforms!.mvMatrix = mvMatrix.clone();

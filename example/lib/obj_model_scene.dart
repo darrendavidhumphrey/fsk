@@ -5,30 +5,33 @@ import 'package:vector_math/vector_math.dart' hide Colors;
 
 class ObjModelScene extends FskScene {
   FskIndexedMesh? teapotMesh;
-  
+
   ObjModelScene({super.navigationDelegate}) {
     init();
   }
 
   void init() async {
     clearColor = Colors.blueGrey;
-    
-    // Load the teapot model
-    // Note: The teapot.obj in this project is small, we'll need to scale it up
+
+    // Load the teapot model with textures and normals
     try {
-      teapotMesh = await WavefrontObjModel.indexedMeshFromAsset(
-        'assets/teapot.obj', 
-        this, 
-        'teapot'
+      // 1. Pre-load the texture
+      await FSK().textureManager.createTextureFromAsset(
+        'Bricks',
+        'Bricks051_1K-JPG_Color.jpg',
       );
-      
-      // The teapot is often defined in small units, scale it to be visible
-      // in a world where "1 unit" is roughly 1 pixel in ortho, 
-      // but in OrbitView we usually work in larger units.
-      teapotMesh?.transformable.scale = Vector3.all(50.0);
-      
-      // Move it to center
-      teapotMesh?.transformable.position = Vector3(0, 0, 0);
+
+      // 2. Load the mesh
+      teapotMesh = await WavefrontObjModel.indexedMeshFromAsset(
+        'assets/teapot_textures_normals.obj',
+        this,
+        'teapot',
+      );
+
+      if (teapotMesh != null) {
+        teapotMesh!.transformable.scale = Vector3.all(5.0);
+        teapotMesh!.transformable.position = Vector3(0, 0, 0);
+      }
 
       navigationDelegate?.updateSceneMatrices(force: true);
     } catch (e) {
@@ -39,14 +42,21 @@ class ObjModelScene extends FskScene {
   @override
   void drawScene(gpu.RenderPass renderPass, gpu.HostBuffer transients) {
     setupScissor(renderPass);
-    
+
     if (teapotMesh != null) {
-      // Set light position relative to the camera or world
       final renderer = teapotMesh!.renderer;
 
-        if (renderer.uniforms is OneLightUniforms) {
-          (renderer.uniforms as OneLightUniforms).lightPos = Vector3(200, 200, 200);
+      if (renderer.uniforms is LightingUniforms) {
+        final lu = renderer.uniforms as LightingUniforms;
+        lu.lightPos = Vector3(500, 500, 500);
+
+        // Ensure the texture is bound to the shader
+        final texInfo = FSK().textureManager.getTextureInfo('Bricks');
+        if (texInfo != null && texInfo.isLoaded) {
+          renderer.uniforms!.texture = texInfo.texture;
+          renderer.uniforms!.samplerOptions = texInfo.samplerOptions;
         }
+      }
 
       teapotMesh!.draw(renderPass, transients, pMatrix, mvMatrix);
     }

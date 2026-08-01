@@ -11,6 +11,7 @@ class FskRenderTarget {
 
   gpu.Texture? _msaaColorTexture;
   gpu.Texture? _resolveTexture;
+  gpu.Texture? _depthTexture;
   gpu.RenderTarget? _renderTarget;
   ui.Color clearColor;
 
@@ -42,6 +43,21 @@ class FskRenderTarget {
       enableShaderReadUsage: true,
     );
 
+    _depthTexture = gpu.gpuContext.createTexture(
+      gpu.StorageMode.deviceTransient,
+      width,
+      height,
+      format: gpu.gpuContext.defaultDepthStencilFormat,
+      enableRenderTargetUsage: true,
+    );
+
+    final depthAttachment = gpu.DepthStencilAttachment(
+      texture: _depthTexture!,
+      depthClearValue: 1.0,
+      depthLoadAction: gpu.LoadAction.clear,
+      depthStoreAction: gpu.StoreAction.dontCare,
+    );
+
     if (enableMsaa && gpu.gpuContext.doesSupportOffscreenMSAA) {
       _msaaColorTexture = gpu.gpuContext.createTexture(
         gpu.StorageMode.deviceTransient,
@@ -61,7 +77,10 @@ class FskRenderTarget {
         storeAction: gpu.StoreAction.multisampleResolve,
       );
 
-      _renderTarget = gpu.RenderTarget(colorAttachments: [msaaAttachment]);
+      _renderTarget = gpu.RenderTarget(
+        colorAttachments: [msaaAttachment],
+        depthStencilAttachment: depthAttachment,
+      );
     } else {
       final standardAttachment = gpu.ColorAttachment(
         texture: _resolveTexture!,
@@ -70,7 +89,10 @@ class FskRenderTarget {
         storeAction: gpu.StoreAction.store,
       );
 
-      _renderTarget = gpu.RenderTarget(colorAttachments: [standardAttachment]);
+      _renderTarget = gpu.RenderTarget(
+        colorAttachments: [standardAttachment],
+        depthStencilAttachment: depthAttachment,
+      );
     }
   }
 }
