@@ -11,7 +11,7 @@ import 'package:vector_math/vector_math.dart' show Matrix4, Vector4;
 ///
 /// A [FskScene] must be initialized with a [RenderingContext] via the [init] method
 /// before it can be used for drawing.
-abstract class FskScene with LoggableClass {
+abstract class FskScene extends ChangeNotifier with LoggableClass {
   /// The perspective projection matrix.
   Matrix4 pMatrix = Matrix4.identity();
 
@@ -40,6 +40,7 @@ abstract class FskScene with LoggableClass {
   // Render to texture for this scene
   gpu.Texture? _texture;
   gpu.Texture? get texture => _texture;
+  set texture(gpu.Texture? value) => _texture = value;
 
   // Render target for this scene
   gpu.RenderTarget? _renderTarget;
@@ -63,6 +64,10 @@ abstract class FskScene with LoggableClass {
   final List<gpu.DeviceBuffer> retainedOldBuffers = [];
   void clearRetainedBuffers() {
     retainedOldBuffers.clear();
+  }
+
+  void setNeedsUpdate() {
+    notifyListeners();
   }
 
 
@@ -144,14 +149,15 @@ abstract class FskScene with LoggableClass {
   // Optionally override this to rebuild geometry before rendering
   void rebuildGeometry() {}
 
-  void setupScissor(gpu.RenderPass renderPass) {
+  void setupScissor(gpu.RenderPass renderPass, {gpu.Texture? targetTexture}) {
     navigationDelegate?.updateSceneMatrices();
 
-    if (_texture == null) return;
+    final textureToUse = targetTexture ?? _texture;
+    if (textureToUse == null) return;
 
-    // 🟢 THE FIX: Use PHYSICAL dimensions for Scissor and Viewport
-    final int physicalWidth = _texture!.width;
-    final int physicalHeight = _texture!.height;
+    // Use PHYSICAL dimensions for Scissor and Viewport
+    final int physicalWidth = textureToUse.width;
+    final int physicalHeight = textureToUse.height;
 
     // 1. Set up the Scissor box
     renderPass.setScissor(

@@ -42,7 +42,7 @@ class CheckerBoardScene extends FskScene {
     navigationDelegate?.updateSceneMatrices(force: true);
   }
 
-  void drawVBO(gpu.RenderPass renderPass,gpu.HostBuffer transients, Matrix4 pMatrix, Matrix4 mvMatrix) {
+  void drawVBO(gpu.RenderPass renderPass,gpu.HostBuffer transients, Matrix4 pMatrix, Matrix4 mvMatrix, Size viewportSize) {
     FSK().activatePipeline(pipelineKey,renderPass,v3t2Layout);
     exampleVbo.bind(renderPass);
 
@@ -53,6 +53,8 @@ class CheckerBoardScene extends FskScene {
     uniforms!.useTexture = false;
     uniforms!.textureMix = 0;
     uniforms!.patternScale = 50;
+
+    uniforms!.onUpdate(viewportSize);
     uniforms!.mvMatrix =  finalMvMatrix;
     uniforms!.pMatrix = pMatrix.clone();
     uniforms!.bind(renderPass,transients);
@@ -64,7 +66,6 @@ class CheckerBoardScene extends FskScene {
   void drawScene(gpu.RenderPass renderPass,gpu.HostBuffer transients) {
     // Scissor and viewport
     setupScissor(renderPass);
-    drawVBO(renderPass,transients,pMatrix, mvMatrix);
-
+    drawVBO(renderPass,transients,pMatrix, mvMatrix, viewportSize);
   }
 }

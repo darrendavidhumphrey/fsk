@@ -18,9 +18,14 @@ class FskIndexedMesh extends FskRenderableObject with FskTransformableMixin {
   /////////////////////////////////////////////////////////////////////////////
   FskIndexedMesh(
     super.id,
-    super.parentScene,
-  ) {
+    super.parentScene, {
+    FskShaderMaterial? shaderMaterial,
+  }) {
     setRenderer(_renderer);
+
+    if (shaderMaterial != null) {
+      this.shaderMaterial = shaderMaterial;
+    }
   }
 
   @override

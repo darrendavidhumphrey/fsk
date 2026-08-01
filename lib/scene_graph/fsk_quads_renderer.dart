@@ -3,7 +3,6 @@ import 'dart:ui';
 import 'package:vector_math/vector_math.dart';
 import 'package:flutter_gpu/gpu.dart' as gpu;
 import 'package:fsk/fsk.dart';
-import '../shaders/base_uniforms.dart';
 import 'fsk_renderer_base.dart';
 
 class FskQuadsRenderer extends FskRendererBase {
@@ -23,8 +22,6 @@ class FskQuadsRenderer extends FskRendererBase {
 
   bool pipeLineNeedsRebuild = true;
 
-  String vertShaderName = "SimpleTextureVertex";
-  String fragShaderName = "SimpleTextureFragment";
   gpu.VertexLayout layout = textVertexLayout;
 
   /// The vertex buffer object that holds the geometry for rendering.
@@ -47,7 +44,7 @@ class FskQuadsRenderer extends FskRendererBase {
   void rebuildPipeline() {
     if (!pipeLineNeedsRebuild && pipelineKey != null) return;
 
-    final material = customMaterial ?? FskShaderMaterial.simpleTexture;
+    final material = shaderMaterial ?? FskShaderMaterial.simpleTexture;
 
     // Create a pipeline key for this shader and associated settings
     pipelineKey = PipelineKey(
@@ -70,10 +67,15 @@ class FskQuadsRenderer extends FskRendererBase {
       cullMode: gpu.CullMode.none,
     );
 
+    final oldValues = uniforms?.valuesMap;
     uniforms = material.uniformsFactory(
       pipelineKey!.vertShader,
       pipelineKey!.fragShader,
     );
+
+    if (oldValues != null) {
+      uniforms!.valuesMap.addAll(oldValues);
+    }
     
     layout = material.layout;
     pipeLineNeedsRebuild = false;
@@ -114,6 +116,7 @@ class FskQuadsRenderer extends FskRendererBase {
     gpu.HostBuffer transients,
     Matrix4 pMatrix,
     Matrix4 mvMatrix,
+    Size viewportSize,
   ) {
     _checkIsValid();
     if (!isValid) return;
@@ -127,6 +130,8 @@ class FskQuadsRenderer extends FskRendererBase {
     );
 
     _vbo.bind(renderPass);
+
+    uniforms!.onUpdate(viewportSize);
 
     if (uniforms is SimpleTextureUniforms) {
       (uniforms as SimpleTextureUniforms).setModulateColor(_modulateColor);

@@ -59,7 +59,7 @@ class ObjModelScene extends FskScene {
         }
       }
 
-      teapotMesh!.draw(renderPass, transients, pMatrix, mvMatrix);
+      teapotMesh!.draw(renderPass, transients, pMatrix, mvMatrix, viewportSize);
     }
   }
 }

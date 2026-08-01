@@ -178,17 +178,26 @@ class FskBitmapText extends Fsk2DRenderableObject with FskTransformableMixin {
     this._verticalJustification = TextVerticalJustification.bottom,
     this._horizontalJustification = TextHorizontalJustification.left,
     this._maxLen,
+    FskShaderMaterial? shaderMaterial,
   }) : _width = refBox.xVector.length {
     setRenderer(_renderer);
     _renderer.setTexture(font.textureInfo);
+
+    if (shaderMaterial != null) {
+      this.shaderMaterial = shaderMaterial;
+    }
 
     // Trigger the setter
     textColor = _textColor;
   }
 
-  FskBitmapText.fromData(super.id,super.parentScene, super.refBox,FrameTextData textData) {
+  FskBitmapText.fromData(super.id,super.parentScene, super.refBox,FrameTextData textData, {FskShaderMaterial? shaderMaterial}) {
     setRenderer(_renderer);
     _width = refBox.xVector.length;
+
+    if (shaderMaterial != null) {
+      this.shaderMaterial = shaderMaterial;
+    }
 
     var fontToUse = BitmapFontManager().getFont(textData.font);
     if (fontToUse == null) {

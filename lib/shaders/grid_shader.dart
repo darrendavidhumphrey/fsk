@@ -29,10 +29,6 @@ class GridUniforms extends BaseUniforms {
   static const double _kDefaultMinorLineThickness = 1.0;
   static const double _kDefaultMmLineThickness = 0.5;
 
-  // --- Buffer Structure Allocation Constants ---
-  static const int _kFragmentDataFloatCount = 22;
-  static const double _kPaddingValue = 0.0;
-
   GridUniforms({super.vertexShader, super.fragmentShader}) {
     this[_kMajorLineColorKey] = _kDefaultMajorLineColor;
     this[_kMinorLineColorKey] = _kDefaultMinorLineColor;
@@ -54,8 +50,8 @@ class GridUniforms extends BaseUniforms {
 
   /// Sets the viewport resolution components into the string registry.
   void setResolution(double width, double height) {
-    this[_kResolutionWidthKey] = width;
-    this[_kResolutionHeightKey] = height;
+    setValueSilent(_kResolutionWidthKey, width);
+    setValueSilent(_kResolutionHeightKey, height);
   }
 
   // --- Grid Sizing and Thickness Setters ---
@@ -67,25 +63,30 @@ class GridUniforms extends BaseUniforms {
   set mmLineThickness(double val) => this[_kMmLineThicknessKey] = val;
 
   @override
+  void onUpdate(Size viewportSize) {
+    // If not manually set, default to a scale that makes 1 unit = 1mm
+    if (valuesMap[_kResolutionWidthKey] == null) {
+      setResolution(viewportSize.width, viewportSize.height);
+    }
+  }
+
+  @override
   Float32List serializeFragmentData() {
-    final Float32List fragmentData = Float32List(_kFragmentDataFloatCount);
+    final Float32List fragmentData = Float32List(20);
     int offset = 0;
 
     offset = packColor(fragmentData, offset, this[_kMajorLineColorKey] as Color);
     offset = packColor(fragmentData, offset, this[_kMinorLineColorKey] as Color);
     offset = packColor(fragmentData, offset, this[_kMmLineColorKey] as Color);
 
-    fragmentData[offset++] = (this[_kResolutionWidthKey] as num).toDouble();
-    fragmentData[offset++] = (this[_kResolutionHeightKey] as num).toDouble();
-    fragmentData[offset++] = (this[_kScaleKey] as num).toDouble();
-    fragmentData[offset++] = (this[_kMajorLineSpacingMMKey] as num).toDouble();
-    fragmentData[offset++] = (this[_kMinorLineSpacingMMKey] as num).toDouble();
-    fragmentData[offset++] = (this[_kMajorLineThicknessKey] as num).toDouble();
-    fragmentData[offset++] = (this[_kMinorLineThicknessKey] as num).toDouble();
-    fragmentData[offset++] = (this[_kMmLineThicknessKey] as num).toDouble();
-
-    fragmentData[offset++] = _kPaddingValue; // Padding
-    fragmentData[offset++] = _kPaddingValue; // Padding
+    fragmentData[offset++] = (this[_kResolutionWidthKey] ?? 1000.0) as double;
+    fragmentData[offset++] = (this[_kResolutionHeightKey] ?? 1000.0) as double;
+    fragmentData[offset++] = (this[_kScaleKey] ?? 1.0) as double;
+    fragmentData[offset++] = (this[_kMajorLineSpacingMMKey] ?? 10.0) as double;
+    fragmentData[offset++] = (this[_kMinorLineSpacingMMKey] ?? 5.0) as double;
+    fragmentData[offset++] = (this[_kMajorLineThicknessKey] ?? 1.0) as double;
+    fragmentData[offset++] = (this[_kMinorLineThicknessKey] ?? 0.5) as double;
+    fragmentData[offset++] = (this[_kMmLineThicknessKey] ?? 0.1) as double;
 
     return fragmentData;
   }

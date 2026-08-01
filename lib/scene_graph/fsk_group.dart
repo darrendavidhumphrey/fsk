@@ -1,3 +1,5 @@
+import 'dart:ui';
+
 import 'package:flutter_gpu/gpu.dart' as gpu;
 import 'package:fsk/fsk.dart';
 import 'package:vector_math/vector_math.dart';
@@ -76,6 +78,7 @@ class FskGroup extends FskRenderableObject with FskTransformableMixin {
       gpu.HostBuffer transients,
       Matrix4 pMatrix,
       Matrix4 mvMatrix,
+      Size viewportSize,
       ) {
     if (!visible) return;
 
@@ -93,7 +96,7 @@ class FskGroup extends FskRenderableObject with FskTransformableMixin {
       final Matrix4 mvTrans = mvMatrix.clone()..multiply(localTranslation);
 
       if (child is FskRenderableObject) {
-        child.draw(renderPass, transients, pMatrix, mvTrans);
+        child.draw(renderPass, transients, pMatrix, mvTrans, viewportSize);
       }
     }
   }

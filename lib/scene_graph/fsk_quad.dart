@@ -95,10 +95,15 @@ class FskQuad extends Fsk2DRenderableObject with FskTransformableMixin {
     super.refBox,
     this._textureRect,
     this._modulateColor,
-    String textureId,
-  ) {
+    String textureId, {
+    FskShaderMaterial? shaderMaterial,
+  }) {
     setTexture(textureId);
     setRenderer(_renderer);
+
+    if (shaderMaterial != null) {
+      this.shaderMaterial = shaderMaterial;
+    }
 
     // Trigger the setter
     modulateColor = _modulateColor;
@@ -124,6 +129,7 @@ class FskQuad extends Fsk2DRenderableObject with FskTransformableMixin {
     Size size, {
     Color modulateColor = Colors.white,
     String? textureId,
+    FskShaderMaterial? shaderMaterial,
   }) {
     final refBox = ReferenceBox(
       Vector3(-size.width / 2, -size.height / 2, 0.0),
@@ -131,14 +137,17 @@ class FskQuad extends Fsk2DRenderableObject with FskTransformableMixin {
       Vector3(0, size.height, 0),
       Vector3(0, 0, 1),
     );
-    return FskQuad(
+    final quad = FskQuad(
       id,
       scene,
       refBox,
       const Rect.fromLTWH(0, 0, 1, 1),
       modulateColor,
       textureId ?? 'dummy',
+      shaderMaterial: shaderMaterial,
     );
+
+    return quad;
   }
 
   /// Rebuilds the vertex buffer object

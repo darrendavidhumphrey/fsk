@@ -1,3 +1,5 @@
+import 'dart:ui';
+
 import 'package:fsk/scene_graph/fsk_renderer_base.dart';
 import 'package:fsk/scene_graph/fsk_transformable.dart';
 import 'package:vector_math/vector_math.dart';
@@ -5,6 +7,7 @@ import 'package:flutter_gpu/gpu.dart' as gpu;
 import '../fsk_scene.dart';
 import '../geometry/reference_box.dart';
 import '../gpu/fsk_shader_material.dart';
+import '../shaders/base_uniforms.dart';
 import '../logging.dart';
 
 abstract class FskSceneObject with LoggableClass {
@@ -46,26 +49,42 @@ abstract class FskRenderableObject extends FskSceneObject {
   FskRenderableObject(super.id,super.parentScene);
   late FskRendererBase renderer;
 
-  void draw(gpu.RenderPass renderPass,gpu.HostBuffer transients, Matrix4 pMatrix, Matrix4 mvMatrix) {
+  /// Access to the renderer's active uniforms
+  BaseUniforms? get uniforms => renderer.uniforms;
+
+  void draw(gpu.RenderPass renderPass,gpu.HostBuffer transients, Matrix4 pMatrix, Matrix4 mvMatrix, Size viewportSize) {
     if (!visible) return;
 
     Matrix4 finalMvMatrix = mvMatrix;
     if (transformable.isTransformed()) {
-      // Apply the transform to the matrix (View * Model)
+      // Apply the transform to the matrix
       finalMvMatrix = mvMatrix.clone()..multiply(transformable.getTransform());
     }
 
-    renderer.draw(renderPass, transients, pMatrix, finalMvMatrix);
+    renderer.draw(renderPass, transients, pMatrix, finalMvMatrix, viewportSize);
   }
 
   void setRenderer(FskRendererBase newRenderer) {
     renderer = newRenderer;
+    // Listen for uniform changes to trigger scene updates
+    renderer.uniforms?.addListener(_onUniformsChanged);
+  }
+
+  void _onUniformsChanged() {
+    parentScene.setNeedsUpdate();
   }
 
   /// Syntactic sugar to set a custom material on the renderer
-  set material(FskShaderMaterial value) {
-    renderer.customMaterial = value;
+  set shaderMaterial(FskShaderMaterial value) {
+    // Clean up old listener
+    renderer.uniforms?.removeListener(_onUniformsChanged);
+    
+    renderer.shaderMaterial = value;
     renderer.rebuildPipeline();
+    
+    // Add listener to new uniforms
+    renderer.uniforms?.addListener(_onUniformsChanged);
+    parentScene.setNeedsUpdate();
   }
 }
 

@@ -36,6 +36,8 @@ class FskFrameScene extends FskScene {
       return;
     }
 
+    // Attempt to get the texture from the render target if one was provided to the scene,
+    // otherwise FskScene.setupScissor will try to find one.
     super.setupScissor(renderPass);
 
     Matrix4 finalMvMatrix = mvMatrix.clone();
@@ -60,7 +62,11 @@ class FskFrameScene extends FskScene {
     for (var node in rootNodes) {
       if (node is FskRenderableObject) {
         node.draw(
-            renderPass, transients, pMatrix.clone(), finalMvMatrix.clone());
+            renderPass,
+            transients,
+            pMatrix.clone(),
+            finalMvMatrix.clone(),
+            viewportSize);
       }
     }
   }

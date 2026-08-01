@@ -2,8 +2,6 @@ import 'package:flutter/material.dart' hide Matrix4;
 import 'package:flutter_gpu/gpu.dart' as gpu;
 import 'package:fsk/fsk.dart';
 
-import '../gpu/fsk_render_target.dart';
-
 class GPURenderWidget extends StatefulWidget {
   final FskScene scene;
   final bool useAntiAliasing;
@@ -16,6 +14,7 @@ class GPURenderWidget extends StatefulWidget {
 
 class _GPURenderWidgetState extends State<GPURenderWidget> with SingleTickerProviderStateMixin {
   late AnimationController _animationController;
+  late Listenable _repaintListenable;
 
   Size _lastSize = Size.zero;
   FskScene? _lastScene;
@@ -28,6 +27,16 @@ class _GPURenderWidgetState extends State<GPURenderWidget> with SingleTickerProv
       vsync: this,
       duration: const Duration(seconds: 4),
     )..repeat();
+
+    _repaintListenable = Listenable.merge([_animationController, widget.scene]);
+  }
+
+  @override
+  void didUpdateWidget(covariant GPURenderWidget oldWidget) {
+    super.didUpdateWidget(oldWidget);
+    if (oldWidget.scene != widget.scene) {
+      _repaintListenable = Listenable.merge([_animationController, widget.scene]);
+    }
   }
 
   @override
@@ -58,6 +67,7 @@ class _GPURenderWidgetState extends State<GPURenderWidget> with SingleTickerProv
         enableMsaa: widget.useAntiAliasing,
         clearColor: widget.scene.clearColor,
       );
+      widget.scene.texture = _fskTarget!.outputTexture;
     }
 
     widget.scene.rebuildGeometry();
@@ -84,7 +94,7 @@ class _GPURenderWidgetState extends State<GPURenderWidget> with SingleTickerProv
         final Size logicalSize = Size(constraints.maxWidth, constraints.maxHeight);
 
         return AnimatedBuilder(
-          animation: _animationController,
+          animation: _repaintListenable,
           builder: (context, child) {
             _processGpuFrame(logicalSize, pixelRatio);
 
@@ -94,7 +104,7 @@ class _GPURenderWidgetState extends State<GPURenderWidget> with SingleTickerProv
                 // Safely blit the completed output texture reference
                 texture: _fskTarget?.outputTexture,
                 pixelRatio: pixelRatio,
-                repaintTrigger: _animationController.value,
+                repaintTrigger: _repaintListenable,
               ),
             );
           },
@@ -104,19 +114,16 @@ class _GPURenderWidgetState extends State<GPURenderWidget> with SingleTickerProv
   }
 }
 
-
-
-
 class FskScenePainter extends CustomPainter {
   final gpu.Texture? texture;
   final double pixelRatio;
-  final double repaintTrigger;
+  final Listenable repaintTrigger;
 
   FskScenePainter({
     required this.texture,
     required this.pixelRatio,
     required this.repaintTrigger,
-  }) : super(repaint: ValueNotifier(repaintTrigger));
+  }) : super(repaint: repaintTrigger);
 
   @override
   void paint(Canvas canvas, Size size) {

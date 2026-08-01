@@ -1,4 +1,4 @@
-import 'dart:typed_data';
+import 'package:flutter/foundation.dart';
 import 'dart:ui';
 import 'package:flutter_gpu/gpu.dart' as gpu;
 import 'package:vector_math/vector_math.dart';
@@ -6,7 +6,7 @@ import 'package:vector_math/vector_math.dart';
 import '../fsk_singleton.dart';
 import '../logging.dart';
 
-abstract class BaseUniforms with LoggableClass {
+abstract class BaseUniforms extends ChangeNotifier with LoggableClass {
   final gpu.Shader? vertexShader;
   final gpu.Shader? fragmentShader;
 
@@ -30,16 +30,33 @@ abstract class BaseUniforms with LoggableClass {
   String get samplerUniformName => 'uSampler';
   bool get hasSampler => false;
 
-  set texture(gpu.Texture? val) => textureIn = val;
+  set texture(gpu.Texture? val) {
+    textureIn = val;
+  }
 
   // Unified string-accessible data registry
   final Map<String, dynamic> valuesMap = {};
 
   BaseUniforms({this.vertexShader, this.fragmentShader});
 
+  /// Called automatically before binding to allow the uniforms to react to scene changes
+  /// (e.g. updating resolution or time).
+  void onUpdate(Size viewportSize) {}
+
   // Dynamic index operator for loose key-value lookup: uniforms['myProperty']
   dynamic operator [](String key) => valuesMap[key];
-  void operator []=(String key, dynamic value) => valuesMap[key] = value;
+  
+  void operator []=(String key, dynamic value) {
+    if (valuesMap[key] == value) return;
+    valuesMap[key] = value;
+    notifyListeners();
+  }
+
+  /// Updates a value without triggering a scene redraw. 
+  /// Use this for per-frame calculated values like resolution or time.
+  void setValueSilent(String key, dynamic value) {
+    valuesMap[key] = value;
+  }
 
   /// Utility method to pack a Flutter color safely into a float array
   int packColor(Float32List targetList, int offset, Color color) {
@@ -71,7 +88,10 @@ abstract class BaseUniforms with LoggableClass {
     vertexData.setAll(16, pMatrixLocal.storage);
 
     final gpu.BufferView vertexBufferView = transients.emplace(
-      vertexData.buffer.asByteData(),
+      vertexData.buffer.asByteData(
+        vertexData.offsetInBytes,
+        vertexData.lengthInBytes,
+      ),
     );
 
     final gpu.UniformSlot vertexSlot = vertexShader!.getUniformSlot(
@@ -84,7 +104,10 @@ abstract class BaseUniforms with LoggableClass {
     // =========================================================================
     final Float32List fragmentData = serializeFragmentData();
     final gpu.BufferView fragmentBufferView = transients.emplace(
-      fragmentData.buffer.asByteData(),
+      fragmentData.buffer.asByteData(
+        fragmentData.offsetInBytes,
+        fragmentData.lengthInBytes,
+      ),
     );
     final gpu.UniformSlot fragmentSlot =
         fragmentShader!.getUniformSlot(fragmentBlockName);

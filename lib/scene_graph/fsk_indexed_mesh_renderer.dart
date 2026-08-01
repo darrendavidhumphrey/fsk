@@ -1,7 +1,7 @@
+import 'dart:ui';
 import 'package:vector_math/vector_math.dart';
 import 'package:flutter_gpu/gpu.dart' as gpu;
 import 'package:fsk/fsk.dart';
-import '../shaders/base_uniforms.dart';
 import 'fsk_renderer_base.dart';
 
 class SubMesh {
@@ -21,7 +21,6 @@ class SubMesh {
 }
 
 class FskIndexedMeshRenderer extends FskRendererBase {
-  BaseUniforms? uniforms;
   PipelineKey? pipelineKey;
 
   bool _dataUploaded = false;
@@ -57,10 +56,11 @@ class FskIndexedMeshRenderer extends FskRendererBase {
     _dataUploaded = true;
   }
 
+  @override
   void rebuildPipeline() {
     if (!pipeLineNeedsRebuild && pipelineKey != null) return;
 
-    final material = customMaterial ?? FskShaderMaterial.lighting;
+    final material = shaderMaterial ?? FskShaderMaterial.lighting;
 
     // Create a pipeline key for this shader and associated settings
     pipelineKey = PipelineKey(
@@ -81,10 +81,15 @@ class FskIndexedMeshRenderer extends FskRendererBase {
       cullMode: gpu.CullMode.backFace,
     );
 
+    final oldValues = uniforms?.valuesMap;
     uniforms = material.uniformsFactory(
       pipelineKey!.vertShader,
       pipelineKey!.fragShader,
     );
+    
+    if (oldValues != null) {
+      uniforms!.valuesMap.addAll(oldValues);
+    }
     
     layout = material.layout;
     pipeLineNeedsRebuild = false;
@@ -105,6 +110,7 @@ class FskIndexedMeshRenderer extends FskRendererBase {
       gpu.HostBuffer transients,
       Matrix4 pMatrix,
       Matrix4 mvMatrix,
+      Size viewportSize,
       ) {
     _checkIsValid();
     if (!isValid) return;
@@ -118,6 +124,8 @@ class FskIndexedMeshRenderer extends FskRendererBase {
     );
 
     _vbo.bind(renderPass);
+
+    uniforms!.onUpdate(viewportSize);
 
     for (var subMesh in _subMeshes) {
       if (subMesh.textureInfo != null) {
