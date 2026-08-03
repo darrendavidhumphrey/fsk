@@ -27,12 +27,12 @@ class FskGltfLoader {
     _basePath = lastSlash != -1 ? assetPath.substring(0, lastSlash + 1) : '';
   }
 
-  static Future<FskGroup> load(String assetPath, FskScene scene) async {
+  static Future<FskGroup> load(String assetPath, FskScene scene, {FskGroup? rootNode}) async {
     final loader = FskGltfLoader(scene, assetPath);
-    return await loader._parse();
+    return await loader._parse(rootNode: rootNode);
   }
 
-  Future<FskGroup> _parse() async {
+  Future<FskGroup> _parse({FskGroup? rootNode}) async {
     final ByteData byteData = await rootBundle.load(assetPath);
     final Uint8List bytes = byteData.buffer.asUint8List(
       byteData.offsetInBytes,
@@ -40,7 +40,7 @@ class FskGltfLoader {
     );
     _json = json.decode(utf8.decode(bytes));
 
-    final rootGroup = FskGroup('gltf_root', scene);
+    final rootGroup = rootNode ?? FskGroup('gltf_root', scene);
 
     final List<dynamic> jsonBuffers = _json!['buffers'] ?? [];
     for (int i = 0; i < jsonBuffers.length; i++) {

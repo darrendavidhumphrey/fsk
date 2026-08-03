@@ -96,7 +96,7 @@ class TestAppState extends State<TestApp> {
           height: constraints.maxHeight,
           child: MaterialApp(
             title: 'FSK Examples',
-            showPerformanceOverlay: true,
+            //showPerformanceOverlay: true,
             home: Scaffold(
               backgroundColor: kIsWeb ? Colors.transparent : null,
               body: Stack(
