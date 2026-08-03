@@ -15,7 +15,6 @@ class PbrModelScene extends FskFrameScene {
     useBoxFitLayout = false; // Perspective 3D mode
 
     try {
-      // 🟢 NORMAL RENDERING: Load the actual SciFi Helmet
       modelRoot = await FskGltfLoader.load('assets/3D/SciFiHelmet/glTF/SciFiHelmet.gltf', this);
 
       if (modelRoot != null) {
@@ -45,13 +44,15 @@ class PbrModelScene extends FskFrameScene {
 
   void _manualDraw(FskSceneObject node, gpu.RenderPass renderPass, gpu.HostBuffer transients, Matrix4 proj, Matrix4 view) {
     bool isVisible = true;
-    Matrix4 currentMv = view;
+
+    Matrix4 currentMv = view.clone();
+
 
     if (node is FskRenderableObject) {
       if (!node.visible) return;
       isVisible = node.visible;
       // Hierarchical math: Post-multiplication (View * Local)
-      currentMv = view.clone()..multiply(node.transformable.getTransform());
+      currentMv.multiply(node.transformable.getTransform());
     }
 
     if (!isVisible) return;
@@ -62,6 +63,7 @@ class PbrModelScene extends FskFrameScene {
       
       final uniforms = renderer.uniforms!;
       uniforms.onUpdate(viewportSize);
+
 
       uniforms.mvMatrix = currentMv;
       uniforms.pMatrix = proj;
