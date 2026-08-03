@@ -63,8 +63,7 @@ class PbrModelScene extends FskFrameScene {
       
       final uniforms = renderer.uniforms!;
       uniforms.onUpdate(viewportSize);
-      
-      // RESTORED: Use actual scene matrices
+
       uniforms.mvMatrix = currentMv;
       uniforms.pMatrix = proj;
       

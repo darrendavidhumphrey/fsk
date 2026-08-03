@@ -41,6 +41,15 @@ abstract class BaseUniforms extends ChangeNotifier with LoggableClass {
 
   BaseUniforms({this.vertexShader, this.fragmentShader});
 
+  /// Deep copies non-shader state from another uniform block.
+  void copyFrom(BaseUniforms other) {
+    valuesMap.addAll(other.valuesMap);
+    textureIn = other.textureIn;
+    samplerOptions = other.samplerOptions;
+    additionalTextures.clear();
+    additionalTextures.addAll(other.additionalTextures);
+  }
+
   /// Called automatically before binding to allow the uniforms to react to scene changes
   /// (e.g. updating resolution or time).
   void onUpdate(Size viewportSize) {}

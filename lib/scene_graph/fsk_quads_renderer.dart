@@ -67,14 +67,14 @@ class FskQuadsRenderer extends FskRendererBase {
       cullMode: gpu.CullMode.none,
     );
 
-    final oldValues = uniforms?.valuesMap;
+    final oldUniforms = uniforms;
     uniforms = material.uniformsFactory(
       pipelineKey!.vertShader,
       pipelineKey!.fragShader,
     );
 
-    if (oldValues != null) {
-      uniforms!.valuesMap.addAll(oldValues);
+    if (oldUniforms != null) {
+      uniforms!.copyFrom(oldUniforms);
     }
     
     layout = material.layout;

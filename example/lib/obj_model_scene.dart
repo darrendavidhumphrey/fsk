@@ -1,69 +1,66 @@
 import 'package:flutter/material.dart' hide Matrix4;
-import 'package:flutter_gpu/gpu.dart' as gpu;
 import 'package:fsk/fsk.dart';
 import 'package:vector_math/vector_math.dart' hide Colors;
 
 // Loads a simple OBJ model and puts it in an orbit view
-class ObjModelScene extends FskScene {
-  FskIndexedMesh? teapotMesh;
-
+class ObjModelScene extends FskFrameScene {
   ObjModelScene({super.navigationDelegate}) {
     init();
   }
 
-  void init() async {
-    clearColor = Colors.blueGrey;
-
-    // Load the teapot model with textures and normals
+  Future<FskTextureInfo?> loadTexture() async {
     try {
       // 1. Pre-load the texture
-      await FSK().textureManager.createTextureFromAsset(
+      return await FSK().textureManager.createTextureFromAsset(
         'Bricks',
         '3D/Teapot/Bricks051_1K-JPG_Color.jpg',
       );
+    } catch (e) {
+      logError("Error loading texture: $e");
+      return null;
+    }
+  }
 
-      // 2. Load the mesh
-      teapotMesh = await WavefrontObjModel.indexedMeshFromAsset(
+  Future<FskIndexedMesh?> loadTeapot() async {
+    try {
+      return await WavefrontObjModel.indexedMeshFromAsset(
         'assets/3D/Teapot/teapot_textures_normals.obj',
         this,
         'teapot',
       );
-
-      if (teapotMesh != null) {
-        teapotMesh!.transformable.scale = Vector3.all(5.0);
-        teapotMesh!.transformable.position = Vector3(0, 0, 0);
-        teapotMesh!.transformable.rotation = Vector3(0, 0, radians(180));
-      }
-
-      navigationDelegate?.updateSceneMatrices(force: true);
     } catch (e) {
       logError("Error loading teapot: $e");
+      return null;
     }
   }
 
+  void init() async {
+    useBoxFitLayout = false;
+    clearColor = Colors.blueGrey;
 
-  @override
-  void drawScene(gpu.RenderPass renderPass, gpu.HostBuffer transients) {
-    setupScissor(renderPass);
+    // Load the teapot model
+    FskTextureInfo? teapotTexture = await loadTexture();
+    FskIndexedMesh? teapotMesh = await loadTeapot();
 
-    if (teapotMesh != null) {
-      final renderer = teapotMesh!.renderer;
+    if ((teapotMesh != null) && (teapotTexture != null)) {
+      teapotMesh.transformable.scale = Vector3.all(5.0);
 
-      if (renderer.uniforms is LightingUniforms) {
-        final lu = renderer.uniforms as LightingUniforms;
-        lu.lightPos = Vector3(500, 500, 500);
+      // Flip over the teapot
+      teapotMesh.transformable.rotation = Vector3(0, 0, radians(180));
 
-        // Ensure the texture is bound to the shader
-        final texInfo = FSK().textureManager.getTextureInfo('Bricks');
-        if (texInfo != null && texInfo.isLoaded) {
-          renderer.uniforms!.texture = texInfo.texture;
-          renderer.uniforms!.samplerOptions = texInfo.samplerOptions;
-        }
-      }
+      final LightingUniforms uniforms = LightingUniforms();
 
-      teapotMesh!.draw(renderPass, transients, pMatrix, mvMatrix, viewportSize);
+      teapotMesh.renderer.uniforms = uniforms;
+
+      uniforms.lightPos = Vector3(500, 500, 500);
+
+      // Bind the texture to the shader
+      uniforms.texture = teapotTexture.texture;
+      uniforms.samplerOptions = teapotTexture.samplerOptions;
+
+      // Add the teapot to the scene graph
+      addNode(teapotMesh);
     }
+    isReady = true;
   }
-  
-
 }

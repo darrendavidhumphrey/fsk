@@ -37,6 +37,15 @@ class PbrUniforms extends BaseUniforms {
   set debugMode(double val) => this[kDebugModeKey] = val;
 
   @override
+  void copyFrom(BaseUniforms other) {
+    super.copyFrom(other);
+    if (other is PbrUniforms) {
+      normalMap = other.normalMap;
+      metallicRoughnessMap = other.metallicRoughnessMap;
+    }
+  }
+
+  @override
   void bindAdditionalTextures(gpu.RenderPass renderPass) {
     if (fragmentShader == null) return;
 
