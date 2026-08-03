@@ -25,6 +25,9 @@ abstract class FskScene extends ChangeNotifier with LoggableClass {
 
   bool isReady = true;
 
+  int _frameCount = 0;
+  int get frameCount => _frameCount;
+
   FskScene({this.navigationDelegate}) {
     navigationDelegate?.setScene(this);
   }
@@ -57,7 +60,11 @@ abstract class FskScene extends ChangeNotifier with LoggableClass {
     );
   }
 
-  void drawScene(gpu.RenderPass renderPass, gpu.HostBuffer transients);
+  @mustCallSuper
+  void drawScene(gpu.RenderPass renderPass, gpu.HostBuffer transients) {
+    _frameCount++;
+  }
+
   void rebuildGeometry() {}
   void clearRetainedBuffers() {}
 }

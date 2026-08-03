@@ -24,8 +24,14 @@ class SceneFromXml extends FskFrameScene {
     sourceCode1?.maxLen = 1;
     sourceCode2?.text = "01234567";
     sourceCode2?.maxLen = 2;
-  //  sourceCode3?.text = "01234";
- //   sourceCode3?.maxLen = 3;
+  }
+
+  @override
+  void rebuildGeometry() {
+    if (isReady && frameCountText != null) {
+      frameCountText!.text = "Frames: $frameCount";
+    }
+    super.rebuildGeometry();
   }
 
   SceneFromXml({super.navigationDelegate}) : super.fromSkinFile("frames/example4.xml");

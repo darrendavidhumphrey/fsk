@@ -31,6 +31,8 @@ class FskFrameScene extends FskScene {
   void drawScene(gpu.RenderPass renderPass, gpu.HostBuffer transients) {
     if (!isReady) return;
 
+    super.drawScene(renderPass, transients);
+
     super.setupScissor(renderPass);
 
     Matrix4 layoutMatrix = Matrix4.identity();
