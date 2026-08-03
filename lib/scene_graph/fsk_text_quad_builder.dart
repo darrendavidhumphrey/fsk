@@ -24,12 +24,15 @@ class FskBitmapTextQuadBuilder {
   final TextHorizontalJustification horizontalJustification;
   final TextVerticalJustification verticalJustification;
   final double _width;
+  final bool scaleToFit;
 
   static final int _vertexStride = 5;
 
   // Computed Internally
   late double _ratio;
   late double _lineLength;
+  late double _stringAscent;
+  late double _stringDescent;
 
   final List<CharLayoutInfo> layoutData = [];
   int _numQuads;
@@ -42,6 +45,7 @@ class FskBitmapTextQuadBuilder {
     required this._width,
     required this.horizontalJustification,
     required this.verticalJustification,
+    this.scaleToFit = false,
   }) : _numQuads = 0, _vertexData = Float32List(0);
 
   FskBitmapTextQuadBuilderResult build() {
@@ -51,12 +55,14 @@ class FskBitmapTextQuadBuilder {
 
     _lineLength = 0;
     _ratio = 0;
+    _stringAscent = 0;
+    _stringDescent = 0;
 
     if (text.isEmpty) {
       return FskBitmapTextQuadBuilderResult.empty();
     }
 
-    // Pass 1: Gather layout information and calculate total width
+    // Pass 1: Gather layout information and calculate total width/height bounds
     _gatherLayoutData();
 
     if (_lineLength == 0) {
@@ -72,7 +78,7 @@ class FskBitmapTextQuadBuilder {
     // Pass 4: Vertical Justification
     final unscaledVAdjust = _calculateVerticalJustification();
 
-    // Pass 5: Quad Construction Loop (CRITICAL: Make sure unscaledVAdjust is passed here!)
+    // Pass 5: Quad Construction Loop
     _constructQuads(currentX, unscaledVAdjust);
 
     return FskBitmapTextQuadBuilderResult(_numQuads, _vertexData);
@@ -81,10 +87,21 @@ class FskBitmapTextQuadBuilder {
   /// Pass 1: Gathers character bounding information and computes unscaled text line length.
   void _gatherLayoutData() {
     _lineLength = 0;
+    _stringAscent = 0;
+    _stringDescent = 0;
+
+    final double base = font.baseline;
 
     for (int i = 0; i < text.length; i++) {
       final charInfo = font.chars[text[i]];
       if (charInfo == null) continue;
+
+      // Track the visual bounds of the actual string
+      final double charAscent = base - charInfo.yOffset;
+      final double charDescent = (charInfo.yOffset + charInfo.region.height) - base;
+      
+      if (charAscent > _stringAscent) _stringAscent = charAscent;
+      if (charDescent > _stringDescent) _stringDescent = charDescent;
 
       double kerning = 0.0;
       if ((i + 1) < text.length) {
@@ -96,6 +113,9 @@ class FskBitmapTextQuadBuilder {
       layoutData.add(CharLayoutInfo(char: charInfo, kerning: kerning));
       _lineLength += charInfo.xAdvance + kerning;
     }
+
+    // Fallback for whitespace strings
+    if (_stringAscent == 0) _stringAscent = font.baseline;
   }
 
   /// Pass 2: Initializes backing collections and limits scale bounds to container constraints.
@@ -105,10 +125,20 @@ class FskBitmapTextQuadBuilder {
     _numQuads = characterCount;
 
     // Allocate 4 vertices per quad, each of which has _vertexStride components
-    _vertexData = Float32List(_numQuads * _vertexStride*4);
+    _vertexData = Float32List(_numQuads * _vertexStride * 4);
 
-    _ratio = (_lineLength > 0) ? _width / _lineLength : 1.0;
-    _ratio = min(1.0, _ratio);
+    final double fitWidthRatio = (_lineLength > 0) ? _width / _lineLength : 1.0;
+
+    // Ensure the visual part of the text (ascent) fits vertically within the box height
+    final double boxHeight = screenRect.yVector.length;
+    final double fitHeightRatio = (_stringAscent > 0) ? boxHeight / _stringAscent : 1.0;
+
+    // Use the most restrictive ratio to maintain aspect ratio
+    _ratio = min(fitWidthRatio, fitHeightRatio);
+
+    if (!scaleToFit) {
+      _ratio = min(1.0, _ratio);
+    }
   }
 
   /// Pass 3: Computes the starting horizontal offset inside unscaled canvas bounds.
@@ -128,23 +158,25 @@ class FskBitmapTextQuadBuilder {
   /// Pass 4: Computes the vertical layout anchor corrected for the box origin.
   double _calculateVerticalJustification() {
     final double boxHeight = screenRect.yVector.length;
-    final double unscaledLineHeight = font.lineHeight.toDouble();
     final double unscaledBoxHeight = boxHeight / _ratio;
-    final double unscaledBase = font.baseline.toDouble();
 
     switch (verticalJustification) {
-      case TextVerticalJustification.bottom:
-        return unscaledBoxHeight - unscaledBase;
+      case TextVerticalJustification.top:
+        // Anchors the visual top of the string to the box top (unscaledBoxHeight)
+        return unscaledBoxHeight - _stringAscent;
 
       case TextVerticalJustification.center:
-        return (unscaledBoxHeight / 2.0) - unscaledBase + (unscaledLineHeight / 2.0);
+        // Centers the visual ascent in the box
+        return (unscaledBoxHeight - _stringAscent) / 2.0;
 
-      case TextVerticalJustification.top:
-        return unscaledLineHeight - unscaledBase;
+      case TextVerticalJustification.bottom:
+        // Anchors the baseline to the box bottom (0)
+        // Descenders will drop below the reference box
+        return 0.0;
     }
   }
 
-  int  _addQuad(int index, Vector2 blc,Vector2 trc,double tLeft,double tTop,double tRight,double tBottom) {
+  int  _addQuad(int index, Vector2 blc, Vector2 trc, double tLeft, double tTop, double tRight, double tBottom) {
     Quad q = screenRect.calcQuadFrom2DVectors(blc, trc);
     _vertexData[index++] = q.point0.x;
     _vertexData[index++] = q.point0.y;
@@ -176,10 +208,10 @@ class FskBitmapTextQuadBuilder {
   /// Pass 5: Builds spatial transformation matrices and coordinates texture mapping vectors.
   void _constructQuads(
     double startX,
-    final double unscaledVAdjust, // This is now the unscaled BASELINE position
+    final double unscaledVAdjust,
   ) {
     double currentX = startX;
-    final double unscaledBase = font.baseline.toDouble();
+    final double unscaledBase = font.baseline;
 
     int vDataIndex = 0;
     for (int i = 0; i < layoutData.length; i++) {
@@ -190,12 +222,13 @@ class FskBitmapTextQuadBuilder {
       final left = currentX;
       final right = left + charInfo.region.width;
 
-      // Position relative to the baseline
+      // Position relative to the baseline (Y-up math)
       final double charTop = unscaledVAdjust + unscaledBase - charInfo.yOffset;
       final double charBottom = charTop - charInfo.region.height;
 
       final blc = Vector2(left * _ratio, charBottom * _ratio );
       final trc = Vector2(right * _ratio, charTop * _ratio);
+      
       final tLeft = charInfo.region.left / font.scaleW;
       final tTop = charInfo.region.top / font.scaleH;
       final tRight =

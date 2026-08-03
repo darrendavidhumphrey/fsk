@@ -65,6 +65,9 @@ class FskBitmapText extends Fsk2DRenderableObject with FskTransformableMixin {
   /// The color applied to modulate the text texture quads.
   late Color _textColor;
 
+  /// Whether the text should scale up to fit the reference box.
+  bool scaleToFit = false;
+
   static void registerWithFactories() {
     FrameObjectDataFactory.register('text', (node, anchors, parseObject) {
       final String? shaderName = node.getAttribute('shader');
@@ -84,7 +87,7 @@ class FskBitmapText extends Fsk2DRenderableObject with FskTransformableMixin {
         hJustify: hJustification,
         vJustify: vJustification,
         maxLen: int.tryParse(node.getAttribute('maxLen') ?? ''),
-        scaleToFit: node.getAttribute('scaleToFit') == 'YES',
+        scaleToFit: node.getAttribute('scaleToFit') == 'true',
         textColor: node.getAttribute('textColor'),
         shader: shaderName,
         shaderParams: shaderParamsMap,
@@ -178,6 +181,7 @@ class FskBitmapText extends Fsk2DRenderableObject with FskTransformableMixin {
     this._verticalJustification = TextVerticalJustification.bottom,
     this._horizontalJustification = TextHorizontalJustification.left,
     this._maxLen,
+    this.scaleToFit = false,
     FskShaderMaterial? shaderMaterial,
   }) : _width = refBox.xVector.length {
     setRenderer(_renderer);
@@ -212,6 +216,7 @@ class FskBitmapText extends Fsk2DRenderableObject with FskTransformableMixin {
     horizontalJustification = textData.hJustify;
     verticalJustification = textData.vJustify;
     maxLen = textData.maxLen;
+    scaleToFit = textData.scaleToFit;
     visible = textData.visible;
   }
 
@@ -237,6 +242,7 @@ class FskBitmapText extends Fsk2DRenderableObject with FskTransformableMixin {
       horizontalJustification: horizontalJustification,
       verticalJustification: verticalJustification,
       width: _width,
+      scaleToFit: scaleToFit,
     );
 
     final result = quadBuilder.build();
