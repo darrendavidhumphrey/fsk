@@ -36,6 +36,9 @@ class FrameSceneBuilder with LoggableClass {
     final node = FskSceneObjectFactory.create(scene, objData, _createNode);
 
     if (node != null) {
+      if (FskGroup.enableDuplicateIdCheck && scene.nodeMap.containsKey(objData.id)) {
+        logWarning('Duplicate node ID "${objData.id}" detected in scene hierarchy.');
+      }
       scene.nodeMap[objData.id] = node;
     }
     return node;

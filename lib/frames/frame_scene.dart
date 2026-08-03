@@ -20,6 +20,9 @@ class FskFrameScene extends FskScene {
   }
 
   void addNode(FskSceneObject node) {
+    if (FskGroup.enableDuplicateIdCheck && nodeMap.containsKey(node.id)) {
+      logWarning('Duplicate node ID "${node.id}" added to FskFrameScene.');
+    }
     rootNodes.add(node);
     nodeMap[node.id] = node;
   }

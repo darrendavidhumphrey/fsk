@@ -227,11 +227,11 @@ class WavefrontObjModel {
     final correctionGroup = FskGroup('${id}_correction', scene);
     // Y-axis 180 to face camera, Z-axis 180 to flip right-side up
     correctionGroup.transformable.rotation = Vector3(0, radians(180), radians(180));
-    rootGroup.children.add(correctionGroup);
+    rootGroup.addNode(correctionGroup);
 
     // Create the actual mesh and add it to the correction group
     final mesh = model.createIndexedMesh(scene, id, shaderMaterial: shaderMaterial);
-    correctionGroup.children.add(mesh);
+    correctionGroup.addNode(mesh);
 
     return rootGroup;
   }

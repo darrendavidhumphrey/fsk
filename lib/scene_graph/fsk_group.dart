@@ -22,6 +22,9 @@ class FrameGroupData extends FrameGroupDataExplicit {
 }
 
 class FskGroup extends FskRenderableObject with FskTransformableMixin {
+  /// Global flag to enable or disable duplicate ID checks for performance.
+  static bool enableDuplicateIdCheck = true;
+
   final List<FskSceneObject> children = [];
 
   static void registerWithFactories() {
@@ -51,7 +54,7 @@ class FskGroup extends FskRenderableObject with FskTransformableMixin {
       for (var childData in groupData.children) {
         final childNode = createNode(childData);
         if (childNode != null) {
-          groupNode.children.add(childNode);
+          groupNode.addNode(childNode);
         }
       }
       return groupNode;
@@ -69,6 +72,19 @@ class FskGroup extends FskRenderableObject with FskTransformableMixin {
       transformable.anchor = data.anchor;
     }
     visible = data.visible;
+  }
+
+  /// Adds a child node to this group.
+  void addNode(FskSceneObject node) {
+    if (enableDuplicateIdCheck) {
+      for (final child in children) {
+        if (child.id == node.id) {
+          logWarning('Duplicate node ID "${node.id}" added to group "$id".');
+          break;
+        }
+      }
+    }
+    children.add(node);
   }
 
   @override

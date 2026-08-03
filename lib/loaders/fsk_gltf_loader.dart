@@ -78,11 +78,11 @@ class FskGltfLoader {
     // We create a correction group to handle this so the rootGroup's frame of reference stays at 0.
     final correctionGroup = FskGroup('gltf_correction', scene);
     correctionGroup.transformable.rotation = Vector3(0, radians(180), radians(180));
-    rootGroup.children.add(correctionGroup);
+    rootGroup.addNode(correctionGroup);
 
     for (final int nodeIdx in sceneNodes) {
       final node = _createNode((nodeIdx as num).toInt());
-      if (node != null) correctionGroup.children.add(node);
+      if (node != null) correctionGroup.addNode(node);
     }
 
     return rootGroup;
@@ -140,7 +140,7 @@ class FskGltfLoader {
     if (nodeJson.containsKey('children') && node is FskGroup) {
       for (final childIdx in nodeJson['children']) {
         final child = _createNode((childIdx as num).toInt());
-        if (child != null) node.children.add(child);
+        if (child != null) node.addNode(child);
       }
     }
     return node;
@@ -158,7 +158,7 @@ class FskGltfLoader {
         shaderMaterial: FskShaderMaterial.pbr,
       );
       _buildPrimitive(primitives[i], mesh);
-      group.children.add(mesh);
+      group.addNode(mesh);
     }
     return group.children.length == 1 ? group.children[0] : group;
   }
