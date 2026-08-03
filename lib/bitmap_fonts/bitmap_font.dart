@@ -42,7 +42,7 @@ class CharInfo {
 ///
 /// This class holds the font's metrics, character information, kerning pairs,
 /// and the associated WebGL texture.
-class BitmapFont with LoggableClass {
+class BitmapFont extends ChangeNotifier with LoggableClass {
   /// The name of the font.
   final String name;
 
@@ -97,6 +97,7 @@ class BitmapFont with LoggableClass {
         wrapT: gpu.SamplerAddressMode.clampToEdge,
       );
       logVerbose("Loaded font texture into Flutter GPU: $textureName");
+      notifyListeners();
     } catch (e) {
       logError("Failed loading $textureName into Flutter GPU: $e");
       rethrow;

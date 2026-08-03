@@ -68,6 +68,14 @@ class FskBitmapText extends Fsk2DRenderableObject with FskTransformableMixin {
   /// Whether the text should scale up to fit the reference box.
   bool scaleToFit = false;
 
+  void _onFontChanged() {
+    if (_font.isInitialized) {
+      _renderer.setTexture(_font.textureInfo);
+      setNeedsRebuild();
+      parentScene.setNeedsUpdate();
+    }
+  }
+
   static void registerWithFactories() {
     FrameObjectDataFactory.register('text', (node, anchors, parseObject) {
       final String? shaderName = node.getAttribute('shader');
@@ -109,7 +117,9 @@ class FskBitmapText extends Fsk2DRenderableObject with FskTransformableMixin {
   /// Sets a new font and flags the text for a rebuild.
   void setFont(BitmapFont font) {
     if (_font != font) {
+      _font.removeListener(_onFontChanged);
       _font = font;
+      _font.addListener(_onFontChanged);
 
       _renderer.setTexture(font.textureInfo);
       needsRebuild = true;
@@ -193,6 +203,8 @@ class FskBitmapText extends Fsk2DRenderableObject with FskTransformableMixin {
 
     // Trigger the setter
     textColor = _textColor;
+
+    _font.addListener(_onFontChanged);
   }
 
   FskBitmapText.fromData(super.id,super.parentScene, super.refBox,FrameTextData textData, {FskShaderMaterial? shaderMaterial}) {
@@ -209,6 +221,7 @@ class FskBitmapText extends Fsk2DRenderableObject with FskTransformableMixin {
       logWarning("Font not found for $id, using default font");
     }
     _font = fontToUse!;
+    _font.addListener(_onFontChanged);
     _renderer.setTexture(font.textureInfo);
 
     _text = textData.text;
