@@ -26,7 +26,6 @@ class PbrModelScene extends FskFrameScene {
         addNode(modelRoot!);
         
         isReady = true;
-        navigationDelegate?.updateSceneMatrices(force: true);
       }
     } catch (e, s) {
       logError("Error loading PBR model: $e\n$s");

@@ -38,7 +38,6 @@ class AnimatedCheckerBoardScene extends FskFrameScene {
     addNode(checkerQuad!);
 
     isReady = true;
-    navigationDelegate?.updateSceneMatrices(force: true);
   }
 
   @override

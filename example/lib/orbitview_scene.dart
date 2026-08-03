@@ -33,6 +33,5 @@ class OrbitViewScene extends FskFrameScene {
     addNode(gridQuad);
 
     isReady = true;
-    navigationDelegate?.updateSceneMatrices(force: true);
   }
 }

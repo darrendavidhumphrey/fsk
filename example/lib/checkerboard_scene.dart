@@ -15,7 +15,7 @@ class CheckerBoardScene extends FskFrameScene {
       Vector3(0, 0, 1),
     );
 
-    final gridQuad = FskQuad(
+    final checkerQuad = FskQuad(
       'checker',
       this,
       refBox,
@@ -25,15 +25,14 @@ class CheckerBoardScene extends FskFrameScene {
       shaderMaterial: FskShaderMaterial.checkerboard,
     );
 
-    final uniforms = gridQuad.uniforms as CheckerBoardUniforms;
+    final uniforms = checkerQuad.uniforms as CheckerBoardUniforms;
     uniforms.patternColor1 = Colors.red;
     uniforms.patternColor2 = Colors.green;
     uniforms.useTexture = false;
     uniforms.patternScale = 50;
 
-    addNode(gridQuad);
+    addNode(checkerQuad);
 
     isReady = true;
-    navigationDelegate?.updateSceneMatrices(force: true);
   }
 }
