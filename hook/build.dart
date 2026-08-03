@@ -9,7 +9,7 @@ void main(List<String> args) async {
       buildInput: config,
       buildOutput: output,
       manifestFileName: 'shaders/fsk.shaderbundle.json',
-      assetMode: ShaderBundleAssetMode.dataAssetsRequired,
+      assetMode: ShaderBundleAssetMode.dataAssetsIfAvailable,
     );
     // This will print the EXACT key you need to pass into fromAsset()
     stderr.writeln('==================================================');

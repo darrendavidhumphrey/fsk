@@ -19,6 +19,7 @@ class _GPURenderWidgetState extends State<GPURenderWidget> with SingleTickerProv
   Size _lastSize = Size.zero;
   FskScene? _lastScene;
   FskRenderTarget? _fskTarget;
+  Color? _lastClearColor;
 
   @override
   void initState() {
@@ -51,10 +52,11 @@ class _GPURenderWidgetState extends State<GPURenderWidget> with SingleTickerProv
     final int physicalWidth = (logicalSize.width * pixelRatio).round();
     final int physicalHeight = (logicalSize.height * pixelRatio).round();
 
-    // Reallocate container explicitly if size transforms or scene instances change
-    if (_lastSize != logicalSize || _lastScene != widget.scene) {
+    // Reallocate container explicitly if size transforms, scene instances, or clear colors change
+    if (_lastSize != logicalSize || _lastScene != widget.scene || _lastClearColor != widget.scene.clearColor) {
       _lastSize = logicalSize;
       _lastScene = widget.scene;
+      _lastClearColor = widget.scene.clearColor;
 
       // Update dimensions
       widget.scene.updateRenderTargetSize(physicalWidth, physicalHeight);

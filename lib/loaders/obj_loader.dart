@@ -138,8 +138,11 @@ class WavefrontObjModel {
     // Reset state for the main parsing pass.
     uniqueVertexMap.clear();
     nextAvailableIndex = 0;
-    
-    // ...
+
+    // Reset attribute data for the main pass
+    tempPositions.clear();
+    tempTextureCoordinates.clear();
+    tempNormals.clear();
 
     for (String line in lines) {
       final trimmed = line.trim();

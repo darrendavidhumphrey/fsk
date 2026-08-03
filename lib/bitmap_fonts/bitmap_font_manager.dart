@@ -35,6 +35,12 @@ class BitmapFontManager with LoggableClass {
     _fonts[name] = font;
   }
 
+  /// Clears all registered fonts from the manager.
+  void clear() {
+    _fonts.clear();
+    logInfo("BitmapFontManager cleared.");
+  }
+
   /// Retrieves a font by its registered [name].
   ///
   /// Returns `null` if a font with the given name has not been registered.

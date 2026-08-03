@@ -4,6 +4,7 @@ import 'package:flutter/services.dart';
 import 'package:flutter_gpu/gpu.dart' as gpu;
 
 import '../logging.dart';
+import '../fsk_singleton.dart';
 
 class FskTextureInfo {
   String id;
@@ -43,6 +44,12 @@ class FskTextureManager with LoggableClass {
     });
   }
 
+  /// Clears all loaded textures from the manager.
+  void clear() {
+    _textures.clear();
+    logInfo("TextureManager cleared.");
+  }
+
   /// Loads an image from assets and creates a modern flutter_gpu texture directly.
   Future<FskTextureInfo> createTextureFromAsset(
       String id,
@@ -71,6 +78,7 @@ class FskTextureManager with LoggableClass {
     String fullPath = '$assetsRoot$url';
     logVerbose("createTextureFromAsset: ID=$id, path=$fullPath");
 
+    FSK().startLoad();
     try {
       final ByteData data = await rootBundle.load(fullPath);
 
@@ -101,6 +109,8 @@ class FskTextureManager with LoggableClass {
     } catch (e) {
       logError("Error processing flutter_gpu texture allocation for $url: $e");
       textureInfo.isLoaded = false;
+    } finally {
+      FSK().endLoad();
     }
 
     return textureInfo;

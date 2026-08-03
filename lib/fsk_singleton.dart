@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 import 'package:flutter_gpu/gpu.dart' as gpu;
 import 'package:fsk/shaders/materials.dart';
 import 'package:fsk/gpu/fsk_texture_manager.dart';
@@ -21,10 +22,27 @@ enum FskState {
 /// This class is responsible for managing global state, including the FlutterAngle
 /// engine instance, scenes, and shared resources like shaders, materials, and
 /// textures.
-class FSK with LoggableClass {
+class FSK extends ChangeNotifier with LoggableClass {
   /// The current initialization state of the engine.
   FskState _state = FskState.uninitialized;
   FskState get state => _state;
+
+  /// Tracks the number of asynchronous asset loading tasks currently in progress.
+  int _pendingLoadCount = 0;
+  bool get isBusy => _pendingLoadCount > 0;
+
+  /// Increments the pending load counter.
+  void startLoad() {
+    _pendingLoadCount++;
+  }
+
+  /// Decrements the pending load counter.
+  void endLoad() {
+    _pendingLoadCount--;
+    if (_pendingLoadCount == 0) {
+      notifyListeners();
+    }
+  }
 
   // Default device pixel ratio for rendering to texture
   static double devicePixelRatio = 1.0;
@@ -63,13 +81,61 @@ class FSK with LoggableClass {
   Future<bool> init() async {
     try {
       if (_state == FskState.uninitialized) {
-        await shaderLibrary.registerBuiltInShaderLibrary('packages/fsk/flutter_gpu_shaders/shaderbundles/fsk.shaderbundle');
+        // We try common paths for the compiled shader bundle in order of probability.
+        final List<String> possiblePaths = [
+          'packages/fsk/shaders/fsk.shaderbundle',
+          'packages/fsk/flutter_gpu_shaders/shaderbundles/fsk.shaderbundle',
+          'shaders/fsk.shaderbundle',
+          'fsk.shaderbundle',
+        ];
+        
+        bool loaded = false;
+        for (final path in possiblePaths) {
+          try {
+            await shaderLibrary.registerBuiltInShaderLibrary(path);
+            logInfo('Successfully loaded shader bundle from: $path');
+            loaded = true;
+            break;
+          } catch (_) {
+            // Silently try next path
+          }
+        }
+        
+        if (!loaded) {
+          logWarning('Failed to load shader bundle from prioritized paths. Searching AssetManifest...');
+          
+          final manifest = await AssetManifest.loadFromAssetBundle(rootBundle);
+          final allAssets = manifest.listAssets();
+          
+          // Ultra-flexible search: Find any asset that contains "shaderbundle" and is not a JSON file.
+          final match = allAssets.firstWhere(
+            (a) => a.contains('shaderbundle') && !a.endsWith('.json'), 
+            orElse: () => ''
+          );
+          
+          if (match.isNotEmpty) {
+            logInfo('Found alternative shader bundle path via fuzzy match: $match');
+            await shaderLibrary.registerBuiltInShaderLibrary(match);
+          } else {
+            logError('CRITICAL: No binary shader bundle found in AssetManifest.');
+            logError('Total assets bundled: ${allAssets.length}');
+            
+            // Log the ENTIRE manifest in chunks to avoid terminal truncation
+            for (int i = 0; i < allAssets.length; i += 20) {
+              final chunk = allAssets.skip(i).take(20).join(", ");
+              logError('Manifest Chunk ${i~/20}: $chunk');
+            }
+            
+            throw Exception('Shader bundle not found in assets. Ensure you are running with --enable-impeller and --enable-flutter-gpu.');
+          }
+        }
+        
         _state = FskState.initialized;
-
         return true;
       }
     } catch (e) {
-      debugPrint('Exception initializing GpuShader Pipeline: $e');
+      logError('Exception initializing GpuShader Pipeline: $e');
+      logError('Make sure you are running with --enable-impeller.');
       return false;
     }
 

@@ -3,6 +3,8 @@ description: "FlutterSceneKit - lightweight library for adding OpenGL ES 3D rend
 version: 0.0.1
 homepage: https://pub.dev
 
+hook: hook/build.dart
+
 environment:
   sdk: ^3.12.0
 
@@ -28,3 +30,6 @@ dev_dependencies:
 # The following section is specific to Flutter packages.
 flutter:
   uses-material-design: true
+  assets:
+    - shaders/
+    - shaders/fsk.shaderbundle

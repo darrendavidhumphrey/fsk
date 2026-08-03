@@ -89,8 +89,12 @@ class FskFrameScene extends FskScene {
       if (frameData != null) {
         var builder = FrameSceneBuilder(this, frameData);
         frameSize = frameData.frameSize;
-        isReady = await builder.buildScene();
-        if (isReady) await onSkinReady();
+        final success = await builder.buildScene();
+        if (success) {
+          await onSkinReady();
+          isReady = true;
+          notifyListeners();
+        }
       }
     } catch (e, stackTrace) {
       logError("Error skin XML '$skinPath': $e");

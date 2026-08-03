@@ -35,7 +35,7 @@ class FskRenderTarget {
 
   void _allocateResources() {
     _resolveTexture = gpu.gpuContext.createTexture(
-      gpu.StorageMode.devicePrivate,
+      gpu.StorageMode.hostVisible, // Changed to hostVisible for CPU readback support
       width,
       height,
       format: gpu.PixelFormat.r8g8b8a8UNormInt,

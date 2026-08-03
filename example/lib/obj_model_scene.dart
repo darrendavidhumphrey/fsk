@@ -22,37 +22,43 @@ class ObjModelScene extends FskFrameScene {
   }
 
   void init() async {
-    useBoxFitLayout = false;
-    clearColor = Colors.blueGrey;
+    try {
+      useBoxFitLayout = false;
+      clearColor = Colors.blueGrey;
 
-    // Load the teapot model using the new load method
-    FskTextureInfo? teapotTexture = await loadTexture();
-    FskGroup teapotModel = await WavefrontObjModel.load(
-      'assets/3D/Teapot/teapot_textures_normals.obj',
-      this,
-      'teapot',
-    );
+      // Load the teapot model using the new load method
+      FskTextureInfo? teapotTexture = await loadTexture();
+      FskGroup teapotModel = await WavefrontObjModel.load(
+        'assets/3D/Teapot/teapot_textures_normals.obj',
+        this,
+        'teapot',
+      );
 
-    if (teapotTexture != null) {
-      // Caller's frame of reference is now 0, no manual rotation needed!
-      teapotModel.transformable.scale = Vector3.all(5.0);
+      if (teapotTexture != null) {
+        // Caller's frame of reference is now 0, no manual rotation needed!
+        teapotModel.transformable.scale = Vector3.all(5.0);
 
-      // Robustly find the mesh by its hierarchical path
-      final mesh = teapotModel.findNode<FskIndexedMesh>('teapot_correction.teapot');
-      if (mesh != null) {
-        final LightingUniforms uniforms = LightingUniforms();
-        mesh.renderer.uniforms = uniforms;
+        // Robustly find the mesh by its hierarchical path
+        final mesh = teapotModel.findNode<FskIndexedMesh>('teapot_correction.teapot');
+        if (mesh != null) {
+          final LightingUniforms uniforms = LightingUniforms();
+          mesh.renderer.uniforms = uniforms;
 
-        uniforms.lightPos = Vector3(500, 500, 500);
+          uniforms.lightPos = Vector3(500, 500, 500);
 
-        // Bind the texture to the shader
-        uniforms.texture = teapotTexture.texture;
-        uniforms.samplerOptions = teapotTexture.samplerOptions;
+          // Bind the texture to the shader
+          uniforms.texture = teapotTexture.texture;
+          uniforms.samplerOptions = teapotTexture.samplerOptions;
+        }
+
+        // Add the teapot root to the scene graph
+        addNode(teapotModel);
       }
-
-      // Add the teapot root to the scene graph
-      addNode(teapotModel);
+      isReady = true;
+    } catch (e, s) {
+      logError("Error in ObjModelScene.init: $e\n$s");
+      // Mark ready anyway so the test doesn't hang forever
+      isReady = true;
     }
-    isReady = true;
   }
 }
