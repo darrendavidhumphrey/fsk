@@ -9,7 +9,7 @@ class FskFrameScene extends FskScene {
   final Map<String, FskSceneObject> nodeMap = {};
   Size frameSize = Size.zero;
 
-  bool use2DLayout = true;
+  bool useBoxFitLayout = true;
 
   FskFrameScene({super.navigationDelegate}) {
     isReady = false;
@@ -31,7 +31,7 @@ class FskFrameScene extends FskScene {
     super.setupScissor(renderPass);
 
     Matrix4 layoutMatrix = Matrix4.identity();
-    if (use2DLayout) {
+    if (useBoxFitLayout) {
       Matrix4? boxFitMatrix = navigationDelegate?.createBoxFitMatrix(frameSize);
 
       if (boxFitMatrix != null) {
@@ -75,6 +75,7 @@ class FskFrameScene extends FskScene {
     return null;
   }
 
+  // Override this method to invoke code when the skin has completed loading
   Future<void> onSkinReady() async {}
 
   Future<void> loadSkin(String skinPath) async {

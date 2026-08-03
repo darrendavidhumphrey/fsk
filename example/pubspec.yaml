@@ -37,7 +37,6 @@ dev_dependencies:
   hooks: ^2.1.0
   data_assets: ^0.20.0
 
-
 flutter_launcher_icons:
   android: "launcher_icon"
   ios: true
@@ -53,6 +52,7 @@ flutter:
   assets:
     - assets/
     - assets/frames/
-    - assets/SciFiHelmet/glTF/
-    - assets/test/
+    - assets/3D/SciFiHelmet/
+    - assets/3D/SciFiHelmet/glTF/
+    - assets/3D/Teapot/
     - data_assets/

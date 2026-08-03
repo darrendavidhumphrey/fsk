@@ -20,8 +20,8 @@ export 'gpu/gpu_pipeline_key.dart';
 export 'gpu/fsk_render_target.dart';
 export 'gpu/fsk_shader_library.dart';
 export 'gpu/fsk_shader_material.dart';
-export 'gpu/fsk_mtlx_loader.dart';
-export 'gpu/fsk_gltf_loader.dart';
+export 'loaders/fsk_mtlx_loader.dart';
+export 'loaders/fsk_gltf_loader.dart';
 export 'gpu/fsk_texture_manager.dart';
 export 'gpu/fsk_vertex_buffer.dart';
 
@@ -58,7 +58,6 @@ export 'fsk_singleton.dart';
 export 'fsk_scene.dart';
 
 export 'logging.dart';
-export 'matrix_stack.dart';
-export 'obj_loader.dart';
+export 'loaders/obj_loader.dart';
 export 'util.dart';
 export 'vbo_filler.dart';

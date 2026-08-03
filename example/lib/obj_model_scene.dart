@@ -19,12 +19,12 @@ class ObjModelScene extends FskScene {
       // 1. Pre-load the texture
       await FSK().textureManager.createTextureFromAsset(
         'Bricks',
-        'Bricks051_1K-JPG_Color.jpg',
+        '3D/Teapot/Bricks051_1K-JPG_Color.jpg',
       );
 
       // 2. Load the mesh
       teapotMesh = await WavefrontObjModel.indexedMeshFromAsset(
-        'assets/teapot_textures_normals.obj',
+        'assets/3D/Teapot/teapot_textures_normals.obj',
         this,
         'teapot',
       );

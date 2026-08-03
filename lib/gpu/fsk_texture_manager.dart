@@ -3,12 +3,13 @@ import 'package:flutter/foundation.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_gpu/gpu.dart' as gpu;
 
+import '../logging.dart';
+
 class FskTextureInfo {
   String id;
   String url;
   gpu.Texture? texture;
 
-  // FIX: Swapped Sampler objects out for flutter_gpu's consolidated SamplerOptions state mapping
   gpu.SamplerOptions samplerOptions;
   bool isLoaded = false;
 
@@ -16,7 +17,7 @@ class FskTextureInfo {
 }
 
 /// A manager for loading, creating, and caching flutter_gpu textures.
-class FskTextureManager {
+class FskTextureManager with LoggableClass {
   final Map<String, FskTextureInfo> _textures = {};
 
   static String assetsRoot = "assets/";
@@ -52,7 +53,7 @@ class FskTextureManager {
         gpu.SamplerAddressMode wrapT = gpu.SamplerAddressMode.repeat,
       }) async {
     if (_textures.containsKey(id)) {
-      debugPrint("Skip Loading Texture ID $id (already exists)");
+      logInfo("Skip Loading Texture ID $id (already exists)");
       return _textures[id]!;
     }
 
@@ -68,7 +69,7 @@ class FskTextureManager {
     _textures[id] = textureInfo;
 
     String fullPath = '$assetsRoot$url';
-    debugPrint("createTextureFromAsset: ID=$id, path=$fullPath");
+    logVerbose("createTextureFromAsset: ID=$id, path=$fullPath");
 
     try {
       final ByteData data = await rootBundle.load(fullPath);
@@ -98,7 +99,7 @@ class FskTextureManager {
 
       textureInfo.isLoaded = textureInfo.texture != null;
     } catch (e) {
-      debugPrint("Error processing flutter_gpu texture allocation for $url: $e");
+      logError("Error processing flutter_gpu texture allocation for $url: $e");
       textureInfo.isLoaded = false;
     }
 

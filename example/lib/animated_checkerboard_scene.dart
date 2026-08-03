@@ -44,7 +44,7 @@ class AnimatedCheckerBoardScene extends FskFrameScene {
   @override
   void rebuildGeometry() {
     if (!isReady) return;
-    use2DLayout = false;
+    useBoxFitLayout = false;
     final uniforms = checkerQuad!.uniforms as CheckerBoardUniforms;
 
     double cycleDuration = 2;

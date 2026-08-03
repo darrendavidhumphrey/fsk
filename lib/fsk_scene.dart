@@ -6,8 +6,7 @@ import 'package:vector_math/vector_math.dart' show Matrix4;
 /// An abstract base class for a 3D scene, representing the root of a scene graph.
 abstract class FskScene extends ChangeNotifier with LoggableClass {
   Matrix4 pMatrix = Matrix4.identity();
-  final MatrixStack mvMatrixStack = MatrixStack();
-  Matrix4 get mvMatrix => mvMatrixStack.current;
+  Matrix4 mvMatrix = Matrix4.identity();
 
   Size _viewportSize = Size.zero;
   // ignore: unnecessary_getters_setters

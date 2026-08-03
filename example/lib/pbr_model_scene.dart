@@ -12,11 +12,11 @@ class PbrModelScene extends FskFrameScene {
 
   void init() async {
     clearColor = const Color(0xFF101015);
-    use2DLayout = false; // Perspective 3D mode
+    useBoxFitLayout = false; // Perspective 3D mode
 
     try {
       // 🟢 NORMAL RENDERING: Load the actual SciFi Helmet
-      modelRoot = await FskGltfLoader.load('assets/SciFiHelmet/glTF/SciFiHelmet.gltf', this);
+      modelRoot = await FskGltfLoader.load('assets/3D/SciFiHelmet/glTF/SciFiHelmet.gltf', this);
 
       if (modelRoot != null) {
         // Optimized scale for standard orbit distance

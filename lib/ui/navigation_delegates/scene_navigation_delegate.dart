@@ -67,8 +67,8 @@ abstract class FskSceneNavigationDelegate with ChangeNotifier {
       setProjectionMatrix(createProjectionMatrix());
       setNeedsUpdate(false);
     }
-    scene.mvMatrixStack.current = getViewMatrix();
-    scene.pMatrix = getProjectionMatrix();
+    scene.mvMatrix.setFrom(getViewMatrix());
+    scene.pMatrix.setFrom(getProjectionMatrix());
   }
 
   void setScene(FskScene scene) {

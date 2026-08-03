@@ -73,6 +73,7 @@ void main() {
     float roughness = mrSample.g * fragUniforms.uParams.x;
     float metallic = mrSample.b * fragUniforms.uParams.y;
 
+    // Fresnel reflection at zero incidence
     vec3 F0 = vec3(0.04);
     F0 = mix(F0, albedo.rgb, metallic);
 
@@ -90,15 +91,19 @@ void main() {
     vec3 specular = numerator / denominator;
 
     float NdotL = max(dot(worldNormal, L), 0.0);
-    vec3 lo = (kD * albedo.rgb / PI + specular) * NdotL;
+    vec3 diffuse = kD * albedo.rgb / PI;
 
-    // Simple ambient light + light intensity boost
-    vec3 ambient = vec3(0.1) * albedo.rgb;
+    // Light intensity boost (x3)
+    vec3 lo = (diffuse + specular) * NdotL * 3.0;
+
+    // Stronger ambient light base
+    vec3 ambient = vec3(0.15) * albedo.rgb;
     vec3 color = ambient + lo;
 
     // 5. Final Output: Exposure Tone Mapping & Gamma Correction
-    color = color / (color + vec3(1.0)); // Reinhard tone mapping
-    color = pow(color, vec3(1.0/2.2));   // Gamma correction 2.2
+    // Adjusted tone mapping to be less aggressive at lower intensities
+    color = color / (color + vec3(1.0));
+    color = pow(color, vec3(1.0/2.2));
 
     FragColor = vec4(color * albedo.a, albedo.a);
 }
