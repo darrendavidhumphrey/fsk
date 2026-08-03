@@ -32,33 +32,33 @@ class FskFrameScene extends FskScene {
 
     Matrix4 layoutMatrix = Matrix4.identity();
     if (use2DLayout) {
-      Matrix4? boxFit = navigationDelegate?.createBoxFitMatrix(frameSize);
-      if (boxFit != null) layoutMatrix = boxFit * layoutMatrix;
+      Matrix4? boxFitMatrix = navigationDelegate?.createBoxFitMatrix(frameSize);
 
+      if (boxFitMatrix != null) {
+        layoutMatrix = boxFitMatrix * layoutMatrix;
+      }
+
+      // Center object in view by translating content origin to its center
       layoutMatrix.translateByVector3(
         Vector3(
           -frameSize.width / 2,
           -frameSize.height / 2,
-          0.0,
+          0,
         ),
       );
     }
 
-    final Matrix4 stageMvMatrix = layoutMatrix.clone()..multiply(mvMatrix);
+    final Matrix4 finalMvMatrix = layoutMatrix * mvMatrix;
 
     for (var node in rootNodes) {
-      _recursiveDraw(node, renderPass, transients, pMatrix.clone(), stageMvMatrix.clone());
-    }
-  }
-
-  void _recursiveDraw(FskSceneObject node, gpu.RenderPass renderPass, gpu.HostBuffer transients, Matrix4 pMatrix, Matrix4 mvMatrix) {
-    if (node is FskRenderableObject) {
-      node.draw(renderPass, transients, pMatrix, mvMatrix, viewportSize);
-    }
-    
-    if (node is FskGroup) {
-      // Groups already handle recursive drawing of their children in their draw method
-      // However, we want to ensure the top-level mvMatrix is applied correctly
+      if (node is FskRenderableObject) {
+        node.draw(
+            renderPass,
+            transients,
+            pMatrix.clone(),
+            finalMvMatrix.clone(),
+            viewportSize);
+      }
     }
   }
 
@@ -70,7 +70,7 @@ class FskFrameScene extends FskScene {
   }
 
   T? findNode<T>(String id) {
-    final node = nodeMap[id];
+    var node = nodeMap[id];
     if (node is T) return node as T;
     return null;
   }

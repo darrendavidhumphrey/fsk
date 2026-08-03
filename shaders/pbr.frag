@@ -17,34 +17,88 @@ layout(set = 0, binding = 2) uniform sampler2D uBaseColorMap;
 layout(set = 0, binding = 3) uniform sampler2D uNormalMap;
 layout(set = 0, binding = 4) uniform sampler2D uMetallicRoughnessMap;
 
-void main() {
-    // AGGRESSIVE DIAGNOSTIC MODES
-    if (fragUniforms.uParams.z > 3.5) {
-        // MODE 4: SOLID NEON MAGENTA (Confirm Geometry & Frustum)
-        FragColor = vec4(1.0, 0.0, 1.0, 1.0);
-        return;
-    }
-    if (fragUniforms.uParams.z > 2.5) {
-        // MODE 3: TEXTURE ONLY (Confirm UVs & Texture Loading)
-        FragColor = texture(uBaseColorMap, vTextureCoord) * fragUniforms.uBaseColorFactor;
-        return;
-    }
-    if (fragUniforms.uParams.z > 1.5) {
-        // MODE 2: NORMALS (Confirm TBN & Normals)
-        FragColor = vec4(normalize(vNormal) * 0.5 + 0.5, 1.0);
-        return;
-    }
-    if (fragUniforms.uParams.z > 0.5) {
-        // MODE 1: UV GRADIENT
-        FragColor = vec4(vTextureCoord, 0.0, 1.0);
-        return;
-    }
+const float PI = 3.14159265359;
 
-    // Standard PBR Logic...
+float DistributionGGX(vec3 N, vec3 H, float roughness) {
+    float a = roughness * roughness;
+    float a2 = a * a;
+    float NdotH = max(dot(N, H), 0.0);
+    float NdotH2 = NdotH * NdotH;
+    float num = a2;
+    float denom = (NdotH2 * (a2 - 1.0) + 1.0);
+    denom = PI * denom * denom;
+    return num / denom;
+}
+
+float GeometrySchlickGGX(float NdotV, float roughness) {
+    float r = (roughness + 1.0);
+    float k = (r * r) / 8.0;
+    float num = NdotV;
+    float denom = NdotV * (1.0 - k) + k;
+    return num / denom;
+}
+
+float GeometrySmith(vec3 N, vec3 V, vec3 L, float roughness) {
+    float NdotV = max(dot(N, V), 0.0);
+    float NdotL = max(dot(N, L), 0.0);
+    float ggx2 = GeometrySchlickGGX(NdotV, roughness);
+    float ggx1 = GeometrySchlickGGX(NdotL, roughness);
+    return ggx1 * ggx2;
+}
+
+vec3 fresnelSchlick(float cosTheta, vec3 F0) {
+    return F0 + (1.0 - F0) * pow(clamp(1.0 - cosTheta, 0.0, 1.0), 5.0);
+}
+
+void main() {
+    // 1. TBN / Normals (View Space)
     vec3 N = normalize(vNormal);
+    vec3 T = normalize(vTangent);
+    vec3 B = cross(N, T);
+    mat3 TBN = mat3(T, B, N);
+
+    // Sample and unpack normal map
+    vec3 tangentNormal = texture(uNormalMap, vTextureCoord).rgb * 2.0 - 1.0;
+    vec3 worldNormal = normalize(TBN * tangentNormal);
+
+    // 2. Vectors
     vec3 V = normalize(-vEyeCoords);
     vec3 L = normalize(fragUniforms.uLightPos.xyz - vEyeCoords);
-    float diff = max(dot(N, L), 0.0);
-    vec3 diffuse = texture(uBaseColorMap, vTextureCoord).rgb * diff;
-    FragColor = vec4(diffuse, 1.0);
+    vec3 H = normalize(V + L);
+
+    // 3. Material Properties
+    vec4 albedo = texture(uBaseColorMap, vTextureCoord) * fragUniforms.uBaseColorFactor;
+
+    vec4 mrSample = texture(uMetallicRoughnessMap, vTextureCoord);
+    float roughness = mrSample.g * fragUniforms.uParams.x;
+    float metallic = mrSample.b * fragUniforms.uParams.y;
+
+    vec3 F0 = vec3(0.04);
+    F0 = mix(F0, albedo.rgb, metallic);
+
+    // 4. Cook-Torrance BRDF
+    float NDF = DistributionGGX(worldNormal, H, roughness);
+    float G = GeometrySmith(worldNormal, V, L, roughness);
+    vec3 F = fresnelSchlick(max(dot(H, V), 0.0), F0);
+
+    vec3 kS = F;
+    vec3 kD = vec3(1.0) - kS;
+    kD *= 1.0 - metallic;
+
+    vec3 numerator = NDF * G * F;
+    float denominator = 4.0 * max(dot(worldNormal, V), 0.0) * max(dot(worldNormal, L), 0.0) + 0.0001;
+    vec3 specular = numerator / denominator;
+
+    float NdotL = max(dot(worldNormal, L), 0.0);
+    vec3 lo = (kD * albedo.rgb / PI + specular) * NdotL;
+
+    // Simple ambient light + light intensity boost
+    vec3 ambient = vec3(0.1) * albedo.rgb;
+    vec3 color = ambient + lo;
+
+    // 5. Final Output: Exposure Tone Mapping & Gamma Correction
+    color = color / (color + vec3(1.0)); // Reinhard tone mapping
+    color = pow(color, vec3(1.0/2.2));   // Gamma correction 2.2
+
+    FragColor = vec4(color * albedo.a, albedo.a);
 }

@@ -28,6 +28,11 @@ class FskVertexBuffer {
     final uploadSource = data ?? vertexData;
     if (uploadSource == null || uploadSource.isEmpty) return;
 
+    // Store the data in the host buffer for debugging and retrieval
+    if (data != null) {
+      vertexData = data;
+    }
+
     final int count = uploadSource.length ~/ componentCount;
     final int activeBytesSize = count * strideInBytes;
 

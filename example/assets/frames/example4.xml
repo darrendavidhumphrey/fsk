@@ -14,11 +14,10 @@
     <!-- Start of SCENE  -->
     <objects>
         <quad id="Penelope" texture="Penelope" screenRect="{{430, 199}, {221, 238}}" visible="true" premultiplyAlpha="false"/>
- 
-        <!--
+
         <text id="Text1" font="SourceCodePro-Black30" text="Text Item "
             screenRect="{{439, 457}, {162, 21}}" hJustify="center" vJustify="bottom" visible="true" textColor="#000000FF" />
--->
+
         <quad id="Penelope1" texture="Penelope" screenRect="{{730, 199}, {221, 238}}" visible="true" premultiplyAlpha="true" modulateColor="#FF0000FF"/>
 
         <text id="EmptyTest" font="ArialMT36" text=""

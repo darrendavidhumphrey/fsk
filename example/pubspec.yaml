@@ -31,7 +31,6 @@ dependencies:
 dev_dependencies:
   flutter_test:
     sdk: flutter
-  mockito: ^5.4.4
   build_runner: ^2.4.8
   flutter_gpu_shaders: ^0.5.1
   flutter_lints: ^6.0.0
@@ -55,4 +54,5 @@ flutter:
     - assets/
     - assets/frames/
     - assets/SciFiHelmet/glTF/
+    - assets/test/
     - data_assets/

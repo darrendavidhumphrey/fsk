@@ -1,8 +1,14 @@
 import 'dart:ui';
+
+import 'package:fsk/scene_graph/fsk_renderer_base.dart';
+import 'package:fsk/scene_graph/fsk_transformable.dart';
 import 'package:vector_math/vector_math.dart';
 import 'package:flutter_gpu/gpu.dart' as gpu;
-import 'package:fsk/fsk.dart';
-import 'fsk_renderer_base.dart';
+import '../fsk_scene.dart';
+import '../geometry/reference_box.dart';
+import '../gpu/fsk_shader_material.dart';
+import '../shaders/base_uniforms.dart';
+import '../logging.dart';
 
 abstract class FskSceneObject with LoggableClass {
 
@@ -45,14 +51,10 @@ abstract class FskRenderableObject extends FskSceneObject {
   void draw(gpu.RenderPass renderPass,gpu.HostBuffer transients, Matrix4 pMatrix, Matrix4 mvMatrix, Size viewportSize) {
     if (!visible) return;
 
+    // ORIGINAL POST-MULTIPLICATION: mvMatrix * LocalTransform
     Matrix4 finalMvMatrix = mvMatrix;
     if (transformable.isTransformed()) {
-      finalMvMatrix = transformable.getTransform().clone()..multiply(mvMatrix);
-    }
-
-    if (id == 'Penelope1' || id.contains('prim')) {
-      print('--- [DRAW TRACE] $id ---');
-      print('Final Translation: ${finalMvMatrix.getTranslation()}');
+      finalMvMatrix = mvMatrix.clone()..multiply(transformable.getTransform());
     }
 
     _renderer?.draw(renderPass, transients, pMatrix, finalMvMatrix, viewportSize);

@@ -26,42 +26,57 @@ class FskGltfLoader {
     return await loader._parse();
   }
 
+  /// 100% Reliable Triangle Test Case (Injects geometry directly to GPU)
+  static Future<FskGroup> loadTriangle(FskScene scene) async {
+    print('FskGltfLoader: Creating Manual Triangle at near plane...');
+    final group = FskGroup('manual_tri', scene);
+    final mesh = FskIndexedMesh('tri', scene, shaderMaterial: FskShaderMaterial.pbr);
+    
+    final v = Float32List(3 * 12);
+    // (0,0,0) (1,0,0) (0,1,0) - CCW Triangle
+    // We set Z to 0.0 to place it exactly at the Vulkan near plane
+    v[0] = -0.5; v[1] = -0.5; v[2] = 0.0; v[11] = 1;
+    v[12] = 0.5; v[13] = -0.5; v[14] = 0.0; v[23] = 1;
+    v[24] = 0.0; v[25] = 0.5; v[26] = 0.0; v[35] = 1;
+    
+    mesh.vertices = v;
+    mesh.indices = Uint16List.fromList([0, 1, 2]);
+    mesh.renderer.addSubMesh(SubMesh(indexCount: 3, firstIndex: 0));
+    mesh.uploadToGpu();
+    mesh.renderer.finalizeData();
+    group.children.add(mesh);
+    return group;
+  }
+
   Future<FskGroup> _parse() async {
-    final String jsonString = await rootBundle.loadString(assetPath);
-    _json = json.decode(jsonString);
+    final ByteData byteData = await rootBundle.load(assetPath);
+    final Uint8List bytes = byteData.buffer.asUint8List(byteData.offsetInBytes, byteData.lengthInBytes);
+    _json = json.decode(utf8.decode(bytes));
 
     final rootGroup = FskGroup('gltf_root', scene);
 
-    // 1. Load buffers safely
     final List<dynamic> jsonBuffers = _json!['buffers'] ?? [];
-    for (final buf in jsonBuffers) {
+    for (int i = 0; i < jsonBuffers.length; i++) {
+      final buf = jsonBuffers[i];
       final uri = buf['uri'] as String;
       if (uri.startsWith('data:')) {
         _buffers.add(base64.decode(uri.split(',').last));
       } else {
         final byteData = await rootBundle.load('$_basePath$uri');
-        _buffers.add(
-          byteData.buffer.asUint8List(
-            byteData.offsetInBytes,
-            byteData.lengthInBytes,
-          ),
-        );
+        _buffers.add(byteData.buffer.asUint8List(byteData.offsetInBytes, byteData.lengthInBytes));
       }
     }
 
-    // 2. Pre-load images
     final List<dynamic> jsonImages = _json!['images'] ?? [];
     for (int i = 0; i < jsonImages.length; i++) {
       final img = jsonImages[i];
-      final String uri = img['uri'] as String;
       final info = await FSK().textureManager.createTextureFromAsset(
         'gltf_tex_${assetPath.hashCode}_$i',
-        '${_basePath.replaceFirst("assets/", "")}$uri',
+        '${_basePath.replaceFirst("assets/", "")}${img['uri']}',
       );
       _textures.add(info);
     }
 
-    // 3. Process scenes
     final int sceneIndex = (_json!['scene'] ?? 0).toInt();
     final List<dynamic> scenes = _json!['scenes'];
     final List<dynamic> sceneNodes = scenes[sceneIndex]['nodes'];
@@ -69,7 +84,6 @@ class FskGltfLoader {
       final node = _createNode((nodeIdx as num).toInt());
       if (node != null) rootGroup.children.add(node);
     }
-
     return rootGroup;
   }
 
@@ -87,20 +101,11 @@ class FskGltfLoader {
     if (node is FskRenderableObject) {
       if (nodeJson.containsKey('translation')) {
         final List<dynamic> t = nodeJson['translation'];
-        node.transformable.position = Vector3(
-          t[0].toDouble(),
-          t[1].toDouble(),
-          t[2].toDouble(),
-        );
+        node.transformable.position = Vector3(t[0].toDouble(), t[1].toDouble(), t[2].toDouble());
       }
       if (nodeJson.containsKey('rotation')) {
         final List<dynamic> q = nodeJson['rotation'];
-        final quat = Quaternion(
-          q[0].toDouble(),
-          q[1].toDouble(),
-          q[2].toDouble(),
-          q[3].toDouble(),
-        );
+        final quat = Quaternion(q[0].toDouble(), q[1].toDouble(), q[2].toDouble(), q[3].toDouble());
         final euler = Vector3.zero();
         final m = quat.asRotationMatrix().storage;
         euler.y = asin(m[2].clamp(-1.0, 1.0));
@@ -114,16 +119,12 @@ class FskGltfLoader {
       }
       if (nodeJson.containsKey('scale')) {
         final List<dynamic> s = nodeJson['scale'];
-        node.transformable.scale = Vector3(
-          s[0].toDouble(),
-          s[1].toDouble(),
-          s[2].toDouble(),
-        );
+        node.transformable.scale = Vector3(s[0].toDouble(), s[1].toDouble(), s[2].toDouble());
       }
     }
 
     if (nodeJson.containsKey('children') && node is FskGroup) {
-      for (final int childIdx in nodeJson['children']) {
+      for (final childIdx in nodeJson['children']) {
         final child = _createNode((childIdx as num).toInt());
         if (child != null) node.children.add(child);
       }
@@ -137,11 +138,7 @@ class FskGltfLoader {
     final group = FskGroup(name, scene);
 
     for (int i = 0; i < primitives.length; i++) {
-      final mesh = FskIndexedMesh(
-        '${name}_prim_$i',
-        scene,
-        shaderMaterial: FskShaderMaterial.pbr,
-      );
+      final mesh = FskIndexedMesh('${name}_prim_$i', scene, shaderMaterial: FskShaderMaterial.pbr);
       _buildPrimitive(primitives[i], mesh);
       group.children.add(mesh);
     }
@@ -150,16 +147,11 @@ class FskGltfLoader {
 
   void _buildPrimitive(Map<String, dynamic> prim, FskIndexedMesh mesh) {
     final attrs = prim['attributes'] as Map<String, dynamic>;
-    final int count = (_json!['accessors'][attrs['POSITION']]['count'] as num)
-        .toInt();
+    final int count = (_json!['accessors'][attrs['POSITION']]['count'] as num).toInt();
 
     final positions = _getFloatData((attrs['POSITION'] as num).toInt());
-    final normals = attrs.containsKey('NORMAL')
-        ? _getFloatData((attrs['NORMAL'] as num).toInt())
-        : Float32List(count * 3);
-    final uvs = attrs.containsKey('TEXCOORD_0')
-        ? _getFloatData((attrs['TEXCOORD_0'] as num).toInt())
-        : Float32List(count * 2);
+    final normals = attrs.containsKey('NORMAL') ? _getFloatData((attrs['NORMAL'] as num).toInt()) : Float32List(count * 3);
+    final uvs = attrs.containsKey('TEXCOORD_0') ? _getFloatData((attrs['TEXCOORD_0'] as num).toInt()) : Float32List(count * 2);
 
     final vertexData = Float32List(count * 12);
     for (int i = 0; i < count; i++) {
@@ -174,16 +166,15 @@ class FskGltfLoader {
       vertexData[b + 7] = normals[i * 3 + 2];
       vertexData[b + 11] = 1.0;
     }
-
+    
     mesh.vertices = vertexData;
 
     if (prim.containsKey('indices')) {
       final TypedData indices = _getIndexData((prim['indices'] as num).toInt());
       mesh.indices = indices;
-
-      mesh.renderer.addSubMesh(
-        SubMesh(indexCount: (indices as List).length, firstIndex: 0),
-      );
+      mesh.renderer.addSubMesh(SubMesh(indexCount: (indices as dynamic).length, firstIndex: 0));
+    } else {
+       mesh.renderer.addSubMesh(SubMesh(indexCount: count, firstIndex: 0));
     }
 
     if (prim.containsKey('material')) {
@@ -202,31 +193,23 @@ class FskGltfLoader {
       final pbr = mat['pbrMetallicRoughness'];
       if (pbr.containsKey('baseColorFactor')) {
         final List<dynamic> c = pbr['baseColorFactor'];
-        uniforms.baseColorFactor = Vector3(
-          c[0].toDouble(),
-          c[1].toDouble(),
-          c[2].toDouble(),
-        );
+        uniforms.baseColorFactor = Vector3(c[0].toDouble(), c[1].toDouble(), c[2].toDouble());
       }
       if (pbr.containsKey('baseColorTexture')) {
         final int texIdx = (pbr['baseColorTexture']['index'] as num).toInt();
-        final info =
-            _textures[(_json!['textures'][texIdx]['source'] as num).toInt()];
+        final info = _textures[(_json!['textures'][texIdx]['source'] as num).toInt()];
         uniforms.texture = info.texture;
         uniforms.samplerOptions = info.samplerOptions;
       }
       if (pbr.containsKey('metallicRoughnessTexture')) {
-        final int texIdx = (pbr['metallicRoughnessTexture']['index'] as num)
-            .toInt();
-        final info =
-            _textures[(_json!['textures'][texIdx]['source'] as num).toInt()];
+        final int texIdx = (pbr['metallicRoughnessTexture']['index'] as num).toInt();
+        final info = _textures[(_json!['textures'][texIdx]['source'] as num).toInt()];
         uniforms.metallicRoughnessMap = info.texture;
       }
     }
     if (mat.containsKey('normalTexture')) {
       final int texIdx = (mat['normalTexture']['index'] as num).toInt();
-      final info =
-          _textures[(_json!['textures'][texIdx]['source'] as num).toInt()];
+      final info = _textures[(_json!['textures'][texIdx]['source'] as num).toInt()];
       uniforms.normalMap = info.texture;
     }
   }
@@ -236,11 +219,10 @@ class FskGltfLoader {
     final int bvIdx = (acc['bufferView'] as num).toInt();
     final bv = _json!['bufferViews'][bvIdx];
     final buf = _buffers[(bv['buffer'] as num).toInt()];
-    final int offset =
-        (bv['byteOffset'] ?? 0).toInt() + (acc['byteOffset'] ?? 0).toInt();
+    final int offset = (bv['byteOffset'] ?? 0).toInt() + (acc['byteOffset'] ?? 0).toInt();
     final int count = (acc['count'] as num).toInt();
     final int stride = (bv['byteStride'] ?? 0).toInt();
-
+    
     int comps = (acc['type'] == 'VEC3') ? 3 : (acc['type'] == 'VEC2' ? 2 : 1);
     final result = Float32List(count * comps);
     final data = ByteData.view(buf.buffer, buf.offsetInBytes + offset);
@@ -248,11 +230,7 @@ class FskGltfLoader {
 
     for (int i = 0; i < count; i++) {
       for (int c = 0; c < comps; c++) {
-        // FIX: Read directly from the start of the accessor view (Zero-based loop)
-        result[i * comps + c] = data.getFloat32(
-          (i * actualStride) + (c * 4),
-          Endian.little,
-        );
+        result[i * comps + c] = data.getFloat32((i * actualStride) + (c * 4), Endian.little);
       }
     }
     return result;
@@ -263,27 +241,19 @@ class FskGltfLoader {
     final int bvIdx = (acc['bufferView'] as num).toInt();
     final bv = _json!['bufferViews'][bvIdx];
     final buf = _buffers[(bv['buffer'] as num).toInt()];
-    final int offset =
-        (bv['byteOffset'] ?? 0).toInt() + (acc['byteOffset'] ?? 0).toInt();
+    final int offset = (bv['byteOffset'] ?? 0).toInt() + (acc['byteOffset'] ?? 0).toInt();
     final int count = (acc['count'] as num).toInt();
     final int type = (acc['componentType'] as num).toInt();
 
     final data = ByteData.view(buf.buffer, buf.offsetInBytes + offset);
-    if (type == 5125) {
-      // uint32
+    if (type == 5125) { // uint32
       final res = Uint32List(count);
-      for (int i = 0; i < count; i++) {
-        res[i] = data.getUint32(i * 4, Endian.little);
-      }
+      for (int i = 0; i < count; i++) res[i] = data.getUint32(i * 4, Endian.little);
       return res;
-    } else {
-      // uint16 or uint8
+    } else { // uint16 or uint8
       final res = Uint16List(count);
       for (int i = 0; i < count; i++) {
-        // FIX: Read directly from the start of the accessor view (Zero-based loop)
-        res[i] = (type == 5123)
-            ? data.getUint16(i * 2, Endian.little)
-            : data.getUint8(i);
+        res[i] = (type == 5123) ? data.getUint16(i * 2, Endian.little) : data.getUint8(i);
       }
       return res;
     }

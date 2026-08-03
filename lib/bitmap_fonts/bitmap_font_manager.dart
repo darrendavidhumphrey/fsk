@@ -90,8 +90,23 @@ class BitmapFontManager with LoggableClass {
     try {
       var font = BitmapFont.fromXml(fontName, xmlString);
 
-      // NOTE: The texture loads asynchronously
+      // The texture loads asynchronously, so wait for it.
       await font.loadFontTexture(textureName);
+      registerFont(fontName, font);
+    } catch (e, stackTrace) {
+      logError("Error loading font '$fontName': $e");
+      logError("StackTrace: $stackTrace");
+    }
+  }
+
+  // Syncronous version that ensures the font is loaded before use, but the
+  // texture still loads asynchronously.
+  void createFontSync(String fontName, String xmlString, String textureName)  {
+    try {
+      var font = BitmapFont.fromXml(fontName, xmlString);
+
+      // NOTE: The texture loads asynchronously
+      font.loadFontTexture(textureName);
       registerFont(fontName, font);
     } catch (e, stackTrace) {
       logError("Error loading font '$fontName': $e");
@@ -101,6 +116,6 @@ class BitmapFontManager with LoggableClass {
 
   /// A convenience method to create and register the default font for the application.
   void createDefaultFont() {
-    createFont("default", creatoDisplayBoldXml, "CreatoDisplay-Bold.png");
+    createFontSync("default", creatoDisplayBoldXml, "CreatoDisplay-Bold.png");
   }
 }
