@@ -72,10 +72,19 @@ class FskGltfLoader {
     final int sceneIndex = (_json!['scene'] ?? 0).toInt();
     final List<dynamic> scenes = _json!['scenes'];
     final List<dynamic> sceneNodes = scenes[sceneIndex]['nodes'];
+
+    // GLTF models are often Y-up and facing +Z.
+    // In our coordinate system (Y-down, camera at -Z), they appear upside down and facing away.
+    // We create a correction group to handle this so the rootGroup's frame of reference stays at 0.
+    final correctionGroup = FskGroup('gltf_correction', scene);
+    correctionGroup.transformable.rotation = Vector3(0, radians(180), radians(180));
+    rootGroup.children.add(correctionGroup);
+
     for (final int nodeIdx in sceneNodes) {
       final node = _createNode((nodeIdx as num).toInt());
-      if (node != null) rootGroup.children.add(node);
+      if (node != null) correctionGroup.children.add(node);
     }
+
     return rootGroup;
   }
 
