@@ -27,13 +27,7 @@ class AnimatedCheckerBoardScene extends FskFrameScene {
   FskQuad? checkerQuad;
 
   AnimatedCheckerBoardScene({super.navigationDelegate}) {
-    init();
-  }
-
-  void init() {
     clearColor = Colors.white;
-    use2DLayout = false; // Perspective/Static view 
-
     checkerQuad = FskQuad.centered(
       'checker',
       this,
@@ -50,7 +44,7 @@ class AnimatedCheckerBoardScene extends FskFrameScene {
   @override
   void rebuildGeometry() {
     if (!isReady) return;
-
+    use2DLayout = false;
     final uniforms = checkerQuad!.uniforms as CheckerBoardUniforms;
 
     double cycleDuration = 2;

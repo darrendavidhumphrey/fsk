@@ -11,13 +11,7 @@ enum FskBoxFit {
   bestFit,
 }
 
-/// An abstract interface for classes that handle user input to navigate a [FskScene].
-///
-/// This decouples the interaction logic (like orbiting, panning, or zooming)
-/// from the rendering widget itself. It defines a contract for a set of event
-/// handlers that a widget like [RenderToTexture] can call in response to user input.
 abstract class FskSceneNavigationDelegate with ChangeNotifier {
-  /// The scene that this delegate controls.
   late FskScene scene;
   late Matrix4 _projectionMatrix;
   late Matrix4 _viewMatrix;
@@ -27,24 +21,14 @@ abstract class FskSceneNavigationDelegate with ChangeNotifier {
     _viewMatrix = Matrix4.identity();
   }
 
-  /////////////////////////////////////////////////////////////////////////////
-  // Needs Update
-  /////////////////////////////////////////////////////////////////////////////
   bool _needsUpdate = true;
   bool get needsUpdate => _needsUpdate;
 
   void setNeedsUpdate(bool value) {
     _needsUpdate = value;
-    if (_needsUpdate) {
-      if (_needsUpdate) {
-        notifyListeners(); // Alert the listening Widget
-      }
-    }
+    if (_needsUpdate) notifyListeners();
   }
 
-  /////////////////////////////////////////////////////////////////////////////
-  // BoxFit
-  /////////////////////////////////////////////////////////////////////////////
   FskBoxFit _boxFit;
   FskBoxFit get boxFit => _boxFit;
   set boxFit(FskBoxFit value) {
@@ -52,9 +36,6 @@ abstract class FskSceneNavigationDelegate with ChangeNotifier {
     setNeedsUpdate(true);
   }
 
-  /////////////////////////////////////////////////////////////////////////////
-  // ViewRect
-  /////////////////////////////////////////////////////////////////////////////
   static const Rect defaultViewRect = Rect.fromLTWH(0, 0, 250, 250);
   Rect _viewRect;
   Rect get viewRect => _viewRect;
@@ -64,97 +45,52 @@ abstract class FskSceneNavigationDelegate with ChangeNotifier {
     setNeedsUpdate(true);
   }
 
-  void setViewMatrix(Matrix4 matrix) {
-    matrix.copyInto(_viewMatrix);
-  }
-
-  void setProjectionMatrix(Matrix4 matrix) {
-    matrix.copyInto(_projectionMatrix);
-  }
+  void setViewMatrix(Matrix4 matrix) => matrix.copyInto(_viewMatrix);
+  void setProjectionMatrix(Matrix4 matrix) => matrix.copyInto(_projectionMatrix);
 
   Matrix4 getProjectionMatrix() {
-    if (needsUpdate) {
-      updateSceneMatrices();
-    }
+    if (needsUpdate) updateSceneMatrices();
     return _projectionMatrix;
   }
 
   Matrix4 getViewMatrix() {
-    if (needsUpdate) {
-      updateSceneMatrices();
-    }
+    if (needsUpdate) updateSceneMatrices();
     return _viewMatrix;
   }
 
-  // Virtual methods to be implemented by derived classes
   Matrix4 createViewMatrix();
   Matrix4 createProjectionMatrix();
 
   void updateSceneMatrices({bool force = false}) {
     if (needsUpdate || force) {
-      Matrix4 view = createViewMatrix();
-      setViewMatrix(view);
-
-      Matrix4 proj = createProjectionMatrix();
-      setProjectionMatrix(proj);
+      setViewMatrix(createViewMatrix());
+      setProjectionMatrix(createProjectionMatrix());
       setNeedsUpdate(false);
     }
-
     scene.mvMatrixStack.current = getViewMatrix();
     scene.pMatrix = getProjectionMatrix();
   }
 
-  /// Sets the scene that this delegate will control. This is typically called
-  /// by the owner widget when the delegate is initialized or when the scene changes.
   void setScene(FskScene scene) {
     this.scene = scene;
     setNeedsUpdate(true);
   }
 
-  /// Called when a tap down event occurs. Useful for discrete actions like
-  /// object selection or setting a focus point.
+  // Input Handlers
   void onTapDown(TapDownDetails event) {}
-
-  /// Called when a pointer makes contact with the screen. This is typically
-  /// the start of a continuous gesture like a drag or pan.
   void onPointerDown(PointerDownEvent event) {}
-
-  /// Called when a pointer that is in contact with the screen has moved.
-  /// This is used to update continuous gestures.
   void onPointerMove(PointerMoveEvent event) {}
-
-  /// Called when a pointer that is in contact with the screen is no longer
-  /// in contact. This signals the end of a continuous gesture.
   void onPointerUp(PointerUpEvent event) {}
-
-  /// Called when the input from a pointer is no longer directed at this widget,
-  /// for example, if the system cancels the gesture.
   void onPointerCancel(PointerCancelEvent event) {}
-
-  /// Called when a pointer signal event occurs (e.g., mouse wheel or trackpad scroll).
-  /// This is typically used for zooming or dollying the camera.
   void onPointerSignal(PointerSignalEvent event) {}
-
-  /// Called when a scale gesture starts.
   void onScaleStart(ScaleStartDetails details) {}
-
-  /// Called when a scale gesture updates.
   void onScaleUpdate(ScaleUpdateDetails details) {}
-
-  /// Called when a scale gesture ends.
   void onScaleEnd(ScaleEndDetails details) {}
-
-  /// Handles a key event from a focused widget.
-  ///
-  /// Returns a [KeyEventResult] to indicate whether the event was handled.
-  KeyEventResult onKeyEvent(KeyEvent event) {
-    return KeyEventResult.ignored;
-  }
+  KeyEventResult onKeyEvent(KeyEvent event) => KeyEventResult.ignored;
 
   /// Creates a matrix that scales and translates content of [contentSize] to fit
-  /// the current view according to the selected [boxFit] strategy.
-  ///
-  /// This assumes the content is centered at its own origin (0,0).
+  /// the current view.
+  /// This version anchors (0,0) of the content to the viewport origin.
   Matrix4 createBoxFitMatrix(Size contentSize) {
     double scaleX = 1.0;
     double scaleY = 1.0;
@@ -186,7 +122,7 @@ abstract class FskSceneNavigationDelegate with ChangeNotifier {
     }
 
     return Matrix4.identity()
-      ..translate(_viewRect.left + viewWidth / 2, _viewRect.top + viewHeight / 2, 0.0)
-      ..scale(scaleX, scaleY, 1.0);
+      ..translateByVector3(Vector3(_viewRect.left, _viewRect.top, 0.0))
+      ..scaleByVector3(Vector3(scaleX, scaleY, 1.0));
   }
 }

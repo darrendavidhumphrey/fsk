@@ -130,19 +130,17 @@ class FskBitmapTextQuadBuilder {
     final double boxHeight = screenRect.yVector.length;
     final double unscaledLineHeight = font.lineHeight.toDouble();
     final double unscaledBoxHeight = boxHeight / _ratio;
+    final double unscaledBase = font.baseline.toDouble();
 
     switch (verticalJustification) {
-      case TextVerticalJustification.top:
-        // Text window sits flush with the ceiling (0.0)
-        return -unscaledLineHeight;
+      case TextVerticalJustification.bottom:
+        return unscaledBoxHeight - unscaledBase;
 
       case TextVerticalJustification.center:
-        // Centers the line block cleanly within the reference space
-        return (-unscaledBoxHeight / 2.0) - (unscaledLineHeight / 2.0);
+        return (unscaledBoxHeight / 2.0) - unscaledBase + (unscaledLineHeight / 2.0);
 
-      case TextVerticalJustification.bottom:
-        // Move down by a full box height step to drop it below the center horizon
-        return -unscaledLineHeight;
+      case TextVerticalJustification.top:
+        return unscaledLineHeight - unscaledBase;
     }
   }
 
@@ -178,10 +176,10 @@ class FskBitmapTextQuadBuilder {
   /// Pass 5: Builds spatial transformation matrices and coordinates texture mapping vectors.
   void _constructQuads(
     double startX,
-    final double unscaledVAdjust, // Caught from Pass 4 calculation block
+    final double unscaledVAdjust, // This is now the unscaled BASELINE position
   ) {
     double currentX = startX;
-    final double unscaledLineHeight = font.lineHeight.toDouble();
+    final double unscaledBase = font.baseline.toDouble();
 
     int vDataIndex = 0;
     for (int i = 0; i < layoutData.length; i++) {
@@ -192,12 +190,12 @@ class FskBitmapTextQuadBuilder {
       final left = currentX;
       final right = left + charInfo.region.width;
 
-      final double lineTopCeiling = unscaledVAdjust + unscaledLineHeight;
-      double qTop = lineTopCeiling - charInfo.yOffset;
-      double qBottom = qTop - charInfo.region.height;
+      // Position relative to the baseline
+      final double charTop = unscaledVAdjust + unscaledBase - charInfo.yOffset;
+      final double charBottom = charTop - charInfo.region.height;
 
-      final blc = Vector2(left * _ratio, qBottom * _ratio);
-      final trc = Vector2(right * _ratio, qTop * _ratio);
+      final blc = Vector2(left * _ratio, charBottom * _ratio );
+      final trc = Vector2(right * _ratio, charTop * _ratio);
       final tLeft = charInfo.region.left / font.scaleW;
       final tTop = charInfo.region.top / font.scaleH;
       final tRight =

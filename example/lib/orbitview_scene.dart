@@ -4,7 +4,7 @@ import 'package:fsk/fsk.dart';
 class OrbitViewScene extends FskFrameScene {
   OrbitViewScene({super.navigationDelegate}) {
     clearColor = Colors.white;
-    use2DLayout = false; // Pure 3D graph mode
+    use2DLayout = false;
 
     // 1. Create quad with grid material in one go
     final gridQuad = FskQuad.centered(

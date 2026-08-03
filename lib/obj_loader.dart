@@ -215,8 +215,8 @@ class WavefrontObjModel {
   WavefrontObjModel();
 
   /// Creates an [FskIndexedMesh] from this model.
-  FskIndexedMesh createIndexedMesh(FskScene scene, String id) {
-    final indexedMesh = FskIndexedMesh(id, scene);
+  FskIndexedMesh createIndexedMesh(FskScene scene, String id, {FskShaderMaterial? shaderMaterial}) {
+    final indexedMesh = FskIndexedMesh(id, scene, shaderMaterial: shaderMaterial);
 
     // 1. Assign vertex data to Mesh
     if (vertexBuffer.vertexData != null) {
@@ -270,8 +270,9 @@ class WavefrontObjModel {
       String assetPath,
       FskScene scene,
       String id,
+      {FskShaderMaterial? shaderMaterial}
       ) async {
     final model = await WavefrontObjModel.fromAsset(assetPath);
-    return model.createIndexedMesh(scene, id);
+    return model.createIndexedMesh(scene, id, shaderMaterial: shaderMaterial);
   }
 }

@@ -3,11 +3,12 @@ import 'package:flutter/services.dart';
 import 'package:fsk/fsk.dart';
 import 'package:flutter/material.dart';
 import 'package:fsk_examples/checkerboard_scene.dart';
-import 'package:fsk_examples/frame_scene_example.dart';
 import 'package:fsk_examples/orbitview_scene.dart';
 import 'package:fsk_examples/positioned_title_bar.dart';
+import 'package:fsk_examples/scene_from_xml.dart';
 import 'animated_checkerboard_scene.dart';
 import 'obj_model_scene.dart';
+import 'pbr_model_scene.dart';
 
 
 void main() async {
@@ -38,7 +39,8 @@ class TestAppState extends State<TestApp> {
     "Animated Checkerboard (Perspective View)",
     "OrbitView (Grid Shader)",
     "Bitmap Text (Ortho View)",
-    "Teapot OBJ (Orbit View)"
+    "Teapot OBJ (Orbit View)",
+    "PBR Sci-Fi Helmet GLTF (Orbit View)"
   ];
   final List<FskScene> scenes = [];
 
@@ -47,8 +49,9 @@ class TestAppState extends State<TestApp> {
     scenes.add(CheckerBoardScene(navigationDelegate: OrthoViewDelegate(boxFit: FskBoxFit.bestFit)));
     scenes.add(AnimatedCheckerBoardScene(navigationDelegate: StaticViewDelegate(boxFit: FskBoxFit.bestFit)));
     scenes.add(OrbitViewScene(navigationDelegate: OrbitViewDelegate(boxFit: FskBoxFit.bestFit)));
-    scenes.add(FrameSceneExample(navigationDelegate: OrthoViewDelegate(boxFit: FskBoxFit.bestFit)));
+    scenes.add(SceneFromXml(navigationDelegate: OrthoViewDelegate(boxFit: FskBoxFit.bestFit)));
     scenes.add(ObjModelScene(navigationDelegate: OrbitViewDelegate(boxFit: FskBoxFit.bestFit)));
+    scenes.add(PbrModelScene(navigationDelegate: OrbitViewDelegate(boxFit: FskBoxFit.bestFit)));
   }
 
   @override
@@ -93,7 +96,7 @@ class TestAppState extends State<TestApp> {
           height: constraints.maxHeight,
           child: MaterialApp(
             title: 'FSK Examples',
-            //showPerformanceOverlay: true,
+            showPerformanceOverlay: true,
             home: Scaffold(
               backgroundColor: kIsWeb ? Colors.transparent : null,
               body: Stack(

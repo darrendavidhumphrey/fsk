@@ -1,14 +1,12 @@
 import 'dart:typed_data';
 import 'package:fsk/fsk.dart';
 
-import 'fsk_indexed_mesh_renderer.dart';
-
 class FskIndexedMesh extends FskRenderableObject with FskTransformableMixin {
   final FskTransformable transform = FskTransformable();
 
   /// Geometry data owned by the Mesh
   Float32List? vertices;
-  Uint16List? indices;
+  TypedData? indices;
 
   /// Object that renders the indexed mesh
   final FskIndexedMeshRenderer _renderer = FskIndexedMeshRenderer();

@@ -89,8 +89,6 @@ class FrameData with LoggableClass {
 
   void _registerObject(FrameObjectData obj) {
     _objectMap[obj.id] = obj;
-    // Note: We'll need a generic way to traverse children if we want to keep findObject working for custom groups
-    // For now, we'll keep it as is, but we might need a "children" property in FrameObjectData
     if (obj is FrameGroupDataExplicit) {
        for (var child in obj.children) {
         _registerObject(child);
@@ -102,14 +100,6 @@ class FrameData with LoggableClass {
 
   void dumpTree() {
     logInfo('📂 FrameData (Version: $version, Size: ${_frameSize.width}x${_frameSize.height} ClearColor ${_clearColor?.toString()} AssetsPath "$_assetsPath")');
-
-    // Print metadata summaries
-    logInfo(' ├── 🖼️ Textures (${textures.length}): ${textures.keys.join(', ')}');
-    logInfo(' ├── 🔤 Fonts (${fonts.length}): ${fonts.keys.join(', ')}');
-    logInfo(' ├── ⚓ Anchors (${anchors.length}): ${anchors.keys.join(', ')}');
-    logInfo(' └── 🌳 Scene Hierarchy:');
-
-    // Print object tree recursively
     for (int i = 0; i < objects.length; i++) {
       final isLast = i == objects.length - 1;
       _printNode(objects[i], '     ', isLast);
@@ -119,8 +109,6 @@ class FrameData with LoggableClass {
   void _printNode(FrameObjectData obj, String indent, bool isLast) {
     final marker = isLast ? '└── ' : '├── ';
     final nextIndent = indent + (isLast ? '    ' : '│   ');
-
-    // We'll need to use some pattern matching or a generic way to print nodes
     logInfo('$indent$marker${obj.runtimeType} [ID: ${obj.id}]');
     if (obj is FrameGroupDataExplicit) {
        for (int i = 0; i < obj.children.length; i++) {
@@ -131,7 +119,6 @@ class FrameData with LoggableClass {
   }
 }
 
-// Helper interface for groups so FrameData can still traverse them
 abstract class FrameGroupDataExplicit extends FrameObjectData {
   FrameGroupDataExplicit({required super.id, required super.visible, super.shader, required super.shaderParams});
   List<FrameObjectData> get children;
@@ -140,7 +127,6 @@ abstract class FrameGroupDataExplicit extends FrameObjectData {
 class FrameTextureData {
   final String id;
   final String file;
-
   FrameTextureData({required this.id, required this.file});
 }
 
@@ -148,18 +134,12 @@ class FrameFontData {
   final String id;
   final String fntFile;
   final String texture;
-
-  FrameFontData({
-    required this.id,
-    required this.fntFile,
-    required this.texture,
-  });
+  FrameFontData({required this.id, required this.fntFile, required this.texture});
 }
 
 class FrameAnchorData {
   final String id;
   final Vector3 val;
-
   FrameAnchorData({required this.id, required this.val});
 }
 
@@ -170,9 +150,9 @@ abstract class FrameObjectData {
   final Map<String, String> shaderParams;
   FrameObjectData({required this.id,required this.visible,this.shader,required this.shaderParams});
 
-  static  ReferenceBox screenRectToRefBox(Rect screenRect) {
+  static ReferenceBox screenRectToRefBox(Rect screenRect) {
     return ReferenceBox(
-      Vector3(screenRect.left, screenRect.bottom, 0),
+      Vector3(screenRect.left, screenRect.top, 0),
       Vector3(screenRect.width, 0, 0),
       Vector3(0, screenRect.height, 0),
       Vector3(0, 0, 1),

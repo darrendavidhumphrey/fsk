@@ -3,6 +3,7 @@ import 'package:flutter_gpu/gpu.dart' as gpu;
 import 'package:fsk/fsk.dart';
 import 'package:vector_math/vector_math.dart' hide Colors;
 
+// Loads a simple OBJ model and puts it in an orbit view
 class ObjModelScene extends FskScene {
   FskIndexedMesh? teapotMesh;
 
@@ -36,9 +37,10 @@ class ObjModelScene extends FskScene {
 
       navigationDelegate?.updateSceneMatrices(force: true);
     } catch (e) {
-      print("Error loading teapot: $e");
+      logError("Error loading teapot: $e");
     }
   }
+
 
   @override
   void drawScene(gpu.RenderPass renderPass, gpu.HostBuffer transients) {
@@ -62,4 +64,6 @@ class ObjModelScene extends FskScene {
       teapotMesh!.draw(renderPass, transients, pMatrix, mvMatrix, viewportSize);
     }
   }
+  
+
 }

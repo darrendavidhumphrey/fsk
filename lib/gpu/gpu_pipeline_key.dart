@@ -1,7 +1,7 @@
 import 'package:flutter_gpu/gpu.dart' as gpu;
-import '../fsk_singleton.dart';
+import 'package:fsk/fsk.dart';
 
-class PipelineKey {
+class PipelineKey with LoggableClass {
   final String vertShaderName;
   final String fragShaderName;
   final String layoutName;
@@ -299,7 +299,7 @@ const gpu.VertexLayout textVertexLayout = gpu.VertexLayout(
 );
 
 
-class PipelineCache {
+class PipelineCache with LoggableClass {
   // Map against the stable compiled String key profile
   final Map<String, gpu.RenderPipeline> _cache = {};
 
@@ -314,7 +314,7 @@ class PipelineCache {
     gpu.RenderPipeline? pipeline = _cache[key.uniqueStringKey];
 
     if (pipeline == null) {
-      print("!!! COMPILING PIPELINE FOR: ${key.uniqueStringKey}");
+      //logInfo("COMPILING PIPELINE FOR: ${key.uniqueStringKey}");
       pipeline = gpu.gpuContext.createRenderPipeline(
         key.vertShader,
         key.fragShader,

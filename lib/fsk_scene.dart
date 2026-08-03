@@ -1,172 +1,64 @@
 import 'package:flutter/material.dart' hide Matrix4;
 import 'package:flutter_gpu/gpu.dart' as gpu;
 import 'package:fsk/fsk.dart';
-import 'package:vector_math/vector_math.dart' show Matrix4, Vector4;
+import 'package:vector_math/vector_math.dart' show Matrix4;
 
 /// An abstract base class for a 3D scene, representing the root of a scene graph.
-///
-/// Manages the rendering context, a model-view matrix stack, a list of [FskSceneLayer]
-/// objects, and the main rendering loop. Subclasses must implement the [drawScene]
-/// method to define the actual rendering logic.
-///
-/// A [FskScene] must be initialized with a [RenderingContext] via the [init] method
-/// before it can be used for drawing.
 abstract class FskScene extends ChangeNotifier with LoggableClass {
-  /// The perspective projection matrix.
   Matrix4 pMatrix = Matrix4.identity();
-
-  /// A stack for managing the Model-View matrix, allowing for hierarchical transformations.
   final MatrixStack mvMatrixStack = MatrixStack();
-
-  /// A convenience getter for the current Model-View matrix from the top of the stack.
   Matrix4 get mvMatrix => mvMatrixStack.current;
 
-  /// The current size of the viewport.
   Size _viewportSize = Size.zero;
+  // ignore: unnecessary_getters_setters
   Size get viewportSize => _viewportSize;
-  set viewportSize(Size value) {
-    _viewportSize = value;
-  }
+  set viewportSize(Size value) => _viewportSize = value;
 
   FskSceneNavigationDelegate? navigationDelegate;
 
-  // --- Physical Resolution Getters ---
-  /// The actual width of the allocated GPU texture in physical pixels.
-  int get physicalTextureWidth => _texture?.width ?? 0;
 
-  /// The actual height of the allocated GPU texture in physical pixels.
-  int get physicalTextureHeight => _texture?.height ?? 0;
-
-  // Render to texture for this scene
   gpu.Texture? _texture;
+  // ignore: unnecessary_getters_setters
   gpu.Texture? get texture => _texture;
   set texture(gpu.Texture? value) => _texture = value;
 
-  // Render target for this scene
-  gpu.RenderTarget? _renderTarget;
-  gpu.RenderTarget? get renderTarget => _renderTarget;
+  Color clearColor = Colors.black;
 
-  Color _clearColor = Colors.black;
-  Color get clearColor => _clearColor;
-  set clearColor(Color color) {
-    _clearColor = color;
-  }
+  bool isReady = true;
 
-  bool _isReady = true;
-  bool get isReady => _isReady;
-
-  set isReady(bool value) {
-    _isReady = value;
-  }
-
-  // Possibly unneeded code to track retained buffers and release them after
-  // the render pass
-  final List<gpu.DeviceBuffer> retainedOldBuffers = [];
-  void clearRetainedBuffers() {
-    retainedOldBuffers.clear();
+  FskScene({this.navigationDelegate}) {
+    navigationDelegate?.setScene(this);
   }
 
   void setNeedsUpdate() {
     notifyListeners();
   }
 
-
-
-  /// Creates a new scene and its associated performance monitor.
-  FskScene({this.navigationDelegate}) {
-    navigationDelegate?.setScene(this);
-    mvMatrixStack.current = Matrix4.identity();
-  }
-
-  // Dynamic resize function called safely when the parent layout triggers bounds changes
   void updateRenderTargetSize(int width, int height) {
-    if (width <= 0 || height <= 0) return;
-    if (viewportSize.width == width &&
-        viewportSize.height == height &&
-        _renderTarget != null) {
-      return;
-    }
-
+    // Communication in PHYSICAL pixels for the GPU surface
     _viewportSize = Size(width.toDouble(), height.toDouble());
 
+    // Communication in LOGICAL pixels for the Navigation Logic and Projections
     navigationDelegate?.setViewRect(
-      Rect.fromLTWH(0, 0, _viewportSize.width, _viewportSize.height),
+      Rect.fromLTWH(0, 0, width / FSK.devicePixelRatio, height / FSK.devicePixelRatio),
     );
   }
 
-  void allocateRenderTarget() {
-    final int physicalWidth = (_viewportSize.width * FSK.devicePixelRatio)
-        .round();
-    final int physicalHeight = (_viewportSize.height * FSK.devicePixelRatio)
-        .round();
-
-    if (physicalWidth <= 0 || physicalHeight <= 0) return;
-
-    _texture = gpu.gpuContext.createTexture(
-      gpu.StorageMode.hostVisible,
-      physicalWidth,
-      physicalHeight,
-    );
-
-    final depthTexture = gpu.gpuContext.createTexture(
-      gpu.StorageMode.deviceTransient, // Optimized for ephemeral depth data
-      physicalWidth,
-      physicalHeight,
-      format: gpu.gpuContext.defaultDepthStencilFormat,
-    );
-
-    if (_texture != null) {
-      Vector4 clearValue = Vector4(
-        _clearColor.r,
-        _clearColor.g,
-        _clearColor.b,
-        _clearColor.a,
-      );
-      _renderTarget = gpu.RenderTarget.singleColor(
-        gpu.ColorAttachment(
-          texture: _texture!,
-          clearValue: clearValue,
-          loadAction: gpu.LoadAction.clear,
-        ),
-        depthStencilAttachment: gpu.DepthStencilAttachment(
-          texture: depthTexture,
-          depthClearValue: 1.0, // Clear to furthest depth distance
-          depthLoadAction: gpu.LoadAction.clear,
-          depthStoreAction: gpu.StoreAction.store,
-          stencilLoadAction: gpu.LoadAction.clear,
-          stencilStoreAction: gpu.StoreAction.dontCare,
-        ),
-      );
-    }
-
-    navigationDelegate?.updateSceneMatrices(force: true);
-  }
-
-  /// The core drawing logic to be implemented by subclasses.
-  /// This method is called within the rendering loop when a repaint is needed
-  void drawScene(gpu.RenderPass renderPass, gpu.HostBuffer transients);
-
-  // Optionally override this to rebuild geometry before rendering
-  void rebuildGeometry() {}
-
-  void setupScissor(gpu.RenderPass renderPass, {gpu.Texture? targetTexture}) {
+  void setupScissor(gpu.RenderPass renderPass) {
     navigationDelegate?.updateSceneMatrices();
 
-    final textureToUse = targetTexture ?? _texture;
-    if (textureToUse == null) return;
+    if (_texture == null) return;
 
-    // Use PHYSICAL dimensions for Scissor and Viewport
-    final int physicalWidth = textureToUse.width;
-    final int physicalHeight = textureToUse.height;
-
-    // 1. Set up the Scissor box
     renderPass.setScissor(
-      gpu.Scissor(x: 0, y: 0, width: physicalWidth, height: physicalHeight),
+      gpu.Scissor(x: 0, y: 0, width: _texture!.width, height: _texture!.height),
     );
 
-    // 2. Set up the Viewport box
     renderPass.setViewport(
-      gpu.Viewport(x: 0, y: 0, width: physicalWidth, height: physicalHeight),
+      gpu.Viewport(x: 0, y: 0, width: _texture!.width, height: _texture!.height),
     );
   }
+
+  void drawScene(gpu.RenderPass renderPass, gpu.HostBuffer transients);
+  void rebuildGeometry() {}
+  void clearRetainedBuffers() {}
 }

@@ -2,9 +2,8 @@ import 'package:flutter/foundation.dart';
 import 'dart:ui';
 import 'package:flutter_gpu/gpu.dart' as gpu;
 import 'package:vector_math/vector_math.dart';
+import 'package:fsk/fsk.dart';
 
-import '../fsk_singleton.dart';
-import '../logging.dart';
 
 abstract class BaseUniforms extends ChangeNotifier with LoggableClass {
   final gpu.Shader? vertexShader;
@@ -33,6 +32,9 @@ abstract class BaseUniforms extends ChangeNotifier with LoggableClass {
   set texture(gpu.Texture? val) {
     textureIn = val;
   }
+
+  /// Optional additional textures for advanced shaders
+  final List<gpu.Texture> additionalTextures = [];
 
   // Unified string-accessible data registry
   final Map<String, dynamic> valuesMap = {};
@@ -122,5 +124,10 @@ abstract class BaseUniforms extends ChangeNotifier with LoggableClass {
           textureIn ?? FSK().textureManager.dummyTexture!;
       renderPass.bindTexture(textureSlot, textureToBind, sampler: samplerOptions);
     }
+
+    // Bind additional textures if the shader supports them
+    bindAdditionalTextures(renderPass);
   }
+
+  void bindAdditionalTextures(gpu.RenderPass renderPass) {}
 }

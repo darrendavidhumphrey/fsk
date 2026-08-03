@@ -20,6 +20,8 @@ export 'gpu/gpu_pipeline_key.dart';
 export 'gpu/fsk_render_target.dart';
 export 'gpu/fsk_shader_library.dart';
 export 'gpu/fsk_shader_material.dart';
+export 'gpu/fsk_mtlx_loader.dart';
+export 'gpu/fsk_gltf_loader.dart';
 export 'gpu/fsk_texture_manager.dart';
 export 'gpu/fsk_vertex_buffer.dart';
 
@@ -33,12 +35,14 @@ export 'scene_graph/fsk_scene_object.dart';
 export 'scene_graph/fsk_text_alignment.dart';
 export 'scene_graph/fsk_transformable.dart';
 
+export 'shaders/base_uniforms.dart';
 export 'shaders/checkerboard_shader.dart';
 export 'shaders/flat_shader.dart';
 export 'shaders/grid_shader.dart';
 export 'shaders/lighting_shader.dart';
 export 'shaders/materials.dart';
 export 'shaders/one_light_shader.dart';
+export 'shaders/pbr_shader.dart';
 export 'shaders/simple_texture_shader.dart';
 export 'shaders/wire_frame_shader.dart';
 
@@ -58,8 +62,3 @@ export 'matrix_stack.dart';
 export 'obj_loader.dart';
 export 'util.dart';
 export 'vbo_filler.dart';
-
-
-
-
-

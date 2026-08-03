@@ -5,7 +5,6 @@ import 'package:fsk/fsk.dart';
 import 'package:vector_math/vector_math.dart';
 import 'package:xml/xml.dart';
 import '../frames/frame_data.dart';
-import 'fsk_transformable.dart';
 
 class FrameGroupData extends FrameGroupDataExplicit {
   final Vector3 anchor;
@@ -66,7 +65,7 @@ class FskGroup extends FskRenderableObject with FskTransformableMixin {
 
   FskGroup.fromData(super.id,super.parentScene, FrameGroupData data) {
 
-    if (data.anchor != Vector3.zero) {
+    if (data.anchor.x != 0 || data.anchor.y != 0 || data.anchor.z != 0) {
       transformable.anchor = data.anchor;
     }
     visible = data.visible;

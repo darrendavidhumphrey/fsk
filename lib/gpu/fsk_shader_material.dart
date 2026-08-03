@@ -1,6 +1,5 @@
 import 'package:flutter_gpu/gpu.dart' as gpu;
 import '../fsk.dart';
-import '../shaders/base_uniforms.dart';
 
 typedef UniformsFactory = BaseUniforms Function(gpu.Shader vert, gpu.Shader frag);
 
@@ -53,5 +52,12 @@ class FskShaderMaterial {
     fragShaderName: "CheckerBoardFragment",
     layout: v3t2Layout,
     uniformsFactory: (v, f) => CheckerBoardUniforms(vertexShader: v, fragmentShader: f),
+  );
+
+  static final FskShaderMaterial pbr = FskShaderMaterial(
+    vertShaderName: "PbrVertex",
+    fragShaderName: "PbrFragment",
+    layout: v3t2n3Layout,
+    uniformsFactory: (v, f) => PbrUniforms(vertexShader: v, fragmentShader: f),
   );
 }

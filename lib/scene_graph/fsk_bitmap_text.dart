@@ -2,11 +2,11 @@ import 'dart:math';
 import 'dart:typed_data';
 import 'dart:ui';
 import 'package:flutter/material.dart' show Colors;
-import 'package:fsk/scene_graph/fsk_quads_renderer.dart';
+import 'package:fsk/fsk.dart';
 import '../frames/frame_data.dart';
-import '../fsk.dart';
+import 'fsk_quads_renderer.dart';
 import 'fsk_text_quad_builder.dart';
-import 'fsk_transformable.dart';
+
 
 class FrameTextData extends FrameObjectData {
   final String font;

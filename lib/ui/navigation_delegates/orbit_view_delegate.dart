@@ -34,7 +34,7 @@ class OrbitViewDelegate extends FskSceneNavigationDelegate {
   double _baseDistance = 0;
   final Set<int> _pointers = {};
 
-/// A plane at z=0 used for calculating logical coordinates from a pick ray.
+  /// A plane at z=0 used for calculating logical coordinates from a pick ray.
   final Plane _projectPlane = makePlaneFromVertices(
     Vector3.zero(),
     Vector3(1, 0, 0),
@@ -204,8 +204,8 @@ class OrbitViewDelegate extends FskSceneNavigationDelegate {
       proj,
       verticalFieldOfView,
       aspectRatio,
-      1.0, // Near plane moved slightly further to improve precision
-      10000.0, // Far plane reduced from 5,000,000 to improve depth precision
+      1.0,
+      10000.0,
     );
 
     // flutter_gpu (Impeller) expects Z in [0, 1] (Vulkan style).
@@ -214,7 +214,7 @@ class OrbitViewDelegate extends FskSceneNavigationDelegate {
     final Matrix4 remap = Matrix4.identity();
     remap.setEntry(2, 2, 0.5);
     remap.setEntry(2, 3, 0.5);
-    
+
     return remap * proj;
   }
 

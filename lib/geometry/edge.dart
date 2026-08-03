@@ -11,7 +11,7 @@ class Edge {
   final Vector3 end;
 
   /// Creates an edge with the given starting and ending points.
-  Edge(this.start, this.end);
+  const Edge(this.start, this.end);
 
   /// Creates an edge with both points at the origin.
   Edge.zero() : start = Vector3.zero(), end = Vector3.zero();

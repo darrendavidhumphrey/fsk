@@ -31,6 +31,9 @@ class FskTextureManager {
       1,
       format: gpu.PixelFormat.r8g8b8a8UNormInt,
     );
+    // Fill dummy with neutral PBR color (White albedo, neutral normal)
+    final data = Uint8List.fromList([255, 255, 255, 255]);
+    _dummyTexture!.overwrite(data.buffer.asByteData());
   }
 
   void dump() {
