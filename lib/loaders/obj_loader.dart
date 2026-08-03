@@ -214,6 +214,28 @@ class WavefrontObjModel {
   /// Creates a model and initializes it with the rendering context.
   WavefrontObjModel();
 
+  static Future<FskGroup> load(
+    String assetPath,
+    FskScene scene,
+    String id, {
+    FskShaderMaterial? shaderMaterial,
+  }) async {
+    final model = await WavefrontObjModel.fromAsset(assetPath);
+    final rootGroup = FskGroup('${id}_root', scene);
+
+    // Create the correction group to handle Y-up -> Y-down and facing direction
+    final correctionGroup = FskGroup('${id}_correction', scene);
+    // Y-axis 180 to face camera, Z-axis 180 to flip right-side up
+    correctionGroup.transformable.rotation = Vector3(0, radians(180), radians(180));
+    rootGroup.children.add(correctionGroup);
+
+    // Create the actual mesh and add it to the correction group
+    final mesh = model.createIndexedMesh(scene, id, shaderMaterial: shaderMaterial);
+    correctionGroup.children.add(mesh);
+
+    return rootGroup;
+  }
+
   /// Creates an [FskIndexedMesh] from this model.
   FskIndexedMesh createIndexedMesh(FskScene scene, String id, {FskShaderMaterial? shaderMaterial}) {
     final indexedMesh = FskIndexedMesh(id, scene, shaderMaterial: shaderMaterial);

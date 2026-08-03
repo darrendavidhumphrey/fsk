@@ -113,4 +113,27 @@ class FskGroup extends FskRenderableObject with FskTransformableMixin {
       child.rebuildPipelineIfNeeded();
     }
   }
+
+  @override
+  T? findNodeRecursive<T>(List<String> parts) {
+    if (parts.isEmpty) return null;
+
+    if (id == parts[0]) {
+      if (parts.length == 1) {
+        return (this is T) ? this as T : null;
+      }
+      final remaining = parts.sublist(1);
+      for (final child in children) {
+        final result = child.findNodeRecursive<T>(remaining);
+        if (result != null) return result;
+      }
+    } else {
+      // Try to find the start of the path in the children
+      for (final child in children) {
+        final result = child.findNodeRecursive<T>(parts);
+        if (result != null) return result;
+      }
+    }
+    return null;
+  }
 }

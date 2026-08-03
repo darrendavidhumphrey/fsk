@@ -21,45 +21,37 @@ class ObjModelScene extends FskFrameScene {
     }
   }
 
-  Future<FskIndexedMesh?> loadTeapot() async {
-    try {
-      return await WavefrontObjModel.indexedMeshFromAsset(
-        'assets/3D/Teapot/teapot_textures_normals.obj',
-        this,
-        'teapot',
-      );
-    } catch (e) {
-      logError("Error loading teapot: $e");
-      return null;
-    }
-  }
-
   void init() async {
     useBoxFitLayout = false;
     clearColor = Colors.blueGrey;
 
-    // Load the teapot model
+    // Load the teapot model using the new load method
     FskTextureInfo? teapotTexture = await loadTexture();
-    FskIndexedMesh? teapotMesh = await loadTeapot();
+    FskGroup teapotModel = await WavefrontObjModel.load(
+      'assets/3D/Teapot/teapot_textures_normals.obj',
+      this,
+      'teapot',
+    );
 
-    if ((teapotMesh != null) && (teapotTexture != null)) {
-      teapotMesh.transformable.scale = Vector3.all(5.0);
+    if (teapotTexture != null) {
+      // Caller's frame of reference is now 0, no manual rotation needed!
+      teapotModel.transformable.scale = Vector3.all(5.0);
 
-      // Flip over the teapot
-      teapotMesh.transformable.rotation = Vector3(0, 0, radians(180));
+      // Robustly find the mesh by its hierarchical path
+      final mesh = teapotModel.findNode<FskIndexedMesh>('teapot_correction.teapot');
+      if (mesh != null) {
+        final LightingUniforms uniforms = LightingUniforms();
+        mesh.renderer.uniforms = uniforms;
 
-      final LightingUniforms uniforms = LightingUniforms();
+        uniforms.lightPos = Vector3(500, 500, 500);
 
-      teapotMesh.renderer.uniforms = uniforms;
+        // Bind the texture to the shader
+        uniforms.texture = teapotTexture.texture;
+        uniforms.samplerOptions = teapotTexture.samplerOptions;
+      }
 
-      uniforms.lightPos = Vector3(500, 500, 500);
-
-      // Bind the texture to the shader
-      uniforms.texture = teapotTexture.texture;
-      uniforms.samplerOptions = teapotTexture.samplerOptions;
-
-      // Add the teapot to the scene graph
-      addNode(teapotMesh);
+      // Add the teapot root to the scene graph
+      addNode(teapotModel);
     }
     isReady = true;
   }

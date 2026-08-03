@@ -35,6 +35,22 @@ abstract class FskSceneObject with LoggableClass {
 
   void doRebuild() {}
   void rebuildPipelineIfNeeded();
+
+  /// Recursively searches for a node with the given [path] (dotted notation) and type [T].
+  T? findNode<T>(String path) {
+    return findNodeRecursive<T>(path.split('.'));
+  }
+
+  /// Internal recursive helper for dotted path searching.
+  T? findNodeRecursive<T>(List<String> parts) {
+    if (parts.isEmpty) return null;
+    if (id == parts[0]) {
+      if (parts.length == 1) {
+        return (this is T) ? this as T : null;
+      }
+    }
+    return null;
+  }
 }
 
 abstract class FskRenderableObject extends FskSceneObject {
