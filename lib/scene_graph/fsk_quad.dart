@@ -35,6 +35,10 @@ class FskQuad extends Fsk2DRenderableObject with FskTransformableMixin, FskDepth
   /// Object that renders the quads
   final FskQuadsRenderer _renderer = FskQuadsRenderer();
 
+  // The quad geometry
+  Quad _quad = Quad();
+  Quad get quad => _quad;
+
   bool _premultiplyAlpha = true;
   Color _modulateColor = const Color(0xFFFFFFFF);
 
@@ -95,44 +99,62 @@ class FskQuad extends Fsk2DRenderableObject with FskTransformableMixin, FskDepth
     super.id,
     super.parentScene,
     super.refBox,
-    this._textureRect,{
-    this._modulateColor = Colors.white,
-      String? textureId,
-      FskShaderMaterial? shaderMaterial,
+    this._textureRect, {
+    Color modulateColor = Colors.white,
+    String? textureId,
+    FskShaderMaterial? shaderMaterial,
   }) {
-    setTexture(textureId??FSK().textureManager.transparentTextureId);
+    _init(
+      modulateColor: modulateColor,
+      textureId: textureId,
+      shaderMaterial: shaderMaterial,
+    );
+  }
+
+  FskQuad.fromData(
+    super.id,
+    super.parentScene,
+    super.refBox,
+    FrameQuadData quadData,
+  ) : _textureRect = quadData.textureRect {
+    _init(
+      modulateColor: parseHexColor(quadData.modulateColor, defaultColor: Colors.white),
+      textureId: quadData.texture,
+    );
+    premultiplyAlpha = quadData.premultiplyAlpha;
+    visible = quadData.visible;
+  }
+
+  void _init({
+    Color modulateColor = Colors.white,
+    String? textureId,
+    FskShaderMaterial? shaderMaterial,
+  }) {
     setRenderer(_renderer);
+    setTexture(textureId ?? FSK().textureManager.transparentTextureId);
 
     if (shaderMaterial != null) {
       this.shaderMaterial = shaderMaterial;
     }
 
     // Trigger the setter
-    modulateColor = _modulateColor;
+    this.modulateColor = modulateColor;
 
     setDepthState(
       depthTestEnabled: false,
       depthWriteEnabled: false,
       depthCompareOperation: gpu.CompareFunction.always,
     );
+
+    _updateQuad();
   }
 
-  FskQuad.fromData(super.id,super.parentScene,super.refBox, FrameQuadData quadData) {
-    setRenderer(_renderer);
-    _textureRect = quadData.textureRect;
-
-    // Parse the hex string or default to solid white
-    final colorVector = parseHexColor(quadData.modulateColor,defaultColor: Colors.white);
-    modulateColor = colorVector;
-
-    setTexture(quadData.texture);
-    premultiplyAlpha = quadData.premultiplyAlpha;
-    visible = quadData.visible;
-
-    setDepthState(
-      depthTestEnabled: false,
-      depthWriteEnabled: false,
-      depthCompareOperation: gpu.CompareFunction.always,
+  static ReferenceBox _createRefBox(Size size) {
+    return ReferenceBox(
+      Vector3(-size.width / 2, -size.height / 2, 0.0),
+      Vector3(size.width, 0, 0),
+      Vector3(0, size.height, 0),
+      Vector3(0, 0, 1),
     );
   }
 
@@ -145,73 +167,49 @@ class FskQuad extends Fsk2DRenderableObject with FskTransformableMixin, FskDepth
     String? textureId,
     FskShaderMaterial? shaderMaterial,
   }) {
-    final refBox = ReferenceBox(
-      Vector3(-size.width / 2, -size.height / 2, 0.0),
-      Vector3(size.width, 0, 0),
-      Vector3(0, size.height, 0),
-      Vector3(0, 0, 1),
-    );
-
-    final quad = FskQuad(
+    return FskQuad(
       id,
       scene,
-      refBox,
+      _createRefBox(size),
       const Rect.fromLTWH(0, 0, 1, 1),
-      modulateColor:  modulateColor ,
+      modulateColor: modulateColor,
       textureId: textureId,
       shaderMaterial: shaderMaterial,
     );
-
-    quad.setDepthState(
-      depthTestEnabled: false,
-      depthWriteEnabled: false,
-      depthCompareOperation: gpu.CompareFunction.always,
-    );
-
-    return quad;
   }
 
   factory FskQuad.atPoint(
-      String id,
-      Vector3 location,
-      Size size,
-      FskScene scene, {
-        Color modulateColor = Colors.white,
-        String? textureId,
-        FskShaderMaterial? shaderMaterial,
-      }
-    ) {
-    final refBox = ReferenceBox(
-      Vector3(-size.width / 2, -size.height / 2, 0.0),
-      Vector3(size.width, 0, 0),
-      Vector3(0, size.height, 0),
-      Vector3(0, 0, 1),
-    );
+    String id,
+    Vector3 location,
+    Size size,
+    FskScene scene, {
+    Color modulateColor = Colors.white,
+    String? textureId,
+    FskShaderMaterial? shaderMaterial,
+  }) {
     final quad = FskQuad(
       id,
       scene,
-      refBox,
+      _createRefBox(size),
       const Rect.fromLTWH(0, 0, 1, 1),
       modulateColor: modulateColor,
       textureId: textureId,
       shaderMaterial: shaderMaterial,
     );
     quad.position = location;
-
-    quad.setDepthState(
-      depthTestEnabled: false,
-      depthWriteEnabled: false,
-      depthCompareOperation: gpu.CompareFunction.always,
-    );
     return quad;
+  }
+
+  void _updateQuad() {
+    Vector2 blc = Vector2(0, 0);
+    Vector2 trc = Vector2(refBox.xVector.length, refBox.yVector.length);
+    _quad = refBox.calcQuadFrom2DVectors(blc, trc);
   }
 
   /// Rebuilds the vertex buffer object
   @override
   void doRebuild() {
-    Vector2 blc = Vector2(0, 0);
-    Vector2 trc = Vector2(refBox.xVector.length, refBox.yVector.length);
-    Quad q = refBox.calcQuadFrom2DVectors(blc, trc);
-    _renderer.setFromQuads([q], [_textureRect]);
+    _updateQuad();
+    _renderer.setFromQuads([_quad], [_textureRect]);
   }
 }

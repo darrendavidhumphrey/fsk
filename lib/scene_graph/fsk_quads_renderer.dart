@@ -12,9 +12,6 @@ class FskQuadsRenderer extends FskRendererBase with LoggableClass {
 
   bool _premultiplyAlpha = true;
 
-  // Pointer to the texture in the texture manager
-  FskTextureInfo? _textureInfo;
-
   // Color to modulate the texture with
   Color _modulateColor = const Color(0xFFFFFFFF);
 
@@ -77,30 +74,24 @@ class FskQuadsRenderer extends FskRendererBase with LoggableClass {
     pipeLineNeedsRebuild = false;
   }
 
-  /// Sets a new text string and flags the text for a rebuild.
-  void setTexture(FskTextureInfo? textureInfo) {
-    _textureInfo = textureInfo;
-  }
-
   /////////////////////////////////////////////////////////////////////////////
   // Constructor
   /////////////////////////////////////////////////////////////////////////////
   FskQuadsRenderer();
 
+  void setVertices(Float32List vertices) {
+    _vbo.uploadData(vertices);
+    _vertsDownloaded = vertices.isNotEmpty;
+  }
+
   void setFromUnrolledQuads(int numQuads, Float32List vertexTexCoordArray) {
-
-    _vertsDownloaded = _vbo.setFromUnrolledQuads(numQuads, vertexTexCoordArray);
-
-    // Upload generated quad data to gpu
-    _vbo.uploadData();
+    final vertices = VboFiller.verticesFromUnrolledQuads(numQuads, vertexTexCoordArray);
+    setVertices(vertices);
   }
 
   void setFromQuads(List<Quad> quads, List<Rect> textureQuads) {
-    // Generate triangle mesh from quads
-    _vertsDownloaded = _vbo.setFromQuads(quads, textureQuads);
-
-    // Upload generated quad data to gpu
-    _vbo.uploadData();
+    final vertices = VboFiller.verticesFromTexturedQuads(quads, textureQuads);
+    setVertices(vertices);
   }
 
   @override
@@ -132,9 +123,9 @@ class FskQuadsRenderer extends FskRendererBase with LoggableClass {
       (uniforms as SimpleTextureUniforms).setModulateColor(_modulateColor);
     }
     
-    if (_textureInfo != null) {
-      uniforms!.texture = _textureInfo!.texture;
-      uniforms!.samplerOptions = _textureInfo!.samplerOptions;
+    if (textureInfo != null) {
+      uniforms!.texture = textureInfo!.texture;
+      uniforms!.samplerOptions = textureInfo!.samplerOptions;
     }
     
     uniforms!.mvMatrix = mvMatrix.clone();

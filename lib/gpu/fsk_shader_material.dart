@@ -26,6 +26,13 @@ class FskShaderMaterial {
     uniformsFactory: (v, f) => SimpleTextureUniforms(vertexShader: v, fragmentShader: f),
   );
 
+  static final FskShaderMaterial flat = FskShaderMaterial(
+    vertShaderName: "FlatVertex",
+    fragShaderName: "FlatFragment",
+    layout: v3t2n3c4Layout,
+    uniformsFactory: (v, f) => FlatUniforms(vertexShader: v, fragmentShader: f),
+  );
+
   static final FskShaderMaterial grid = FskShaderMaterial(
     vertShaderName: "GridVertex",
     fragShaderName: "GridFragment",

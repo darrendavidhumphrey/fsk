@@ -1,22 +1,18 @@
 import 'dart:typed_data';
 import 'dart:ui';
-import 'package:fsk/fsk.dart';
 import 'package:vector_math/vector_math.dart';
 
-/// A utility class for filling a [VBO] with vertex data.
+/// A utility class for filling a vertex buffer list with data.
 class VboFiller {
   /// The underlying [Float32List] that is being filled.
-  late Float32List list;
-  FskVertexBuffer buffer;
+  final Float32List list;
 
   int _currentPosition = 0;
 
   /// The current index in the [list] where the next data will be written.
   int get currentPosition => _currentPosition;
 
-  VboFiller(this.buffer) {
-    list = buffer.vertexData!;
-}
+  VboFiller(this.list);
 
   /// Checks if there is enough space in the array for the next write.
   /// Throws a [RangeError] if there is not enough space.
@@ -123,27 +119,84 @@ class VboFiller {
   }
 
   // Makes ONE quad only, setting the vbo size to 6 vertices
-  static void makeTexturedUnitQuad(Rect r, double z,FskVertexBuffer vbo) {
-    vbo.requestBuffer(6);
-    var filler = VboFiller(vbo);
+  static Float32List makeTexturedUnitQuad(Rect r, double z) {
+    final list = Float32List(6 * 12);
+    var filler = VboFiller(list);
     filler._addTexturedUnitQuad(r,z);
+    return list;
   }
 
   // Makes ONE quad only, setting the vbo size to 6 vertices with texture
   //   /// coordinates from [0, 0] to [1, 1].
-  static void makeTexturedQuad(Quad q, Rect tr,FskVertexBuffer vbo) {
-    vbo.requestBuffer(6);
-    var filler = VboFiller(vbo);
+  static Float32List makeTexturedQuad(Quad q, Rect tr) {
+    final list = Float32List(6 * 12);
+    var filler = VboFiller(list);
     filler.addTexturedQuad(q,tr);
+    return list;
   }
 
   // Appends a list of quads to a VBO
-  static void addTexturedQuads(List<Quad> quads, List<Rect> tr,FskVertexBuffer vbo) {
-    var filler = VboFiller(vbo);
+  static Float32List verticesFromTexturedQuads(List<Quad> quads, List<Rect> tr) {
     assert (quads.length == tr.length);
+    final list = Float32List(quads.length * 6 * 12);
+    var filler = VboFiller(list);
 
     for (var i = 0; i < quads.length; i++) {
       filler.addTexturedQuad(quads[i], tr[i]);
     }
+    return list;
+  }
+
+  /// Generates vertex data from unrolled quads (5 components: XYZUV).
+  static Float32List verticesFromUnrolledQuads(int numQuads, Float32List xyzuv) {
+    const int arrayStride = 5;
+    if (numQuads == 0 || xyzuv.isEmpty || xyzuv.length != arrayStride * numQuads * 4) {
+      return Float32List(0);
+    }
+
+    final int numQuadVerts = 6 * numQuads;
+    final list = Float32List(numQuadVerts * 12);
+    final filler = VboFiller(list);
+
+    for (int i = 0; i < numQuads; i++) {
+      int v0Index = i * arrayStride * 4;
+      int v1Index = v0Index + arrayStride;
+      int v2Index = v1Index + arrayStride;
+      int v3Index = v2Index + arrayStride;
+
+      int blIndex = v0Index + 3;
+      int brIndex = v1Index + 3;
+      int trIndex = v2Index + 3;
+      int tlIndex = v3Index + 3;
+
+      // First triangle: bottom-left, bottom-right, top-right
+      filler.addV3T2(
+        Vector3(xyzuv[v0Index], xyzuv[v0Index + 1], xyzuv[v0Index + 2]),
+        Vector2(xyzuv[blIndex], xyzuv[blIndex + 1]),
+      );
+      filler.addV3T2(
+        Vector3(xyzuv[v1Index], xyzuv[v1Index + 1], xyzuv[v1Index + 2]),
+        Vector2(xyzuv[brIndex], xyzuv[brIndex + 1]),
+      );
+      filler.addV3T2(
+        Vector3(xyzuv[v2Index], xyzuv[v2Index + 1], xyzuv[v2Index + 2]),
+        Vector2(xyzuv[trIndex], xyzuv[trIndex + 1]),
+      );
+
+      // Second triangle: bottom-left, top-right, top-left
+      filler.addV3T2(
+        Vector3(xyzuv[v0Index], xyzuv[v0Index + 1], xyzuv[v0Index + 2]),
+        Vector2(xyzuv[blIndex], xyzuv[blIndex + 1]),
+      );
+      filler.addV3T2(
+        Vector3(xyzuv[v2Index], xyzuv[v2Index + 1], xyzuv[v2Index + 2]),
+        Vector2(xyzuv[trIndex], xyzuv[trIndex + 1]),
+      );
+      filler.addV3T2(
+        Vector3(xyzuv[v3Index], xyzuv[v3Index + 1], xyzuv[v3Index + 2]),
+        Vector2(xyzuv[tlIndex], xyzuv[tlIndex + 1]),
+      );
+    }
+    return list;
   }
 }

@@ -1,6 +1,5 @@
 import 'dart:ui' as ui;
 import 'package:flutter_gpu/gpu.dart' as gpu;
-import 'package:vector_math/vector_math.dart';
 
 import '../util.dart';
 

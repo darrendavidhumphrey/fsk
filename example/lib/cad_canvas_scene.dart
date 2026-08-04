@@ -1,9 +1,10 @@
 import 'package:flutter/material.dart' hide Matrix4;
-import 'package:flutter_gpu/gpu.dart' as gpu;
 import 'package:fsk/fsk.dart';
 import 'package:vector_math/vector_math.dart' hide Colors;
 
 class CADCanvasScene extends FskFrameScene {
+
+  late FskQuad gridQuad;
   CADCanvasScene({super.navigationDelegate}) {
     clearColor = Colors.white;
     useBoxFitLayout = false;
@@ -11,13 +12,14 @@ class CADCanvasScene extends FskFrameScene {
     // Restore grid
     makeCanvas();
     makeHandlebars();
+    makeOutline();
 
     isReady = true;
   }
 
   void makeCanvas() {
     // 1. Create quad with grid material in one go
-    final gridQuad = FskQuad.centered(
+    gridQuad = FskQuad.centered(
       'grid',
       this,
       const Size(500, 500),
@@ -51,16 +53,20 @@ class CADCanvasScene extends FskFrameScene {
       Vector3(50, 150, 0),
       ];
     final handlebarSize = const Size.square(10);
+    FskGroup group = FskGroup("handles", this);
     for (int i=0; i < handles.length; i++) {
       var q = FskQuad.atPoint("handle_$i", handles[i],handlebarSize, this, textureId: FSK().textureManager.solidTextureId, modulateColor: Colors.black);
       q.setDepthState(depthTestEnabled: false, depthWriteEnabled: false);
-      addNode(q);
+      group.addNode(q);
     }
+    addNode(group);
   }
 
-  @override
-  void drawScene(gpu.CommandBuffer commandBuffer, FskRenderTarget renderTarget, gpu.HostBuffer transients) {
-    if (!isReady) return;
-    super.drawScene(commandBuffer, renderTarget, transients);
+  void makeOutline() {
+    List<Polyline> outlines = createThickOutline3DFromQuad(gridQuad.quad, 4);
+
+    final mesh = MeshFactory.meshFromColorOutlines('outer_edge', this, outlines, Colors.blue);
+
+    addNode(mesh);
   }
 }

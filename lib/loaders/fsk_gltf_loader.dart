@@ -195,11 +195,11 @@ class FskGltfLoader {
     if (prim.containsKey('indices')) {
       final TypedData indices = _getIndexData((prim['indices'] as num).toInt());
       mesh.indices = indices;
-      mesh.renderer.addSubMesh(
-        SubMesh(indexCount: (indices as dynamic).length, firstIndex: 0),
+      mesh.renderer.addFskSubMesh(
+        FskSubMesh(count: (indices as dynamic).length, offset: 0),
       );
     } else {
-      mesh.renderer.addSubMesh(SubMesh(indexCount: count, firstIndex: 0));
+      mesh.renderer.addFskSubMesh(FskSubMesh(count: count, offset: 0));
     }
 
     if (prim.containsKey('material')) {

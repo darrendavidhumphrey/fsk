@@ -66,28 +66,33 @@ class FskFrameScene extends FskScene {
 
     final Matrix4 finalMvMatrix = layoutMatrix * mvMatrix;
 
-    bool isFirstPass = true;
-    for (var node in rootNodes) {
-      if (node is FskRenderableObject) {
-        // Create a separate RenderPass for every renderable node to force hardware state reset
-        gpu.RenderPass renderPass;
-        if (isFirstPass) {
-          renderPass = commandBuffer.createRenderPass(renderTarget.renderTarget);
-          isFirstPass = false;
-        } else {
-          renderPass = commandBuffer.createRenderPass(renderTarget.loadTarget);
-        }
+    bool hasCleared = false;
 
-        // Ensure viewport and scissor are correctly set for every draw call in case of state resets
+    for (var node in rootNodes) {
+      if (node is FskRenderableObject && node.visible) {
+
+        // Force hardware state reset between top-level nodes by creating a new RenderPass.
+        // The first visible node clears the buffer; subsequent nodes load it.
+        final renderPass = commandBuffer.createRenderPass(
+          hasCleared ? renderTarget.loadTarget : renderTarget.renderTarget,
+        );
+        hasCleared = true;
+
         super.setupScissor(renderPass);
 
         node.draw(
-            renderPass,
-            transients,
-            pMatrix.clone(),
-            finalMvMatrix.clone(),
-            viewportSize);
+          renderPass,
+          transients,
+          pMatrix,
+          finalMvMatrix,
+          viewportSize,
+        );
       }
+    }
+
+    // Ensure the buffer is cleared at least once, even if no nodes were visible.
+    if (!hasCleared) {
+      commandBuffer.createRenderPass(renderTarget.renderTarget);
     }
   }
 

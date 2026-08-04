@@ -66,7 +66,7 @@ class Mesh {
 /// based on the materials defined in the file.
 class WavefrontObjModel {
   /// The vertex buffer containing the unique, interleaved vertex data for the model.
-  final FskVertexBuffer vertexBuffer = FskVertexBuffer();
+  Float32List? vertices;
 
   /// A list of sub-meshes, each corresponding to a different material.
   List<Mesh> meshes = [];
@@ -94,8 +94,8 @@ class WavefrontObjModel {
   ///
   /// This method uses an efficient two-pass approach:
   /// 1. A pre-scan pass counts the number of unique vertices to pre-allocate the
-  ///    [FskVertexBuffer] with the exact required size.
-  /// 2. The main pass parses all vertex attributes, populates the vertex buffer,
+  ///    [vertices] list with the exact required size.
+  /// 2. The main pass parses all vertex attributes, populates the vertex data,
   ///    builds the face indices, and groups them into meshes.
   void loadFromString(String objFileContent) {
     // Temporary lists to hold the raw attribute data from the file.
@@ -132,8 +132,8 @@ class WavefrontObjModel {
 
     // Allocate the vertex buffer with the final, correct size.
     final totalUniqueVertices = uniqueVertexMap.length;
-    vertexBuffer.requestBuffer(totalUniqueVertices);
-    final filler = VboFiller(vertexBuffer);
+    vertices = Float32List(totalUniqueVertices * 12);
+    final filler = VboFiller(vertices!);
 
     // Reset state for the main parsing pass.
     uniqueVertexMap.clear();
@@ -244,9 +244,7 @@ class WavefrontObjModel {
     final indexedMesh = FskIndexedMesh(id, scene, shaderMaterial: shaderMaterial);
 
     // 1. Assign vertex data to Mesh
-    if (vertexBuffer.vertexData != null) {
-      indexedMesh.vertices = Float32List.fromList(vertexBuffer.vertexData!);
-    }
+    indexedMesh.vertices = vertices;
 
     // 2. Build consolidated index buffer for Mesh
     int totalIndices = 0;
@@ -262,9 +260,9 @@ class WavefrontObjModel {
       }
 
       // Add submesh to renderer
-      indexedMesh.renderer.addSubMesh(SubMesh(
-        indexCount: mesh.triangleIndices.length,
-        firstIndex: mesh.bufferOffset,
+      indexedMesh.renderer.addFskSubMesh(FskSubMesh(
+        count: mesh.triangleIndices.length,
+        offset: mesh.bufferOffset,
         materialName: mesh.materialName,
         material: mesh.materialName != null ? FSK().materials.getMaterial(mesh.materialName!) : null,
       ));

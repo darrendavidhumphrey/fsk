@@ -12,6 +12,7 @@ export 'geometry/polyline.dart';
 export 'geometry/polyline_clipper.dart';
 export 'geometry/reference_box.dart';
 export 'geometry/solid.dart';
+export 'geometry/thick_lines.dart';
 export 'geometry/triangle_mesh.dart';
 
 
@@ -29,6 +30,10 @@ export 'gpu/fsk_vertex_buffer.dart';
 export 'scene_graph/fsk_bitmap_text.dart';
 export 'scene_graph/fsk_group.dart';
 export 'scene_graph/fsk_pbr_model.dart';
+export 'scene_graph/fsk_mesh.dart';
+export 'scene_graph/fsk_mesh_renderer.dart';
+export 'scene_graph/fsk_mesh_renderer_base.dart';
+export 'scene_graph/fsk_submesh.dart';
 export 'scene_graph/fsk_indexed_mesh.dart';
 export 'scene_graph/fsk_indexed_mesh_renderer.dart';
 export 'scene_graph/fsk_quad.dart';
