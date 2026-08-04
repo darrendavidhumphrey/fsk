@@ -1,7 +1,8 @@
 import 'dart:typed_data';
 import 'package:fsk/fsk.dart';
+import 'package:fsk/scene_graph/fsk_depth_state.dart';
 
-class FskIndexedMesh extends FskRenderableObject with FskTransformableMixin {
+class FskIndexedMesh extends FskRenderableObject with FskTransformableMixin, FskDepthStateMixin {
   final FskTransformable transform = FskTransformable();
 
   /// Geometry data owned by the Mesh

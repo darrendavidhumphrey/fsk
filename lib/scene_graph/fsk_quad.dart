@@ -1,8 +1,10 @@
 import 'dart:ui';
 import 'package:flutter/material.dart' show Colors;
+import 'package:flutter_gpu/gpu.dart' as gpu;
 import 'package:vector_math/vector_math.dart' hide Colors;
 import '../frames/frame_data.dart';
 import '../fsk.dart';
+import 'fsk_depth_state.dart';
 import 'fsk_quads_renderer.dart';
 
 class FrameQuadData extends FrameObjectData {
@@ -26,7 +28,7 @@ class FrameQuadData extends FrameObjectData {
 }
 
 /// A class that manages the geometry and rendering for a single textured quad
-class FskQuad extends Fsk2DRenderableObject with FskTransformableMixin {
+class FskQuad extends Fsk2DRenderableObject with FskTransformableMixin, FskDepthStateMixin {
   // The texture coordinates for the quad
   late final Rect _textureRect;
 
@@ -107,6 +109,12 @@ class FskQuad extends Fsk2DRenderableObject with FskTransformableMixin {
 
     // Trigger the setter
     modulateColor = _modulateColor;
+
+    setDepthState(
+      depthTestEnabled: false,
+      depthWriteEnabled: false,
+      depthCompareOperation: gpu.CompareFunction.always,
+    );
   }
 
   FskQuad.fromData(super.id,super.parentScene,super.refBox, FrameQuadData quadData) {
@@ -120,6 +128,12 @@ class FskQuad extends Fsk2DRenderableObject with FskTransformableMixin {
     setTexture(quadData.texture);
     premultiplyAlpha = quadData.premultiplyAlpha;
     visible = quadData.visible;
+
+    setDepthState(
+      depthTestEnabled: false,
+      depthWriteEnabled: false,
+      depthCompareOperation: gpu.CompareFunction.always,
+    );
   }
 
   /// Creates a centered 2D quad of the specified [size] at [z] depth.
@@ -146,6 +160,12 @@ class FskQuad extends Fsk2DRenderableObject with FskTransformableMixin {
       modulateColor:  modulateColor ,
       textureId: textureId,
       shaderMaterial: shaderMaterial,
+    );
+
+    quad.setDepthState(
+      depthTestEnabled: false,
+      depthWriteEnabled: false,
+      depthCompareOperation: gpu.CompareFunction.always,
     );
 
     return quad;
@@ -178,6 +198,11 @@ class FskQuad extends Fsk2DRenderableObject with FskTransformableMixin {
     );
     quad.position = location;
 
+    quad.setDepthState(
+      depthTestEnabled: false,
+      depthWriteEnabled: false,
+      depthCompareOperation: gpu.CompareFunction.always,
+    );
     return quad;
   }
 

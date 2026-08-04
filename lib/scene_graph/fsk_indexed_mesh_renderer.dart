@@ -25,7 +25,6 @@ class FskIndexedMeshRenderer extends FskRendererBase {
 
   bool _dataUploaded = false;
   bool isValid = false;
-  bool pipeLineNeedsRebuild = true;
 
   gpu.VertexLayout layout = v3t2n3Layout;
 
@@ -62,9 +61,9 @@ class FskIndexedMeshRenderer extends FskRendererBase {
       vertShaderName: material.vertShaderName,
       fragShaderName: material.fragShaderName,
       layoutName: "${material.vertShaderName}_${material.fragShaderName}_Pipeline",
-      depthTestEnabled: true,
-      depthWriteEnabled: true,
-      depthCompareOperation: gpu.CompareFunction.less,
+      depthTestEnabled: depthState.depthTestEnabled,
+      depthWriteEnabled: depthState.depthWriteEnabled,
+      depthCompareOperation: depthState.depthCompareOperation,
       texturingEnabled: true,
       srcColorFactor: gpu.BlendFactor.sourceAlpha,
       dstColorFactor: gpu.BlendFactor.oneMinusSourceAlpha,

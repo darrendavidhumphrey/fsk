@@ -52,7 +52,9 @@ class CADCanvasScene extends FskFrameScene {
       ];
     final handlebarSize = const Size.square(10);
     for (int i=0; i < handles.length; i++) {
-      addNode(FskQuad.atPoint("handle_$i", handles[i],handlebarSize, this, textureId: FSK().textureManager.solidTextureId, modulateColor: Colors.black));
+      var q = FskQuad.atPoint("handle_$i", handles[i],handlebarSize, this, textureId: FSK().textureManager.solidTextureId, modulateColor: Colors.black);
+      q.setDepthState(depthTestEnabled: false, depthWriteEnabled: false);
+      addNode(q);
     }
   }
 

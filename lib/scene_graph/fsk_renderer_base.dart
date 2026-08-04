@@ -3,6 +3,7 @@ import 'package:flutter_gpu/gpu.dart' as gpu;
 import 'package:vector_math/vector_math.dart';
 import '../gpu/fsk_shader_material.dart';
 import '../shaders/base_uniforms.dart';
+import 'fsk_depth_state.dart';
 
 abstract class FskRendererBase {
   FskRendererBase();
@@ -12,6 +13,9 @@ abstract class FskRendererBase {
 
   /// The active uniform block for this renderer
   BaseUniforms? uniforms;
+
+  final FskDepthState depthState = FskDepthState();
+  bool pipeLineNeedsRebuild = true;
 
   void draw(
       gpu.RenderPass renderPass,

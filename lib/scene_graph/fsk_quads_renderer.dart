@@ -18,10 +18,6 @@ class FskQuadsRenderer extends FskRendererBase with LoggableClass {
   // Color to modulate the texture with
   Color _modulateColor = const Color(0xFFFFFFFF);
 
-  bool isValid = false;
-
-  bool pipeLineNeedsRebuild = true;
-
   gpu.VertexLayout layout = textVertexLayout;
 
   /// The vertex buffer object that holds the geometry for rendering.
@@ -51,9 +47,9 @@ class FskQuadsRenderer extends FskRendererBase with LoggableClass {
       vertShaderName: material.vertShaderName,
       fragShaderName: material.fragShaderName,
       layoutName: "${material.vertShaderName}_${material.fragShaderName}_Pipeline",
-      depthTestEnabled: false,
-      depthWriteEnabled: false,
-      depthCompareOperation: gpu.CompareFunction.always,
+      depthTestEnabled: depthState.depthTestEnabled,
+      depthWriteEnabled: depthState.depthWriteEnabled,
+      depthCompareOperation: depthState.depthCompareOperation,
       texturingEnabled: true,
       srcColorFactor: _premultiplyAlpha
           ? gpu.BlendFactor.one
@@ -91,11 +87,8 @@ class FskQuadsRenderer extends FskRendererBase with LoggableClass {
   /////////////////////////////////////////////////////////////////////////////
   FskQuadsRenderer();
 
-  void _checkIsValid() {
-    isValid = _vertsDownloaded;
-  }
-
   void setFromUnrolledQuads(int numQuads, Float32List vertexTexCoordArray) {
+
     _vertsDownloaded = _vbo.setFromUnrolledQuads(numQuads, vertexTexCoordArray);
 
     // Upload generated quad data to gpu
@@ -118,9 +111,8 @@ class FskQuadsRenderer extends FskRendererBase with LoggableClass {
     Matrix4 mvMatrix,
     Size viewportSize,
   ) {
-    _checkIsValid();
-    if (!isValid) {
-      logVerbose("QuadsRenderer skip draw: not valid (verts not downloaded)");
+    // It's not an error for the renderer to be empty
+    if (!_vertsDownloaded) {
       return;
     }
 

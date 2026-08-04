@@ -2,7 +2,9 @@ import 'dart:math';
 import 'dart:typed_data';
 import 'dart:ui';
 import 'package:flutter/material.dart' show Colors;
+import 'package:flutter_gpu/gpu.dart' as gpu;
 import 'package:fsk/fsk.dart';
+import 'package:fsk/scene_graph/fsk_depth_state.dart';
 import '../frames/frame_data.dart';
 import 'fsk_quads_renderer.dart';
 import 'fsk_text_quad_builder.dart';
@@ -39,7 +41,7 @@ class FrameTextData extends FrameObjectData {
 ///
 /// It generates a set of quads for the text, scaled to fit within a target
 /// [ReferenceBox], and renders them using a [FskQuadsRenderer].
-class FskBitmapText extends Fsk2DRenderableObject with FskTransformableMixin {
+class FskBitmapText extends Fsk2DRenderableObject with FskTransformableMixin, FskDepthStateMixin {
   /// The string to render
   late String _text;
 
@@ -205,6 +207,12 @@ class FskBitmapText extends Fsk2DRenderableObject with FskTransformableMixin {
     textColor = _textColor;
 
     _font.addListener(_onFontChanged);
+
+    setDepthState(
+      depthTestEnabled: false,
+      depthWriteEnabled: false,
+      depthCompareOperation: gpu.CompareFunction.always,
+    );
   }
 
   FskBitmapText.fromData(super.id,super.parentScene, super.refBox,FrameTextData textData, {FskShaderMaterial? shaderMaterial}) {
@@ -231,6 +239,12 @@ class FskBitmapText extends Fsk2DRenderableObject with FskTransformableMixin {
     maxLen = textData.maxLen;
     scaleToFit = textData.scaleToFit;
     visible = textData.visible;
+
+    setDepthState(
+      depthTestEnabled: false,
+      depthWriteEnabled: false,
+      depthCompareOperation: gpu.CompareFunction.always,
+    );
   }
 
   @override
