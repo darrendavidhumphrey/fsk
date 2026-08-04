@@ -1,5 +1,6 @@
 import 'package:flutter/services.dart';
 
+import '../fsk_singleton.dart';
 import '../logging.dart';
 import 'bitmap_font.dart';
 part 'built_in_font.dart';
@@ -66,14 +67,16 @@ class BitmapFontManager with LoggableClass {
     String filename,
     String textureName,
   ) async {
+    if (_fonts.containsKey(fontName)) {
+      logInfo("Font $fontName already registered, skipping load.");
+      return;
+    }
+
     // Load the XML data from the file as a string
     final fontPath = "$assetsRoot$filename";
 
     try {
-      // A robust way to check for asset existence using the manifest
-      // instead of catching broad exceptions.
-      final manifest = await AssetManifest.loadFromAssetBundle(rootBundle);
-      if (!manifest.listAssets().contains(fontPath)) {
+      if (!FSK().assetManifest.listAssets().contains(fontPath)) {
         logError("Font file not found in asset manifest: '$fontPath'");
         return;
       }
@@ -81,6 +84,7 @@ class BitmapFontManager with LoggableClass {
       final xmlData = await rootBundle.loadString(fontPath);
 
       logVerbose("createFontFromFile: $fontName, $filename, $textureName");
+
       // Call the createFont method with the retrieved data
       await createFont(fontName, xmlData, textureName);
     } catch (e, stackTrace) {
@@ -95,7 +99,6 @@ class BitmapFontManager with LoggableClass {
   Future<void> createFont(String fontName, String xmlString, String textureName) async {
     try {
       var font = BitmapFont.fromXml(fontName, xmlString);
-
       // The texture loads asynchronously, so wait for it.
       await font.loadFontTexture(textureName);
       registerFont(fontName, font);
@@ -105,7 +108,7 @@ class BitmapFontManager with LoggableClass {
     }
   }
 
-  // Syncronous version that ensures the font is loaded before use, but the
+  // Synchronous version that ensures the font is loaded before use, but the
   // texture still loads asynchronously.
   void createFontSync(String fontName, String xmlString, String textureName)  {
     try {

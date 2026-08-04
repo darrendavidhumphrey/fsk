@@ -16,6 +16,7 @@ class FskFrameScene extends FskScene {
   }
 
   FskFrameScene.fromSkinFile(String skinPath, {super.navigationDelegate}) {
+    isReady = false;
     loadSkin(skinPath);
   }
 

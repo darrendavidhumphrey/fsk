@@ -60,7 +60,7 @@ class FskTextureManager with LoggableClass {
         gpu.SamplerAddressMode wrapT = gpu.SamplerAddressMode.repeat,
       }) async {
     if (_textures.containsKey(id)) {
-      logInfo("Skip Loading Texture ID $id (already exists)");
+      logVerbose("Skip Loading Texture ID $id (already exists)");
       return _textures[id]!;
     }
 

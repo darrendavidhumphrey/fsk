@@ -58,6 +58,11 @@ class FSK extends ChangeNotifier with LoggableClass {
 
   final FskShaderLibrary shaderLibrary = FskShaderLibrary();
 
+
+  // Lazily cache the asset manifest the first time it's loaded to speed things up
+  AssetManifest? _assetManifest;
+  AssetManifest get assetManifest => _assetManifest!;
+
   /// Factory constructor to return the singleton instance.
   factory FSK() {
     return _singleton;
@@ -79,6 +84,8 @@ class FSK extends ChangeNotifier with LoggableClass {
 
   /// This must be called once before any other operations.
   Future<bool> init() async {
+    _assetManifest ??= await AssetManifest.loadFromAssetBundle(rootBundle);
+
     try {
       if (_state == FskState.uninitialized) {
         // We try common paths for the compiled shader bundle in order of probability.
@@ -103,9 +110,8 @@ class FSK extends ChangeNotifier with LoggableClass {
         
         if (!loaded) {
           logWarning('Failed to load shader bundle from prioritized paths. Searching AssetManifest...');
-          
-          final manifest = await AssetManifest.loadFromAssetBundle(rootBundle);
-          final allAssets = manifest.listAssets();
+
+          final allAssets = assetManifest.listAssets();
           
           // Ultra-flexible search: Find any asset that contains "shaderbundle" and is not a JSON file.
           final match = allAssets.firstWhere(
