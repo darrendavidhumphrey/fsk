@@ -3,10 +3,10 @@ import 'package:flutter/services.dart';
 import 'package:fsk/fsk.dart';
 import 'package:flutter/material.dart';
 import 'package:fsk_examples/checkerboard_scene.dart';
-import 'package:fsk_examples/orbitview_scene.dart';
 import 'package:fsk_examples/positioned_title_bar.dart';
 import 'package:fsk_examples/scene_from_xml.dart';
 import 'animated_checkerboard_scene.dart';
+import 'cad_canvas_scene.dart';
 import 'obj_model_scene.dart';
 import 'pbr_model_scene.dart';
 
@@ -37,7 +37,7 @@ class TestAppState extends State<TestApp> {
   final List<String> menuLabels = [
     "Checkerboard (Ortho View)",
     "Animated Checkerboard (Perspective View)",
-    "OrbitView (Grid Shader)",
+    "CAD Canvas (Orbit View)",
     "Bitmap Text (Ortho View)",
     "Teapot OBJ (Orbit View)",
     "PBR Sci-Fi Helmet GLTF (Orbit View)"
@@ -48,7 +48,7 @@ class TestAppState extends State<TestApp> {
   void makeExamples() {
     scenes.add(CheckerBoardScene(navigationDelegate: OrthoViewDelegate(boxFit: FskBoxFit.bestFit)));
     scenes.add(AnimatedCheckerBoardScene(navigationDelegate: StaticViewDelegate(boxFit: FskBoxFit.bestFit)));
-    scenes.add(OrbitViewScene(navigationDelegate: OrbitViewDelegate(boxFit: FskBoxFit.bestFit)));
+    scenes.add(CADCanvasScene(navigationDelegate: OrbitViewDelegate(boxFit: FskBoxFit.bestFit)));
     scenes.add(SceneFromXml(navigationDelegate: OrthoViewDelegate(boxFit: FskBoxFit.bestFit)));
     scenes.add(ObjModelScene(navigationDelegate: OrbitViewDelegate(boxFit: FskBoxFit.bestFit)));
     scenes.add(PbrModelScene(navigationDelegate: OrbitViewDelegate(boxFit: FskBoxFit.bestFit)));
@@ -57,6 +57,7 @@ class TestAppState extends State<TestApp> {
   @override
   void initState() {
     super.initState();
+    _setTitleText();
 
     FSK().init().then((_) {
       makeExamples();
@@ -101,7 +102,10 @@ class TestAppState extends State<TestApp> {
               backgroundColor: kIsWeb ? Colors.transparent : null,
               body: Stack(
                 children: [
-                  RenderToTexture(scene: scenes[_pageIndex],useAntiAliasing:false,),
+                  if (scenes.isNotEmpty)
+                    RenderToTexture(scene: scenes[_pageIndex],useAntiAliasing:false,)
+                  else
+                    const Center(child: CircularProgressIndicator()),
 
                   // Title text widget
                   PositionedTitleBar(titleText: _titleText),

@@ -5,7 +5,7 @@ import 'package:flutter_gpu/gpu.dart' as gpu;
 import 'package:fsk/fsk.dart';
 import 'fsk_renderer_base.dart';
 
-class FskQuadsRenderer extends FskRendererBase {
+class FskQuadsRenderer extends FskRendererBase with LoggableClass {
   PipelineKey? pipelineKey;
 
   bool _vertsDownloaded = false;
@@ -51,9 +51,9 @@ class FskQuadsRenderer extends FskRendererBase {
       vertShaderName: material.vertShaderName,
       fragShaderName: material.fragShaderName,
       layoutName: "${material.vertShaderName}_${material.fragShaderName}_Pipeline",
-      depthTestEnabled: true,
+      depthTestEnabled: false,
       depthWriteEnabled: false,
-      depthCompareOperation: gpu.CompareFunction.less,
+      depthCompareOperation: gpu.CompareFunction.always,
       texturingEnabled: true,
       srcColorFactor: _premultiplyAlpha
           ? gpu.BlendFactor.one
@@ -119,7 +119,10 @@ class FskQuadsRenderer extends FskRendererBase {
     Size viewportSize,
   ) {
     _checkIsValid();
-    if (!isValid) return;
+    if (!isValid) {
+      logVerbose("QuadsRenderer skip draw: not valid (verts not downloaded)");
+      return;
+    }
 
     rebuildPipeline();
 
@@ -144,6 +147,7 @@ class FskQuadsRenderer extends FskRendererBase {
     
     uniforms!.mvMatrix = mvMatrix.clone();
     uniforms!.pMatrix = pMatrix.clone();
+
     uniforms!.bind(renderPass, transients);
 
     _vbo.drawTriangles(renderPass);

@@ -20,6 +20,7 @@ class FskVertexBuffer {
 
   // The number of vertices
   int _vertexCount = 0;
+  int get vertexCount => _vertexCount;
 
   FskVertexBuffer();
 

@@ -12,7 +12,8 @@ class FskRenderTarget {
   gpu.Texture? _msaaColorTexture;
   gpu.Texture? _resolveTexture;
   gpu.Texture? _depthTexture;
-  gpu.RenderTarget? _renderTarget;
+  gpu.RenderTarget? _renderTargetClear;
+  gpu.RenderTarget? _renderTargetLoad;
   ui.Color clearColor;
 
   FskRenderTarget({
@@ -24,8 +25,11 @@ class FskRenderTarget {
     _allocateResources();
   }
 
-  /// Expose the render target configuration required by the CommandBuffer.
-  gpu.RenderTarget get renderTarget => _renderTarget!;
+  /// Expose the render target configuration for clearing the frame.
+  gpu.RenderTarget get renderTarget => _renderTargetClear!;
+
+  /// Expose the render target configuration for loading existing content.
+  gpu.RenderTarget get loadTarget => _renderTargetLoad!;
 
   /// Expose the final single-sample texture read by the canvas/samplers.
   gpu.Texture get outputTexture => _resolveTexture!;
@@ -35,7 +39,7 @@ class FskRenderTarget {
 
   void _allocateResources() {
     _resolveTexture = gpu.gpuContext.createTexture(
-      gpu.StorageMode.hostVisible, // Changed to hostVisible for CPU readback support
+      gpu.StorageMode.hostVisible,
       width,
       height,
       format: gpu.PixelFormat.r8g8b8a8UNormInt,
@@ -44,18 +48,24 @@ class FskRenderTarget {
     );
 
     _depthTexture = gpu.gpuContext.createTexture(
-      gpu.StorageMode.deviceTransient,
+      gpu.StorageMode.devicePrivate,
       width,
       height,
       format: gpu.gpuContext.defaultDepthStencilFormat,
       enableRenderTargetUsage: true,
     );
 
-    final depthAttachment = gpu.DepthStencilAttachment(
+    final depthAttachmentClear = gpu.DepthStencilAttachment(
       texture: _depthTexture!,
       depthClearValue: 1.0,
       depthLoadAction: gpu.LoadAction.clear,
-      depthStoreAction: gpu.StoreAction.dontCare,
+      depthStoreAction: gpu.StoreAction.store, // Keep depth for subsequent passes
+    );
+
+    final depthAttachmentLoad = gpu.DepthStencilAttachment(
+      texture: _depthTexture!,
+      depthLoadAction: gpu.LoadAction.load,
+      depthStoreAction: gpu.StoreAction.store,
     );
 
     if (enableMsaa && gpu.gpuContext.doesSupportOffscreenMSAA) {
@@ -69,29 +79,52 @@ class FskRenderTarget {
         enableShaderReadUsage: false,
       );
 
-      final msaaAttachment = gpu.ColorAttachment(
+      final colorAttachmentClear = gpu.ColorAttachment(
         texture: _msaaColorTexture!,
         resolveTexture: _resolveTexture!,
-        clearValue: Vector4(0, 0, 0, 0),
+        clearValue: colorToVector(clearColor),
         loadAction: gpu.LoadAction.clear,
         storeAction: gpu.StoreAction.multisampleResolve,
       );
 
-      _renderTarget = gpu.RenderTarget(
-        colorAttachments: [msaaAttachment],
-        depthStencilAttachment: depthAttachment,
+      final colorAttachmentLoad = gpu.ColorAttachment(
+        texture: _msaaColorTexture!,
+        resolveTexture: _resolveTexture!,
+        loadAction: gpu.LoadAction.load,
+        storeAction: gpu.StoreAction.multisampleResolve,
+      );
+
+      _renderTargetClear = gpu.RenderTarget(
+        colorAttachments: [colorAttachmentClear],
+        depthStencilAttachment: depthAttachmentClear,
+      );
+
+      _renderTargetLoad = gpu.RenderTarget(
+        colorAttachments: [colorAttachmentLoad],
+        depthStencilAttachment: depthAttachmentLoad,
       );
     } else {
-      final standardAttachment = gpu.ColorAttachment(
+      final colorAttachmentClear = gpu.ColorAttachment(
         texture: _resolveTexture!,
         clearValue: colorToVector(clearColor),
         loadAction: gpu.LoadAction.clear,
         storeAction: gpu.StoreAction.store,
       );
 
-      _renderTarget = gpu.RenderTarget(
-        colorAttachments: [standardAttachment],
-        depthStencilAttachment: depthAttachment,
+      final colorAttachmentLoad = gpu.ColorAttachment(
+        texture: _resolveTexture!,
+        loadAction: gpu.LoadAction.load,
+        storeAction: gpu.StoreAction.store,
+      );
+
+      _renderTargetClear = gpu.RenderTarget(
+        colorAttachments: [colorAttachmentClear],
+        depthStencilAttachment: depthAttachmentClear,
+      );
+
+      _renderTargetLoad = gpu.RenderTarget(
+        colorAttachments: [colorAttachmentLoad],
+        depthStencilAttachment: depthAttachmentLoad,
       );
     }
   }

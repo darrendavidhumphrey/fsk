@@ -73,20 +73,22 @@ class PipelineKey with LoggableClass {
 
     // 2. Configure dynamic depth testing structures
     renderPass.setDepthWriteEnable(depthWriteEnabled);
-    renderPass.setDepthCompareOperation(
-        depthTestEnabled ? depthCompareOperation : gpu.CompareFunction.always
-    );
+    if (depthTestEnabled) {
+      renderPass.setDepthCompareOperation(depthCompareOperation);
+    } else {
+      renderPass.setDepthCompareOperation(gpu.CompareFunction.always);
+    }
 
     // 3. Configure dynamic blending equations
     renderPass.setColorBlendEnable(true);
     renderPass.setColorBlendEquation(
       gpu.ColorBlendEquation(
-        colorBlendOperation: gpu.BlendOperation.add,
-        sourceColorBlendFactor: gpu.BlendFactor.one,
-        destinationColorBlendFactor: gpu.BlendFactor.oneMinusSourceAlpha,
-        alphaBlendOperation: gpu.BlendOperation.add,
-        sourceAlphaBlendFactor: gpu.BlendFactor.one,
-        destinationAlphaBlendFactor: gpu.BlendFactor.oneMinusSourceAlpha,
+        colorBlendOperation: colorBlendOp,
+        sourceColorBlendFactor: srcColorFactor,
+        destinationColorBlendFactor: dstColorFactor,
+        alphaBlendOperation: alphaBlendOp,
+        sourceAlphaBlendFactor: srcAlphaFactor,
+        destinationAlphaBlendFactor: dstAlphaFactor,
       ),
     );
 
@@ -157,29 +159,29 @@ const gpu.VertexLayout v3t2n3c4Layout = gpu.VertexLayout(
   ],
 );
 
-// Removing the unreferenced attributes satisfies flutter_gpu
-const gpu.VertexLayout v3t2Layout = gpu.VertexLayout(
+const gpu.VertexLayout quadVertexLayout = gpu.VertexLayout(
   buffers: [
     gpu.VertexBuffer(
-      strideInBytes:
-          48, // All Vertex Buffers have all 12 component floats
+      strideInBytes: 48,
       stepMode: gpu.VertexStepMode.vertex,
       attributes: [
         gpu.VertexAttribute(
-          name: 'aVertexPosition', // Present in shader execution graph
+          name: 'aVertexPosition',
           format: gpu.VertexFormat.float32x3,
           offsetInBytes: 0,
         ),
         gpu.VertexAttribute(
-          name: 'aTextureCoord', // Present in shader execution graph
+          name: 'aTextureCoord',
           format: gpu.VertexFormat.float32x2,
           offsetInBytes: 12,
         ),
-
       ],
     ),
   ],
 );
+
+const gpu.VertexLayout textVertexLayout = quadVertexLayout;
+const gpu.VertexLayout v3t2Layout = quadVertexLayout;
 
 const gpu.VertexLayout v3n3Layout = gpu.VertexLayout(
   buffers: [
@@ -255,50 +257,6 @@ const gpu.VertexLayout v3n3c4Layout = gpu.VertexLayout(
 );
 
 
-const gpu.VertexLayout quadVertexLayout = gpu.VertexLayout(
-  buffers: [
-    gpu.VertexBuffer(
-      strideInBytes: 48, // Keep the 48-byte stride so your float array reading doesn't change
-      stepMode: gpu.VertexStepMode.vertex,
-      attributes: [
-        gpu.VertexAttribute(
-          name: 'aVertexPosition', // Matches: layout(location = 0) in vec3 aVertexPosition;
-          format: gpu.VertexFormat.float32x3,
-          offsetInBytes: 0,
-        ),
-        gpu.VertexAttribute(
-          name: 'aTextureCoord',   // Matches: layout(location = 1) in vec2 aTextureCoord;
-          format: gpu.VertexFormat.float32x2,
-          offsetInBytes: 12,
-        ),
-      ],
-    ),
-  ],
-);
-
-
-const gpu.VertexLayout textVertexLayout = gpu.VertexLayout(
-  buffers: [
-    gpu.VertexBuffer(
-      strideInBytes: 48, // Keep the 48-byte stride so your float array reading doesn't change
-      stepMode: gpu.VertexStepMode.vertex,
-      attributes: [
-        gpu.VertexAttribute(
-          name: 'aVertexPosition', // Matches: layout(location = 0) in vec3 aVertexPosition;
-          format: gpu.VertexFormat.float32x3,
-          offsetInBytes: 0,
-        ),
-        gpu.VertexAttribute(
-          name: 'aTextureCoord',   // Matches: layout(location = 1) in vec2 aTextureCoord;
-          format: gpu.VertexFormat.float32x2,
-          offsetInBytes: 12,
-        ),
-      ],
-    ),
-  ],
-);
-
-
 class PipelineCache with LoggableClass {
   // Map against the stable compiled String key profile
   final Map<String, gpu.RenderPipeline> _cache = {};
@@ -310,19 +268,16 @@ class PipelineCache with LoggableClass {
       gpu.RenderPass renderPass,
       gpu.VertexLayout layout,
       ) {
-    // Lookup via the pre-calculated string identity token
     gpu.RenderPipeline? pipeline = _cache[key.uniqueStringKey];
-
     if (pipeline == null) {
-      //logInfo("COMPILING PIPELINE FOR: ${key.uniqueStringKey}");
       pipeline = gpu.gpuContext.createRenderPipeline(
         key.vertShader,
         key.fragShader,
         vertexLayout: layout,
       );
-
       _cache[key.uniqueStringKey] = pipeline;
     }
+
     renderPass.bindPipeline(pipeline);
     key.applyPipelineStates(renderPass);
 

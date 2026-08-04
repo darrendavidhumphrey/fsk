@@ -93,12 +93,12 @@ class FskQuad extends Fsk2DRenderableObject with FskTransformableMixin {
     super.id,
     super.parentScene,
     super.refBox,
-    this._textureRect,
-    this._modulateColor,
-    String textureId, {
-    FskShaderMaterial? shaderMaterial,
+    this._textureRect,{
+    this._modulateColor = Colors.white,
+      String? textureId,
+      FskShaderMaterial? shaderMaterial,
   }) {
-    setTexture(textureId);
+    setTexture(textureId??FSK().textureManager.transparentTextureId);
     setRenderer(_renderer);
 
     if (shaderMaterial != null) {
@@ -137,15 +137,46 @@ class FskQuad extends Fsk2DRenderableObject with FskTransformableMixin {
       Vector3(0, size.height, 0),
       Vector3(0, 0, 1),
     );
+
     final quad = FskQuad(
       id,
       scene,
       refBox,
       const Rect.fromLTWH(0, 0, 1, 1),
-      modulateColor,
-      textureId ?? 'dummy',
+      modulateColor:  modulateColor ,
+      textureId: textureId,
       shaderMaterial: shaderMaterial,
     );
+
+    return quad;
+  }
+
+  factory FskQuad.atPoint(
+      String id,
+      Vector3 location,
+      Size size,
+      FskScene scene, {
+        Color modulateColor = Colors.white,
+        String? textureId,
+        FskShaderMaterial? shaderMaterial,
+      }
+    ) {
+    final refBox = ReferenceBox(
+      Vector3(-size.width / 2, -size.height / 2, 0.0),
+      Vector3(size.width, 0, 0),
+      Vector3(0, size.height, 0),
+      Vector3(0, 0, 1),
+    );
+    final quad = FskQuad(
+      id,
+      scene,
+      refBox,
+      const Rect.fromLTWH(0, 0, 1, 1),
+      modulateColor: modulateColor,
+      textureId: textureId,
+      shaderMaterial: shaderMaterial,
+    );
+    quad.position = location;
 
     return quad;
   }

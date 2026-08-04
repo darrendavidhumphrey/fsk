@@ -28,13 +28,23 @@ class FskFrameScene extends FskScene {
     nodeMap[node.id] = node;
   }
 
+  void addNodes(List<FskSceneObject> nodes) {
+    for (var node in nodes) {
+      addNode(node);
+    }
+  }
+
+  void clearNodes() {
+    rootNodes.clear();
+    nodeMap.clear();
+    setNeedsUpdate();
+  }
+
   @override
-  void drawScene(gpu.RenderPass renderPass, gpu.HostBuffer transients) {
+  void drawScene(gpu.CommandBuffer commandBuffer, FskRenderTarget renderTarget, gpu.HostBuffer transients) {
     if (!isReady) return;
 
-    super.drawScene(renderPass, transients);
-
-    super.setupScissor(renderPass);
+    super.drawScene(commandBuffer, renderTarget, transients);
 
     Matrix4 layoutMatrix = Matrix4.identity();
     if (useBoxFitLayout) {
@@ -56,8 +66,21 @@ class FskFrameScene extends FskScene {
 
     final Matrix4 finalMvMatrix = layoutMatrix * mvMatrix;
 
+    bool isFirstPass = true;
     for (var node in rootNodes) {
       if (node is FskRenderableObject) {
+        // Create a separate RenderPass for every renderable node to force hardware state reset
+        gpu.RenderPass renderPass;
+        if (isFirstPass) {
+          renderPass = commandBuffer.createRenderPass(renderTarget.renderTarget);
+          isFirstPass = false;
+        } else {
+          renderPass = commandBuffer.createRenderPass(renderTarget.loadTarget);
+        }
+
+        // Ensure viewport and scissor are correctly set for every draw call in case of state resets
+        super.setupScissor(renderPass);
+
         node.draw(
             renderPass,
             transients,

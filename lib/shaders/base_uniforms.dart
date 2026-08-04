@@ -130,11 +130,10 @@ abstract class BaseUniforms extends ChangeNotifier with LoggableClass {
       );
 
       final gpu.Texture textureToBind =
-          textureIn ?? FSK().textureManager.dummyTexture!;
+          textureIn ?? FSK().textureManager.transparentTexture!;
       renderPass.bindTexture(textureSlot, textureToBind, sampler: samplerOptions);
     }
 
-    // Bind additional textures if the shader supports them
     bindAdditionalTextures(renderPass);
   }
 

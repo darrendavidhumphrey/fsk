@@ -1,9 +1,9 @@
 import 'package:flutter/material.dart' hide Matrix4;
 import 'package:flutter_test/flutter_test.dart';
 import 'package:fsk/fsk.dart';
+import 'package:fsk_examples/cad_canvas_scene.dart';
 import 'package:fsk_examples/checkerboard_scene.dart';
 import 'package:fsk_examples/animated_checkerboard_scene.dart';
-import 'package:fsk_examples/orbitview_scene.dart';
 import 'package:fsk_examples/scene_from_xml.dart';
 import 'package:fsk_examples/obj_model_scene.dart';
 import 'package:fsk_examples/pbr_model_scene.dart';
@@ -87,7 +87,7 @@ void main() {
     });
 
     testWidgets('Capture: OrbitViewScene', (tester) async {
-      final scene = OrbitViewScene(
+      final scene = CADCanvasScene(
         navigationDelegate: OrbitViewDelegate(boxFit: FskBoxFit.bestFit),
       );
       await FskVisualTestHarness.runSceneTest(tester, 'orbitview_scene', scene);

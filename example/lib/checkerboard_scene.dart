@@ -20,8 +20,6 @@ class CheckerBoardScene extends FskFrameScene {
       this,
       refBox,
       const Rect.fromLTWH(0, 0, 1, 1),
-      Colors.white,
-      'dummy',
       shaderMaterial: FskShaderMaterial.checkerboard,
     );
 

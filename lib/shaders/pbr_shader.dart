@@ -49,7 +49,7 @@ class PbrUniforms extends BaseUniforms {
   void bindAdditionalTextures(gpu.RenderPass renderPass) {
     if (fragmentShader == null) return;
 
-    final dummy = FSK().textureManager.dummyTexture!;
+    final dummy = FSK().textureManager.transparentTexture!;
 
     final normalSlot = fragmentShader!.getUniformSlot('uNormalMap');
     renderPass.bindTexture(normalSlot, normalMap ?? dummy, sampler: samplerOptions);

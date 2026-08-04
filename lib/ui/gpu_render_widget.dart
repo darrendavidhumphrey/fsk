@@ -75,13 +75,10 @@ class _GPURenderWidgetState extends State<GPURenderWidget> with SingleTickerProv
     widget.scene.rebuildGeometry();
 
     final commandBuffer = gpu.gpuContext.createCommandBuffer();
-
-    // 4. Pass the wrapped target property map directly into the builder pipeline
-    final renderPass = commandBuffer.createRenderPass(_fskTarget!.renderTarget);
     final gpu.HostBuffer frameTransients = gpu.gpuContext.createHostBuffer();
 
     // Inform your pipeline states of your chosen sample layout rules
-    widget.scene.drawScene(renderPass, frameTransients);
+    widget.scene.drawScene(commandBuffer, _fskTarget!, frameTransients);
 
     commandBuffer.submit();
     widget.scene.clearRetainedBuffers();

@@ -61,7 +61,7 @@ abstract class FskScene extends ChangeNotifier with LoggableClass {
   }
 
   @mustCallSuper
-  void drawScene(gpu.RenderPass renderPass, gpu.HostBuffer transients) {
+  void drawScene(gpu.CommandBuffer commandBuffer, FskRenderTarget renderTarget, gpu.HostBuffer transients) {
     _frameCount++;
   }
 
