@@ -38,7 +38,7 @@ class ObjModelScene extends FskFrameScene {
         // Caller's frame of reference is now 0, no manual rotation needed!
         teapotModel.transformable.scale = Vector3.all(5.0);
 
-        // Robustly find the mesh by its hierarchical path
+        // Find the mesh by its hierarchical path
         final mesh = teapotModel.findNode<FskIndexedMesh>('teapot_correction.teapot');
         if (mesh != null) {
           final LightingUniforms uniforms = LightingUniforms();

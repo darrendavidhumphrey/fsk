@@ -53,18 +53,18 @@ Vector3? intersectRayPlaneFromPointAndNormal(
 
 /// Transforms a point from Normalized Device Coordinates (NDC) to world coordinates.
 Vector3 unProject(Vector4 ndcVector, Matrix4 inverseCombinedMatrix) {
-  final Vector4 homogeneousCoords = inverseCombinedMatrix.transform(ndcVector);
+  final Vector4 homogeneousCoordinates = inverseCombinedMatrix.transform(ndcVector);
 
   // After transformation, we divide by w to get the final 3D coordinates.
-  if (homogeneousCoords.w.abs() < 1e-9) {
+  if (homogeneousCoordinates.w.abs() < 1e-9) {
     return Vector3.zero(); // Avoid division by zero.
   }
 
-  final double invW = 1.0 / homogeneousCoords.w;
+  final double invW = 1.0 / homogeneousCoordinates.w;
   return Vector3(
-    homogeneousCoords.x * invW,
-    homogeneousCoords.y * invW,
-    homogeneousCoords.z * invW,
+    homogeneousCoordinates.x * invW,
+    homogeneousCoordinates.y * invW,
+    homogeneousCoordinates.z * invW,
   );
 }
 

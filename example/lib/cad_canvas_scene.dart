@@ -2,34 +2,40 @@ import 'package:flutter/material.dart' hide Matrix4;
 import 'package:fsk/fsk.dart';
 import 'package:vector_math/vector_math.dart' hide Colors;
 
+const double _gridSize = 500;
+
 class CADCanvasScene extends FskFrameScene {
 
-  late FskQuad gridQuad;
+  late FskQuad _gridQuad;
   CADCanvasScene({super.navigationDelegate}) {
+    init();
+  }
+
+  void init() async {
     clearColor = Colors.white;
     useBoxFitLayout = false;
 
-    // Restore grid
     makeCanvas();
     makeHandlebars();
     makeOutline();
+    await loadAxis();
 
     isReady = true;
   }
 
   void makeCanvas() {
     // 1. Create quad with grid material in one go
-    gridQuad = FskQuad.centered(
+    _gridQuad = FskQuad.centered(
       'grid',
       this,
-      const Size(500, 500),
+      const Size(_gridSize, _gridSize),
       shaderMaterial: FskShaderMaterial.grid,
     );
 
     // 2. Configure persistent uniforms once
-    final uniforms = gridQuad.uniforms as GridUniforms;
+    final uniforms = _gridQuad.uniforms as GridUniforms;
     uniforms.scale = 0.1; // 1 unit = 1mm
-    uniforms.setResolution(500, 500); // Scale grid to world units
+    uniforms.setResolution(_gridSize, _gridSize); // Scale grid to world units
 
     uniforms.majorLineSpacingMM = 25;
     uniforms.minorLineSpacingMM = 5;
@@ -42,7 +48,7 @@ class CADCanvasScene extends FskFrameScene {
     uniforms.mmLineColor = Colors.grey;
 
     // 3. Add to scene graph
-    addNode(gridQuad);
+    addNode(_gridQuad);
   }
 
   void makeHandlebars() {
@@ -63,10 +69,37 @@ class CADCanvasScene extends FskFrameScene {
   }
 
   void makeOutline() {
-    List<Polyline> outlines = createThickOutline3DFromQuad(gridQuad.quad, 4);
+    // Make thick line that follows the outline of the mesh quad
+    // The thick line is returned as a list of polylines
+    List<Polyline> outlines = createThickOutline3DFromQuad(_gridQuad.quad, 4);
 
-    final mesh = MeshFactory.meshFromColorOutlines('outer_edge', this, outlines, Colors.blue);
+    // Convert the outlines to a FskMesh object and add to the scene graph
+    addNode(MeshFactory.meshFromColorOutlines('outer_edge', this, outlines, Colors.blue));
+  }
 
-    addNode(mesh);
+  Future<void> loadAxis() async {
+    FskGroup axisModel = await WavefrontObjModel.load(
+      'assets/3D/Axis/xyzaxis.obj',
+      this,
+      'axis',
+    );
+
+    final mesh = axisModel.findNode<FskIndexedMesh>('axis_correction.axis');
+    if (mesh != null) {
+      final LightingUniforms uniforms = LightingUniforms();
+      mesh.renderer.uniforms = uniforms;
+      uniforms.lightPos = Vector3(500, 500, 500);
+
+      var textureInfo = FSK().textureManager.solidTextureInfo;
+
+      uniforms.texture = textureInfo.texture;
+      uniforms.samplerOptions = textureInfo.samplerOptions;
+    }
+
+    axisModel.position = Vector3(-_gridSize / 2, -_gridSize / 2, 0);
+    axisModel.rotation = Vector3(0, 0, radians(90));
+
+    // Add the axis root to the scene graph
+    addNode(axisModel);
   }
 }

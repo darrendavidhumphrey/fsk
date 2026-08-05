@@ -56,4 +56,5 @@ flutter:
     - assets/3D/SciFiHelmet/
     - assets/3D/SciFiHelmet/glTF/
     - assets/3D/Teapot/
+    - assets/3D/Axis/
     - data_assets/

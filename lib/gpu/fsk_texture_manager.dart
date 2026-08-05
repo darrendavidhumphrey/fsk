@@ -26,10 +26,12 @@ class FskTextureManager with LoggableClass {
   gpu.Texture? _transparentTexture;
   gpu.Texture? get transparentTexture => _transparentTexture;
   final String transparentTextureId = 'transparent';
+  FskTextureInfo get transparentTextureInfo => _textures[transparentTextureId]!;
 
   gpu.Texture? _solidTexture;
   gpu.Texture? get solidTexture => _solidTexture;
   final String solidTextureId = 'solid';
+  FskTextureInfo get solidTextureInfo => _textures[solidTextureId]!;
 
   // Make a 1 pixel transparent texture
   void _makeTransparentTexture() {
