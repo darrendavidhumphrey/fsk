@@ -2,6 +2,7 @@ import 'dart:typed_data';
 import 'dart:ui';
 import 'package:vector_math/vector_math.dart';
 import 'base_uniforms.dart';
+import 'materials.dart';
 
 class OneLightUniforms extends BaseUniforms {
   // --- Dictionary Key Constants ---
@@ -42,6 +43,14 @@ class OneLightUniforms extends BaseUniforms {
   set materialDiffuse(Color val) => this[kMaterialDiffuseKey] = val;
   set materialSpecular(Color val) => this[kMaterialSpecularKey] = val;
   set materialShininess(double val) => this[kMaterialShininessKey] = val;
+
+  @override
+  void applyMaterial(GlMaterial material) {
+    materialAmbient = material.ambient;
+    materialDiffuse = material.diffuse;
+    materialSpecular = material.specular;
+    materialShininess = material.shininess;
+  }
 
   @override
   Float32List serializeFragmentData() {

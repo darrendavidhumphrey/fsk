@@ -104,6 +104,11 @@ abstract class FskMeshRendererBase extends FskRendererBase {
 
       uniforms!.mvMatrix = mvMatrix.clone();
       uniforms!.pMatrix = pMatrix.clone();
+
+      if (subMesh.material != null) {
+        uniforms!.applyMaterial(subMesh.material!);
+      }
+
       uniforms!.bind(renderPass, transients);
 
       drawFskSubMesh(renderPass, subMesh);

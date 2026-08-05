@@ -1,5 +1,6 @@
 import 'dart:typed_data';
 import 'dart:ui';
+import 'materials.dart';
 
 import 'base_uniforms.dart';
 
@@ -32,6 +33,11 @@ class SimpleTextureUniforms extends BaseUniforms {
   /// Type-safe method to update the modulation color configuration payload.
   void setModulateColor(Color color) {
     this[_kModulateColorKey] = color;
+  }
+
+  @override
+  void applyMaterial(GlMaterial material) {
+    setModulateColor(material.diffuse);
   }
 
   @override

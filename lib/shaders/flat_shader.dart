@@ -1,6 +1,7 @@
 import 'dart:typed_data';
 import 'dart:ui';
 import 'base_uniforms.dart';
+import 'materials.dart';
 
 class FlatUniforms extends BaseUniforms {
   // Uniform name constant
@@ -13,6 +14,11 @@ class FlatUniforms extends BaseUniforms {
 
   // Type-safe wrapper pointing directly to the constant key
   set modulateColor(Color val) => this[_kModulateColor] = val;
+
+  @override
+  void applyMaterial(GlMaterial material) {
+    modulateColor = material.diffuse;
+  }
 
   @override
   Float32List serializeFragmentData() {

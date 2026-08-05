@@ -78,6 +78,24 @@ class CADCanvasScene extends FskFrameScene {
   }
 
   Future<void> loadAxis() async {
+    Color defaultGrey = Colors.grey[200]!;
+    Color defaultSpecular = Colors.black;
+    const double defaultShininess = 5;
+    FSK().materials.addMaterial(
+      "X",
+      GlMaterial(Colors.red, Colors.red, defaultSpecular, defaultShininess),
+    );
+
+    FSK().materials.addMaterial(
+      "Y",
+      GlMaterial(Colors.green, Colors.green, defaultSpecular, defaultShininess),
+    );
+
+    FSK().materials.addMaterial(
+      "Z",
+      GlMaterial(Colors.blue, Colors.blue, defaultSpecular, defaultShininess),
+    );
+
     FskGroup axisModel = await WavefrontObjModel.load(
       'assets/3D/Axis/xyzaxis.obj',
       this,
@@ -96,6 +114,7 @@ class CADCanvasScene extends FskFrameScene {
       uniforms.samplerOptions = textureInfo.samplerOptions;
     }
 
+    axisModel.scale = Vector3.all(2);
     axisModel.position = Vector3(-_gridSize / 2, -_gridSize / 2, 0);
     axisModel.rotation = Vector3(0, 0, radians(90));
 

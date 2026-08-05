@@ -69,6 +69,9 @@ abstract class BaseUniforms extends ChangeNotifier with LoggableClass {
     valuesMap[key] = value;
   }
 
+  /// Override this in subclasses to apply material properties to specific uniforms.
+  void applyMaterial(GlMaterial material) {}
+
   /// Utility method to pack a Flutter color safely into a float array
   int packColor(Float32List targetList, int offset, Color color) {
     targetList[offset++] = color.r;

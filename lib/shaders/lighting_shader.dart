@@ -1,6 +1,7 @@
 import 'dart:typed_data';
 import 'package:vector_math/vector_math.dart';
 import 'base_uniforms.dart';
+import 'materials.dart';
 
 class LightingUniforms extends BaseUniforms {
   // --- Dictionary Key Constants ---
@@ -32,6 +33,11 @@ class LightingUniforms extends BaseUniforms {
   set kd(Vector3 val) => this[_kKdKey] = val;
   set ld(Vector3 val) => this[_kLdKey] = val;
   set lightPos(Vector3 val) => this[_kLightPosKey] = val;
+
+  @override
+  void applyMaterial(GlMaterial material) {
+    kd = Vector3(material.diffuse.r, material.diffuse.g, material.diffuse.b);
+  }
 
   @override
   Float32List serializeFragmentData() {
