@@ -121,10 +121,18 @@ class _GPURenderWidgetState extends State<GPURenderWidget> with SingleTickerProv
         return AnimatedBuilder(
           animation: _repaintListenable,
           builder: (context, child) {
+            if (!widget.scene.isReady) {
+              return Container(color: widget.scene.clearColor);
+            }
+
             try {
               _processGpuFrame(logicalSize, pixelRatio);
             } catch (e, s) {
               logError("Exception in GPURenderWidget builder: $e\n$s");
+            }
+
+            if (_fskTarget == null) {
+              return Container(color: widget.scene.clearColor);
             }
 
             return CustomPaint(

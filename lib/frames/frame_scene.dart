@@ -51,15 +51,18 @@ class FskFrameScene extends FskScene {
   }
 
   @override
-  void drawScene(gpu.CommandBuffer commandBuffer, FskRenderTarget renderTarget, gpu.HostBuffer transients) {
+  void drawScene(gpu.CommandBuffer commandBuffer, FskRenderTarget renderTarget,
+      gpu.HostBuffer transients) {
     if (!isReady) return;
 
     try {
       super.drawScene(commandBuffer, renderTarget, transients);
 
+      // Calculate the layout matrix (e.g. for BoxFit logic).
       Matrix4 layoutMatrix = Matrix4.identity();
       if (useBoxFitLayout) {
-        Matrix4? boxFitMatrix = navigationDelegate?.createBoxFitMatrix(frameSize);
+        Matrix4? boxFitMatrix =
+            navigationDelegate?.createBoxFitMatrix(frameSize);
 
         if (boxFitMatrix != null) {
           layoutMatrix = boxFitMatrix * layoutMatrix;
@@ -75,6 +78,7 @@ class FskFrameScene extends FskScene {
         );
       }
 
+      // 3. Combine layout with the current view matrix (mvMatrix).
       final Matrix4 finalMvMatrix = layoutMatrix * mvMatrix;
 
       bool hasCleared = false;

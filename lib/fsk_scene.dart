@@ -73,19 +73,26 @@ abstract class FskScene extends ChangeNotifier with LoggableClass {
     notifyListeners();
   }
 
+  /// Updates the projection and view matrices via the navigation delegate.
+  void updateMatrices() {
+    navigationDelegate?.updateSceneMatrices();
+  }
+
   void updateRenderTargetSize(int width, int height) {
     // Communication in PHYSICAL pixels for the GPU surface
     _viewportSize = Size(width.toDouble(), height.toDouble());
 
     // Communication in LOGICAL pixels for the Navigation Logic and Projections
     navigationDelegate?.setViewRect(
-      Rect.fromLTWH(0, 0, width / FSK.devicePixelRatio, height / FSK.devicePixelRatio),
+      Rect.fromLTWH(0, 0, width / FSK.devicePixelRatio,
+          height / FSK.devicePixelRatio),
     );
+
+    // Ensure matrices are updated immediately for the new size
+    updateMatrices();
   }
 
   void setupScissor(gpu.RenderPass renderPass) {
-    navigationDelegate?.updateSceneMatrices();
-
     if (_texture == null) return;
 
     renderPass.setScissor(
@@ -98,7 +105,9 @@ abstract class FskScene extends ChangeNotifier with LoggableClass {
   }
 
   @mustCallSuper
-  void drawScene(gpu.CommandBuffer commandBuffer, FskRenderTarget renderTarget, gpu.HostBuffer transients) {
+  void drawScene(gpu.CommandBuffer commandBuffer, FskRenderTarget renderTarget,
+      gpu.HostBuffer transients) {
+    updateMatrices();
     _frameCount++;
   }
 
