@@ -13,6 +13,7 @@ class FskRenderTarget {
   gpu.Texture? _depthTexture;
   gpu.RenderTarget? _renderTargetClear;
   gpu.RenderTarget? _renderTargetLoad;
+  gpu.RenderTarget? _renderTargetLoadColorClearDepth;
   ui.Color clearColor;
 
   FskRenderTarget({
@@ -29,6 +30,9 @@ class FskRenderTarget {
 
   /// Expose the render target configuration for loading existing content.
   gpu.RenderTarget get loadTarget => _renderTargetLoad!;
+
+  /// Expose the render target configuration for loading existing color content but clearing depth.
+  gpu.RenderTarget get loadColorClearDepthTarget => _renderTargetLoadColorClearDepth!;
 
   /// Expose the final single-sample texture read by the canvas/samplers.
   gpu.Texture get outputTexture => _resolveTexture!;
@@ -102,6 +106,11 @@ class FskRenderTarget {
         colorAttachments: [colorAttachmentLoad],
         depthStencilAttachment: depthAttachmentLoad,
       );
+
+      _renderTargetLoadColorClearDepth = gpu.RenderTarget(
+        colorAttachments: [colorAttachmentLoad],
+        depthStencilAttachment: depthAttachmentClear,
+      );
     } else {
       final colorAttachmentClear = gpu.ColorAttachment(
         texture: _resolveTexture!,
@@ -124,6 +133,11 @@ class FskRenderTarget {
       _renderTargetLoad = gpu.RenderTarget(
         colorAttachments: [colorAttachmentLoad],
         depthStencilAttachment: depthAttachmentLoad,
+      );
+
+      _renderTargetLoadColorClearDepth = gpu.RenderTarget(
+        colorAttachments: [colorAttachmentLoad],
+        depthStencilAttachment: depthAttachmentClear,
       );
     }
   }

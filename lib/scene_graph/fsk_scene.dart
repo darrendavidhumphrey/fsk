@@ -7,9 +7,11 @@ import '../skins/skin_scene_builder.dart';
 class FskScene extends FskSceneBase {
   final List<FskSceneObject> rootNodes = [];
   final Map<String, FskSceneObject> nodeMap = {};
+  final List<ScreenSpaceOverlay> layers = [];
   Size skinSize = Size.zero;
 
   bool useBoxFitLayout = true;
+  bool autoClear = true;
   String? _pendingSkinPath;
 
   FskScene({super.navigationDelegate, super.clearColor}) {
@@ -42,6 +44,12 @@ class FskScene extends FskSceneBase {
     for (var node in nodes) {
       addNode(node);
     }
+  }
+
+  void addLayer(ScreenSpaceOverlay layer) {
+    layers.add(layer);
+    layer.init();
+    setNeedsUpdate();
   }
 
   void clearNodes() {
@@ -81,7 +89,7 @@ class FskScene extends FskSceneBase {
       // 3. Combine layout with the current view matrix (mvMatrix).
       final Matrix4 finalMvMatrix = layoutMatrix * mvMatrix;
 
-      bool hasCleared = false;
+      bool hasCleared = !autoClear;
 
       for (var node in rootNodes) {
         if (node is FskRenderableObject && node.visible) {
@@ -92,7 +100,7 @@ class FskScene extends FskSceneBase {
           );
           hasCleared = true;
 
-          super.setupScissor(renderPass);
+          setupScissor(renderPass);
 
           node.draw(
             renderPass,
@@ -107,6 +115,13 @@ class FskScene extends FskSceneBase {
       // Ensure the buffer is cleared at least once, even if no nodes were visible.
       if (!hasCleared) {
         commandBuffer.createRenderPass(renderTarget.renderTarget);
+        hasCleared = true;
+      }
+
+      // Draw overlays
+      for (var layer in layers) {
+        layer.viewportSize = viewportSize;
+        layer.drawScene(commandBuffer, renderTarget, transients);
       }
     } catch (e, s) {
       logError("CRITICAL Error in FskScene.drawScene: $e\n$s");
