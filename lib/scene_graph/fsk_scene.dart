@@ -1,6 +1,8 @@
-import 'dart:ui';
+import 'package:flutter/material.dart' hide Matrix4;
+import 'package:flutter/gestures.dart' hide Matrix4;
+import 'package:flutter/services.dart';
 import 'package:flutter_gpu/gpu.dart' as gpu;
-import 'package:vector_math/vector_math.dart';
+import 'package:vector_math/vector_math.dart' as vm;
 import '../fsk.dart';
 import '../skins/skin_scene_builder.dart';
 
@@ -13,6 +15,10 @@ class FskScene extends FskSceneBase {
   bool useBoxFitLayout = true;
   bool autoClear = true;
   String? _pendingSkinPath;
+
+  /// Map of pointer IDs to the overlay that currently "owns" them.
+  /// If the value is null, the main scene owns the pointer.
+  final Map<int, ScreenSpaceOverlay?> _pointerCaptures = {};
 
   FskScene({super.navigationDelegate, super.clearColor}) {
     isReady = false;
@@ -67,9 +73,9 @@ class FskScene extends FskSceneBase {
       super.drawScene(commandBuffer, renderTarget, transients);
 
       // Calculate the layout matrix (e.g. for BoxFit logic).
-      Matrix4 layoutMatrix = Matrix4.identity();
+      vm.Matrix4 layoutMatrix = vm.Matrix4.identity();
       if (useBoxFitLayout) {
-        Matrix4? boxFitMatrix =
+        vm.Matrix4? boxFitMatrix =
             navigationDelegate?.createBoxFitMatrix(skinSize);
 
         if (boxFitMatrix != null) {
@@ -78,7 +84,7 @@ class FskScene extends FskSceneBase {
 
         // Center object in view by translating content origin to its center
         layoutMatrix.translateByVector3(
-          Vector3(
+          vm.Vector3(
             -skinSize.width / 2,
             -skinSize.height / 2,
             0,
@@ -87,7 +93,7 @@ class FskScene extends FskSceneBase {
       }
 
       // 3. Combine layout with the current view matrix (mvMatrix).
-      final Matrix4 finalMvMatrix = layoutMatrix * mvMatrix;
+      final vm.Matrix4 finalMvMatrix = layoutMatrix * mvMatrix;
 
       bool hasCleared = !autoClear;
 
@@ -120,7 +126,6 @@ class FskScene extends FskSceneBase {
 
       // Draw overlays
       for (var layer in layers) {
-        layer.viewportSize = viewportSize;
         layer.drawScene(commandBuffer, renderTarget, transients);
       }
     } catch (e, s) {
@@ -133,6 +138,143 @@ class FskScene extends FskSceneBase {
     for (var node in rootNodes) {
       node.rebuildGeometry();
     }
+  }
+
+  Size get logicalSize => Size(viewportSize.width / FSK.devicePixelRatio,
+      viewportSize.height / FSK.devicePixelRatio);
+
+  @override
+  void onPointerDown(PointerDownEvent event) {
+    for (var layer in layers.reversed) {
+      if (layer.interceptInput &&
+          layer.isPointInViewport(event.localPosition, logicalSize)) {
+        _pointerCaptures[event.pointer] = layer;
+        final origin = event.localPosition -
+            layer.screenToViewport(event.localPosition, logicalSize);
+        layer.onPointerDown(event.transformed(
+            Matrix4.translationValues(-origin.dx, -origin.dy, 0)));
+        return;
+      }
+    }
+    _pointerCaptures[event.pointer] = null;
+    super.onPointerDown(event);
+  }
+
+  @override
+  void onPointerMove(PointerMoveEvent event) {
+    if (_pointerCaptures.containsKey(event.pointer)) {
+      final layer = _pointerCaptures[event.pointer];
+      if (layer != null) {
+        final origin = event.localPosition -
+            layer.screenToViewport(event.localPosition, logicalSize);
+        layer.onPointerMove(event.transformed(
+           Matrix4.translationValues(-origin.dx, -origin.dy, 0)));
+        return;
+      }
+    } else {
+      // If we don't have a capture, but this is a move event without a down 
+      // (like mouse hover), we can still do a hit test for signals.
+      // But for rotation drags, we should rely on the capture.
+    }
+    super.onPointerMove(event);
+  }
+
+  @override
+  void onPointerUp(PointerUpEvent event) {
+    if (_pointerCaptures.containsKey(event.pointer)) {
+      final layer = _pointerCaptures[event.pointer];
+      _pointerCaptures.remove(event.pointer);
+      if (layer != null) {
+        final origin = event.localPosition -
+            layer.screenToViewport(event.localPosition, logicalSize);
+        layer.onPointerUp(event.transformed(
+            Matrix4.translationValues(-origin.dx, -origin.dy, 0)));
+        return;
+      }
+    }
+    super.onPointerUp(event);
+  }
+
+  @override
+  void onPointerCancel(PointerCancelEvent event) {
+    if (_pointerCaptures.containsKey(event.pointer)) {
+      final layer = _pointerCaptures[event.pointer];
+      _pointerCaptures.remove(event.pointer);
+      if (layer != null) {
+        final origin = event.localPosition -
+            layer.screenToViewport(event.localPosition, logicalSize);
+        layer.onPointerCancel(event.transformed(
+            Matrix4.translationValues(-origin.dx, -origin.dy, 0)));
+        return;
+      }
+    }
+    super.onPointerCancel(event);
+  }
+
+  @override
+  void onPointerSignal(PointerSignalEvent event) {
+    // Pointer signals (like scroll) don't have a 'down' event to capture.
+    // We hit test these on the fly.
+    for (var layer in layers.reversed) {
+      if (layer.interceptInput &&
+          layer.isPointInViewport(event.localPosition, logicalSize)) {
+        final origin = event.localPosition -
+            layer.screenToViewport(event.localPosition, logicalSize);
+        layer.onPointerSignal(event.transformed(
+            Matrix4.translationValues(-origin.dx, -origin.dy, 0)) as PointerSignalEvent);
+        return;
+      }
+    }
+    super.onPointerSignal(event);
+  }
+
+  @override
+  void onScaleStart(ScaleStartDetails details) {
+    for (var layer in layers.reversed) {
+      if (layer.interceptInput &&
+          layer.isPointInViewport(details.localFocalPoint, logicalSize)) {
+        layer.onScaleStart(ScaleStartDetails(
+          focalPoint: details.focalPoint,
+          localFocalPoint:
+              layer.screenToViewport(details.localFocalPoint, logicalSize),
+          pointerCount: details.pointerCount,
+        ));
+        return;
+      }
+    }
+    super.onScaleStart(details);
+  }
+
+  @override
+  void onScaleUpdate(ScaleUpdateDetails details) {
+    for (var layer in layers.reversed) {
+      if (layer.interceptInput &&
+          layer.isPointInViewport(details.localFocalPoint, logicalSize)) {
+        layer.onScaleUpdate(ScaleUpdateDetails(
+          focalPoint: details.focalPoint,
+          localFocalPoint:
+              layer.screenToViewport(details.localFocalPoint, logicalSize),
+          scale: details.scale,
+          horizontalScale: details.horizontalScale,
+          verticalScale: details.verticalScale,
+          rotation: details.rotation,
+          pointerCount: details.pointerCount,
+          focalPointDelta: details.focalPointDelta,
+        ));
+        return;
+      }
+    }
+    super.onScaleUpdate(details);
+  }
+
+  @override
+  void onScaleEnd(ScaleEndDetails details) {
+    super.onScaleEnd(details);
+  }
+
+  @override
+  KeyEventResult onKeyEvent(KeyEvent event) {
+    return super.onKeyEvent(event);
   }
 
   @override

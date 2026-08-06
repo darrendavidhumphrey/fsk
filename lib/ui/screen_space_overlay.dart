@@ -33,6 +33,10 @@ abstract class ScreenSpaceOverlay extends FskScene {
   /// The size of the overlay in screen-space pixels.
   final Size screenSpaceSize;
 
+  /// Whether this overlay should intercept input events (gestures, mouse, etc.)
+  /// that fall within its bounds.
+  final bool interceptInput;
+
   /// Internal node used to draw the background clear color
   FskQuad? _backgroundNode;
 
@@ -50,6 +54,7 @@ abstract class ScreenSpaceOverlay extends FskScene {
     this.right,
     this.bottom,
     required this.screenSpaceSize,
+    this.interceptInput = false,
     super.navigationDelegate,
     super.clearColor = const Color(0x40FFFFFF), // 25% white background
   }) {
@@ -69,12 +74,18 @@ abstract class ScreenSpaceOverlay extends FskScene {
       gpu.HostBuffer transients) {
     if (!isReady) return;
 
-    _lastParentSize = viewportSize;
+    final parentPhysicalSize =
+        Size(renderTarget.width.toDouble(), renderTarget.height.toDouble());
+    _lastParentSize = parentPhysicalSize;
+
     final double physicalDpr = FSK.devicePixelRatio;
 
     // Use local size (converted to physical) for matrix calculations within the overlay
     viewportSize = Size(screenSpaceSize.width * physicalDpr,
         screenSpaceSize.height * physicalDpr);
+    
+    // Important: Update matrices for this overlay's viewport size before drawing anything
+    updateMatrices();
 
     // Lazily create the background node if a clear color is specified
     if (clearColor.a > 0.0 && _backgroundNode == null) {
@@ -105,7 +116,7 @@ abstract class ScreenSpaceOverlay extends FskScene {
     if (_backgroundNode != null) {
       final Matrix4 bgP = Matrix4.identity();
       // Simple ortho mapping [-w/2, w/2] to [-1, 1]
-      // Impeller NDC Y is -1 at top, 1 at bottom. World Y goes up.
+      // Using project's standard ortho logic
       bgP.setEntry(0, 0, 2.0 / screenSpaceSize.width);
       bgP.setEntry(1, 1, 2.0 / screenSpaceSize.height); 
       bgP.setEntry(2, 2, 0.001); 
@@ -138,12 +149,7 @@ abstract class ScreenSpaceOverlay extends FskScene {
     }
 
     // 2. Draw all child nodes via super (uses navigationDelegate matrices)
-    // Note: FskScene.drawScene will iterate rootNodes and create RenderPasses with loadTarget.
-    // Since we cleared the depth buffer in step 1, the teapot will now "win" against the helmet.
     super.drawScene(commandBuffer, renderTarget, transients);
-
-    // Restore parent size for the next layer or main scene logic
-    viewportSize = _lastParentSize;
   }
 
   @override

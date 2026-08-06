@@ -1,7 +1,7 @@
 import 'dart:ui';
 import 'package:fsk/fsk.dart';
 import 'package:fsk/scene_graph/fsk_renderer_base.dart';
-import 'package:vector_math/vector_math.dart';
+import 'package:vector_math/vector_math.dart' as vm;
 import 'package:flutter_gpu/gpu.dart' as gpu;
 
 
@@ -72,10 +72,10 @@ abstract class FskRenderableObject extends FskSceneObject {
     }
   }
 
-  void draw(gpu.RenderPass renderPass,gpu.HostBuffer transients, Matrix4 pMatrix, Matrix4 mvMatrix, Size viewportSize) {
+  void draw(gpu.RenderPass renderPass,gpu.HostBuffer transients, vm.Matrix4 pMatrix, vm.Matrix4 mvMatrix, Size viewportSize) {
     if (!visible) return;
 
-    Matrix4 finalMvMatrix = mvMatrix.clone();
+    vm.Matrix4 finalMvMatrix = mvMatrix.clone();
     if (transformable.isTransformed()) {
       finalMvMatrix.multiply(transformable.getTransform());
     }

@@ -1,3 +1,4 @@
+import 'dart:async';
 import 'dart:ui';
 import 'package:flutter/foundation.dart';
 import 'package:flutter/services.dart';
@@ -13,6 +14,7 @@ class FskTextureInfo {
 
   gpu.SamplerOptions samplerOptions;
   bool isLoaded = false;
+  Future<void>? loadFuture;
 
   FskTextureInfo(this.id, this.url, this.samplerOptions,{this.texture});
 }
@@ -108,8 +110,12 @@ class FskTextureManager with LoggableClass {
       }) async {
 
     if (_textures.containsKey(id)) {
+      final info = _textures[id]!;
+      if (info.loadFuture != null) {
+        await info.loadFuture;
+      }
       logVerbose("Skip Loading Texture ID $id (already exists)");
-      return _textures[id]!;
+      return info;
     }
 
     //  Bundle sampling parameters directly inside a unified SamplerOptions object
@@ -127,6 +133,10 @@ class FskTextureManager with LoggableClass {
     logVerbose("createTextureFromAsset: ID=$id, path=$fullPath");
 
     FSK().startLoad();
+    
+    final completer = Completer<void>();
+    textureInfo.loadFuture = completer.future;
+
     try {
       final ByteData data = await rootBundle.load(fullPath);
 
@@ -158,6 +168,7 @@ class FskTextureManager with LoggableClass {
       logError("Error processing flutter_gpu texture allocation for $url: $e");
       textureInfo.isLoaded = false;
     } finally {
+      completer.complete();
       FSK().endLoad();
     }
 

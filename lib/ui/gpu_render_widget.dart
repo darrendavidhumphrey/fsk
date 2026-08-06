@@ -66,6 +66,7 @@ class _GPURenderWidgetState extends State<GPURenderWidget> with SingleTickerProv
     if (!widget.scene.isReady) return;
     if (_isProcessingFrame) return;
 
+    FSK.devicePixelRatio = pixelRatio;
     _isProcessingFrame = true;
     try {
       final int physicalWidth = (logicalSize.width * pixelRatio).round();

@@ -44,34 +44,24 @@ class RenderToTextureState extends State<RenderToTexture> {
   @override
   Widget build(BuildContext context) {
     return GestureDetector(
-      onScaleStart: (details) =>
-          widget.scene.navigationDelegate?.onScaleStart(details),
-      onScaleUpdate: (details) =>
-          widget.scene.navigationDelegate?.onScaleUpdate(details),
-      onScaleEnd: (details) =>
-          widget.scene.navigationDelegate?.onScaleEnd(details),
+      onScaleStart: (details) => widget.scene.onScaleStart(details),
+      onScaleUpdate: (details) => widget.scene.onScaleUpdate(details),
+      onScaleEnd: (details) => widget.scene.onScaleEnd(details),
       child: Listener(
         behavior: HitTestBehavior.opaque,
-        onPointerDown: (event) =>
-            widget.scene.navigationDelegate?.onPointerDown(event),
-        onPointerMove: (event) =>
-            widget.scene.navigationDelegate?.onPointerMove(event),
-        onPointerUp: (event) =>
-            widget.scene.navigationDelegate?.onPointerUp(event),
-        onPointerSignal: (event) =>
-            widget.scene.navigationDelegate?.onPointerSignal(event),
-        onPointerCancel: (event) =>
-            widget.scene.navigationDelegate?.onPointerCancel(event),
+        onPointerDown: (event) => widget.scene.onPointerDown(event),
+        onPointerMove: (event) => widget.scene.onPointerMove(event),
+        onPointerUp: (event) => widget.scene.onPointerUp(event),
+        onPointerSignal: (event) => widget.scene.onPointerSignal(event),
+        onPointerCancel: (event) => widget.scene.onPointerCancel(event),
         child: Focus(
           autofocus: true,
           focusNode: _focusNode,
-          onKeyEvent: (node, event) {
-            if (widget.scene.navigationDelegate == null) {
-              return KeyEventResult.handled;
-            }
-            return widget.scene.navigationDelegate!.onKeyEvent(event);
-          },
-          child: GPURenderWidget(scene: widget.scene,useAntiAliasing: widget.useAntiAliasing,),
+          onKeyEvent: (node, event) => widget.scene.onKeyEvent(event),
+          child: GPURenderWidget(
+            scene: widget.scene,
+            useAntiAliasing: widget.useAntiAliasing,
+          ),
         ),
       ),
     );

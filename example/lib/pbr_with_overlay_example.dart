@@ -12,6 +12,7 @@ class TeapotOverlay extends ScreenSpaceOverlay {
     super.left,
     super.bottom,
     required super.screenSpaceSize,
+    super.interceptInput,
     super.navigationDelegate,
   });
 
@@ -25,7 +26,7 @@ class TeapotOverlay extends ScreenSpaceOverlay {
     final teapotModel = await WavefrontObjModel.loadFromAssets(
       assetFile: 'assets/3D/Teapot/teapot_textures_normals.obj',
       parentScene: this,
-      sceneId: 'teapot_overlay',
+      sceneId: 'teapot_overlay_$id',
       loadTexture: () => FSK().textureManager.createTextureFromAsset(
             'Bricks_Overlay',
             '3D/Teapot/Bricks051_1K-JPG_Color.jpg',
@@ -53,17 +54,29 @@ class PbrWithOverlayScene extends PbrModelScene {
     // Initialize the base PBR model scene first
     await super.onInit();
 
-    // Create the overlay in the upper right corner
-    final teapotOverlay = TeapotOverlay(
-      id: 'teapot_pip',
+    // Create the overlay in the upper right corner - Opts in to input
+    final teapotOverlayRight = TeapotOverlay(
+      id: 'teapot_pip_right',
       right: 20,
       top: 20,
-      screenSpaceSize: const Size(200, 200),
+      screenSpaceSize: const Size(400, 400),
+      interceptInput: true,
       // Use an orbit delegate so we can see the teapot from different angles
       navigationDelegate: OrbitViewDelegate(boxFit: FskBoxFit.bestFit),
     );
 
-    // Add the overlay as a layer to this scene
-    addLayer(teapotOverlay);
+    // Create the overlay in the upper left corner - Does NOT opt in
+    final teapotOverlayLeft = TeapotOverlay(
+      id: 'teapot_pip_left',
+      left: 20,
+      top: 20,
+      screenSpaceSize: const Size(200, 200),
+      interceptInput: false,
+      navigationDelegate: OrbitViewDelegate(boxFit: FskBoxFit.bestFit),
+    );
+
+    // Add the overlays as layers to this scene
+    addLayer(teapotOverlayRight);
+    addLayer(teapotOverlayLeft);
   }
 }
