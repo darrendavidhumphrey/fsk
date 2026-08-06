@@ -300,49 +300,39 @@ class _VisualTestAppState extends State<VisualTestApp> {
                             spreadRadius: 2),
                       ],
                     ),
-                    // We use a fixed-size SizedBox to force the 1920x1080 resolution
-                    // regardless of the window size. We wrap it in scrollers so it doesn't
-                    // clip in a way that breaks the layout builder.
-                    width: 512,
-                    height: 512,
+                    // We use a 16:9 container for the preview (640x360 is exactly 1/3rd of 1080p)
+                    width: 640,
+                    height: 360,
                     clipBehavior: Clip.hardEdge,
-                    child: SingleChildScrollView(
-                      scrollDirection: Axis.horizontal,
-                      physics: const NeverScrollableScrollPhysics(),
-                      child: SingleChildScrollView(
-                        scrollDirection: Axis.vertical,
-                        physics: const NeverScrollableScrollPhysics(),
-                        child: UnconstrainedBox(
-                          alignment: Alignment.topLeft,
-                          child: SizedBox(
-                            width: 1920,
-                            height: 1080,
-                            child: Stack(
-                              children: [
-                                if (_currentScene != null)
-                                  RenderToTexture(scene: _currentScene!)
-                                else if (!_finished)
-                                  const Center(
-                                      child: CircularProgressIndicator())
-                                else
-                                  Center(
-                                    child: Column(
-                                      mainAxisAlignment:
-                                          MainAxisAlignment.center,
-                                      children: [
-                                        const Icon(Icons.check_circle_outline,
-                                            size: 64, color: Colors.green),
-                                        const SizedBox(height: 16),
-                                        const Text("Done",
-                                            style: TextStyle(
-                                                fontSize: 24,
-                                                color: Colors.green)),
-                                      ],
-                                    ),
-                                  ),
-                              ],
-                            ),
-                          ),
+                    child: FittedBox(
+                      fit: BoxFit.contain,
+                      child: SizedBox(
+                        width: 1920,
+                        height: 1080,
+                        child: Stack(
+                          children: [
+                            if (_currentScene != null)
+                              RenderToTexture(scene: _currentScene!)
+                            else if (!_finished)
+                              const Center(
+                                  child: CircularProgressIndicator())
+                            else
+                              Center(
+                                child: Column(
+                                  mainAxisAlignment:
+                                      MainAxisAlignment.center,
+                                  children: [
+                                    const Icon(Icons.check_circle_outline,
+                                        size: 128, color: Colors.green),
+                                    const SizedBox(height: 32),
+                                    const Text("Done",
+                                        style: TextStyle(
+                                            fontSize: 64,
+                                            color: Colors.green)),
+                                  ],
+                                ),
+                              ),
+                          ],
                         ),
                       ),
                     ),
