@@ -5,12 +5,12 @@ import 'package:flutter/material.dart' show Colors;
 import 'package:flutter_gpu/gpu.dart' as gpu;
 import 'package:fsk/fsk.dart';
 import 'package:fsk/scene_graph/fsk_depth_state.dart';
-import '../frames/frame_data.dart';
+import '../skins/skin_data.dart';
 import 'fsk_quads_renderer.dart';
 import 'fsk_text_quad_builder.dart';
 
 
-class FrameTextData extends FrameObjectData {
+class SkinTextData extends SkinObjectData {
   final String font;
   final String text;
   final Rect screenRect;
@@ -20,7 +20,7 @@ class FrameTextData extends FrameObjectData {
   final bool scaleToFit;
   final String? textColor;
 
-  FrameTextData({
+  SkinTextData({
     required super.id,
     required super.visible,
     required this.font,
@@ -79,21 +79,21 @@ class FskBitmapText extends Fsk2DRenderableObject with FskTransformableMixin, Fs
   }
 
   static void registerWithFactories() {
-    FrameObjectDataFactory.register('text', (node, anchors, parseObject) {
+    SkinObjectDataFactory.register('text', (node, anchors, parseObject) {
       final String? shaderName = node.getAttribute('shader');
-      final Map<String, String> shaderParamsMap = FrameSceneParser.parseShaderParams(node.getAttribute('shaderParams'));
+      final Map<String, String> shaderParamsMap = SkinSceneParser.parseShaderParams(node.getAttribute('shaderParams'));
       final String rawHJustify = node.getAttribute('hJustify') ?? 'left';
       final String rawVJustify = node.getAttribute('vJustify') ?? 'top';
 
       final hJustification = TextHorizontalJustification.fromString(rawHJustify, defaultValue: TextHorizontalJustification.left);
       final vJustification = TextVerticalJustification.fromString(rawVJustify, defaultValue: TextVerticalJustification.top);
 
-      return FrameTextData(
+      return SkinTextData(
         id: node.getAttribute('id')!,
-        visible: FrameSceneParser.isVisible(node),
+        visible: SkinSceneParser.isVisible(node),
         font: node.getAttribute('font')!,
         text: node.getAttribute('text')!,
-        screenRect: FrameSceneParser.parseRect(node.getAttribute('screenRect')!),
+        screenRect: SkinSceneParser.parseRect(node.getAttribute('screenRect')!),
         hJustify: hJustification,
         vJustify: vJustification,
         maxLen: int.tryParse(node.getAttribute('maxLen') ?? ''),
@@ -104,10 +104,10 @@ class FskBitmapText extends Fsk2DRenderableObject with FskTransformableMixin, Fs
       );
     });
 
-    FskSceneObjectFactory.register(FrameTextData, (scene, data, createNode) {
-      final textData = data as FrameTextData;
+    FskSceneObjectFactory.register(SkinTextData, (scene, data, createNode) {
+      final textData = data as SkinTextData;
 
-      final refBox = FrameObjectData.screenRectToRefBox(textData.screenRect);
+      final refBox = SkinObjectData.screenRectToRefBox(textData.screenRect);
       return FskBitmapText.fromData(textData.id, scene, refBox,textData);
     });
   }
@@ -215,7 +215,7 @@ class FskBitmapText extends Fsk2DRenderableObject with FskTransformableMixin, Fs
     );
   }
 
-  FskBitmapText.fromData(super.id,super.parentScene, super.refBox,FrameTextData textData, {FskShaderMaterial? shaderMaterial}) {
+  FskBitmapText.fromData(super.id,super.parentScene, super.refBox,SkinTextData textData, {FskShaderMaterial? shaderMaterial}) {
     setRenderer(_renderer);
     _width = refBox.xVector.length;
 

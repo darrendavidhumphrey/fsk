@@ -4,9 +4,9 @@ import 'package:vector_math/vector_math.dart' hide Colors;
 
 const double _gridSize = 500;
 
-class CADCanvasScene extends FskFrameScene {
+class CADCanvasScene extends FskScene {
   CADCanvasScene({super.navigationDelegate,super.clearColor=Colors.white}) {
-    frameSize = const Size(_gridSize, _gridSize);
+    skinSize = const Size(_gridSize, _gridSize);
   }
 
   @override

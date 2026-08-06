@@ -3,7 +3,7 @@ import 'package:flutter_gpu/gpu.dart' as gpu;
 import 'package:fsk/fsk.dart';
 
 class GPURenderWidget extends StatefulWidget {
-  final FskScene scene;
+  final FskSceneBase scene;
   final bool useAntiAliasing;
   final bool isAnimating;
 
@@ -23,7 +23,7 @@ class _GPURenderWidgetState extends State<GPURenderWidget> with SingleTickerProv
   late Listenable _repaintListenable;
 
   Size _lastSize = Size.zero;
-  FskScene? _lastScene;
+  FskSceneBase? _lastScene;
   FskRenderTarget? _fskTarget;
   Color? _lastClearColor;
   bool _isProcessingFrame = false;
@@ -153,7 +153,7 @@ class _GPURenderWidgetState extends State<GPURenderWidget> with SingleTickerProv
 }
 
 class FskScenePainter extends CustomPainter with LoggableClass {
-  final FskScene scene;
+  final FskSceneBase scene;
   final gpu.Texture? texture;
   final double pixelRatio;
   final Listenable repaintTrigger;

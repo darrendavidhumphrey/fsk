@@ -1,19 +1,15 @@
 import 'dart:ui';
-
+import 'package:fsk/fsk.dart';
 import 'package:fsk/scene_graph/fsk_renderer_base.dart';
-import 'package:fsk/scene_graph/fsk_transformable.dart';
 import 'package:vector_math/vector_math.dart';
 import 'package:flutter_gpu/gpu.dart' as gpu;
-import '../fsk_scene.dart';
-import '../geometry/reference_box.dart';
-import '../gpu/fsk_shader_material.dart';
-import '../shaders/base_uniforms.dart';
-import '../logging.dart';
+
+
 
 abstract class FskSceneObject with LoggableClass {
 
   final String id;
-  final FskScene parentScene;
+  final FskSceneBase parentScene;
 
   FskSceneObject(this.id,this.parentScene);
 

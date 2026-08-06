@@ -1,25 +1,25 @@
 import 'dart:ui';
 import 'package:vector_math/vector_math.dart';
 import 'package:xml/xml.dart';
-import '../fsk.dart';
+import 'package:fsk/fsk.dart';
 
-typedef FrameObjectDataParser = FrameObjectData? Function(
+typedef SkinObjectDataParser = SkinObjectData? Function(
   XmlElement node,
-  Map<String, FrameAnchorData> anchors,
-  FrameObjectData? Function(XmlElement, Map<String, FrameAnchorData>) parseObject,
+  Map<String, SkinAnchorData> anchors,
+  SkinObjectData? Function(XmlElement, Map<String, SkinAnchorData>) parseObject,
 );
 
-class FrameObjectDataFactory {
-  static final Map<String, FrameObjectDataParser> _parsers = {};
+class SkinObjectDataFactory {
+  static final Map<String, SkinObjectDataParser> _parsers = {};
 
-  static void register(String type, FrameObjectDataParser parser) {
+  static void register(String type, SkinObjectDataParser parser) {
     _parsers[type] = parser;
   }
 
-  static FrameObjectData? parse(
+  static SkinObjectData? parse(
     XmlElement node,
-    Map<String, FrameAnchorData> anchors,
-    FrameObjectData? Function(XmlElement, Map<String, FrameAnchorData>) parseObject,
+    Map<String, SkinAnchorData> anchors,
+    SkinObjectData? Function(XmlElement, Map<String, SkinAnchorData>) parseObject,
   ) {
     final parser = _parsers[node.name.local];
     if (parser != null) {
@@ -30,9 +30,9 @@ class FrameObjectDataFactory {
 }
 
 typedef FskSceneObjectBuilder = FskSceneObject? Function(
-  FskFrameScene scene,
-  FrameObjectData data,
-  FskSceneObject? Function(FrameObjectData) createNode,
+  FskScene scene,
+  SkinObjectData data,
+  FskSceneObject? Function(SkinObjectData) createNode,
 );
 
 class FskSceneObjectFactory {
@@ -43,9 +43,9 @@ class FskSceneObjectFactory {
   }
 
   static FskSceneObject? create(
-    FskFrameScene scene,
-    FrameObjectData data,
-    FskSceneObject? Function(FrameObjectData) createNode,
+    FskScene scene,
+    SkinObjectData data,
+    FskSceneObject? Function(SkinObjectData) createNode,
   ) {
     final builder = _builders[data.runtimeType];
     if (builder != null) {
@@ -55,28 +55,28 @@ class FskSceneObjectFactory {
   }
 }
 
-class FrameData with LoggableClass {
+class SkinData with LoggableClass {
   final String version;
-  final Map<String, FrameTextureData> textures;
-  final Map<String, FrameFontData> fonts;
-  final Map<String, FrameAnchorData> anchors;
-  final List<FrameObjectData> objects;
-  final Map<String, FrameObjectData> _objectMap = {};
-  final Size _frameSize;
+  final Map<String, SkinTextureData> textures;
+  final Map<String, SkinFontData> fonts;
+  final Map<String, SkinAnchorData> anchors;
+  final List<SkinObjectData> objects;
+  final Map<String, SkinObjectData> _objectMap = {};
+  final Size _skinSize;
   final String? _clearColor;
   final String? _assetsPath;
 
-  Size get frameSize => _frameSize;
+  Size get skinSize => _skinSize;
   String? get assetsPath => _assetsPath;
   String? get clearColor => _clearColor;
 
-  FrameData({
+  SkinData({
     required this.version,
-    required List<FrameTextureData> textures,
-    required List<FrameFontData> fonts,
-    required List<FrameAnchorData> anchors,
+    required List<SkinTextureData> textures,
+    required List<SkinFontData> fonts,
+    required List<SkinAnchorData> anchors,
     required this.objects,
-    required this._frameSize,
+    required this._skinSize,
     required this._clearColor,
     required this._assetsPath,
   })  : textures = {for (var t in textures) t.id: t},
@@ -87,30 +87,30 @@ class FrameData with LoggableClass {
     }
   }
 
-  void _registerObject(FrameObjectData obj) {
+  void _registerObject(SkinObjectData obj) {
     _objectMap[obj.id] = obj;
-    if (obj is FrameGroupDataExplicit) {
+    if (obj is SkinGroupDataExplicit) {
        for (var child in obj.children) {
         _registerObject(child);
       }
     }
   }
 
-  FrameObjectData? findObject(String id) => _objectMap[id];
+  SkinObjectData? findObject(String id) => _objectMap[id];
 
   void dumpTree() {
-    logInfo('📂 FrameData (Version: $version, Size: ${_frameSize.width}x${_frameSize.height} ClearColor ${_clearColor?.toString()} AssetsPath "$_assetsPath")');
+    logInfo('📂 SkinData (Version: $version, Size: ${_skinSize.width}x${_skinSize.height} ClearColor ${_clearColor?.toString()} AssetsPath "$_assetsPath")');
     for (int i = 0; i < objects.length; i++) {
       final isLast = i == objects.length - 1;
       _printNode(objects[i], '     ', isLast);
     }
   }
 
-  void _printNode(FrameObjectData obj, String indent, bool isLast) {
+  void _printNode(SkinObjectData obj, String indent, bool isLast) {
     final marker = isLast ? '└── ' : '├── ';
     final nextIndent = indent + (isLast ? '    ' : '│   ');
     logInfo('$indent$marker${obj.runtimeType} [ID: ${obj.id}]');
-    if (obj is FrameGroupDataExplicit) {
+    if (obj is SkinGroupDataExplicit) {
        for (int i = 0; i < obj.children.length; i++) {
         final isChildLast = i == obj.children.length - 1;
         _printNode(obj.children[i], nextIndent, isChildLast);
@@ -119,36 +119,36 @@ class FrameData with LoggableClass {
   }
 }
 
-abstract class FrameGroupDataExplicit extends FrameObjectData {
-  FrameGroupDataExplicit({required super.id, required super.visible, super.shader, required super.shaderParams});
-  List<FrameObjectData> get children;
+abstract class SkinGroupDataExplicit extends SkinObjectData {
+  SkinGroupDataExplicit({required super.id, required super.visible, super.shader, required super.shaderParams});
+  List<SkinObjectData> get children;
 }
 
-class FrameTextureData {
+class SkinTextureData {
   final String id;
   final String file;
-  FrameTextureData({required this.id, required this.file});
+  SkinTextureData({required this.id, required this.file});
 }
 
-class FrameFontData {
+class SkinFontData {
   final String id;
   final String fntFile;
   final String texture;
-  FrameFontData({required this.id, required this.fntFile, required this.texture});
+  SkinFontData({required this.id, required this.fntFile, required this.texture});
 }
 
-class FrameAnchorData {
+class SkinAnchorData {
   final String id;
   final Vector3 val;
-  FrameAnchorData({required this.id, required this.val});
+  SkinAnchorData({required this.id, required this.val});
 }
 
-abstract class FrameObjectData {
+abstract class SkinObjectData {
   final String id;
   final bool visible;
   final String? shader;
   final Map<String, String> shaderParams;
-  FrameObjectData({required this.id,required this.visible,this.shader,required this.shaderParams});
+  SkinObjectData({required this.id,required this.visible,this.shader,required this.shaderParams});
 
   static ReferenceBox screenRectToRefBox(Rect screenRect) {
     return ReferenceBox(

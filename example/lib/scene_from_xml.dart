@@ -1,9 +1,9 @@
 import 'package:flutter/material.dart';
 import 'package:fsk/fsk.dart';
 
-class SceneFromXml extends FskFrameScene {
+class SceneFromXml extends FskScene {
 
-  SceneFromXml({super.navigationDelegate}) : super.fromSkinFile("frames/example4.xml",clearColor: Colors.green);
+  SceneFromXml({super.navigationDelegate}) : super.fromSkinFile("skins/example4.xml",clearColor: Colors.green);
 
   FskBitmapText? frameCountText;
   FskBitmapText? sourceCode1, sourceCode2, sourceCode3, top;

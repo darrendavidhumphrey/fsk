@@ -1,5 +1,5 @@
 <?xml version="1.0" encoding="utf-8"?>
-<frameScene version="1.0" width="1080" height="720" assetsPath="frames">
+<skinFile version="1.0" width="1080" height="720" assetsPath="skins">
     <textures>
         <texture id="Penelope" file="Penelope.png" />
     </textures>
@@ -37,4 +37,4 @@
             screenRect="{{439, 457}, {162, 21}}" hJustify="center" vJustify="bottom" visible="true" textColor="#000000FF" />
          </objects>
 
-      </frameScene>
+      </skinFile>

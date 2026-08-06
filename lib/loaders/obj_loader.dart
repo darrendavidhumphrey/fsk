@@ -247,7 +247,7 @@ class WavefrontObjModel with LoggableClass {
   //////////////////////////////////////////////////////////////////////////////
   static Future<FskObjModel> loadFromAssets({
     required String assetFile,
-    required FskScene parentScene,
+    required FskSceneBase parentScene,
     required String sceneId,
     FskShaderMaterial? shaderMaterial,
     Future<FskTextureInfo?> Function()? loadTexture,
@@ -293,7 +293,7 @@ class WavefrontObjModel with LoggableClass {
   }
 
   /// Creates an [FskIndexedMesh] from this model.
-  FskIndexedMesh createIndexedMesh(FskScene scene, String id, {FskShaderMaterial? shaderMaterial}) {
+  FskIndexedMesh createIndexedMesh(FskSceneBase scene, String id, {FskShaderMaterial? shaderMaterial}) {
     final indexedMesh = FskIndexedMesh(id, scene, shaderMaterial: shaderMaterial);
 
     // 1. Assign vertex data to Mesh
@@ -344,7 +344,7 @@ class WavefrontObjModel with LoggableClass {
 
   static Future<FskIndexedMesh> indexedMeshFromAsset(
       String assetPath,
-      FskScene scene,
+      FskSceneBase scene,
       String id,
       {FskShaderMaterial? shaderMaterial}
       ) async {

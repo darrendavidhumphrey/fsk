@@ -2,7 +2,7 @@ import 'package:flutter/material.dart' hide Matrix4;
 import 'package:fsk/fsk.dart';
 import 'package:vector_math/vector_math.dart' hide Colors;
 
-class PbrModelScene extends FskFrameScene {
+class PbrModelScene extends FskScene {
   PbrModelScene({super.navigationDelegate,super.clearColor= const Color(0xFF101015)});
 
   @override

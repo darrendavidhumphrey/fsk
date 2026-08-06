@@ -4,14 +4,15 @@ import 'package:flutter_gpu/gpu.dart' as gpu;
 import 'package:fsk/fsk.dart';
 import 'package:vector_math/vector_math.dart';
 import 'package:xml/xml.dart';
-import '../frames/frame_data.dart';
 
-class FrameGroupData extends FrameGroupDataExplicit {
+import '../skins/skin_data.dart';
+
+class SkinGroupData extends SkinGroupDataExplicit {
   final Vector3 anchor;
   @override
-  final List<FrameObjectData> children;
+  final List<SkinObjectData> children;
 
-  FrameGroupData({
+  SkinGroupData({
     required super.id,
     required super.visible,
     super.shader,
@@ -28,28 +29,28 @@ class FskGroup extends FskRenderableObject with FskTransformableMixin {
   final List<FskSceneObject> children = [];
 
   static void registerWithFactories() {
-    FrameObjectDataFactory.register('group', (node, anchors, parseObject) {
+    SkinObjectDataFactory.register('group', (node, anchors, parseObject) {
       final String? shaderName = node.getAttribute('shader');
-      final Map<String, String> shaderParamsMap = FrameSceneParser.parseShaderParams(node.getAttribute('shaderParams'));
-      final children = <FrameObjectData>[];
+      final Map<String, String> shaderParamsMap = SkinSceneParser.parseShaderParams(node.getAttribute('shaderParams'));
+      final children = <SkinObjectData>[];
       for (final childNode in node.children.whereType<XmlElement>()) {
         final child = parseObject(childNode, anchors);
         if (child != null) {
           children.add(child);
         }
       }
-      return FrameGroupData(
+      return SkinGroupData(
         id: node.getAttribute('id')!,
-        visible: FrameSceneParser.isVisible(node),
-        anchor: FrameSceneParser.parseVector3(node.getAttribute('anchor')!, anchors),
+        visible: SkinSceneParser.isVisible(node),
+        anchor: SkinSceneParser.parseVector3(node.getAttribute('anchor')!, anchors),
         children: children,
         shader: shaderName,
         shaderParams: shaderParamsMap,
       );
     });
 
-    FskSceneObjectFactory.register(FrameGroupData, (scene, data, createNode) {
-      final groupData = data as FrameGroupData;
+    FskSceneObjectFactory.register(SkinGroupData, (scene, data, createNode) {
+      final groupData = data as SkinGroupData;
       final groupNode = FskGroup.fromData(groupData.id, scene, groupData);
       for (var childData in groupData.children) {
         final childNode = createNode(childData);
@@ -66,7 +67,7 @@ class FskGroup extends FskRenderableObject with FskTransformableMixin {
   /////////////////////////////////////////////////////////////////////////////
   FskGroup(super.id,super.parentScene);
 
-  FskGroup.fromData(super.id,super.parentScene, FrameGroupData data) {
+  FskGroup.fromData(super.id,super.parentScene, SkinGroupData data) {
 
     if (data.anchor.x != 0 || data.anchor.y != 0 || data.anchor.z != 0) {
       transformable.anchor = data.anchor;

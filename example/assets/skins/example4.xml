@@ -1,5 +1,5 @@
 <?xml version="1.0" encoding="utf-8"?>
-<frameScene version="1.0" width="1080" height="720" assetsPath="frames">
+<skinFile version="1.0" width="1080" height="720" assetsPath="skins">
     <textures>
         <texture id="Rectangle-1" file="Rectangle-1.png" />
         <texture id="Rectangle-2" file="Rectangle-2.png" />
@@ -57,4 +57,4 @@
 
     </objects>
 
-</frameScene>
+</skinFile>

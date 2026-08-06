@@ -16,7 +16,7 @@ class MeshFactory {
   // --- FskMesh Creation ---
 
   /// Creates an [FskMesh] from a solid's faces.
-  static FskMesh meshFromSolidFaces(String id, FskScene scene, List<Polyline> faces,
+  static FskMesh meshFromSolidFaces(String id, FskSceneBase scene, List<Polyline> faces,
       {FskShaderMaterial? material}) {
     return _createMesh(id, scene, faces, (filler, face) {
       _addTexturedTriFan(filler, face, true);
@@ -24,7 +24,7 @@ class MeshFactory {
   }
 
   /// Creates an [FskMesh] by tessellating a list of [outlines] with texture coordinates.
-  static FskMesh meshFromOutlines(String id, FskScene scene, List<Polyline> outlines,
+  static FskMesh meshFromOutlines(String id, FskSceneBase scene, List<Polyline> outlines,
       bool generateNormals, {FskShaderMaterial? material}) {
     return _createMesh(id, scene, outlines, (filler, outline) {
       _addTexturedTriFan(filler, outline, generateNormals);
@@ -32,7 +32,7 @@ class MeshFactory {
   }
 
   /// Creates an [FskMesh] by tessellating a list of [outlines] with a solid [color].
-  static FskMesh meshFromColorOutlines(String id, FskScene scene,
+  static FskMesh meshFromColorOutlines(String id, FskSceneBase scene,
       List<Polyline> outlines, Color color, {FskShaderMaterial? material}) {
     return _createMesh(id, scene, outlines, (filler, outline) {
       _addTexturedTriFan(filler, outline, true, color: color);
@@ -41,14 +41,14 @@ class MeshFactory {
 
   /// Creates an [FskMesh] that forms a thick, mitered outline around a [quad].
   static FskMesh meshFromQuadOutline(
-      {required String id, required FskScene parentScene, required Quad quad, required double thickness, required Color color,
+      {required String id, required FskSceneBase parentScene, required Quad quad, required double thickness, required Color color,
       FskShaderMaterial? material}) {
     final outlines = createThickOutline3DFromQuad(quad, thickness);
     return meshFromColorOutlines(id, parentScene, outlines, color, material: material);
   }
 
   /// Creates a new [FskMesh] by extruding a list of [outlines] by a [depth] vector.
-  static FskMesh extrudeToMesh(String id, FskScene scene, List<Polyline> outlines, Vector3 depth,
+  static FskMesh extrudeToMesh(String id, FskSceneBase scene, List<Polyline> outlines, Vector3 depth,
       {FskShaderMaterial? material}) {
     final mesh = FskMesh(id, scene, shaderMaterial: material);
     final vertices = verticesFromExtrusion(outlines, depth);
@@ -62,7 +62,7 @@ class MeshFactory {
   }
 
   /// Creates an [FskMesh] from a CPU-side [TriangleMesh].
-  static FskMesh fromTriangleMesh(String id, FskScene scene, TriangleMesh triangleMesh,
+  static FskMesh fromTriangleMesh(String id, FskSceneBase scene, TriangleMesh triangleMesh,
       {FskShaderMaterial? material, Color color = const Color(0xFFFFFFFF)}) {
     final mesh = FskMesh(id, scene, shaderMaterial: material);
     final int vertexCount = triangleMesh.triangleCount * 3;
@@ -257,7 +257,7 @@ class MeshFactory {
   /// Generic helper to create an [FskMesh] from a list of outlines.
   static FskMesh _createMesh(
       String id,
-      FskScene scene,
+      FskSceneBase scene,
       List<Polyline> outlines,
       void Function(VboFiller, Polyline) addFunction, {
         FskShaderMaterial? material,

@@ -1,7 +1,7 @@
 import 'package:flutter/gestures.dart' hide Matrix4;
 import 'package:flutter/material.dart' hide Matrix4;
 import 'package:vector_math/vector_math.dart';
-import '../../fsk_scene.dart';
+import 'package:fsk/fsk.dart';
 
 enum FskBoxFit {
   none,
@@ -12,7 +12,7 @@ enum FskBoxFit {
 }
 
 abstract class FskSceneNavigationDelegate with ChangeNotifier {
-  late FskScene scene;
+  late FskSceneBase scene;
   late Matrix4 _projectionMatrix;
   late Matrix4 _viewMatrix;
 
@@ -71,7 +71,7 @@ abstract class FskSceneNavigationDelegate with ChangeNotifier {
     scene.pMatrix.setFrom(getProjectionMatrix());
   }
 
-  void setScene(FskScene scene) {
+  void setScene(FskSceneBase scene) {
     this.scene = scene;
     setNeedsUpdate(true);
   }

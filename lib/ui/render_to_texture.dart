@@ -1,16 +1,15 @@
 import 'package:flutter/material.dart';
-import 'package:fsk/fsk_scene.dart';
-import 'package:fsk/ui/gpu_render_widget.dart';
-import 'package:fsk/ui/navigation_delegates/scene_navigation_delegate.dart';
+import 'package:fsk/fsk.dart';
 
-/// A widget that renders a [FskScene] and provides user interaction capabilities.
+
+/// A widget that renders a [FskSceneBase] and provides user interaction capabilities.
 ///
 /// This widget builds upon [RenderToTextureCore] by adding a [GestureDetector],
 /// a [Listener] for mouse events, and a [Focus] widget for keyboard events.
 /// It forwards all user input to a [FskSceneNavigationDelegate] to control the scene.
 class RenderToTexture extends StatefulWidget {
   /// The scene to be rendered.
-  final FskScene scene;
+  final FskSceneBase scene;
   final bool useAntiAliasing;
 
   const RenderToTexture({super.key, required this.scene,this.useAntiAliasing=false});

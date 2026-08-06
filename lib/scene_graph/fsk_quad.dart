@@ -2,19 +2,19 @@ import 'dart:ui';
 import 'package:flutter/material.dart' show Colors;
 import 'package:flutter_gpu/gpu.dart' as gpu;
 import 'package:vector_math/vector_math.dart' hide Colors;
-import '../frames/frame_data.dart';
-import '../fsk.dart';
+import 'package:fsk/fsk.dart';
+import '../skins/skin_data.dart';
 import 'fsk_depth_state.dart';
 import 'fsk_quads_renderer.dart';
 
-class FrameQuadData extends FrameObjectData {
+class SkinQuadData extends SkinObjectData {
   final String texture;
   final Rect screenRect;
   final Rect textureRect;
   final bool premultiplyAlpha;
   final String? modulateColor;
 
-  FrameQuadData({
+  SkinQuadData({
     required super.id,
     required super.visible,
     super.shader,
@@ -43,15 +43,15 @@ class FskQuad extends Fsk2DRenderableObject with FskTransformableMixin, FskDepth
   Color _modulateColor = const Color(0xFFFFFFFF);
 
   static void registerWithFactories() {
-    FrameObjectDataFactory.register('quad', (node, anchors, parseObject) {
+    SkinObjectDataFactory.register('quad', (node, anchors, parseObject) {
       final String? shaderName = node.getAttribute('shader');
-      final Map<String, String> shaderParamsMap = FrameSceneParser.parseShaderParams(node.getAttribute('shaderParams'));
-      return FrameQuadData(
+      final Map<String, String> shaderParamsMap = SkinSceneParser.parseShaderParams(node.getAttribute('shaderParams'));
+      return SkinQuadData(
         id: node.getAttribute('id')!,
-        visible: FrameSceneParser.isVisible(node),
+        visible: SkinSceneParser.isVisible(node),
         texture: node.getAttribute('texture')!,
-        screenRect: FrameSceneParser.parseRect(node.getAttribute('screenRect')!),
-        textureRect: FrameSceneParser.parseTextureRect(node.getAttribute('textureRect')),
+        screenRect: SkinSceneParser.parseRect(node.getAttribute('screenRect')!),
+        textureRect: SkinSceneParser.parseTextureRect(node.getAttribute('textureRect')),
         premultiplyAlpha: node.getAttribute('premultiplyAlpha') == 'true',
         shader: shaderName,
         modulateColor: node.getAttribute('modulateColor'),
@@ -59,9 +59,9 @@ class FskQuad extends Fsk2DRenderableObject with FskTransformableMixin, FskDepth
       );
     });
 
-    FskSceneObjectFactory.register(FrameQuadData, (scene, data, createNode) {
-      final quadData = data as FrameQuadData;
-      final refBox = FrameObjectData.screenRectToRefBox(quadData.screenRect);
+    FskSceneObjectFactory.register(SkinQuadData, (scene, data, createNode) {
+      final quadData = data as SkinQuadData;
+      final refBox = SkinObjectData.screenRectToRefBox(quadData.screenRect);
       return FskQuad.fromData(quadData.id, scene, refBox, quadData);
     });
   }
@@ -115,7 +115,7 @@ class FskQuad extends Fsk2DRenderableObject with FskTransformableMixin, FskDepth
     super.id,
     super.parentScene,
     super.refBox,
-    FrameQuadData quadData,
+    SkinQuadData quadData,
   ) : _textureRect = quadData.textureRect {
     _init(
       modulateColor: parseHexColor(quadData.modulateColor, defaultColor: Colors.white),
@@ -161,7 +161,7 @@ class FskQuad extends Fsk2DRenderableObject with FskTransformableMixin, FskDepth
   /// Creates a centered 2D quad of the specified [size] at [z] depth.
   factory FskQuad.centered(
     String id,
-    FskScene scene,
+    FskSceneBase scene,
     Size size, {
     Color modulateColor = Colors.white,
     String? textureId,
@@ -182,7 +182,7 @@ class FskQuad extends Fsk2DRenderableObject with FskTransformableMixin, FskDepth
     String id,
     Vector3 location,
     Size size,
-    FskScene scene, {
+    FskSceneBase scene, {
     Color modulateColor = Colors.white,
     String? textureId,
     FskShaderMaterial? shaderMaterial,

@@ -42,7 +42,7 @@ class TestAppState extends State<TestApp> {
     "Teapot OBJ (Orbit View)",
     "PBR Sci-Fi Helmet GLTF (Orbit View)"
   ];
-  final List<FskScene> scenes = [];
+  final List<FskSceneBase> scenes = [];
 
 
   void makeExamples() {

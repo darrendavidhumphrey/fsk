@@ -3,7 +3,7 @@
 import 'package:flutter/cupertino.dart';
 import 'package:fsk/fsk.dart';
 
-class ShaderParamsExample extends FrameScene {
+class ShaderParamsExample extends FskScene {
   ShaderParamsExample({super.navigationDelegate});
   UniformValue? modulateUniform;
   FskBitmapText? text1;
@@ -11,7 +11,7 @@ class ShaderParamsExample extends FrameScene {
 
   @override
   void init() {
-    String skinPath = "frames/example6.xml";
+    String skinPath = "skins/example6.xml";
     super.init();
     loadSkin(skinPath);
   }
@@ -20,7 +20,7 @@ class ShaderParamsExample extends FrameScene {
   void onSceneReady() {
     modulateUniform = findObjectUniform("PenelopeModulate","uModulateColor");
 
-    var text1Node = findNodeByType<FrameTextNode>("Text1");
+    var text1Node = findNodeByType<SKinTextNode>("Text1");
     if (text1Node != null) {
       text1 = text1Node.object;
     }

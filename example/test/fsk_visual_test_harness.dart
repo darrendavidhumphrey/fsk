@@ -25,7 +25,7 @@ class FskVisualTestHarness {
   }
 
   /// Runs a single scene capture test with strict sequence.
-  static Future<void> runSceneTest(WidgetTester tester, String testName, FskScene Function() sceneFactory, {Size? size}) async {
+  static Future<void> runSceneTest(WidgetTester tester, String testName, FskSceneBase Function() sceneFactory, {Size? size}) async {
     debugPrint('>>> [Harness] runSceneTest starting: $testName');
     Logging.logInfo('>>> [Harness] Starting test: $testName', source: "FskVisualTestHarness");
 

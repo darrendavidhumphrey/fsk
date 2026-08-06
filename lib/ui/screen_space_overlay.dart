@@ -9,7 +9,7 @@ import 'package:flutter_gpu/gpu.dart' as gpu;
 /// overlay on top of the main 3D scene. The position is defined by anchoring
 /// the overlay to one vertical edge (top or bottom) and one horizontal edge
 /// (left or right) of the parent viewport.
-abstract class ScreenSpaceOverlay extends FskScene {
+abstract class ScreenSpaceOverlay extends FskSceneBase {
   /// The distance in screen pixels from the top edge of the parent viewport.
   /// Must be provided if [bottom] is null.
   final double? top;

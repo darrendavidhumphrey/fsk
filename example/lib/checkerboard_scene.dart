@@ -2,13 +2,13 @@ import 'package:flutter/material.dart' hide Matrix4;
 import 'package:fsk/fsk.dart';
 import 'package:vector_math/vector_math.dart' hide Colors;
 
-class CheckerBoardScene extends FskFrameScene {
+class CheckerBoardScene extends FskScene {
   CheckerBoardScene({super.navigationDelegate,super.clearColor=Colors.white});
 
   @override
   Future<void> onInit() async {
     await super.onInit();
-    frameSize = const Size(500, 500);
+    skinSize = const Size(500, 500);
 
     // Create a ReferenceBox that matches the 2D layout expectation (Origin at 0,0)
     final refBox = ReferenceBox(

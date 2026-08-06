@@ -1,8 +1,7 @@
-import 'package:flutter/material.dart';
 import 'package:fsk/fsk.dart';
-import 'frame_data.dart';
+import 'skin_data.dart';
 
-class FrameSceneBuilder with LoggableClass {
+class SkinSceneBuilder with LoggableClass {
   static bool _initialized = false;
 
   static void registerDefaults() {
@@ -14,10 +13,10 @@ class FrameSceneBuilder with LoggableClass {
     FskBitmapText.registerWithFactories();
   }
 
-  final FskFrameScene scene;
-  final FrameData? frameData;
+  final FskScene scene;
+  final SkinData? frameData;
 
-  FrameSceneBuilder(this.scene, this.frameData) {
+  SkinSceneBuilder(this.scene, this.frameData) {
     registerDefaults();
   }
 
@@ -32,7 +31,7 @@ class FrameSceneBuilder with LoggableClass {
     return '${frameData!.assetsPath}/$textureName';
   }
 
-  FskSceneObject? _createNode(FrameObjectData objData) {
+  FskSceneObject? _createNode(SkinObjectData objData) {
     final node = FskSceneObjectFactory.create(scene, objData, _createNode);
 
     if (node != null) {

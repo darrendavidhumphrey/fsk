@@ -3,10 +3,10 @@ import 'package:flutter/foundation.dart';
 import 'package:flutter/services.dart';
 import 'package:vector_math/vector_math.dart';
 import 'package:xml/xml.dart';
-import '../fsk.dart';
-import 'frame_data.dart';
+import 'package:fsk/fsk.dart';
+import 'skin_data.dart';
 
-class FrameSceneParser with LoggableClass {
+class SkinSceneParser with LoggableClass {
   static bool _initialized = false;
 
   static void registerDefaults() {
@@ -19,7 +19,7 @@ class FrameSceneParser with LoggableClass {
   }
 
   static String assetsRoot = "assets/";
-  static Future<FrameData?> parseFromAssets(String assetPath) async {
+  static Future<SkinData?> parseFromAssets(String assetPath) async {
     String fullPath = assetPath;
     if (!kIsWeb) {
       fullPath = "$assetsRoot$assetPath";
@@ -37,16 +37,16 @@ class FrameSceneParser with LoggableClass {
     return true;
   }
 
-  static Future<FrameData?> parseFromFile(File file) async {
+  static Future<SkinData?> parseFromFile(File file) async {
     final String xmlString = await file.readAsString();
     return parse(xmlString);
   }
 
-  static FrameData? parse(String xmlString) {
+  static SkinData? parse(String xmlString) {
     registerDefaults();
     try {
       final document = XmlDocument.parse(xmlString);
-      final root = document.getElement('frameScene')!;
+      final root = document.getElement('skinFile')!;
       final version = root.getAttribute('version') ?? '1.0';
       final double width = double.tryParse(root.getAttribute('width') ?? '') ??
           1280.0;
@@ -54,22 +54,22 @@ class FrameSceneParser with LoggableClass {
           root.getAttribute('height') ?? '') ?? 720.0;
       final String? assetsPath = root.getAttribute('assetsPath');
 
-      final textures = <FrameTextureData>[];
+      final textures = <SkinTextureData>[];
       final texturesElement = root.getElement('textures');
       if (texturesElement != null) {
         for (final node in texturesElement.findElements('texture')) {
-          textures.add(FrameTextureData(
+          textures.add(SkinTextureData(
             id: node.getAttribute('id')!,
             file: node.getAttribute('file')!,
           ));
         }
       }
 
-      final fonts = <FrameFontData>[];
+      final fonts = <SkinFontData>[];
       final fontsElement = root.getElement('fonts');
       if (fontsElement != null) {
         for (final node in fontsElement.findElements('font')) {
-          fonts.add(FrameFontData(
+          fonts.add(SkinFontData(
             id: node.getAttribute('id')!,
             fntFile: node.getAttribute('fntFile')!,
             texture: node.getAttribute('texture')!,
@@ -77,19 +77,19 @@ class FrameSceneParser with LoggableClass {
         }
       }
 
-      final anchors = <String, FrameAnchorData>{};
+      final anchors = <String, SkinAnchorData>{};
       final anchorsElement = root.getElement('anchors');
       if (anchorsElement != null) {
         for (final node in anchorsElement.findElements('anchor')) {
           final id = node.getAttribute('id')!;
-          anchors[id] = FrameAnchorData(
+          anchors[id] = SkinAnchorData(
             id: id,
             val: parseVector3(node.getAttribute('val')!, {}),
           );
         }
       }
 
-      final objects = <FrameObjectData>[];
+      final objects = <SkinObjectData>[];
       final objectsElement = root.getElement('objects');
       if (objectsElement != null) {
         for (final node in objectsElement.children.whereType<XmlElement>()) {
@@ -100,8 +100,8 @@ class FrameSceneParser with LoggableClass {
         }
       }
 
-      return FrameData(
-        frameSize: Size(width, height),
+      return SkinData(
+        skinSize: Size(width, height),
         clearColor: root.getAttribute('clearColor'),
         assetsPath: assetsPath,
         version: version,
@@ -112,8 +112,8 @@ class FrameSceneParser with LoggableClass {
       );
     }
     catch (e, stackTrace) {
-      Logging.log(LogLevel.error, "Error loading frame file': $e", source: "FrameSceneParser");
-      Logging.log(LogLevel.error, "StackTrace: $stackTrace", source: "FrameSceneParser");
+      Logging.log(LogLevel.error, "Error loading skin file': $e", source: "SkinSceneParser");
+      Logging.log(LogLevel.error, "StackTrace: $stackTrace", source: "SkinSceneParser");
       return null;
     }
   }
@@ -127,8 +127,8 @@ class FrameSceneParser with LoggableClass {
     return Rect.fromLTWH(0, 0, 1, 1);
   }
 
-  static FrameObjectData? _parseObject(XmlElement node, Map<String, FrameAnchorData> anchors) {
-    return FrameObjectDataFactory.parse(node, anchors, _parseObject);
+  static SkinObjectData? _parseObject(XmlElement node, Map<String, SkinAnchorData> anchors) {
+    return SkinObjectDataFactory.parse(node, anchors, _parseObject);
   }
 
   static Rect parseRect(String s) {
@@ -145,7 +145,7 @@ class FrameSceneParser with LoggableClass {
     return Rect.zero;
   }
 
-  static Vector3 parseVector3(String s, Map<String, FrameAnchorData> anchors) {
+  static Vector3 parseVector3(String s, Map<String, SkinAnchorData> anchors) {
     if (anchors.containsKey(s)) {
       return anchors[s]!.val.clone();
     }

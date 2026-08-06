@@ -3,7 +3,7 @@ import 'package:fsk/fsk.dart';
 import 'package:vector_math/vector_math.dart' hide Colors;
 
 // Loads a simple OBJ model and puts it in an orbit view
-class ObjModelScene extends FskFrameScene {
+class ObjModelScene extends FskScene {
   ObjModelScene({super.navigationDelegate,super.clearColor=Colors.blueGrey});
 
   @override

@@ -23,7 +23,7 @@ double getCyclingScale({
   return normalizedTime * 25;
 }
 
-class AnimatedCheckerBoardScene extends FskFrameScene {
+class AnimatedCheckerBoardScene extends FskScene {
   FskQuad? checkerQuad;
 
   AnimatedCheckerBoardScene({super.navigationDelegate,super.clearColor=Colors.white});

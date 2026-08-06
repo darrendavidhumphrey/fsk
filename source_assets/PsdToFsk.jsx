@@ -12,8 +12,8 @@ function main() {
     var exportFolder = Folder.selectDialog("Select a folder to export assets and XML:");
     if (!exportFolder) return;
 
-    var framesFolder = new Folder(exportFolder + "/frames");
-    if (!framesFolder.exists) framesFolder.create();
+    var skinsFolder = new Folder(exportFolder + "/skins");
+    if (!skinsFolder.exists) skinsFolder.create();
 
     var docWidth = doc.width.as("px");
     var docHeight = doc.height.as("px");
@@ -24,10 +24,10 @@ function main() {
     var objectNodes = [];
     var usedFonts = {};
 
-    processLayers(doc.layers, framesFolder, textureCache, objectNodes, docHeight, usedFonts, usedIds, usedObjectIds);
+    processLayers(doc.layers, skinsFolder, textureCache, objectNodes, docHeight, usedFonts, usedIds, usedObjectIds);
 
     var xmlStr = '<?xml version="1.0" encoding="utf-8"?>\n';
-    xmlStr += '<frameScene version="1.0" width="' + docWidth + '" height="' + docHeight + '" assetsPath="frames">\n';
+    xmlStr += '<skinFile version="1.0" width="' + docWidth + '" height="' + docHeight + '" assetsPath="skins">\n';
     
     xmlStr += '    <textures>\n';
     var exportedTextures = {};
@@ -57,7 +57,7 @@ function main() {
         xmlStr += objectNodes[j];
     }
     xmlStr += '    </objects>\n\n';
-    xmlStr += '</frameScene>';
+    xmlStr += '</skinFile>';
 
     var xmlFile = new File(exportFolder + "/" + docName + ".xml");
     xmlFile.encoding = "UTF-8";
@@ -68,12 +68,12 @@ function main() {
     alert("Export completed successfully!");
 }
 
-function processLayers(layers, framesFolder, textureCache, objectNodes, docHeight, usedFonts, usedIds, usedObjectIds) {
+function processLayers(layers, skinsFolder, textureCache, objectNodes, docHeight, usedFonts, usedIds, usedObjectIds) {
     for (var i = layers.length - 1; i >= 0; i--) {
         var layer = layers[i];
 
         if (layer.typename === "LayerSet") {
-            processLayers(layer.layers, framesFolder, textureCache, objectNodes, docHeight, usedFonts, usedIds, usedObjectIds);
+            processLayers(layer.layers, skinsFolder, textureCache, objectNodes, docHeight, usedFonts, usedIds, usedObjectIds);
             continue;
         }
 
@@ -188,7 +188,7 @@ function processLayers(layers, framesFolder, textureCache, objectNodes, docHeigh
                     textureId = sanitizedBaseName + "_" + w + "x" + h;
                 }
 
-                exportPngLayer(layer, textureId, framesFolder);
+                exportPngLayer(layer, textureId, skinsFolder);
                 textureCache[sig] = { id: textureId, file: textureId + ".png" };
                 usedIds[textureId] = true;
             }

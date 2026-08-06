@@ -8,7 +8,7 @@ import '../fsk.dart';
 
 /// A lightweight, dependency-free GLTF 2.0 loader for the FSK engine.
 class FskGltfLoader {
-  final FskScene scene;
+  final FskSceneBase scene;
   final String assetPath;
   late final String _basePath;
 
@@ -29,7 +29,7 @@ class FskGltfLoader {
 
   static Future<FskGroup> loadFromAssets({
     required String assetFile,
-    required FskScene parentScene,
+    required FskSceneBase parentScene,
     FskGroup? rootNode,
   }) async {
     final loader = FskGltfLoader(parentScene, assetFile);

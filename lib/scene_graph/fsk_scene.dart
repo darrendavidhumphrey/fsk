@@ -2,21 +2,21 @@ import 'dart:ui';
 import 'package:flutter_gpu/gpu.dart' as gpu;
 import 'package:vector_math/vector_math.dart';
 import '../fsk.dart';
-import 'frame_scene_builder.dart';
+import '../skins/skin_scene_builder.dart';
 
-class FskFrameScene extends FskScene {
+class FskScene extends FskSceneBase {
   final List<FskSceneObject> rootNodes = [];
   final Map<String, FskSceneObject> nodeMap = {};
-  Size frameSize = Size.zero;
+  Size skinSize = Size.zero;
 
   bool useBoxFitLayout = true;
   String? _pendingSkinPath;
 
-  FskFrameScene({super.navigationDelegate, super.clearColor}) {
+  FskScene({super.navigationDelegate, super.clearColor}) {
     isReady = false;
   }
 
-  FskFrameScene.fromSkinFile(String skinPath, {super.navigationDelegate,super.clearColor}) {
+  FskScene.fromSkinFile(String skinPath, {super.navigationDelegate,super.clearColor}) {
     isReady = false;
     _pendingSkinPath = skinPath;
   }
@@ -32,7 +32,7 @@ class FskFrameScene extends FskScene {
 
   void addNode(FskSceneObject node) {
     if (FskGroup.enableDuplicateIdCheck && nodeMap.containsKey(node.id)) {
-      logWarning('Duplicate node ID "${node.id}" added to FskFrameScene.');
+      logWarning('Duplicate node ID "${node.id}" added to FskScene.');
     }
     rootNodes.add(node);
     nodeMap[node.id] = node;
@@ -62,7 +62,7 @@ class FskFrameScene extends FskScene {
       Matrix4 layoutMatrix = Matrix4.identity();
       if (useBoxFitLayout) {
         Matrix4? boxFitMatrix =
-            navigationDelegate?.createBoxFitMatrix(frameSize);
+            navigationDelegate?.createBoxFitMatrix(skinSize);
 
         if (boxFitMatrix != null) {
           layoutMatrix = boxFitMatrix * layoutMatrix;
@@ -71,8 +71,8 @@ class FskFrameScene extends FskScene {
         // Center object in view by translating content origin to its center
         layoutMatrix.translateByVector3(
           Vector3(
-            -frameSize.width / 2,
-            -frameSize.height / 2,
+            -skinSize.width / 2,
+            -skinSize.height / 2,
             0,
           ),
         );
@@ -109,7 +109,7 @@ class FskFrameScene extends FskScene {
         commandBuffer.createRenderPass(renderTarget.renderTarget);
       }
     } catch (e, s) {
-      logError("CRITICAL Error in FskFrameScene.drawScene: $e\n$s");
+      logError("CRITICAL Error in FskScene.drawScene: $e\n$s");
     }
   }
 
@@ -137,10 +137,10 @@ class FskFrameScene extends FskScene {
 
   Future<void> loadSkin(String skinPath) async {
     try {
-      var frameData = await FrameSceneParser.parseFromAssets(skinPath);
+      var frameData = await SkinSceneParser.parseFromAssets(skinPath);
       if (frameData != null) {
-        var builder = FrameSceneBuilder(this, frameData);
-        frameSize = frameData.frameSize;
+        var builder = SkinSceneBuilder(this, frameData);
+        skinSize = frameData.skinSize;
         final success = await builder.buildScene();
         if (success) {
           await onSkinReady();

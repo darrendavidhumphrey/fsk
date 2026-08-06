@@ -6,7 +6,7 @@ import 'package:fsk/fsk.dart';
 import 'package:vector_math/vector_math.dart' show Matrix4;
 
 /// An abstract base class for a 3D scene, representing the root of a scene graph.
-abstract class FskScene extends ChangeNotifier with LoggableClass {
+abstract class FskSceneBase extends ChangeNotifier with LoggableClass {
   Matrix4 pMatrix = Matrix4.identity();
   Matrix4 mvMatrix = Matrix4.identity();
 
@@ -47,7 +47,7 @@ abstract class FskScene extends ChangeNotifier with LoggableClass {
   int _frameCount = 0;
   int get frameCount => _frameCount;
 
-  FskScene({this.navigationDelegate,this.clearColor=Colors.black}) {
+  FskSceneBase({this.navigationDelegate,this.clearColor=Colors.black}) {
     navigationDelegate?.setScene(this);
   }
 
