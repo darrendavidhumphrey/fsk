@@ -10,10 +10,8 @@ class CADCanvasScene extends FskFrameScene {
   }
 
   @override
-  Future<void> init() async {
-    if (initStarted) return;
-    await super.init();
-
+  Future<void> onInit() async {
+    await super.onInit();
     clearColor = Colors.white;
     useBoxFitLayout = false;
 
@@ -21,8 +19,6 @@ class CADCanvasScene extends FskFrameScene {
     makeOutline(gridQuad);
     makeHandlebars();
     await loadAxis();
-
-    isReady = true;
   }
 
   FskQuad makeCanvas() {

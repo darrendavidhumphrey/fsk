@@ -6,10 +6,8 @@ class PbrModelScene extends FskFrameScene {
   PbrModelScene({super.navigationDelegate});
 
   @override
-  Future<void> init() async {
-    if (initStarted) return;
-    await super.init();
-
+  Future<void> onInit() async {
+    await super.onInit();
     clearColor = const Color(0xFF101015);
     useBoxFitLayout = false; // Perspective 3D mode
 
@@ -28,6 +26,5 @@ class PbrModelScene extends FskFrameScene {
     );
 
     addNode(pbrModel);
-    isReady = true;
   }
 }

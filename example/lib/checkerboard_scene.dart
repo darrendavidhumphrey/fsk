@@ -6,9 +6,8 @@ class CheckerBoardScene extends FskFrameScene {
   CheckerBoardScene({super.navigationDelegate});
 
   @override
-  Future<void> init() async {
-    if (initStarted) return;
-    await super.init();
+  Future<void> onInit() async {
+    await super.onInit();
     clearColor = Colors.white;
     frameSize = const Size(500, 500);
 
@@ -35,7 +34,5 @@ class CheckerBoardScene extends FskFrameScene {
     uniforms.patternScale = 50;
 
     addNode(checkerQuad);
-
-    isReady = true;
   }
 }

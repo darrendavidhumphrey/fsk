@@ -42,7 +42,7 @@ abstract class FskScene extends ChangeNotifier with LoggableClass {
 
   Color clearColor = Colors.black;
 
-  bool isReady = true;
+  bool isReady = false;
 
   int _frameCount = 0;
   int get frameCount => _frameCount;
@@ -51,16 +51,23 @@ abstract class FskScene extends ChangeNotifier with LoggableClass {
     navigationDelegate?.setScene(this);
   }
 
-  bool _initStarted = false;
-  bool get initStarted => _initStarted;
+  Future<void>? _initFuture;
+  bool get initStarted => _initFuture != null;
+
+  /// Public entry point for initialization. Guaranteed to run only once.
+  Future<void> init() {
+    return _initFuture ??= _runInit();
+  }
+
+  Future<void> _runInit() async {
+    await onInit();
+    isReady = true;
+    notifyListeners();
+  }
 
   /// Override this to perform asynchronous initialization (loading assets, etc.)
   @mustCallSuper
-  Future<void> init() async {
-    if (_initStarted) return;
-    _initStarted = true;
-    isReady = true;
-  }
+  Future<void> onInit() async {}
 
   void setNeedsUpdate() {
     notifyListeners();

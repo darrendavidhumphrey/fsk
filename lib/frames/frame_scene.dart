@@ -22,14 +22,11 @@ class FskFrameScene extends FskScene {
   }
 
   @override
-  Future<void> init() async {
-    if (initStarted) return;
-    await super.init();
+  Future<void> onInit() async {
+    await super.onInit();
     if (_pendingSkinPath != null) {
       await loadSkin(_pendingSkinPath!);
       _pendingSkinPath = null;
-    } else {
-      isReady = true;
     }
   }
 

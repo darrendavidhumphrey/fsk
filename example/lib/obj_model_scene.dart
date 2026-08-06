@@ -7,10 +7,8 @@ class ObjModelScene extends FskFrameScene {
   ObjModelScene({super.navigationDelegate});
 
   @override
-  Future<void> init() async {
-    if (initStarted) return;
-    await super.init();
-
+  Future<void> onInit() async {
+    await super.onInit();
     useBoxFitLayout = false;
     clearColor = Colors.blueGrey;
 
@@ -32,6 +30,5 @@ class ObjModelScene extends FskFrameScene {
     );
 
     addNode(teapotModel);
-    isReady = true;
   }
 }

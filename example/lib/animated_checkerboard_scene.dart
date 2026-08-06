@@ -29,9 +29,8 @@ class AnimatedCheckerBoardScene extends FskFrameScene {
   AnimatedCheckerBoardScene({super.navigationDelegate});
 
   @override
-  Future<void> init() async {
-    if (initStarted) return;
-    await super.init();
+  Future<void> onInit() async {
+    await super.onInit();
     clearColor = Colors.white;
     checkerQuad = FskQuad.centered(
       'checker',
@@ -41,8 +40,6 @@ class AnimatedCheckerBoardScene extends FskFrameScene {
     );
 
     addNode(checkerQuad!);
-
-    isReady = true;
   }
 
   @override
