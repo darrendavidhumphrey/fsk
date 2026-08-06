@@ -13,6 +13,7 @@ import 'animated_checkerboard_scene.dart';
 import 'cad_canvas_scene.dart';
 import 'obj_model_scene.dart';
 import 'pbr_model_scene.dart';
+import 'pbr_with_overlay_example.dart';
 
 /// A specialized version of the example program that automatically iterates
 /// through all examples and captures a screenshot of each to the 'test_outputs' directory.
@@ -41,7 +42,8 @@ class _VisualTestAppState extends State<VisualTestApp> {
     "cad_canvas_scene",
     "scene_from_xml",
     "obj_model_scene",
-    "pbr_model_scene"
+    "pbr_model_scene",
+    "pbr_with_overlay_scene"
   ];
 
   int _currentIndex = -1;
@@ -222,6 +224,8 @@ class _VisualTestAppState extends State<VisualTestApp> {
         return ObjModelScene(navigationDelegate: OrbitViewDelegate(boxFit: FskBoxFit.bestFit));
       case "pbr_model_scene":
         return PbrModelScene(navigationDelegate: OrbitViewDelegate(boxFit: FskBoxFit.bestFit));
+      case "pbr_with_overlay_scene":
+        return PbrWithOverlayScene(navigationDelegate: OrbitViewDelegate(boxFit: FskBoxFit.bestFit));
       default:
         throw Exception("Unknown scene: $name");
     }
