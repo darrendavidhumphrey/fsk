@@ -20,7 +20,7 @@ import 'pbr_with_overlay_example.dart';
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
   
-  print(">>> Visual Test Runner Starting...");
+  Logging.logInfo(">>> Visual Test Runner Starting...", source: "VisualTestRunner");
   
   // Initialize the FSK engine
   await FSK().init();
@@ -35,7 +35,7 @@ class VisualTestApp extends StatefulWidget {
   State<VisualTestApp> createState() => _VisualTestAppState();
 }
 
-class _VisualTestAppState extends State<VisualTestApp> {
+class _VisualTestAppState extends State<VisualTestApp> with LoggableClass {
   final List<String> sceneNames = [
     "checkerboard_scene",
     "animated_checkerboard_scene",
@@ -46,7 +46,6 @@ class _VisualTestAppState extends State<VisualTestApp> {
     "pbr_with_overlay_scene"
   ];
 
-  int _currentIndex = -1;
   FskSceneBase? _currentScene;
   bool _finished = false;
   String _status = "Preparing runner...";
@@ -66,7 +65,7 @@ class _VisualTestAppState extends State<VisualTestApp> {
       try {
         outDir.deleteSync(recursive: true);
       } catch (e) {
-        print("Warning: could not clear test_outputs: $e");
+        logWarning("Warning: could not clear test_outputs: $e");
       }
     }
     outDir.createSync(recursive: true);
@@ -74,10 +73,9 @@ class _VisualTestAppState extends State<VisualTestApp> {
     // 2. Iterate through each scene
     for (int i = 0; i < sceneNames.length; i++) {
       final name = sceneNames[i];
-      print("\n>>> [${i + 1}/${sceneNames.length}] Testing: $name");
+      logInfo("\n>>> [${i + 1}/${sceneNames.length}] Testing: $name");
       
       setState(() {
-        _currentIndex = i;
         _status = "Running $name...";
       });
 
@@ -93,7 +91,7 @@ class _VisualTestAppState extends State<VisualTestApp> {
       await Future.delayed(const Duration(milliseconds: 1500));
 
       // Capture the frame from the resolved GPU texture
-      print("    Capturing GPU frame...");
+      logInfo("    Capturing GPU frame...");
       final ui.Image gpuImage = await _currentScene!.captureFrameInternal();
       
       // Encode and save to disk
@@ -101,7 +99,7 @@ class _VisualTestAppState extends State<VisualTestApp> {
         await _saveImage(gpuImage, name);
         _results.add("✅ $name: SUCCESS");
       } catch (e) {
-        print("    ERROR saving $name: $e");
+        logError("    ERROR saving $name: $e");
         _results.add("❌ $name: FAILED ($e)");
       } finally {
         gpuImage.dispose();
@@ -124,9 +122,9 @@ class _VisualTestAppState extends State<VisualTestApp> {
       await Future.delayed(const Duration(milliseconds: 500));
     }
 
-    print("\n>>> Visual Tests Completed.");
+    logInfo("\n>>> Visual Tests Completed.");
     for (var r in _results) {
-      print("    $r");
+      logInfo("    $r");
     }
 
     // --- GOLDEN COMPARISON ---
@@ -138,17 +136,17 @@ class _VisualTestAppState extends State<VisualTestApp> {
     });
 
     // Automatically exit after a short delay so the final results are visible on screen briefly
-    print("\n>>> Runner exiting in 2 seconds...");
+    logInfo("\n>>> Runner exiting in 2 seconds...");
     await Future.delayed(const Duration(seconds: 2));
     exit(0);
   }
 
   Future<void> _compareGoldens() async {
-    print("\n>>> Starting Golden Comparison...");
+    logInfo("\n>>> Starting Golden Comparison...");
     final goldenDir = Directory('golden_test_outputs');
     
     if (!goldenDir.existsSync()) {
-      print("    WARNING: 'golden_test_outputs' directory not found. Skipping comparison.");
+      logWarning("    WARNING: 'golden_test_outputs' directory not found. Skipping comparison.");
       _results.add("⚠️ GOLDEN DIR MISSING");
       return;
     }
@@ -158,13 +156,13 @@ class _VisualTestAppState extends State<VisualTestApp> {
       final goldenFile = File(path.join('golden_test_outputs', '$name.png'));
 
       if (!outputFile.existsSync()) {
-        print("    ❌ $name: Output image missing");
+        logError("    ❌ $name: Output image missing");
         _results.add("❌ $name: OUTPUT MISSING");
         continue;
       }
 
       if (!goldenFile.existsSync()) {
-        print("    ⚠️ $name: Golden image missing");
+        logWarning("    ⚠️ $name: Golden image missing");
         _results.add("⚠️ $name: GOLDEN MISSING");
         continue;
       }
@@ -173,10 +171,10 @@ class _VisualTestAppState extends State<VisualTestApp> {
       final goldenBytes = await goldenFile.readAsBytes();
 
       if (_compareBytes(outBytes, goldenBytes)) {
-        print("    ✅ $name: MATCH");
+        logInfo("    ✅ $name: MATCH");
         _results.add("✅ $name: MATCH");
       } else {
-        print("    🔥 $name: MISMATCH");
+        logError("    🔥 $name: MISMATCH");
         _results.add("🔥 $name: MISMATCH");
       }
     }
@@ -249,7 +247,7 @@ class _VisualTestAppState extends State<VisualTestApp> {
 
     final File file = File(path.join('test_outputs', '$name.png'));
     await file.writeAsBytes(byteData.buffer.asUint8List());
-    print("    Saved to: ${file.path} (${byteData.lengthInBytes} bytes)");
+    logInfo("    Saved to: ${file.path} (${byteData.lengthInBytes} bytes)");
   }
 
   @override
@@ -284,7 +282,7 @@ class _VisualTestAppState extends State<VisualTestApp> {
                   Container(
                       width: 400,
                       height: 2,
-                      color: Colors.blueAccent.withOpacity(0.3)),
+                      color: Colors.blueAccent.withValues(alpha: 0.3)),
                   const SizedBox(height: 30),
                   Text(
                     _status,
@@ -296,7 +294,7 @@ class _VisualTestAppState extends State<VisualTestApp> {
                     decoration: BoxDecoration(
                       color: Colors.grey[900],
                       border: Border.all(
-                          color: Colors.blueAccent.withOpacity(0.5), width: 1),
+                          color: Colors.blueAccent.withValues(alpha:0.5), width: 1),
                       boxShadow: [
                         BoxShadow(
                             color: Colors.black54,
