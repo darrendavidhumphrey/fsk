@@ -4,13 +4,12 @@ import 'package:vector_math/vector_math.dart' hide Colors;
 
 // Loads a simple OBJ model and puts it in an orbit view
 class ObjModelScene extends FskFrameScene {
-  ObjModelScene({super.navigationDelegate});
+  ObjModelScene({super.navigationDelegate,super.clearColor=Colors.blueGrey});
 
   @override
   Future<void> onInit() async {
     await super.onInit();
     useBoxFitLayout = false;
-    clearColor = Colors.blueGrey;
 
     // Load the teapot model, and have the model loader load the texture
     // Defaults to using the built-in LightingShader if no shader material is provided

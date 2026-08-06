@@ -3,6 +3,8 @@ import 'package:fsk/fsk.dart';
 
 class SceneFromXml extends FskFrameScene {
 
+  SceneFromXml({super.navigationDelegate}) : super.fromSkinFile("frames/example4.xml",clearColor: Colors.green);
+
   FskBitmapText? frameCountText;
   FskBitmapText? sourceCode1, sourceCode2, sourceCode3, top;
   FskQuad? penelope;
@@ -10,7 +12,6 @@ class SceneFromXml extends FskFrameScene {
   /// Automatically invoked callback when skin loads successfully
   @override
   Future<void> onSkinReady() async {
-    clearColor = Colors.green;
     frameCountText ??= findNode<FskBitmapText>("Text1");
     sourceCode1 ??= findNode<FskBitmapText>("sourceCode1");
     sourceCode2 ??= findNode<FskBitmapText>("sourceCode2");
@@ -33,6 +34,4 @@ class SceneFromXml extends FskFrameScene {
     }
     super.rebuildGeometry();
   }
-
-  SceneFromXml({super.navigationDelegate}) : super.fromSkinFile("frames/example4.xml");
 }

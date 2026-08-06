@@ -12,11 +12,11 @@ class FskFrameScene extends FskScene {
   bool useBoxFitLayout = true;
   String? _pendingSkinPath;
 
-  FskFrameScene({super.navigationDelegate}) {
+  FskFrameScene({super.navigationDelegate, super.clearColor}) {
     isReady = false;
   }
 
-  FskFrameScene.fromSkinFile(String skinPath, {super.navigationDelegate}) {
+  FskFrameScene.fromSkinFile(String skinPath, {super.navigationDelegate,super.clearColor}) {
     isReady = false;
     _pendingSkinPath = skinPath;
   }

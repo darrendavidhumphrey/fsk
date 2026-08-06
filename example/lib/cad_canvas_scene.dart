@@ -5,14 +5,13 @@ import 'package:vector_math/vector_math.dart' hide Colors;
 const double _gridSize = 500;
 
 class CADCanvasScene extends FskFrameScene {
-  CADCanvasScene({super.navigationDelegate}) {
+  CADCanvasScene({super.navigationDelegate,super.clearColor=Colors.white}) {
     frameSize = const Size(_gridSize, _gridSize);
   }
 
   @override
   Future<void> onInit() async {
     await super.onInit();
-    clearColor = Colors.white;
     useBoxFitLayout = false;
 
     FskQuad gridQuad = makeCanvas();

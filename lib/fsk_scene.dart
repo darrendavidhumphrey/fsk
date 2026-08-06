@@ -40,14 +40,14 @@ abstract class FskScene extends ChangeNotifier with LoggableClass {
   gpu.Texture? get texture => _texture;
   set texture(gpu.Texture? value) => _texture = value;
 
-  Color clearColor = Colors.black;
+  Color clearColor;
 
   bool isReady = false;
 
   int _frameCount = 0;
   int get frameCount => _frameCount;
 
-  FskScene({this.navigationDelegate}) {
+  FskScene({this.navigationDelegate,this.clearColor=Colors.black}) {
     navigationDelegate?.setScene(this);
   }
 

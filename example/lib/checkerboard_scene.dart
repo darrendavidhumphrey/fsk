@@ -3,12 +3,11 @@ import 'package:fsk/fsk.dart';
 import 'package:vector_math/vector_math.dart' hide Colors;
 
 class CheckerBoardScene extends FskFrameScene {
-  CheckerBoardScene({super.navigationDelegate});
+  CheckerBoardScene({super.navigationDelegate,super.clearColor=Colors.white});
 
   @override
   Future<void> onInit() async {
     await super.onInit();
-    clearColor = Colors.white;
     frameSize = const Size(500, 500);
 
     // Create a ReferenceBox that matches the 2D layout expectation (Origin at 0,0)

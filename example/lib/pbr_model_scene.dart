@@ -3,12 +3,11 @@ import 'package:fsk/fsk.dart';
 import 'package:vector_math/vector_math.dart' hide Colors;
 
 class PbrModelScene extends FskFrameScene {
-  PbrModelScene({super.navigationDelegate});
+  PbrModelScene({super.navigationDelegate,super.clearColor= const Color(0xFF101015)});
 
   @override
   Future<void> onInit() async {
     await super.onInit();
-    clearColor = const Color(0xFF101015);
     useBoxFitLayout = false; // Perspective 3D mode
 
     // Load the GLTF into our PBR model node in a single line

@@ -49,8 +49,8 @@ class FrameSceneBuilder with LoggableClass {
       return false;
     }
 
-    // Set clear color, default to black if not set
-    scene.clearColor = parseHexColor(frameData!.clearColor, defaultColor: Colors.black);
+    // Set clear color, fallback to existing scene color if not specified in XML
+    scene.clearColor = parseHexColor(frameData!.clearColor, defaultColor: scene.clearColor);
     
     // 1. Load textures
     for (var textureData in frameData!.textures.values) {
