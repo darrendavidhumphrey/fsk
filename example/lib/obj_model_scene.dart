@@ -6,63 +6,37 @@ import 'package:vector_math/vector_math.dart' hide Colors;
 class ObjModelScene extends FskFrameScene {
   ObjModelScene({super.navigationDelegate});
 
-  Future<FskTextureInfo?> loadTexture() async {
-    try {
-      // 1. Pre-load the texture
-      return await FSK().textureManager.createTextureFromAsset(
-        'Bricks',
-        '3D/Teapot/Bricks051_1K-JPG_Color.jpg',
-      );
-    } catch (e) {
-      logError("Error loading texture: $e");
-      return null;
-    }
-  }
-
   @override
   Future<void> init() async {
     if (initStarted) return;
     await super.init();
     try {
-      logInfo("ObjModelScene.init: Starting...");
       useBoxFitLayout = false;
       clearColor = Colors.blueGrey;
 
-      // Load the teapot model using the new load method
-      logInfo("ObjModelScene.init: loading texture...");
-      FskTextureInfo? teapotTexture = await loadTexture();
-      logInfo("ObjModelScene.init: loading teapot model...");
-      FskGroup teapotModel = await WavefrontObjModel.load(
+      // Load the teapot model, and have the model loader load the texture
+      // Defaults to using the built-in LightingShader if no shader material is provided
+      FskObjModel teapotModel = await WavefrontObjModel.load(
         'assets/3D/Teapot/teapot_textures_normals.obj',
         this,
         'teapot',
+        loadTexture: ()=> FSK().textureManager.createTextureFromAsset(
+          'Bricks',
+          '3D/Teapot/Bricks051_1K-JPG_Color.jpg',
+        )
       );
 
-      if (teapotTexture != null) {
-        // Caller's frame of reference is now 0, no manual rotation needed!
-        teapotModel.transformable.scale = Vector3.all(5.0);
+      teapotModel.transformable.scale = Vector3.all(5.0);
 
-        // Find the mesh by its hierarchical path
-        final mesh = teapotModel.findNode<FskIndexedMesh>('teapot_correction.teapot');
-        if (mesh != null) {
-          final LightingUniforms uniforms = LightingUniforms();
-          mesh.uniforms = uniforms;
+      // Access the mesh directly from the teapotModel
+      final uniforms = teapotModel.mesh.uniforms as LightingUniforms;
+      uniforms.lightPos = Vector3(500, 500, 500);
 
-          uniforms.lightPos = Vector3(500, 500, 500);
-
-          // Bind the texture to the shader
-          uniforms.texture = teapotTexture.texture;
-          uniforms.samplerOptions = teapotTexture.samplerOptions;
-        }
-
-        // Add the teapot root to the scene graph
-        addNode(teapotModel);
-      }
-      logInfo("ObjModelScene.init: Done.");
-      isReady = true;
+      // Add the teapot root to the scene graph
+      addNode(teapotModel);
     } catch (e, s) {
       logError("Error in ObjModelScene.init: $e\n$s");
-      // Mark ready anyway so the test doesn't hang forever
+    } finally {
       isReady = true;
     }
   }

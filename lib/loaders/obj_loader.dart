@@ -212,26 +212,65 @@ class WavefrontObjModel with LoggableClass {
     _finalizeCurrentMesh(); // Finalize the last mesh in the file
   }
 
+  // Helper method for loading textures robustly with fallback to built-in solid
+  static Future<void> _doLoadTexture(String id, FskIndexedMesh mesh,
+      Future<FskTextureInfo?> Function()? loadTexture) async {
+    bool textureWasSet = false;
+    // If a loadTexture function is provided, try to load and apply it
+    if (loadTexture != null) {
+      try {
+        final FskTextureInfo? texture = await loadTexture();
+        if ((texture != null) && (texture.isLoaded)) {
+          mesh.renderer.setTexture(texture);
+          textureWasSet = true;
+        }
+      } catch (e) {
+        Logging.logError('Failed to load texture for OBJ model "$id": $e',
+            source: 'WavefrontObjModel');
+      } finally {
+        if (!textureWasSet) {
+          Logging.logWarning('Fallback to solid texture for model "$id"',
+              source: 'WavefrontObjModel');
+          mesh.renderer.setTexture(FSK().textureManager.solidTextureInfo);
+        }
+      }
+    } else {
+      // Automatically apply the solid white texture as a base if no loader is provided
+      mesh.renderer.setTexture(FSK().textureManager.solidTextureInfo);
+    }
+  }
   /// Creates a model and initializes it with the rendering context.
   WavefrontObjModel();
 
-  static Future<FskGroup> load(
+  //////////////////////////////////////////////////////////////////////////////
+  // Public API
+  //////////////////////////////////////////////////////////////////////////////
+  static Future<FskObjModel> load(
     String assetPath,
     FskScene scene,
     String id, {
     FskShaderMaterial? shaderMaterial,
+    Future<FskTextureInfo?> Function()? loadTexture,
   }) async {
     final model = await WavefrontObjModel.fromAsset(assetPath);
-    final rootGroup = FskGroup('${id}_root', scene);
 
+    // Create the actual mesh and add it to the correction group
+    // Use lighting material by default if none provided
+    final material = shaderMaterial ?? FskShaderMaterial.lighting;
+    final mesh = model.createIndexedMesh(scene, id, shaderMaterial: material);
+
+    // Load texture if one was specified
+    await _doLoadTexture(id,mesh,loadTexture);
+
+    // Force the uniforms to be instantiated via the factory
+    mesh.rebuildPipelineIfNeeded();
+
+    final rootGroup = FskObjModel('${id}_root', scene, mesh);
     // Create the correction group to handle Y-up -> Y-down and facing direction
     final correctionGroup = FskGroup('${id}_correction', scene);
     // Y-axis 180 to face camera, Z-axis 180 to flip right-side up
     correctionGroup.transformable.rotation = Vector3(0, radians(180), radians(180));
     rootGroup.addNode(correctionGroup);
-
-    // Create the actual mesh and add it to the correction group
-    final mesh = model.createIndexedMesh(scene, id, shaderMaterial: shaderMaterial);
     correctionGroup.addNode(mesh);
 
     return rootGroup;

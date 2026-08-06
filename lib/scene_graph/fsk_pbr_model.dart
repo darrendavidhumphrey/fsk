@@ -52,8 +52,10 @@ class FskPbrModel extends FskGroup {
       final uniforms = renderer.uniforms!;
       uniforms.onUpdate(viewportSize);
 
-      uniforms.mvMatrix = currentMv.clone();
-      uniforms.pMatrix = proj.clone();
+      // No need to clone these matrix assignments -- the setter method in
+      // uniforms is calling copyInto()
+      uniforms.mvMatrix = currentMv;
+      uniforms.pMatrix = proj;
 
       // Update light position for PBR materials
       if (uniforms is PbrUniforms) {
