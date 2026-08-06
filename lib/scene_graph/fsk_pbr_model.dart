@@ -13,13 +13,23 @@ class FskPbrModel extends FskExternalModel {
   FskPbrModel(super.id, super.parentScene);
 
   /// Creates and loads a PBR model from a GLTF asset in a single step.
-  static Future<FskPbrModel> load(
-    String assetPath,
-    FskScene scene,
-    String id,
-  ) async {
-    final model = FskPbrModel(id, scene);
-    await FskGltfLoader.load(assetPath, scene, rootNode: model);
+  static Future<FskPbrModel> loadFromAssets({
+    required String assetFile,
+    required FskScene parentScene,
+    required String sceneId,
+    void Function(FskPbrModel model)? onModelLoaded,
+  }) async {
+    final model = FskPbrModel(sceneId, parentScene);
+    await FskGltfLoader.loadFromAssets(
+      assetFile: assetFile,
+      parentScene: parentScene,
+      rootNode: model,
+    );
+
+    if (model.isLoaded) {
+      onModelLoaded?.call(model);
+    }
+
     return model;
   }
 

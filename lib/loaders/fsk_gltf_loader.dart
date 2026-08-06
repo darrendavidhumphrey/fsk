@@ -27,10 +27,13 @@ class FskGltfLoader {
     _basePath = lastSlash != -1 ? assetPath.substring(0, lastSlash + 1) : '';
   }
 
-  static Future<FskGroup> load(String assetPath, FskScene scene,
-      {FskGroup? rootNode}) async {
-    final loader = FskGltfLoader(scene, assetPath);
-    final rootGroup = rootNode ?? FskGroup('gltf_root', scene);
+  static Future<FskGroup> loadFromAssets({
+    required String assetFile,
+    required FskScene parentScene,
+    FskGroup? rootNode,
+  }) async {
+    final loader = FskGltfLoader(parentScene, assetFile);
+    final rootGroup = rootNode ?? FskGroup('gltf_root', parentScene);
 
     try {
       await loader._parse(rootGroup: rootGroup);
@@ -38,7 +41,7 @@ class FskGltfLoader {
         rootGroup.setLoaded();
       }
     } catch (e, s) {
-      Logging.logError('FskGltfLoader.load failed for "$assetPath": $e\n$s',
+      Logging.logError('FskGltfLoader.loadFromAssets failed for "$assetFile": $e\n$s',
           source: 'FskGltfLoader');
       if (rootGroup is FskExternalModel) {
         rootGroup.setError(e.toString());

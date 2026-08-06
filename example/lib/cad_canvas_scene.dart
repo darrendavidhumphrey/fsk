@@ -119,24 +119,22 @@ class CADCanvasScene extends FskFrameScene {
     // Create custom materials so axis is not white
     createMaterials();
 
-    final axisModel = await WavefrontObjModel.load(
-      'assets/3D/Axis/xyzaxis.obj',
-      this,
-      'axis',
+    final axisModel = await WavefrontObjModel.loadFromAssets(
+      assetFile: 'assets/3D/Axis/xyzaxis.obj',
+      parentScene: this,
+      sceneId: 'axis',
+      onModelLoaded: (model) {
+        final uniforms = model.mesh.uniforms as LightingUniforms;
+        uniforms.lightPos = Vector3(500, 500, 500);
+
+        // Scale up the axis
+        model.scale = Vector3.all(2);
+        // Move it to the corner of the grid
+        model.position = Vector3(-_gridSize / 2, -_gridSize / 2, 0);
+        // rotate the axis 90 degrees about the Y axis
+        model.rotation = Vector3(0, 0, radians(90));
+      },
     );
-
-    // If loaded successfully, configure the uniforms
-    if (axisModel.isLoaded) {
-      final uniforms = axisModel.mesh.uniforms as LightingUniforms;
-      uniforms.lightPos = Vector3(500, 500, 500);
-    }
-
-    // Scale up the axis
-    axisModel.scale = Vector3.all(2);
-    // Move it to the corner of the grid
-    axisModel.position = Vector3(-_gridSize / 2, -_gridSize / 2, 0);
-    // rotate the axis 90 degrees about the Y axis
-    axisModel.rotation = Vector3(0, 0, radians(90));
 
     // Add the axis root to the scene graph
     addNode(axisModel);
