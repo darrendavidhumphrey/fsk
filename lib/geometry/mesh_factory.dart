@@ -39,6 +39,14 @@ class MeshFactory {
     }, material: material ?? FskShaderMaterial.flat);
   }
 
+  /// Creates an [FskMesh] that forms a thick, mitered outline around a [quad].
+  static FskMesh meshFromQuadOutline(
+      {required String id, required FskScene parentScene, required Quad quad, required double thickness, required Color color,
+      FskShaderMaterial? material}) {
+    final outlines = createThickOutline3DFromQuad(quad, thickness);
+    return meshFromColorOutlines(id, parentScene, outlines, color, material: material);
+  }
+
   /// Creates a new [FskMesh] by extruding a list of [outlines] by a [depth] vector.
   static FskMesh extrudeToMesh(String id, FskScene scene, List<Polyline> outlines, Vector3 depth,
       {FskShaderMaterial? material}) {

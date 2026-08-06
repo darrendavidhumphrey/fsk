@@ -76,16 +76,13 @@ class CADCanvasScene extends FskFrameScene {
 
   void makeOutline(FskQuad gridQuad) {
     // Make thick line that follows the outline of the mesh quad
-    // The thick line is returned as a list of polylines
-    List<Polyline> outlines = createThickOutline3DFromQuad(gridQuad.quad, 4);
-
-    // Convert the outlines to a FskMesh object and add to the scene graph
     addNode(
-      MeshFactory.meshFromColorOutlines(
-        'outer_edge',
-        this,
-        outlines,
-        Colors.blue,
+      MeshFactory.meshFromQuadOutline(
+        id:'outer_edge',
+        parentScene: this,
+        quad:gridQuad.quad,
+        thickness: 4,
+        color: Colors.blue,
       ),
     );
   }
