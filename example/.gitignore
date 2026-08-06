@@ -12,6 +12,7 @@
 .swiftpm/
 migrate_working_dir/
 test_outputs/
+source_assets/frames/
 # IntelliJ related
 *.iml
 *.ipr
