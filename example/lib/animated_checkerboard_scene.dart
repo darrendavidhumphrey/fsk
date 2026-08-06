@@ -20,7 +20,7 @@ double getCyclingScale({
 }) {
   final double normalizedTime =
       (timeInSeconds % cycleDurationSeconds) / cycleDurationSeconds;
-  return normalizedTime * 25;
+  return (normalizedTime + 0.1) * 25;
 }
 
 class AnimatedCheckerBoardScene extends FskScene {
@@ -49,7 +49,7 @@ class AnimatedCheckerBoardScene extends FskScene {
     final uniforms = checkerQuad!.uniforms as CheckerBoardUniforms;
 
     double cycleDuration = 2;
-    double timeInSeconds = DateTime.now().millisecondsSinceEpoch / 1000.0;
+    double timeInSeconds = currentTime;
 
     uniforms.patternColor1 = getCyclingColor(
       timeInSeconds: timeInSeconds,

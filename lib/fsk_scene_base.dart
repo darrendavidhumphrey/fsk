@@ -44,8 +44,36 @@ abstract class FskSceneBase extends ChangeNotifier with LoggableClass {
 
   bool isReady = false;
 
+  /// The timestamp when initialization started.
+  late DateTime _startTime;
+
+  /// The current logical time in seconds for the scene.
+  /// If set to 0.0 (default), it returns the elapsed time since [init()] was called.
+  /// Used for deterministic animations in visual tests.
+  double _currentTime = 0.0;
+  double get currentTime {
+    if (_currentTime > 0) return _currentTime;
+    return DateTime.now().difference(_startTime).inMilliseconds / 1000.0;
+  }
+
+  set currentTime(double value) {
+    if (_currentTime == value) return;
+    _currentTime = value;
+    notifyListeners();
+  }
+
   int _frameCount = 0;
-  int get frameCount => _frameCount;
+  int get frameCount => _overrideFrameCount >= 0 ? _overrideFrameCount : _frameCount;
+
+  int _overrideFrameCount = -1;
+
+  /// Explicitly sets the frame count for display or logic.
+  /// Used for deterministic visual tests. Set to -1 to use real frame count.
+  set frameCount(int value) {
+    if (_overrideFrameCount == value) return;
+    _overrideFrameCount = value;
+    notifyListeners();
+  }
 
   FskSceneBase({this.navigationDelegate,this.clearColor=Colors.black}) {
     navigationDelegate?.setScene(this);
@@ -60,6 +88,7 @@ abstract class FskSceneBase extends ChangeNotifier with LoggableClass {
   }
 
   Future<void> _runInit() async {
+    _startTime = DateTime.now();
     await onInit();
     isReady = true;
     notifyListeners();

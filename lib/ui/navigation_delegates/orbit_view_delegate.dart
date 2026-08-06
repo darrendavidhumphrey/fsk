@@ -141,6 +141,14 @@ class OrbitViewDelegate extends FskSceneNavigationDelegate {
   /// Sets the distance of the camera from the orbit center.
   void setViewDistance(double distance) {
     _distance = distance;
+    setNeedsUpdate(true);
+  }
+
+  /// Programmatically sets the camera rotation.
+  void setOrbitRotation(double yaw, double pitch) {
+    _yaw = clampAngle0To360(yaw);
+    _pitch = clampAngle0To360(pitch);
+    setNeedsUpdate(true);
   }
 
   /// Creates the view matrix based on the current yaw, pitch, and distance.

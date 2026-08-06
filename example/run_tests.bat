@@ -1,1 +1,1 @@
-flutter test test\visual_scenes_test.dart --enable-impeller --enable-flutter-gpu
+flutter run -d windows -t lib/visual_test_runner.dart --enable-impeller --enable-flutter-gpu

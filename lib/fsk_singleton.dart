@@ -98,9 +98,9 @@ class FSK extends ChangeNotifier with LoggableClass {
 
   /// This must be called once before any other operations.
   Future<bool> init() async {
-    debugPrint('>>> [FSK] init() called. Current state: $_state');
+    logInfo('FSK.init() called. Current state: $_state');
     if (_state == FskState.initialized) return true;
-    _state = FskState.initialized; 
+    _state = FskState.initialized;
 
     try {
       _assetManifest ??= await AssetManifest.loadFromAssetBundle(rootBundle);
@@ -114,17 +114,17 @@ class FSK extends ChangeNotifier with LoggableClass {
         'shaders/fsk.shaderbundle',
         'fsk.shaderbundle',
       ];
-      
+
       bool loaded = false;
       for (final path in possiblePaths) {
         try {
-          debugPrint('>>> [FSK] trying to load: $path');
+          logVerbose('Trying to load shader bundle: $path');
           await shaderLibrary.registerBuiltInShaderLibrary(path);
-          debugPrint('>>> [FSK] load successful: $path');
+          logInfo('Shader bundle load successful: $path');
           loaded = true;
           break;
         } catch (e) {
-          debugPrint('>>> [FSK] load failed for $path: $e');
+          logVerbose('Shader bundle load failed for $path: $e');
         }
       }
       
