@@ -30,6 +30,7 @@ export 'gpu/fsk_vertex_buffer.dart';
 export 'scene_graph/fsk_bitmap_text.dart';
 export 'scene_graph/fsk_group.dart';
 export 'scene_graph/fsk_pbr_model.dart';
+export 'scene_graph/fsk_external_model.dart';
 export 'scene_graph/fsk_obj_model.dart';
 export 'scene_graph/fsk_mesh.dart';
 export 'scene_graph/fsk_mesh_renderer.dart';

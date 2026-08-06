@@ -10,34 +10,31 @@ class ObjModelScene extends FskFrameScene {
   Future<void> init() async {
     if (initStarted) return;
     await super.init();
-    try {
-      useBoxFitLayout = false;
-      clearColor = Colors.blueGrey;
 
-      // Load the teapot model, and have the model loader load the texture
-      // Defaults to using the built-in LightingShader if no shader material is provided
-      FskObjModel teapotModel = await WavefrontObjModel.load(
-        'assets/3D/Teapot/teapot_textures_normals.obj',
-        this,
-        'teapot',
-        loadTexture: ()=> FSK().textureManager.createTextureFromAsset(
-          'Bricks',
-          '3D/Teapot/Bricks051_1K-JPG_Color.jpg',
-        )
-      );
+    useBoxFitLayout = false;
+    clearColor = Colors.blueGrey;
 
-      teapotModel.transformable.scale = Vector3.all(5.0);
+    // Load the teapot model, and have the model loader load the texture
+    // Defaults to using the built-in LightingShader if no shader material is provided
+    final teapotModel = await WavefrontObjModel.load(
+      'assets/3D/Teapot/teapot_textures_normals.obj',
+      this,
+      'teapot',
+      loadTexture: () => FSK().textureManager.createTextureFromAsset(
+            'Bricks',
+            '3D/Teapot/Bricks051_1K-JPG_Color.jpg',
+          ),
+    );
 
-      // Access the mesh directly from the teapotModel
+    teapotModel.transformable.scale = Vector3.all(5.0);
+
+    // If loaded successfully, configure the uniforms
+    if (teapotModel.isLoaded) {
       final uniforms = teapotModel.mesh.uniforms as LightingUniforms;
       uniforms.lightPos = Vector3(500, 500, 500);
-
-      // Add the teapot root to the scene graph
-      addNode(teapotModel);
-    } catch (e, s) {
-      logError("Error in ObjModelScene.init: $e\n$s");
-    } finally {
-      isReady = true;
     }
+
+    addNode(teapotModel);
+    isReady = true;
   }
 }

@@ -252,26 +252,36 @@ class WavefrontObjModel with LoggableClass {
     FskShaderMaterial? shaderMaterial,
     Future<FskTextureInfo?> Function()? loadTexture,
   }) async {
-    final model = await WavefrontObjModel.fromAsset(assetPath);
+    final rootGroup = FskObjModel('${id}_root', scene);
 
-    // Create the actual mesh and add it to the correction group
-    // Use lighting material by default if none provided
-    final material = shaderMaterial ?? FskShaderMaterial.lighting;
-    final mesh = model.createIndexedMesh(scene, id, shaderMaterial: material);
+    try {
+      final model = await WavefrontObjModel.fromAsset(assetPath);
 
-    // Load texture if one was specified
-    await _doLoadTexture(id,mesh,loadTexture);
+      // Create the actual mesh and add it to the correction group
+      // Use lighting material by default if none provided
+      final material = shaderMaterial ?? FskShaderMaterial.lighting;
+      final mesh = model.createIndexedMesh(scene, id, shaderMaterial: material);
 
-    // Force the uniforms to be instantiated via the factory
-    mesh.rebuildPipelineIfNeeded();
+      // Load texture if one was specified
+      await _doLoadTexture(id, mesh, loadTexture);
 
-    final rootGroup = FskObjModel('${id}_root', scene, mesh);
-    // Create the correction group to handle Y-up -> Y-down and facing direction
-    final correctionGroup = FskGroup('${id}_correction', scene);
-    // Y-axis 180 to face camera, Z-axis 180 to flip right-side up
-    correctionGroup.transformable.rotation = Vector3(0, radians(180), radians(180));
-    rootGroup.addNode(correctionGroup);
-    correctionGroup.addNode(mesh);
+      // Force the uniforms to be instantiated via the factory
+      mesh.rebuildPipelineIfNeeded();
+
+      // Create the correction group to handle Y-up -> Y-down and facing direction
+      final correctionGroup = FskGroup('${id}_correction', scene);
+      // Y-axis 180 to face camera, Z-axis 180 to flip right-side up
+      correctionGroup.transformable.rotation =
+          Vector3(0, radians(180), radians(180));
+      rootGroup.addNode(correctionGroup);
+      correctionGroup.addNode(mesh);
+      rootGroup.mesh = mesh;
+      rootGroup.setLoaded();
+    } catch (e, s) {
+      Logging.logError('WavefrontObjModel.load failed for "$assetPath": $e\n$s',
+          source: 'WavefrontObjModel');
+      rootGroup.setError(e.toString());
+    }
 
     return rootGroup;
   }

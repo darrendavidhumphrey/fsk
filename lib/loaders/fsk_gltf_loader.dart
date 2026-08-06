@@ -27,20 +27,33 @@ class FskGltfLoader {
     _basePath = lastSlash != -1 ? assetPath.substring(0, lastSlash + 1) : '';
   }
 
-  static Future<FskGroup> load(String assetPath, FskScene scene, {FskGroup? rootNode}) async {
+  static Future<FskGroup> load(String assetPath, FskScene scene,
+      {FskGroup? rootNode}) async {
     final loader = FskGltfLoader(scene, assetPath);
-    return await loader._parse(rootNode: rootNode);
+    final rootGroup = rootNode ?? FskGroup('gltf_root', scene);
+
+    try {
+      await loader._parse(rootGroup: rootGroup);
+      if (rootGroup is FskExternalModel) {
+        rootGroup.setLoaded();
+      }
+    } catch (e, s) {
+      Logging.logError('FskGltfLoader.load failed for "$assetPath": $e\n$s',
+          source: 'FskGltfLoader');
+      if (rootGroup is FskExternalModel) {
+        rootGroup.setError(e.toString());
+      }
+    }
+    return rootGroup;
   }
 
-  Future<FskGroup> _parse({FskGroup? rootNode}) async {
+  Future<FskGroup> _parse({required FskGroup rootGroup}) async {
     final ByteData byteData = await rootBundle.load(assetPath);
     final Uint8List bytes = byteData.buffer.asUint8List(
       byteData.offsetInBytes,
       byteData.lengthInBytes,
     );
     _json = json.decode(utf8.decode(bytes));
-
-    final rootGroup = rootNode ?? FskGroup('gltf_root', scene);
 
     final List<dynamic> jsonBuffers = _json!['buffers'] ?? [];
     for (int i = 0; i < jsonBuffers.length; i++) {

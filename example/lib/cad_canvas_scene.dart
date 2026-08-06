@@ -13,19 +13,16 @@ class CADCanvasScene extends FskFrameScene {
   Future<void> init() async {
     if (initStarted) return;
     await super.init();
-    try {
-      clearColor = Colors.white;
-      useBoxFitLayout = false;
 
-      FskQuad gridQuad = makeCanvas();
-      makeOutline(gridQuad);
-      makeHandlebars();
-      await loadAxis();
-    } catch (e, s) {
-      logError("CRITICAL Error in CADCanvasScene.init: $e\n$s");
-    } finally {
-      isReady = true;
-    }
+    clearColor = Colors.white;
+    useBoxFitLayout = false;
+
+    FskQuad gridQuad = makeCanvas();
+    makeOutline(gridQuad);
+    makeHandlebars();
+    await loadAxis();
+
+    isReady = true;
   }
 
   FskQuad makeCanvas() {
@@ -100,37 +97,39 @@ class CADCanvasScene extends FskFrameScene {
 
   // Create custom materials for the axes
   void createMaterials() {
-    Color defaultSpecular = Colors.black;
-    const double defaultShininess = 5;
+    Color specular = Colors.black;
+    const double shine = 5;
     FSK().materials.addMaterial(
       "X",
-      GlMaterial(Colors.red, Colors.red, defaultSpecular, defaultShininess),
+      GlMaterial(Colors.red, Colors.red, specular, shine),
     );
 
     FSK().materials.addMaterial(
       "Y",
-      GlMaterial(Colors.green, Colors.green, defaultSpecular, defaultShininess),
+      GlMaterial(Colors.green, Colors.green, specular, shine),
     );
 
     FSK().materials.addMaterial(
       "Z",
-      GlMaterial(Colors.blue, Colors.blue, defaultSpecular, defaultShininess),
+      GlMaterial(Colors.blue, Colors.blue, specular, shine),
     );
   }
 
   Future<void> loadAxis() async {
-
     // Create custom materials so axis is not white
     createMaterials();
 
-    FskObjModel axisModel = await WavefrontObjModel.load(
+    final axisModel = await WavefrontObjModel.load(
       'assets/3D/Axis/xyzaxis.obj',
       this,
       'axis',
     );
 
-    final uniforms = axisModel.mesh.uniforms as LightingUniforms;
-    uniforms.lightPos = Vector3(500, 500, 500);
+    // If loaded successfully, configure the uniforms
+    if (axisModel.isLoaded) {
+      final uniforms = axisModel.mesh.uniforms as LightingUniforms;
+      uniforms.lightPos = Vector3(500, 500, 500);
+    }
 
     // Scale up the axis
     axisModel.scale = Vector3.all(2);

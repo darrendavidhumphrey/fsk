@@ -6,7 +6,7 @@ import '../fsk.dart';
 /// A specialized group node that implements a custom PBR rendering pass for its subtree.
 /// This node overrides the standard draw traversal to inject PBR-specific uniforms
 /// (like light position) into any child meshes using [PbrUniforms].
-class FskPbrModel extends FskGroup {
+class FskPbrModel extends FskExternalModel {
   /// The world-space position of the light source for this model's PBR rendering.
   Vector3 lightPosition = Vector3(200, 200, 0);
 
