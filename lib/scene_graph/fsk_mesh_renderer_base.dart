@@ -5,12 +5,17 @@ import 'package:fsk/fsk.dart';
 import 'fsk_renderer_base.dart';
 
 abstract class FskMeshRendererBase extends FskRendererBase {
-  PipelineKey? pipelineKey;
-
   bool _dataUploaded = false;
   bool isValid = false;
 
-  gpu.VertexLayout layout = v3t2n3Layout;
+  @override
+  gpu.VertexLayout get layout => shaderMaterial?.layout ?? v3t2n3Layout;
+
+  @override
+  FskShaderMaterial get defaultMaterial => FskShaderMaterial.lighting;
+
+  @override
+  gpu.CullMode get cullMode => gpu.CullMode.backFace;
 
   final FskVertexBuffer vbo = FskVertexBuffer();
   final List<FskSubMesh> _subMeshes = [];
@@ -30,44 +35,6 @@ abstract class FskMeshRendererBase extends FskRendererBase {
 
   void finalizeData() {
     _dataUploaded = true;
-  }
-
-  @override
-  void rebuildPipeline() {
-    if (!pipeLineNeedsRebuild && pipelineKey != null) return;
-
-    final material = shaderMaterial ?? FskShaderMaterial.lighting;
-
-    pipelineKey = PipelineKey(
-      vertShaderName: material.vertShaderName,
-      fragShaderName: material.fragShaderName,
-      layoutName: "${material.vertShaderName}_${material.fragShaderName}_Pipeline",
-      depthTestEnabled: depthState.depthTestEnabled,
-      depthWriteEnabled: depthState.depthWriteEnabled,
-      depthCompareOperation: depthState.depthCompareOperation,
-      texturingEnabled: true,
-      srcColorFactor: gpu.BlendFactor.sourceAlpha,
-      dstColorFactor: gpu.BlendFactor.oneMinusSourceAlpha,
-      srcAlphaFactor: gpu.BlendFactor.one,
-      dstAlphaFactor: gpu.BlendFactor.oneMinusSourceAlpha,
-      colorBlendOp: gpu.BlendOperation.add,
-      alphaBlendOp: gpu.BlendOperation.add,
-      windingOrder: gpu.WindingOrder.counterClockwise,
-      cullMode: gpu.CullMode.none, // DEBUG: Disable culling
-    );
-
-    final BaseUniforms newUniforms = material.uniformsFactory(
-      pipelineKey!.vertShader,
-      pipelineKey!.fragShader,
-    );
-
-    if (uniforms != null) {
-      newUniforms.copyFrom(uniforms!);
-    }
-    
-    uniforms = newUniforms;
-    layout = material.layout;
-    pipeLineNeedsRebuild = false;
   }
 
   void _checkIsValid() {

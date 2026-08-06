@@ -6,8 +6,6 @@ import 'package:fsk/fsk.dart';
 import 'fsk_renderer_base.dart';
 
 class FskQuadsRenderer extends FskRendererBase {
-  PipelineKey? pipelineKey;
-
   bool _vertsDownloaded = false;
 
   bool _premultiplyAlpha = true;
@@ -15,7 +13,15 @@ class FskQuadsRenderer extends FskRendererBase {
   // Color to modulate the texture with
   Color _modulateColor = const Color(0xFFFFFFFF);
 
-  gpu.VertexLayout layout = textVertexLayout;
+  @override
+  gpu.VertexLayout get layout => shaderMaterial?.layout ?? textVertexLayout;
+
+  @override
+  FskShaderMaterial get defaultMaterial => FskShaderMaterial.simpleTexture;
+
+  @override
+  gpu.BlendFactor get srcColorFactor =>
+      _premultiplyAlpha ? gpu.BlendFactor.one : gpu.BlendFactor.sourceAlpha;
 
   /// The vertex buffer object that holds the geometry for rendering.
   final FskVertexBuffer _vbo = FskVertexBuffer();
@@ -31,47 +37,6 @@ class FskQuadsRenderer extends FskRendererBase {
 
   void setModulateColor(Color color) {
     _modulateColor = color;
-  }
-
-  @override
-  void rebuildPipeline() {
-    if (!pipeLineNeedsRebuild && pipelineKey != null) return;
-
-    final material = shaderMaterial ?? FskShaderMaterial.simpleTexture;
-
-    // Create a pipeline key for this shader and associated settings
-    pipelineKey = PipelineKey(
-      vertShaderName: material.vertShaderName,
-      fragShaderName: material.fragShaderName,
-      layoutName: "${material.vertShaderName}_${material.fragShaderName}_Pipeline",
-      depthTestEnabled: depthState.depthTestEnabled,
-      depthWriteEnabled: depthState.depthWriteEnabled,
-      depthCompareOperation: depthState.depthCompareOperation,
-      texturingEnabled: true,
-      srcColorFactor: _premultiplyAlpha
-          ? gpu.BlendFactor.one
-          : gpu.BlendFactor.sourceAlpha,
-      dstColorFactor: gpu.BlendFactor.oneMinusSourceAlpha,
-      srcAlphaFactor: gpu.BlendFactor.one,
-      dstAlphaFactor: gpu.BlendFactor.oneMinusSourceAlpha,
-      colorBlendOp: gpu.BlendOperation.add,
-      alphaBlendOp: gpu.BlendOperation.add,
-      windingOrder: gpu.WindingOrder.counterClockwise,
-      cullMode: gpu.CullMode.none,
-    );
-
-    final BaseUniforms newUniforms = material.uniformsFactory(
-      pipelineKey!.vertShader,
-      pipelineKey!.fragShader,
-    );
-
-    if (uniforms != null) {
-      newUniforms.copyFrom(uniforms!);
-    }
-    
-    uniforms = newUniforms;
-    layout = material.layout;
-    pipeLineNeedsRebuild = false;
   }
 
   /////////////////////////////////////////////////////////////////////////////

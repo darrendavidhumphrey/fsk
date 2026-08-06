@@ -4,6 +4,7 @@ import 'package:flutter_gpu/gpu.dart' as gpu;
 import 'package:vector_math/vector_math.dart';
 import '../gpu/fsk_shader_material.dart';
 import '../gpu/fsk_texture_manager.dart';
+import '../gpu/gpu_pipeline_key.dart';
 import '../shaders/base_uniforms.dart';
 import 'fsk_depth_state.dart';
 
@@ -31,18 +32,69 @@ abstract class FskRendererBase extends ChangeNotifier with LoggableClass {
   final FskDepthState depthState = FskDepthState();
   bool pipeLineNeedsRebuild = true;
 
+  PipelineKey? pipelineKey;
+
   void setTexture(FskTextureInfo? info) {
     textureInfo = info;
   }
 
-  void draw(
-      gpu.RenderPass renderPass,
-      gpu.HostBuffer transients,
-      Matrix4 pMatrix,
-      Matrix4 mvMatrix,
-      Size viewportSize,
-      );
+  // --- Pipeline Customization Hooks ---
 
-  // All renderers must support a pipeline rebuild
-  void rebuildPipeline();
+  FskShaderMaterial get defaultMaterial;
+
+  gpu.BlendFactor get srcColorFactor => gpu.BlendFactor.sourceAlpha;
+  gpu.BlendFactor get dstColorFactor => gpu.BlendFactor.oneMinusSourceAlpha;
+  gpu.BlendFactor get srcAlphaFactor => gpu.BlendFactor.one;
+  gpu.BlendFactor get dstAlphaFactor => gpu.BlendFactor.oneMinusSourceAlpha;
+
+  gpu.CullMode get cullMode => gpu.CullMode.none;
+  gpu.WindingOrder get windingOrder => gpu.WindingOrder.counterClockwise;
+
+  gpu.VertexLayout get layout;
+
+  void draw(
+    gpu.RenderPass renderPass,
+    gpu.HostBuffer transients,
+    Matrix4 pMatrix,
+    Matrix4 mvMatrix,
+    Size viewportSize,
+  );
+
+  // Shared implementation of pipeline reconstruction
+  void rebuildPipeline() {
+    if (!pipeLineNeedsRebuild && pipelineKey != null) return;
+
+    final material = shaderMaterial ?? defaultMaterial;
+
+    pipelineKey = PipelineKey(
+      vertShaderName: material.vertShaderName,
+      fragShaderName: material.fragShaderName,
+      layoutName:
+          "${material.vertShaderName}_${material.fragShaderName}_Pipeline",
+      depthTestEnabled: depthState.depthTestEnabled,
+      depthWriteEnabled: depthState.depthWriteEnabled,
+      depthCompareOperation: depthState.depthCompareOperation,
+      texturingEnabled: true,
+      srcColorFactor: srcColorFactor,
+      dstColorFactor: dstColorFactor,
+      srcAlphaFactor: srcAlphaFactor,
+      dstAlphaFactor: dstAlphaFactor,
+      colorBlendOp: gpu.BlendOperation.add,
+      alphaBlendOp: gpu.BlendOperation.add,
+      windingOrder: windingOrder,
+      cullMode: cullMode,
+    );
+
+    final BaseUniforms newUniforms = material.uniformsFactory(
+      pipelineKey!.vertShader,
+      pipelineKey!.fragShader,
+    );
+
+    if (uniforms != null) {
+      newUniforms.copyFrom(uniforms!);
+    }
+
+    uniforms = newUniforms;
+    pipeLineNeedsRebuild = false;
+  }
 }
