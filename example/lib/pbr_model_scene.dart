@@ -15,14 +15,11 @@ class PbrModelScene extends FskFrameScene {
     clearColor = const Color(0xFF101015);
     useBoxFitLayout = false; // Perspective 3D mode
 
-    // Create our new PBR-specialized node
-    pbrModel = FskPbrModel('helmet', this);
+    // Load the GLTF into our PBR model node in a single line
+    pbrModel = await FskPbrModel.load(
+        'assets/3D/SciFiHelmet/glTF/SciFiHelmet.gltf', this, 'helmet');
 
-    // Load the GLTF into our PBR model node
-    await FskGltfLoader.load('assets/3D/SciFiHelmet/glTF/SciFiHelmet.gltf', this,
-        rootNode: pbrModel);
-
-    // Configure light position once on the node
+    // Configure light position
     pbrModel.lightPosition = Vector3(200, 200, 0);
 
     // Optimized scale for standard orbit distance
