@@ -36,7 +36,7 @@ class LightingUniforms extends BaseUniforms {
 
   @override
   void applyMaterial(GlMaterial material) {
-    kd = Vector3(material.diffuse.r, material.diffuse.g, material.diffuse.b);
+    setValueSilent(_kKdKey, Vector3(material.diffuse.r, material.diffuse.g, material.diffuse.b));
   }
 
   @override

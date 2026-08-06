@@ -4,9 +4,7 @@ import 'package:vector_math/vector_math.dart' hide Colors;
 
 // Loads a simple OBJ model and puts it in an orbit view
 class ObjModelScene extends FskFrameScene {
-  ObjModelScene({super.navigationDelegate}) {
-    init();
-  }
+  ObjModelScene({super.navigationDelegate});
 
   Future<FskTextureInfo?> loadTexture() async {
     try {
@@ -21,13 +19,19 @@ class ObjModelScene extends FskFrameScene {
     }
   }
 
-  void init() async {
+  @override
+  Future<void> init() async {
+    if (initStarted) return;
+    await super.init();
     try {
+      logInfo("ObjModelScene.init: Starting...");
       useBoxFitLayout = false;
       clearColor = Colors.blueGrey;
 
       // Load the teapot model using the new load method
+      logInfo("ObjModelScene.init: loading texture...");
       FskTextureInfo? teapotTexture = await loadTexture();
+      logInfo("ObjModelScene.init: loading teapot model...");
       FskGroup teapotModel = await WavefrontObjModel.load(
         'assets/3D/Teapot/teapot_textures_normals.obj',
         this,
@@ -42,7 +46,7 @@ class ObjModelScene extends FskFrameScene {
         final mesh = teapotModel.findNode<FskIndexedMesh>('teapot_correction.teapot');
         if (mesh != null) {
           final LightingUniforms uniforms = LightingUniforms();
-          mesh.renderer.uniforms = uniforms;
+          mesh.uniforms = uniforms;
 
           uniforms.lightPos = Vector3(500, 500, 500);
 
@@ -54,6 +58,7 @@ class ObjModelScene extends FskFrameScene {
         // Add the teapot root to the scene graph
         addNode(teapotModel);
       }
+      logInfo("ObjModelScene.init: Done.");
       isReady = true;
     } catch (e, s) {
       logError("Error in ObjModelScene.init: $e\n$s");

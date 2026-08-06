@@ -56,16 +56,16 @@ abstract class FskMeshRendererBase extends FskRendererBase {
       cullMode: gpu.CullMode.none, // DEBUG: Disable culling
     );
 
-    final oldUniforms = uniforms;
-    uniforms = material.uniformsFactory(
+    final BaseUniforms newUniforms = material.uniformsFactory(
       pipelineKey!.vertShader,
       pipelineKey!.fragShader,
     );
-    
-    if (oldUniforms != null) {
-      uniforms!.copyFrom(oldUniforms);
+
+    if (uniforms != null) {
+      newUniforms.copyFrom(uniforms!);
     }
     
+    uniforms = newUniforms;
     layout = material.layout;
     pipeLineNeedsRebuild = false;
   }
@@ -87,9 +87,19 @@ abstract class FskMeshRendererBase extends FskRendererBase {
 
     rebuildPipeline();
 
+    if (pipelineKey == null) {
+      logError("FskMeshRendererBase.draw: pipelineKey is NULL");
+      return;
+    }
+
     FSK().activatePipeline(pipelineKey!, renderPass, layout);
 
     vbo.bind(renderPass);
+
+    if (uniforms == null) {
+      logError("FskMeshRendererBase.draw: uniforms is NULL");
+      return;
+    }
 
     uniforms!.onUpdate(viewportSize);
 
@@ -102,8 +112,8 @@ abstract class FskMeshRendererBase extends FskRendererBase {
         uniforms!.samplerOptions = textureInfo!.samplerOptions;
       }
 
-      uniforms!.mvMatrix = mvMatrix.clone();
-      uniforms!.pMatrix = pMatrix.clone();
+      uniforms!.mvMatrix = mvMatrix;
+      uniforms!.pMatrix = pMatrix;
 
       if (subMesh.material != null) {
         uniforms!.applyMaterial(subMesh.material!);

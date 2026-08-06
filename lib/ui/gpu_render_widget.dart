@@ -5,14 +5,20 @@ import 'package:fsk/fsk.dart';
 class GPURenderWidget extends StatefulWidget {
   final FskScene scene;
   final bool useAntiAliasing;
+  final bool isAnimating;
 
-  const GPURenderWidget({required this.scene, super.key,this.useAntiAliasing=false});
+  const GPURenderWidget({
+    required this.scene, 
+    super.key, 
+    this.useAntiAliasing = false,
+    this.isAnimating = true,
+  });
 
   @override
   State<GPURenderWidget> createState() => _GPURenderWidgetState();
 }
 
-class _GPURenderWidgetState extends State<GPURenderWidget> with SingleTickerProviderStateMixin {
+class _GPURenderWidgetState extends State<GPURenderWidget> with SingleTickerProviderStateMixin, LoggableClass {
   late AnimationController _animationController;
   late Listenable _repaintListenable;
 
@@ -20,6 +26,7 @@ class _GPURenderWidgetState extends State<GPURenderWidget> with SingleTickerProv
   FskScene? _lastScene;
   FskRenderTarget? _fskTarget;
   Color? _lastClearColor;
+  bool _isProcessingFrame = false;
 
   @override
   void initState() {
@@ -27,7 +34,11 @@ class _GPURenderWidgetState extends State<GPURenderWidget> with SingleTickerProv
     _animationController = AnimationController(
       vsync: this,
       duration: const Duration(seconds: 4),
-    )..repeat();
+    );
+    
+    if (widget.isAnimating) {
+      _animationController.repeat();
+    }
 
     _repaintListenable = Listenable.merge([_animationController, widget.scene]);
   }
@@ -35,7 +46,12 @@ class _GPURenderWidgetState extends State<GPURenderWidget> with SingleTickerProv
   @override
   void didUpdateWidget(covariant GPURenderWidget oldWidget) {
     super.didUpdateWidget(oldWidget);
-    if (oldWidget.scene != widget.scene) {
+    if (oldWidget.scene != widget.scene || oldWidget.isAnimating != widget.isAnimating) {
+      if (widget.isAnimating) {
+        _animationController.repeat();
+      } else {
+        _animationController.stop();
+      }
       _repaintListenable = Listenable.merge([_animationController, widget.scene]);
     }
   }
@@ -48,40 +64,50 @@ class _GPURenderWidgetState extends State<GPURenderWidget> with SingleTickerProv
 
   void _processGpuFrame(Size logicalSize, double pixelRatio) {
     if (!widget.scene.isReady) return;
+    if (_isProcessingFrame) return;
 
-    final int physicalWidth = (logicalSize.width * pixelRatio).round();
-    final int physicalHeight = (logicalSize.height * pixelRatio).round();
+    _isProcessingFrame = true;
+    try {
+      final int physicalWidth = (logicalSize.width * pixelRatio).round();
+      final int physicalHeight = (logicalSize.height * pixelRatio).round();
 
-    // Reallocate container explicitly if size transforms, scene instances, or clear colors change
-    if (_lastSize != logicalSize || _lastScene != widget.scene || _lastClearColor != widget.scene.clearColor) {
-      _lastSize = logicalSize;
-      _lastScene = widget.scene;
-      _lastClearColor = widget.scene.clearColor;
+      if (physicalWidth <= 0 || physicalHeight <= 0) return;
 
-      // Update dimensions
-      widget.scene.updateRenderTargetSize(physicalWidth, physicalHeight);
-      widget.scene.viewportSize = Size(physicalWidth.toDouble(), physicalHeight.toDouble());
+      // Reallocate container explicitly if size transforms, scene instances, or clear colors change
+      if (_lastSize != logicalSize || _lastScene != widget.scene || _lastClearColor != widget.scene.clearColor) {
+        _lastSize = logicalSize;
+        _lastScene = widget.scene;
+        _lastClearColor = widget.scene.clearColor;
 
-      // Instantiate the container wrapper cleanly
-      _fskTarget = FskRenderTarget(
-        width: physicalWidth,
-        height: physicalHeight,
-        enableMsaa: widget.useAntiAliasing,
-        clearColor: widget.scene.clearColor,
-      );
-      widget.scene.texture = _fskTarget!.outputTexture;
+        // Update dimensions
+        widget.scene.updateRenderTargetSize(physicalWidth, physicalHeight);
+        widget.scene.viewportSize = Size(physicalWidth.toDouble(), physicalHeight.toDouble());
+
+        // Instantiate the container wrapper cleanly
+        _fskTarget = FskRenderTarget(
+          width: physicalWidth,
+          height: physicalHeight,
+          enableMsaa: widget.useAntiAliasing,
+          clearColor: widget.scene.clearColor,
+        );
+        widget.scene.texture = _fskTarget!.outputTexture;
+      }
+
+      widget.scene.rebuildGeometry();
+
+      final commandBuffer = gpu.gpuContext.createCommandBuffer();
+      final gpu.HostBuffer frameTransients = gpu.gpuContext.createHostBuffer();
+
+      // Inform your pipeline states of your chosen sample layout rules
+      widget.scene.drawScene(commandBuffer, _fskTarget!, frameTransients);
+
+      commandBuffer.submit();
+      widget.scene.clearRetainedBuffers();
+    } catch (e, s) {
+      logError("Exception in GPURenderWidget _processGpuFrame: $e\n$s");
+    } finally {
+      _isProcessingFrame = false;
     }
-
-    widget.scene.rebuildGeometry();
-
-    final commandBuffer = gpu.gpuContext.createCommandBuffer();
-    final gpu.HostBuffer frameTransients = gpu.gpuContext.createHostBuffer();
-
-    // Inform your pipeline states of your chosen sample layout rules
-    widget.scene.drawScene(commandBuffer, _fskTarget!, frameTransients);
-
-    commandBuffer.submit();
-    widget.scene.clearRetainedBuffers();
   }
 
   @override
@@ -95,11 +121,16 @@ class _GPURenderWidgetState extends State<GPURenderWidget> with SingleTickerProv
         return AnimatedBuilder(
           animation: _repaintListenable,
           builder: (context, child) {
-            _processGpuFrame(logicalSize, pixelRatio);
+            try {
+              _processGpuFrame(logicalSize, pixelRatio);
+            } catch (e, s) {
+              logError("Exception in GPURenderWidget builder: $e\n$s");
+            }
 
             return CustomPaint(
               size: logicalSize,
               painter: FskScenePainter(
+                scene: widget.scene,
                 // Safely blit the completed output texture reference
                 texture: _fskTarget?.outputTexture,
                 pixelRatio: pixelRatio,
@@ -113,12 +144,14 @@ class _GPURenderWidgetState extends State<GPURenderWidget> with SingleTickerProv
   }
 }
 
-class FskScenePainter extends CustomPainter {
+class FskScenePainter extends CustomPainter with LoggableClass {
+  final FskScene scene;
   final gpu.Texture? texture;
   final double pixelRatio;
   final Listenable repaintTrigger;
 
   FskScenePainter({
+    required this.scene,
     required this.texture,
     required this.pixelRatio,
     required this.repaintTrigger,
@@ -126,25 +159,37 @@ class FskScenePainter extends CustomPainter {
 
   @override
   void paint(Canvas canvas, Size size) {
-    // Don't paint if there's no surface top paint
+    // Don't paint if there's no surface to paint
     if (texture == null) {
       return;
     }
 
-    final uiImage = texture!.asImage();
+    try {
+      final uiImage = texture!.asImage();
 
-    // Scale from physical dimensions back to match logical coordinates
-    canvas.save();
-    canvas.scale(1.0 / pixelRatio);
+      // Scale from physical dimensions back to match logical coordinates
+      canvas.save();
+      canvas.scale(1.0 / pixelRatio);
 
-    canvas.drawImage(uiImage, Offset.zero, Paint());
-    canvas.restore();
+      canvas.drawImage(uiImage, Offset.zero, Paint());
+      canvas.restore();
+      
+    // Test hook: Capture a handle for the test harness if requested
+    if (scene.captureRequested) {
+      scene.onFrameCaptured(uiImage);
+    } else {
+      // Normal frame: explicitly dispose to prevent GPU leaks
+      uiImage.dispose();
+    }
+    } catch (e, s) {
+      logError("Exception in FskScenePainter.paint: $e\n$s");
+    }
   }
 
   @override
   bool shouldRepaint(covariant FskScenePainter oldDelegate) {
-    return oldDelegate.texture != texture || oldDelegate.repaintTrigger != repaintTrigger;
+    return oldDelegate.texture != texture || 
+           oldDelegate.repaintTrigger != repaintTrigger ||
+           scene.captureRequested;
   }
 }
-
-

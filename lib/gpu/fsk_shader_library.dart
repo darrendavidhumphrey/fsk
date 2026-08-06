@@ -4,9 +4,11 @@ import 'package:fsk/fsk.dart';
 class FskShaderLibrary with LoggableClass {
   // Store all of your loaded individual shader libraries
   final List<gpu.ShaderLibrary> _libraries = [];
+  final Set<String> _registeredPaths = {};
 
   /// Register and initialize an isolated shader bundle file
   Future<void> registerBundle(String assetPath) async {
+    if (_registeredPaths.contains(assetPath)) return;
     try {
       // Uses the .then() callback chain to wait for the Future asset to load
       await gpu.ShaderLibrary.fromAsset(assetPath).then((library) {
@@ -24,6 +26,7 @@ class FskShaderLibrary with LoggableClass {
   void _registerShaderLibrary(gpu.ShaderLibrary? library,String assetPath) {
     if (library != null) {
       _libraries.add(library);
+      _registeredPaths.add(assetPath);
       logVerbose('Successfully added shader bundle to registry: $assetPath');
     } else {
       logWarning('Warning: Shader library resolved to null for path: $assetPath');
@@ -31,6 +34,7 @@ class FskShaderLibrary with LoggableClass {
   }
 
   Future<void> registerBuiltInShaderLibrary(String assetPath) async {
+    if (_registeredPaths.contains(assetPath)) return;
     var library = await gpu.ShaderLibrary.fromAsset(assetPath);
     _registerShaderLibrary(library,assetPath);
   }

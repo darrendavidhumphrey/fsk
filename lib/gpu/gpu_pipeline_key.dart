@@ -43,8 +43,14 @@ class PipelineKey with LoggableClass {
   }) {
     var v = FSK().shaderLibrary[vertShaderName];
     var f = FSK().shaderLibrary[fragShaderName];
-    vertShader = v!;
-    fragShader = f!;
+    
+    if (v == null || f == null) {
+      final missing = v == null ? vertShaderName : fragShaderName;
+      throw StateError("PipelineKey: Shader '$missing' not found in library.");
+    }
+    
+    vertShader = v;
+    fragShader = f;
 
     // PRE-CREATE AN ABSOLUTE STRING IDENTITY SIGNATURE
     uniqueStringKey = [
@@ -230,38 +236,16 @@ const gpu.VertexLayout v3t2n3Layout = gpu.VertexLayout(
   ],
 );
 
-const gpu.VertexLayout v3n3c4Layout = gpu.VertexLayout(
-  buffers: [
-    gpu.VertexBuffer(
-      strideInBytes: 48,
-      stepMode: gpu.VertexStepMode.vertex,
-      attributes: [
-        gpu.VertexAttribute(
-          name: 'aVertexPosition',
-          format: gpu.VertexFormat.float32x3,
-          offsetInBytes: 0,
-        ),
-        gpu.VertexAttribute(
-          name: 'aVertexNormal',
-          format: gpu.VertexFormat.float32x3,
-          offsetInBytes: 20,
-        ),
-        gpu.VertexAttribute(
-          name: 'aVertexColor',
-          format: gpu.VertexFormat.float32x4,
-          offsetInBytes: 32,
-        ),
-      ],
-    ),
-  ],
-);
-
 
 class PipelineCache with LoggableClass {
   // Map against the stable compiled String key profile
   final Map<String, gpu.RenderPipeline> _cache = {};
 
   PipelineCache();
+
+  void clear() {
+    _cache.clear();
+  }
 
   gpu.RenderPipeline activate(
       PipelineKey key,

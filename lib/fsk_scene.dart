@@ -1,3 +1,5 @@
+import 'dart:async';
+import 'dart:ui' as ui;
 import 'package:flutter/material.dart' hide Matrix4;
 import 'package:flutter_gpu/gpu.dart' as gpu;
 import 'package:fsk/fsk.dart';
@@ -15,6 +17,23 @@ abstract class FskScene extends ChangeNotifier with LoggableClass {
 
   FskSceneNavigationDelegate? navigationDelegate;
 
+  /// Internal test hook for visual captures
+  bool captureRequested = false;
+  
+  Completer<ui.Image>? _captureCompleter;
+
+  Future<ui.Image> captureFrameInternal() {
+    _captureCompleter = Completer<ui.Image>();
+    captureRequested = true;
+    notifyListeners();
+    return _captureCompleter!.future;
+  }
+
+  void onFrameCaptured(ui.Image image) {
+    _captureCompleter?.complete(image);
+    _captureCompleter = null;
+    captureRequested = false;
+  }
 
   gpu.Texture? _texture;
   // ignore: unnecessary_getters_setters
@@ -30,6 +49,17 @@ abstract class FskScene extends ChangeNotifier with LoggableClass {
 
   FskScene({this.navigationDelegate}) {
     navigationDelegate?.setScene(this);
+  }
+
+  bool _initStarted = false;
+  bool get initStarted => _initStarted;
+
+  /// Override this to perform asynchronous initialization (loading assets, etc.)
+  @mustCallSuper
+  Future<void> init() async {
+    if (_initStarted) return;
+    _initStarted = true;
+    isReady = true;
   }
 
   void setNeedsUpdate() {
@@ -63,6 +93,12 @@ abstract class FskScene extends ChangeNotifier with LoggableClass {
   @mustCallSuper
   void drawScene(gpu.CommandBuffer commandBuffer, FskRenderTarget renderTarget, gpu.HostBuffer transients) {
     _frameCount++;
+  }
+
+  @override
+  void dispose() {
+    navigationDelegate = null;
+    super.dispose();
   }
 
   void rebuildGeometry() {}

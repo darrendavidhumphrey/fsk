@@ -8,19 +8,36 @@ class CADCanvasScene extends FskFrameScene {
 
   late FskQuad _gridQuad;
   CADCanvasScene({super.navigationDelegate}) {
-    init();
+    frameSize = const Size(_gridSize, _gridSize);
   }
 
-  void init() async {
-    clearColor = Colors.white;
-    useBoxFitLayout = false;
+  @override
+  Future<void> init() async {
+    if (initStarted) return;
+    await super.init();
+    try {
+      logInfo("CADCanvasScene.init: Starting...");
+      clearColor = Colors.white;
+      useBoxFitLayout = false;
 
-    makeCanvas();
-    makeHandlebars();
-    makeOutline();
-    await loadAxis();
+      logInfo("CADCanvasScene.init: making canvas...");
+      makeCanvas();
+      
+      logInfo("CADCanvasScene.init: making handlebars...");
+      makeHandlebars();
+      
+      logInfo("CADCanvasScene.init: making outline (SKIPPED)...");
+       makeOutline();
+      
+      logInfo("CADCanvasScene.init: loading axis (SKIPPED)...");
+      await loadAxis();
 
-    isReady = true;
+      logInfo("CADCanvasScene.init: Setting isReady = true");
+      isReady = true;
+    } catch (e, s) {
+      logError("CRITICAL Error in CADCanvasScene.init: $e\n$s");
+      isReady = true;
+    }
   }
 
   void makeCanvas() {
@@ -52,6 +69,7 @@ class CADCanvasScene extends FskFrameScene {
   }
 
   void makeHandlebars() {
+    logInfo("CADCanvasScene.makeHandlebars: Starting...");
     List<Vector3> handles = [
       Vector3(50, 50, 0),
       Vector3(150, 50, 0),
@@ -61,11 +79,13 @@ class CADCanvasScene extends FskFrameScene {
     final handlebarSize = const Size.square(10);
     FskGroup group = FskGroup("handles", this);
     for (int i=0; i < handles.length; i++) {
+      logInfo("  Creating handle $i...");
       var q = FskQuad.atPoint("handle_$i", handles[i],handlebarSize, this, textureId: FSK().textureManager.solidTextureId, modulateColor: Colors.black);
       q.setDepthState(depthTestEnabled: false, depthWriteEnabled: false);
       group.addNode(q);
     }
     addNode(group);
+    logInfo("CADCanvasScene.makeHandlebars: Done.");
   }
 
   void makeOutline() {
@@ -78,7 +98,6 @@ class CADCanvasScene extends FskFrameScene {
   }
 
   Future<void> loadAxis() async {
-    Color defaultGrey = Colors.grey[200]!;
     Color defaultSpecular = Colors.black;
     const double defaultShininess = 5;
     FSK().materials.addMaterial(
@@ -96,16 +115,19 @@ class CADCanvasScene extends FskFrameScene {
       GlMaterial(Colors.blue, Colors.blue, defaultSpecular, defaultShininess),
     );
 
+    logInfo("CADCanvasScene.loadAxis: Starting model load...");
     FskGroup axisModel = await WavefrontObjModel.load(
       'assets/3D/Axis/xyzaxis.obj',
       this,
       'axis',
     );
+    logInfo("CADCanvasScene.loadAxis: Model loaded successfully.");
 
     final mesh = axisModel.findNode<FskIndexedMesh>('axis_correction.axis');
     if (mesh != null) {
+      logInfo("CADCanvasScene.loadAxis: Configuring axis uniforms...");
       final LightingUniforms uniforms = LightingUniforms();
-      mesh.renderer.uniforms = uniforms;
+      mesh.uniforms = uniforms;
       uniforms.lightPos = Vector3(500, 500, 500);
 
       var textureInfo = FSK().textureManager.solidTextureInfo;

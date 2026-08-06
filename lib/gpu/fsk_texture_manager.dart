@@ -67,9 +67,16 @@ class FskTextureManager with LoggableClass {
     _addTextureInfo(textureInfo);
   }
 
-  FskTextureManager() {
-    _makeTransparentTexture();
-    _makeSolidTexture();
+  FskTextureManager();
+
+  Future<void> init() async {
+    if (_transparentTexture == null) {
+      _makeTransparentTexture();
+    }
+
+    if(_solidTexture == null) {
+      _makeSolidTexture();
+    }
   }
 
   void dump() {
@@ -81,11 +88,9 @@ class FskTextureManager with LoggableClass {
   /// Clears all loaded textures from the manager.
   void clear() {
     _textures.clear();
+    _transparentTexture = null;
+    _solidTexture = null;
     logInfo("TextureManager cleared.");
-
-    // Re-add built-in primitive textures
-    _makeTransparentTexture();
-    _makeSolidTexture();
   }
 
   void _addTextureInfo(FskTextureInfo textureInfo) {

@@ -17,7 +17,7 @@ class FlatUniforms extends BaseUniforms {
 
   @override
   void applyMaterial(GlMaterial material) {
-    modulateColor = material.diffuse;
+    setValueSilent(_kModulateColor, material.diffuse);
   }
 
   @override

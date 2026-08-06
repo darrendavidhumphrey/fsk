@@ -52,8 +52,8 @@ class FskPbrModel extends FskGroup {
       final uniforms = renderer.uniforms!;
       uniforms.onUpdate(viewportSize);
 
-      uniforms.mvMatrix = currentMv;
-      uniforms.pMatrix = proj;
+      uniforms.mvMatrix = currentMv.clone();
+      uniforms.pMatrix = proj.clone();
 
       // Update light position for PBR materials
       if (uniforms is PbrUniforms) {
@@ -61,12 +61,25 @@ class FskPbrModel extends FskGroup {
         uniforms.setValueSilent(PbrUniforms.kDebugModeKey, 0.0); // Full PBR
       }
 
-      uniforms.bind(renderPass, transients);
-
       FSK().activatePipeline(renderer.pipelineKey!, renderPass, renderer.layout);
+
       renderer.vbo.bind(renderPass);
-      renderer.ibo.bind(renderPass);
-      renderer.ibo.drawTrianglesIndexed(renderPass);
+
+      for (var subMesh in renderer.subMeshes) {
+        if (subMesh.textureInfo != null) {
+          uniforms.texture = subMesh.textureInfo!.texture;
+          uniforms.samplerOptions = subMesh.textureInfo!.samplerOptions;
+        }
+
+        if (subMesh.material != null) {
+          uniforms.applyMaterial(subMesh.material!);
+        }
+
+        uniforms.bind(renderPass, transients);
+
+        renderer.ibo.bind(renderPass, offsetInIndices: subMesh.firstIndex);
+        renderer.ibo.drawTrianglesIndexed(renderPass, count: subMesh.indexCount);
+      }
     }
 
     if (node is FskGroup) {

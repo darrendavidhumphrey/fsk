@@ -63,6 +63,18 @@ abstract class FskRenderableObject extends FskSceneObject {
   FskRendererBase get renderer => _renderer!;
 
   BaseUniforms? get uniforms => _renderer?.uniforms;
+  set uniforms(BaseUniforms? value) {
+    if (_renderer == null) return;
+    if (_renderer!.uniforms == value) return;
+    _renderer!.uniforms?.removeListener(_onRendererChanged);
+    _renderer!.uniforms = value;
+    _renderer!.uniforms?.addListener(_onRendererChanged);
+    
+    // Only trigger a rebuild if we're not currently in the middle of a draw/rebuild cycle
+    if (!needsRebuild) {
+      parentScene.setNeedsUpdate();
+    }
+  }
 
   void draw(gpu.RenderPass renderPass,gpu.HostBuffer transients, Matrix4 pMatrix, Matrix4 mvMatrix, Size viewportSize) {
     if (!visible) return;
@@ -76,20 +88,23 @@ abstract class FskRenderableObject extends FskSceneObject {
   }
 
   void setRenderer(FskRendererBase newRenderer) {
+    _renderer?.removeListener(_onRendererChanged);
+    _renderer?.uniforms?.removeListener(_onRendererChanged);
     _renderer = newRenderer;
-    _renderer?.uniforms?.addListener(_onUniformsChanged);
+    _renderer?.addListener(_onRendererChanged);
+    _renderer?.uniforms?.addListener(_onRendererChanged);
   }
 
-  void _onUniformsChanged() {
+  void _onRendererChanged() {
     parentScene.setNeedsUpdate();
   }
 
   set shaderMaterial(FskShaderMaterial value) {
     if (_renderer == null) return;
-    _renderer!.uniforms?.removeListener(_onUniformsChanged);
+    _renderer!.uniforms?.removeListener(_onRendererChanged);
     _renderer!.shaderMaterial = value;
     _renderer!.rebuildPipeline();
-    _renderer!.uniforms?.addListener(_onUniformsChanged);
+    _renderer!.uniforms?.addListener(_onRendererChanged);
     parentScene.setNeedsUpdate();
   }
 }

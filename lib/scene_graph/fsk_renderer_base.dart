@@ -1,3 +1,4 @@
+import 'package:flutter/foundation.dart';
 import 'dart:ui';
 import 'package:flutter_gpu/gpu.dart' as gpu;
 import 'package:vector_math/vector_math.dart';
@@ -6,14 +7,23 @@ import '../gpu/fsk_texture_manager.dart';
 import '../shaders/base_uniforms.dart';
 import 'fsk_depth_state.dart';
 
-abstract class FskRendererBase {
+import '../logging.dart';
+
+abstract class FskRendererBase extends ChangeNotifier with LoggableClass {
   FskRendererBase();
 
   /// Optional custom material configuration
   FskShaderMaterial? shaderMaterial;
 
   /// The active uniform block for this renderer
-  BaseUniforms? uniforms;
+  BaseUniforms? _uniforms;
+  BaseUniforms? get uniforms => _uniforms;
+  set uniforms(BaseUniforms? value) {
+    if (_uniforms == value) return;
+    _uniforms = value;
+    pipeLineNeedsRebuild = true;
+    notifyListeners(); // Renderer is now a ChangeNotifier
+  }
 
   // Pointer to the texture in the texture manager
   FskTextureInfo? textureInfo;

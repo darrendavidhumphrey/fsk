@@ -59,13 +59,20 @@ class TestAppState extends State<TestApp> {
     super.initState();
     _setTitleText();
 
-    FSK().init().then((_) {
+    FSK().init().then((_) async {
       makeExamples();
 
-      setState(() {
-        _pageIndex = 0;
-        _setTitleText();
-      });
+      // Ensure all scenes are initialized
+      for (var scene in scenes) {
+        await scene.init();
+      }
+
+      if (mounted) {
+        setState(() {
+          _pageIndex = 0;
+          _setTitleText();
+        });
+      }
     });
   }
 

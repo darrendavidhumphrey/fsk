@@ -47,12 +47,6 @@ class FskMesh extends FskRenderableObject with FskTransformableMixin, FskDepthSt
       print('  Vertices: NULL');
     } else {
       print('  Vertices: ${vertices!.length} floats (${vertices!.length ~/ 12} vertices)');
-      for (int i = 0; i < vertices!.length; i += 12) {
-        final x = vertices![i];
-        final y = vertices![i + 1];
-        final z = vertices![i + 2];
-        print('    V${i ~/ 12}: ($x, $y, $z)');
-      }
     }
 
     print('  SubMeshes: ${_renderer.subMeshes.length}');

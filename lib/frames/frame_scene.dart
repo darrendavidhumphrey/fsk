@@ -10,6 +10,7 @@ class FskFrameScene extends FskScene {
   Size frameSize = Size.zero;
 
   bool useBoxFitLayout = true;
+  String? _pendingSkinPath;
 
   FskFrameScene({super.navigationDelegate}) {
     isReady = false;
@@ -17,7 +18,19 @@ class FskFrameScene extends FskScene {
 
   FskFrameScene.fromSkinFile(String skinPath, {super.navigationDelegate}) {
     isReady = false;
-    loadSkin(skinPath);
+    _pendingSkinPath = skinPath;
+  }
+
+  @override
+  Future<void> init() async {
+    if (initStarted) return;
+    await super.init();
+    if (_pendingSkinPath != null) {
+      await loadSkin(_pendingSkinPath!);
+      _pendingSkinPath = null;
+    } else {
+      isReady = true;
+    }
   }
 
   void addNode(FskSceneObject node) {
@@ -44,55 +57,58 @@ class FskFrameScene extends FskScene {
   void drawScene(gpu.CommandBuffer commandBuffer, FskRenderTarget renderTarget, gpu.HostBuffer transients) {
     if (!isReady) return;
 
-    super.drawScene(commandBuffer, renderTarget, transients);
+    try {
+      super.drawScene(commandBuffer, renderTarget, transients);
 
-    Matrix4 layoutMatrix = Matrix4.identity();
-    if (useBoxFitLayout) {
-      Matrix4? boxFitMatrix = navigationDelegate?.createBoxFitMatrix(frameSize);
+      Matrix4 layoutMatrix = Matrix4.identity();
+      if (useBoxFitLayout) {
+        Matrix4? boxFitMatrix = navigationDelegate?.createBoxFitMatrix(frameSize);
 
-      if (boxFitMatrix != null) {
-        layoutMatrix = boxFitMatrix * layoutMatrix;
-      }
+        if (boxFitMatrix != null) {
+          layoutMatrix = boxFitMatrix * layoutMatrix;
+        }
 
-      // Center object in view by translating content origin to its center
-      layoutMatrix.translateByVector3(
-        Vector3(
-          -frameSize.width / 2,
-          -frameSize.height / 2,
-          0,
-        ),
-      );
-    }
-
-    final Matrix4 finalMvMatrix = layoutMatrix * mvMatrix;
-
-    bool hasCleared = false;
-
-    for (var node in rootNodes) {
-      if (node is FskRenderableObject && node.visible) {
-
-        // Force hardware state reset between top-level nodes by creating a new RenderPass.
-        // The first visible node clears the buffer; subsequent nodes load it.
-        final renderPass = commandBuffer.createRenderPass(
-          hasCleared ? renderTarget.loadTarget : renderTarget.renderTarget,
-        );
-        hasCleared = true;
-
-        super.setupScissor(renderPass);
-
-        node.draw(
-          renderPass,
-          transients,
-          pMatrix,
-          finalMvMatrix,
-          viewportSize,
+        // Center object in view by translating content origin to its center
+        layoutMatrix.translateByVector3(
+          Vector3(
+            -frameSize.width / 2,
+            -frameSize.height / 2,
+            0,
+          ),
         );
       }
-    }
 
-    // Ensure the buffer is cleared at least once, even if no nodes were visible.
-    if (!hasCleared) {
-      commandBuffer.createRenderPass(renderTarget.renderTarget);
+      final Matrix4 finalMvMatrix = layoutMatrix * mvMatrix;
+
+      bool hasCleared = false;
+
+      for (var node in rootNodes) {
+        if (node is FskRenderableObject && node.visible) {
+          // Force hardware state reset between top-level nodes by creating a new RenderPass.
+          // The first visible node clears the buffer; subsequent nodes load it.
+          final renderPass = commandBuffer.createRenderPass(
+            hasCleared ? renderTarget.loadTarget : renderTarget.renderTarget,
+          );
+          hasCleared = true;
+
+          super.setupScissor(renderPass);
+
+          node.draw(
+            renderPass,
+            transients,
+            pMatrix,
+            finalMvMatrix,
+            viewportSize,
+          );
+        }
+      }
+
+      // Ensure the buffer is cleared at least once, even if no nodes were visible.
+      if (!hasCleared) {
+        commandBuffer.createRenderPass(renderTarget.renderTarget);
+      }
+    } catch (e, s) {
+      logError("CRITICAL Error in FskFrameScene.drawScene: $e\n$s");
     }
   }
 
@@ -101,6 +117,12 @@ class FskFrameScene extends FskScene {
     for (var node in rootNodes) {
       node.rebuildGeometry();
     }
+  }
+
+  @override
+  void dispose() {
+    clearNodes();
+    super.dispose();
   }
 
   T? findNode<T>(String id) {

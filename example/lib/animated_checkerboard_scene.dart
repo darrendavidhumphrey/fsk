@@ -26,7 +26,12 @@ double getCyclingScale({
 class AnimatedCheckerBoardScene extends FskFrameScene {
   FskQuad? checkerQuad;
 
-  AnimatedCheckerBoardScene({super.navigationDelegate}) {
+  AnimatedCheckerBoardScene({super.navigationDelegate});
+
+  @override
+  Future<void> init() async {
+    if (initStarted) return;
+    await super.init();
     clearColor = Colors.white;
     checkerQuad = FskQuad.centered(
       'checker',

@@ -48,6 +48,10 @@ abstract class BaseUniforms extends ChangeNotifier with LoggableClass {
     samplerOptions = other.samplerOptions;
     additionalTextures.clear();
     additionalTextures.addAll(other.additionalTextures);
+
+    // Matrix state is part of the "reusable vertex block" and must be preserved
+    mvMatrixLocal.setFrom(other.mvMatrixLocal);
+    pMatrixLocal.setFrom(other.pMatrixLocal);
   }
 
   /// Called automatically before binding to allow the uniforms to react to scene changes

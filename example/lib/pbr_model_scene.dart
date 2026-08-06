@@ -5,11 +5,13 @@ import 'package:vector_math/vector_math.dart' hide Colors;
 class PbrModelScene extends FskFrameScene {
   late FskPbrModel pbrModel;
 
-  PbrModelScene({super.navigationDelegate}) {
-    init();
-  }
+  PbrModelScene({super.navigationDelegate});
 
-  void init() async {
+  @override
+  Future<void> init() async {
+    if (initStarted) return;
+    await super.init();
+    logInfo("PbrModelScene.init: Starting...");
     clearColor = const Color(0xFF101015);
     useBoxFitLayout = false; // Perspective 3D mode
 
@@ -21,6 +23,7 @@ class PbrModelScene extends FskFrameScene {
       pbrModel.lightPosition = Vector3(200, 200, 0);
 
       // Load the GLTF into our PBR model node
+      logInfo("PbrModelScene.init: loading GLTF model...");
       await FskGltfLoader.load(
         'assets/3D/SciFiHelmet/glTF/SciFiHelmet.gltf', 
         this, 
@@ -33,9 +36,11 @@ class PbrModelScene extends FskFrameScene {
       
       addNode(pbrModel);
       
+      logInfo("PbrModelScene.init: Done.");
       isReady = true;
     } catch (e, s) {
       logError("Error loading PBR model: $e\n$s");
+      isReady = true;
     }
   }
 }

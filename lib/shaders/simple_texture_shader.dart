@@ -37,7 +37,7 @@ class SimpleTextureUniforms extends BaseUniforms {
 
   @override
   void applyMaterial(GlMaterial material) {
-    setModulateColor(material.diffuse);
+    setValueSilent(_kModulateColorKey, material.diffuse);
   }
 
   @override

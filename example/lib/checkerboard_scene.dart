@@ -3,7 +3,12 @@ import 'package:fsk/fsk.dart';
 import 'package:vector_math/vector_math.dart' hide Colors;
 
 class CheckerBoardScene extends FskFrameScene {
-  CheckerBoardScene({super.navigationDelegate}) {
+  CheckerBoardScene({super.navigationDelegate});
+
+  @override
+  Future<void> init() async {
+    if (initStarted) return;
+    await super.init();
     clearColor = Colors.white;
     frameSize = const Size(500, 500);
 

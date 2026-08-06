@@ -46,10 +46,10 @@ class OneLightUniforms extends BaseUniforms {
 
   @override
   void applyMaterial(GlMaterial material) {
-    materialAmbient = material.ambient;
-    materialDiffuse = material.diffuse;
-    materialSpecular = material.specular;
-    materialShininess = material.shininess;
+    setValueSilent(kMaterialAmbientKey, material.ambient);
+    setValueSilent(kMaterialDiffuseKey, material.diffuse);
+    setValueSilent(kMaterialSpecularKey, material.specular);
+    setValueSilent(kMaterialShininessKey, material.shininess);
   }
 
   @override

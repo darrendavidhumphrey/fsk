@@ -64,7 +64,7 @@ class Mesh {
 /// This class handles parsing the OBJ file content, de-duplicating vertices,
 /// building the vertex and index data, and organizing the model into meshes
 /// based on the materials defined in the file.
-class WavefrontObjModel {
+class WavefrontObjModel with LoggableClass {
   /// The vertex buffer containing the unique, interleaved vertex data for the model.
   Float32List? vertices;
 
@@ -127,8 +127,6 @@ class WavefrontObjModel {
         uniqueVertexMap.putIfAbsent(combo, () => nextAvailableIndex++);
       }
     }
-
-    // --- MAIN PARSING PASS ---
 
     // Allocate the vertex buffer with the final, correct size.
     final totalUniqueVertices = uniqueVertexMap.length;

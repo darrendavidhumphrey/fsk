@@ -5,7 +5,7 @@ import 'package:flutter_gpu/gpu.dart' as gpu;
 import 'package:fsk/fsk.dart';
 import 'fsk_renderer_base.dart';
 
-class FskQuadsRenderer extends FskRendererBase with LoggableClass {
+class FskQuadsRenderer extends FskRendererBase {
   PipelineKey? pipelineKey;
 
   bool _vertsDownloaded = false;
@@ -60,16 +60,16 @@ class FskQuadsRenderer extends FskRendererBase with LoggableClass {
       cullMode: gpu.CullMode.none,
     );
 
-    final oldUniforms = uniforms;
-    uniforms = material.uniformsFactory(
+    final BaseUniforms newUniforms = material.uniformsFactory(
       pipelineKey!.vertShader,
       pipelineKey!.fragShader,
     );
 
-    if (oldUniforms != null) {
-      uniforms!.copyFrom(oldUniforms);
+    if (uniforms != null) {
+      newUniforms.copyFrom(uniforms!);
     }
     
+    uniforms = newUniforms;
     layout = material.layout;
     pipeLineNeedsRebuild = false;
   }
@@ -120,7 +120,7 @@ class FskQuadsRenderer extends FskRendererBase with LoggableClass {
     uniforms!.onUpdate(viewportSize);
 
     if (uniforms is SimpleTextureUniforms) {
-      (uniforms as SimpleTextureUniforms).setModulateColor(_modulateColor);
+      uniforms!.setValueSilent('uModulateColor', _modulateColor);
     }
     
     if (textureInfo != null) {
@@ -128,8 +128,8 @@ class FskQuadsRenderer extends FskRendererBase with LoggableClass {
       uniforms!.samplerOptions = textureInfo!.samplerOptions;
     }
     
-    uniforms!.mvMatrix = mvMatrix.clone();
-    uniforms!.pMatrix = pMatrix.clone();
+    uniforms!.mvMatrix = mvMatrix;
+    uniforms!.pMatrix = pMatrix;
 
     uniforms!.bind(renderPass, transients);
 
