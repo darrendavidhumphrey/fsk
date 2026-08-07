@@ -64,6 +64,33 @@ class FskScene extends FskSceneBase {
     setNeedsUpdate();
   }
 
+  /// Performs a hit test traversal of the scene graph.
+  List<FskHitDetails> hitTest(vm.Ray ray,
+      {FskHitTestMode mode = FskHitTestMode.closest}) {
+    final List<FskHitDetails> results = [];
+
+    for (final node in rootNodes) {
+      final hits = node.hitTest(ray, mode: mode);
+      if (hits.isNotEmpty) {
+        if (mode == FskHitTestMode.first) {
+          return hits;
+        }
+        results.addAll(hits);
+      }
+    }
+
+    if (mode == FskHitTestMode.closest && results.length > 1) {
+      results.sort((a, b) => a.distance.compareTo(b.distance));
+      return [results.first];
+    }
+
+    if (mode == FskHitTestMode.all) {
+      results.sort((a, b) => a.distance.compareTo(b.distance));
+    }
+
+    return results;
+  }
+
   @override
   void drawScene(gpu.CommandBuffer commandBuffer, FskRenderTarget renderTarget,
       gpu.HostBuffer transients) {

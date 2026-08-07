@@ -118,6 +118,33 @@ class FskGroup extends FskRenderableObject with FskTransformableMixin {
   }
 
   @override
+  List<FskHitDetails> doHitTest(Ray ray,
+      {FskHitTestMode mode = FskHitTestMode.closest}) {
+    final List<FskHitDetails> results = [];
+
+    for (final child in children) {
+      final hits = child.hitTest(ray, mode: mode);
+      if (hits.isNotEmpty) {
+        if (mode == FskHitTestMode.first) {
+          return hits;
+        }
+        results.addAll(hits);
+      }
+    }
+
+    if (mode == FskHitTestMode.closest && results.length > 1) {
+      results.sort((a, b) => a.distance.compareTo(b.distance));
+      return [results.first];
+    }
+
+    if (mode == FskHitTestMode.all) {
+      results.sort((a, b) => a.distance.compareTo(b.distance));
+    }
+
+    return results;
+  }
+
+  @override
   void rebuildGeometry() {
     for (var child in children) {
       child.rebuildGeometry();

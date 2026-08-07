@@ -1,6 +1,7 @@
 import 'dart:typed_data';
 import 'package:fsk/fsk.dart';
 import 'package:fsk/scene_graph/fsk_depth_state.dart';
+import 'package:vector_math/vector_math.dart' as vm;
 
 class FskIndexedMesh extends FskRenderableObject with FskTransformableMixin, FskDepthStateMixin {
   final FskTransformable transform = FskTransformable();
@@ -43,5 +44,11 @@ class FskIndexedMesh extends FskRenderableObject with FskTransformableMixin, Fsk
   @override
   void rebuildPipelineIfNeeded() {
     _renderer.rebuildPipeline();
+  }
+
+  @override
+  List<FskHitDetails> doHitTest(vm.Ray ray,
+      {FskHitTestMode mode = FskHitTestMode.closest}) {
+    return MeshHitTester.intersectFskIndexedMesh(this, ray, mode: mode);
   }
 }

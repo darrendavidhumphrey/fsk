@@ -55,7 +55,7 @@ class MeshFactory {
     if (vertices.isNotEmpty) {
       mesh.vertices = vertices;
       mesh.uploadToGpu();
-      mesh.renderer.addFskSubMesh(FskSubMesh(count: vertices.length ~/ 12, offset: 0));
+      mesh.renderer.addFskSubMesh(FskSubMesh(count: vertices.length ~/ FskVertexBuffer.componentCount, offset: 0));
       mesh.renderer.finalizeData();
     }
     return mesh;
@@ -67,7 +67,7 @@ class MeshFactory {
     final mesh = FskMesh(id, scene, shaderMaterial: material);
     final int vertexCount = triangleMesh.triangleCount * 3;
     if (vertexCount > 0) {
-      final vertices = Float32List(vertexCount * 12);
+      final vertices = Float32List(vertexCount * FskVertexBuffer.componentCount);
       final filler = VboFiller(vertices);
       final rawData = triangleMesh.vertexData;
 
@@ -133,7 +133,7 @@ class MeshFactory {
     if (extrudedTriangleCount == 0) return Float32List(0);
 
     int vertexCount = extrudedTriangleCount * 3;
-    final vertices = Float32List(vertexCount * 12);
+    final vertices = Float32List(vertexCount * FskVertexBuffer.componentCount);
     final filler = VboFiller(vertices);
 
     // Add the top faces.
@@ -272,7 +272,7 @@ class MeshFactory {
     final mesh = FskMesh(id, scene, shaderMaterial: material);
     int newVertexCount = triangleCount * 3;
     if (newVertexCount > 0) {
-      final vertices = Float32List(newVertexCount * 12);
+      final vertices = Float32List(newVertexCount * FskVertexBuffer.componentCount);
       final filler = VboFiller(vertices);
       for (var outline in outlines) {
         if (outline.length > 2) {
@@ -299,7 +299,7 @@ class MeshFactory {
     }
 
     int newVertexCount = triangleCount * 3;
-    final vertices = Float32List(newVertexCount * 12);
+    final vertices = Float32List(newVertexCount * FskVertexBuffer.componentCount);
 
     if (newVertexCount > 0) {
       final filler = VboFiller(vertices);

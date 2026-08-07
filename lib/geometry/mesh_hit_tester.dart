@@ -1,124 +1,213 @@
-import 'triangle_mesh.dart';
+import 'dart:typed_data';
+import 'package:fsk/fsk.dart';
 import 'package:vector_math/vector_math.dart';
 
-/// A data class containing detailed information about a ray-mesh intersection.
-class TriangleMeshHitDetails {
-  /// The mesh that was hit.
-  final TriangleMesh mesh;
+import 'triangle_mesh.dart';
 
-  /// The exact point of intersection in 3D space.
+/// Modes for controlling hit test traversal and results.
+enum FskHitTestMode {
+  /// Stop at the first valid hit found.
+  first,
+
+  /// Search all objects and return only the single closest hit.
+  closest,
+
+  /// Return all hits found, sorted by distance (closest first).
+  all,
+}
+
+/// A data class containing detailed information about a hit test intersection.
+class FskHitDetails {
+  /// The object that was hit.
+  final FskSceneObject hitObject;
+
+  /// The exact point of intersection in world space.
   final Vector3 hitPoint;
-
-  /// The index of the triangle within the mesh that was hit.
-  final int triangleIndex;
 
   /// The distance from the ray's origin to the hit point.
   final double distance;
 
-  /// The surface normal of the triangle that was hit.
-  /// This is calculated on creation from the hit mesh and triangle index.
-  late final Vector3 normal;
+  /// The surface normal at the hit point.
+  final Vector3 normal;
 
-  /// Creates an object holding the details of a ray-mesh intersection.
-  TriangleMeshHitDetails(
-      this.mesh, this.hitPoint, this.triangleIndex, this.distance) {
-    normal = mesh.getNormal(triangleIndex);
-  }
+  /// Additional data appropriate to the object that was hit (e.g. triangle index).
+  final dynamic hitData;
+
+  FskHitDetails({
+    required this.hitObject,
+    required this.hitPoint,
+    required this.distance,
+    required this.normal,
+    this.hitData,
+  });
 }
 
-/// A utility class that provides static methods for ray-casting against a [TriangleMesh].
+/// A utility class that provides static methods for ray-casting against meshes.
 class MeshHitTester {
   /// Private constructor to prevent instantiation of this utility class.
   MeshHitTester._();
 
-  /// Performs a ray-mesh intersection test.
-  ///
-  /// Returns [TriangleMeshHitDetails] if an intersection occurs, otherwise `null`.
-  /// This test first performs a cheap check against the mesh's overall bounding
-  /// box. If the ray misses the box, the test exits early. Otherwise, it proceeds
-  /// to check every triangle in the mesh to find the closest intersection point.
-  static TriangleMeshHitDetails? intersect(TriangleMesh mesh, Ray ray,
-      {double epsilon = 1e-6}) {
-    // First, perform a cheap check against the overall bounding box.
+  /// Performs a ray-mesh intersection test against a legacy [TriangleMesh].
+  static List<FskHitDetails> intersectTriangleMesh(
+      FskSceneObject object, TriangleMesh mesh, Ray ray,
+      {FskHitTestMode mode = FskHitTestMode.closest, double epsilon = 1e-6}) {
     double? intersection = ray.intersectsWithAabb3(mesh.getBounds());
-    if (intersection == null || intersection < 0) {
-      return null;
-    }
+    if (intersection == null || intersection < 0) return [];
 
-    double? closestDistance;
-    int? closestTriangleIndex;
+    return _intersectBuffer(
+      object,
+      mesh.vertexData,
+      TriangleMesh.componentCount,
+      null, // Not indexed
+      ray,
+      mode: mode,
+      epsilon: epsilon,
+    );
+  }
 
-    // If the ray hits the box, check each triangle for the closest intersection.
-    for (int i = 0; i < mesh.triangleCount; i++) {
-      Vector3? hit = _rayTriangleIntersect(mesh, i, ray, epsilon: epsilon);
-      if (hit != null) {
-        final distance = ray.origin.distanceTo(hit);
-        if (closestDistance == null || distance < closestDistance) {
-          closestDistance = distance;
-          closestTriangleIndex = i;
+  /// Performs a ray-mesh intersection test against an [FskMesh].
+  static List<FskHitDetails> intersectFskMesh(FskMesh mesh, Ray ray,
+      {FskHitTestMode mode = FskHitTestMode.closest, double epsilon = 1e-6}) {
+    if (mesh.vertices == null) return [];
+    return _intersectBuffer(
+      mesh,
+      mesh.vertices!,
+      FskVertexBuffer.componentCount,
+      null,
+      ray,
+      mode: mode,
+      epsilon: epsilon,
+    );
+  }
+
+  /// Performs a ray-mesh intersection test against an [FskIndexedMesh].
+  static List<FskHitDetails> intersectFskIndexedMesh(
+      FskIndexedMesh mesh, Ray ray,
+      {FskHitTestMode mode = FskHitTestMode.closest, double epsilon = 1e-6}) {
+    if (mesh.vertices == null || mesh.indices == null) return [];
+    return _intersectBuffer(
+      mesh,
+      mesh.vertices!,
+      FskVertexBuffer.componentCount,
+      mesh.indices!,
+      ray,
+      mode: mode,
+      epsilon: epsilon,
+    );
+  }
+
+  /// Internal helper to intersect a vertex buffer (optionally indexed).
+  static List<FskHitDetails> _intersectBuffer(
+    FskSceneObject hitObject,
+    Float32List vertices,
+    int stride,
+    TypedData? indices,
+    Ray ray, {
+    FskHitTestMode mode = FskHitTestMode.closest,
+    double epsilon = 1e-6,
+  }) {
+    final List<FskHitDetails> hits = [];
+    FskHitDetails? closestHit;
+
+    final int count = indices != null
+        ? (indices is Uint16List ? indices.length : (indices as Uint32List).length)
+        : (vertices.length ~/ stride);
+
+    for (int i = 0; i < count; i += 3) {
+      final int i0, i1, i2;
+      if (indices != null) {
+        if (indices is Uint16List) {
+          i0 = indices[i];
+          i1 = indices[i + 1];
+          i2 = indices[i + 2];
+        } else {
+          indices as Uint32List;
+          i0 = indices[i];
+          i1 = indices[i + 1];
+          i2 = indices[i + 2];
+        }
+      } else {
+        i0 = i;
+        i1 = i + 1;
+        i2 = i + 2;
+      }
+
+      final v0 = _getVertex(vertices, i0, stride);
+      final v1 = _getVertex(vertices, i1, stride);
+      final v2 = _getVertex(vertices, i2, stride);
+
+      final hitPoint = _intersectRayTriangle(v0, v1, v2, ray, epsilon: epsilon);
+      if (hitPoint != null) {
+        final distance = ray.origin.distanceTo(hitPoint);
+        final edge1 = v1 - v0;
+        final edge2 = v2 - v0;
+        final normal = edge1.cross(edge2)..normalize();
+
+        final details = FskHitDetails(
+          hitObject: hitObject,
+          hitPoint: hitPoint,
+          distance: distance,
+          normal: normal,
+          hitData: i ~/ 3,
+        );
+
+        if (mode == FskHitTestMode.first) {
+          return [details];
+        }
+
+        if (mode == FskHitTestMode.closest) {
+          if (closestHit == null || distance < closestHit.distance) {
+            closestHit = details;
+          }
+        } else {
+          hits.add(details);
         }
       }
     }
 
-    if (closestTriangleIndex != null) {
-      final hitPoint = ray.origin + ray.direction * closestDistance!;
-      return TriangleMeshHitDetails(
-          mesh, hitPoint, closestTriangleIndex, closestDistance);
+    if (mode == FskHitTestMode.closest) {
+      return closestHit != null ? [closestHit] : [];
     }
 
-    return null;
+    if (mode == FskHitTestMode.all) {
+      hits.sort((a, b) => a.distance.compareTo(b.distance));
+    }
+
+    return hits;
   }
 
-  /// Performs a ray-triangle intersection using the Möller–Trumbore algorithm.
-  ///
-  /// This is a low-level, high-performance test for a single triangle.
-  /// Returns the intersection point as a [Vector3], or `null` if there is no hit.
-  static Vector3? _rayTriangleIntersect(
-      TriangleMesh mesh, int triangleIndex, Ray ray,
-      {double epsilon = 1e-6}) {
-    final int vertexIndex = triangleIndex * 3;
-    final point0 = mesh.getVertex(vertexIndex);
-    final edge1 = mesh.getVertex(vertexIndex + 1) - point0;
-    final edge2 = mesh.getVertex(vertexIndex + 2) - point0;
+  static Vector3 _getVertex(Float32List vertices, int index, int stride) {
+    final int base = index * stride;
+    return Vector3(vertices[base], vertices[base + 1], vertices[base + 2]);
+  }
 
-    // Begin calculating determinant - also used to calculate u parameter
+  static Vector3? _intersectRayTriangle(
+      Vector3 p0, Vector3 v1, Vector3 v2, Ray ray,
+      {double epsilon = 1e-6}) {
+    final edge1 = v1 - p0;
+    final edge2 = v2 - p0;
+
     final h = ray.direction.cross(edge2);
-    // if determinant is near zero, ray lies in plane of triangle
     final a = edge1.dot(h);
 
-    if (a > -epsilon && a < epsilon) {
-      return null; // Ray is parallel to the triangle.
-    }
+    if (a > -epsilon && a < epsilon) return null;
 
     final f = 1.0 / a;
-    final s = ray.origin - point0;
-
-    // Calculate u parameter and test bounds
+    final s = ray.origin - p0;
     final u = f * s.dot(h);
-    // The intersection lies outside of the triangle
-    if (u < 0.0 || u > 1.0) {
-      return null;
-    }
 
-    // Prepare to test v parameter
+    if (u < 0.0 || u > 1.0) return null;
+
     final q = s.cross(edge1);
-    // Calculate V parameter and test bounds
     final v = f * ray.direction.dot(q);
 
-    // The intersection lies outside of the triangle
-    if (v < 0.0 || u + v > 1.0) {
-      return null;
-    }
+    if (v < 0.0 || u + v > 1.0) return null;
 
-    // At this stage we can compute t to find out where the intersection point is on the line.
     final t = f * edge2.dot(q);
 
     if (t > epsilon) {
-      // Ray intersection
       return ray.origin + ray.direction * t;
-    } else {
-      // This means that there is a line intersection but not a ray intersection.
-      return null;
     }
+    return null;
   }
 }

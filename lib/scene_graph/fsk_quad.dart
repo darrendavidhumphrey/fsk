@@ -212,4 +212,39 @@ class FskQuad extends Fsk2DRenderableObject with FskTransformableMixin, FskDepth
     _updateQuad();
     _renderer.setFromQuads([_quad], [_textureRect]);
   }
+
+  @override
+  List<FskHitDetails> doHitTest(Ray ray,
+      {FskHitTestMode mode = FskHitTestMode.closest}) {
+    // 1. Ray-Plane intersection
+    final Vector3? hit = rayIntersect(ray);
+    if (hit == null) return [];
+
+    // 2. Check if hit point is inside quad
+    // A Quad in vector_math is point0, point1, point2, point3
+    // We can check if it's within the ReferenceBox bounds in 2D
+    final Vector3 localHit = refBox.calcLocalCoordinates(hit);
+    if (localHit.x >= 0 &&
+        localHit.x <= refBox.xVector.length &&
+        localHit.y >= 0 &&
+        localHit.y <= refBox.yVector.length) {
+      return [
+        FskHitDetails(
+          hitObject: this,
+          hitPoint: hit,
+          distance: ray.origin.distanceTo(hit),
+          normal: _quad.getSurfaceNormal(),
+          hitData: null,
+        )
+      ];
+    }
+
+    return [];
+  }
+
+  Vector3? rayIntersect(Ray ray) {
+     // ReferenceBox or Quad doesn't have a direct plane hit test?
+     // Actually ReferenceBox has rayIntersect.
+     return refBox.rayIntersect(ray);
+  }
 }

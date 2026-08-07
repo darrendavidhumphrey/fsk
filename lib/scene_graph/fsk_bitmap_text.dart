@@ -5,6 +5,7 @@ import 'package:flutter/material.dart' show Colors;
 import 'package:flutter_gpu/gpu.dart' as gpu;
 import 'package:fsk/fsk.dart';
 import 'package:fsk/scene_graph/fsk_depth_state.dart';
+import 'package:vector_math/vector_math.dart' hide Colors;
 import '../skins/skin_data.dart';
 import 'fsk_quads_renderer.dart';
 import 'fsk_text_quad_builder.dart';
@@ -250,6 +251,23 @@ class FskBitmapText extends Fsk2DRenderableObject with FskTransformableMixin, Fs
   @override
   void rebuildPipelineIfNeeded() {
     _renderer.rebuildPipeline();
+  }
+
+  @override
+  List<FskHitDetails> doHitTest(Ray ray,
+      {FskHitTestMode mode = FskHitTestMode.closest}) {
+    final Vector3? hit = refBox.rayIntersect(ray);
+    if (hit == null) return [];
+
+    return [
+      FskHitDetails(
+        hitObject: this,
+        hitPoint: hit,
+        distance: ray.origin.distanceTo(hit),
+        normal: refBox.normal,
+        hitData: null,
+      )
+    ];
   }
 
   /// Rebuilds the vertex buffer object

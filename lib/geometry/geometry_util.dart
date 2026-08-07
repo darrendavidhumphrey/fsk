@@ -1,3 +1,4 @@
+import 'dart:typed_data';
 import 'dart:ui';
 import 'package:vector_math/vector_math.dart';
 
@@ -95,4 +96,36 @@ Ray computePickRay(
 
   Vector3 direction = (farResult - nearResult)..normalize();
   return Ray.originDirection(nearResult, direction);
+}
+
+/// Transforms a [ray] by the given [matrix].
+Ray transformRay(Ray ray, Matrix4 matrix) {
+  final Vector3 localOrigin = matrix.transform3(Vector3.copy(ray.origin));
+  final Vector3 localDirection = matrix.rotate3(Vector3.copy(ray.direction))..normalize();
+  return Ray.originDirection(localOrigin, localDirection);
+}
+
+/// Computes the axis-aligned bounding box for a set of [vertices] with a given [stride].
+/// Assumes position data is at the beginning of each vertex (offsets 0, 1, 2).
+Aabb3 computeAabb(Float32List vertices, int stride) {
+  if (vertices.isEmpty) return Aabb3();
+
+  final Vector3 minV = Vector3.all(double.infinity);
+  final Vector3 maxV = Vector3.all(double.negativeInfinity);
+
+  for (int i = 0; i < vertices.length; i += stride) {
+    final double x = vertices[i];
+    final double y = vertices[i + 1];
+    final double z = vertices[i + 2];
+
+    if (x < minV.x) minV.x = x;
+    if (y < minV.y) minV.y = y;
+    if (z < minV.z) minV.z = z;
+
+    if (x > maxV.x) maxV.x = x;
+    if (y > maxV.y) maxV.y = y;
+    if (z > maxV.z) maxV.z = z;
+  }
+
+  return Aabb3.minMax(minV, maxV);
 }

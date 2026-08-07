@@ -198,6 +198,16 @@ class ReferenceBox {
     return origin + (xAxis * v.x) + (yAxis * v.y);
   }
 
+  /// Calculates the local coordinates of a 3D [point] relative to the box's origin and axes.
+  Vector3 calcLocalCoordinates(Vector3 point) {
+    final Vector3 offset = point - origin;
+    return Vector3(
+      offset.dot(xAxis),
+      offset.dot(yAxis),
+      offset.dot(zAxis),
+    );
+  }
+
   /// Calculates the intersection point of a [pickRay] with the plane of this box.
   ///
   /// Returns the intersection point if the box is valid and the ray intersects
