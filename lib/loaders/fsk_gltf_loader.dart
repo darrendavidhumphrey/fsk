@@ -5,9 +5,10 @@ import 'dart:typed_data';
 import 'package:flutter/services.dart';
 import 'package:vector_math/vector_math.dart';
 import '../fsk.dart';
+import 'fsk_model_loader.dart';
 
 /// A lightweight, dependency-free GLTF 2.0 loader for the FSK engine.
-class FskGltfLoader {
+class FskGltfLoader extends FskModelLoader {
   final FskSceneBase scene;
   final String assetPath;
   late final String _basePath;
@@ -92,9 +93,11 @@ class FskGltfLoader {
     // GLTF models are often Y-up and facing +Z.
     // In our coordinate system (Y-down, camera at -Z), they appear upside down and facing away.
     // We create a correction group to handle this so the rootGroup's frame of reference stays at 0.
-    final correctionGroup = FskGroup('gltf_correction', scene);
-    correctionGroup.transformable.rotation = Vector3(0, radians(180), radians(180));
+    final correctionGroup = FskModelLoader.createCorrectionGroup(rootGroup.id, scene);
     rootGroup.addNode(correctionGroup);
+    if (rootGroup is FskExternalModel) {
+      rootGroup.correctionGroup = correctionGroup;
+    }
 
     for (final int nodeIdx in sceneNodes) {
       final node = _createNode((nodeIdx as num).toInt());

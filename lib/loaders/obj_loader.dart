@@ -64,7 +64,7 @@ class Mesh {
 /// This class handles parsing the OBJ file content, de-duplicating vertices,
 /// building the vertex and index data, and organizing the model into meshes
 /// based on the materials defined in the file.
-class WavefrontObjModel with LoggableClass {
+class WavefrontObjModel extends FskModelLoader {
   /// The vertex buffer containing the unique, interleaved vertex data for the model.
   Float32List? vertices;
 
@@ -271,13 +271,12 @@ class WavefrontObjModel with LoggableClass {
       mesh.rebuildPipelineIfNeeded();
 
       // Create the correction group to handle Y-up -> Y-down and facing direction
-      final correctionGroup = FskGroup('${sceneId}_correction', parentScene);
-      // Y-axis 180 to face camera, Z-axis 180 to flip right-side up
-      correctionGroup.transformable.rotation =
-          Vector3(0, radians(180), radians(180));
+      final correctionGroup = FskModelLoader.createCorrectionGroup(sceneId, parentScene);
+      
       rootGroup.addNode(correctionGroup);
       correctionGroup.addNode(mesh);
       rootGroup.mesh = mesh;
+      rootGroup.correctionGroup = correctionGroup;
       rootGroup.setLoaded();
 
       // Invoke the success callback

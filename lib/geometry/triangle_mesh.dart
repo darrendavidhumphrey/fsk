@@ -1,7 +1,6 @@
-import 'dart:math';
 import 'package:flutter/foundation.dart';
 import 'package:vector_math/vector_math.dart'
-    show Vector3, Triangle, Vector2, Aabb3;
+    show Vector3, Triangle, Vector2;
 
 /// A data class that stores the geometry for a collection of triangles.
 ///
@@ -19,9 +18,6 @@ class TriangleMesh {
   static const int normalOffset = 3;
 
   final int triangleCount;
-
-  /// The cached bounding box of the mesh. Null until first computed.
-  Aabb3? _bounds;
 
   /// The raw, flat list of interleaved vertex data for all triangles.
   late final Float32List vertexData;
@@ -88,45 +84,6 @@ class TriangleMesh {
     out.point0.setValues(vertexData[i], vertexData[i + 1], vertexData[i + 2]);
     out.point1.setValues(vertexData[j], vertexData[j + 1], vertexData[j + 2]);
     out.point2.setValues(vertexData[k], vertexData[k + 1], vertexData[k + 2]);
-  }
-
-  /// Computes the AABB for the entire mesh by iterating directly through the
-  /// raw vertex data for efficiency.
-  Aabb3 _computeBounds() {
-    if (triangleCount == 0) {
-      return Aabb3();
-    }
-
-    // Initialize min and max with the first vertex's coordinates.
-    final minV = Vector3(vertexData[0], vertexData[1], vertexData[2]);
-    final maxV = Vector3(vertexData[0], vertexData[1], vertexData[2]);
-
-    // Iterate through the rest of the vertices directly in the flat array.
-    for (int i = componentCount; i < vertexData.length; i += componentCount) {
-      final x = vertexData[i];
-      final y = vertexData[i + 1];
-      final z = vertexData[i + 2];
-
-      minV.x = min(minV.x, x);
-      minV.y = min(minV.y, y);
-      minV.z = min(minV.z, z);
-      maxV.x = max(maxV.x, x);
-      maxV.y = max(maxV.y, y);
-      maxV.z = max(maxV.z, z);
-    }
-
-    return Aabb3.minMax(minV, maxV);
-  }
-
-  /// Recomputes the bounding box. Should be called after modifying vertices.
-  void recomputeBounds() {
-    _bounds = _computeBounds();
-  }
-
-  /// Returns the cached bounding box, computing it if necessary.
-  Aabb3 getBounds() {
-    // Use the null-aware assignment operator to compute only on the first call.
-    return _bounds ??= _computeBounds();
   }
 
   /// A low-level helper to write a single vertex's full attribute data into the

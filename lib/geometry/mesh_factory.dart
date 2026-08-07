@@ -188,7 +188,6 @@ class MeshFactory {
       currentTriangle = _addOutlineAsTriFan(mesh, face, currentTriangle);
     }
 
-    mesh.recomputeBounds();
     return mesh;
   }
 
@@ -244,8 +243,6 @@ class MeshFactory {
             _makeSideFromEdge(result, outline, i, currentTriangle, depth);
       }
     }
-
-    result.recomputeBounds();
 
     return result;
   }

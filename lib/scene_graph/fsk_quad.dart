@@ -214,6 +214,18 @@ class FskQuad extends Fsk2DRenderableObject with FskTransformableMixin, FskDepth
   }
 
   @override
+  Aabb3 getAabb() {
+    final Aabb3 bounds = Aabb3.minMax(
+      Vector3.copy(_quad.point0),
+      Vector3.copy(_quad.point0),
+    );
+    bounds.hullPoint(_quad.point1);
+    bounds.hullPoint(_quad.point2);
+    bounds.hullPoint(_quad.point3);
+    return bounds;
+  }
+
+  @override
   List<FskHitDetails> doHitTest(Ray ray,
       {FskHitTestMode mode = FskHitTestMode.closest}) {
     // 1. Ray-Plane intersection

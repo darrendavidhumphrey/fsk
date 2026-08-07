@@ -3,9 +3,9 @@ import 'package:fsk/fsk.dart';
 import 'package:vector_math/vector_math.dart' hide Colors;
 import 'pbr_model_scene.dart';
 
-/// A concrete implementation of a screen-space overlay that displays a teapot.
-class TeapotOverlay extends ScreenSpaceOverlay {
-  TeapotOverlay({
+/// A concrete implementation of a screen-space overlay that displays a STL file.
+class StlOverlay extends ScreenSpaceOverlay {
+  StlOverlay({
     required super.id,
     super.top,
     super.right,
@@ -23,17 +23,14 @@ class TeapotOverlay extends ScreenSpaceOverlay {
     useBoxFitLayout = false;
 
     // Load the teapot model into this overlay's scene graph
-    final teapotModel = await WavefrontObjModel.loadFromAssets(
-      assetFile: 'assets/3D/Teapot/teapot_textures_normals.obj',
+    final stlModel = await StlLoader.loadFromAssets(
+      assetFile: 'assets/3D/STL/honeycomb-wall.stl',
       parentScene: this,
-      sceneId: 'teapot_overlay_$id',
-      loadTexture: () => FSK().textureManager.createTextureFromAsset(
-            'Bricks_Overlay',
-            '3D/Teapot/Bricks051_1K-JPG_Color.jpg',
-          ),
+      sceneId: 'honeycomb_wall_$id',
       onModelLoaded: (model) {
         // Center and scale the teapot for the overlay viewport
-        model.transformable.scale = Vector3.all(5.0);
+        model.transformable.scale = Vector3.all(1);
+        model.centerModel();
         
         // Use the standard lighting uniforms since ObjModel defaults to LightingShader
         final uniforms = model.mesh.uniforms as LightingUniforms;
@@ -41,9 +38,10 @@ class TeapotOverlay extends ScreenSpaceOverlay {
       },
     );
 
-    addNode(teapotModel);
+    addNode(stlModel);
   }
 }
+
 
 /// A scene that extends the PBR model scene and adds a teapot overlay in the corner.
 class PbrWithOverlayScene extends PbrModelScene {
@@ -55,8 +53,8 @@ class PbrWithOverlayScene extends PbrModelScene {
     await super.onInit();
 
     // Create the overlay in the upper right corner - Opts in to input
-    final teapotOverlayRight = TeapotOverlay(
-      id: 'teapot_pip_right',
+    final overlayRight = StlOverlay(
+      id: 'pip_right',
       right: 20,
       top: 20,
       screenSpaceSize: const Size(400, 400),
@@ -66,8 +64,8 @@ class PbrWithOverlayScene extends PbrModelScene {
     );
 
     // Create the overlay in the upper left corner - Does NOT opt in
-    final teapotOverlayLeft = TeapotOverlay(
-      id: 'teapot_pip_left',
+    final overlayLeft = StlOverlay(
+      id: 'pip_left',
       left: 20,
       top: 20,
       screenSpaceSize: const Size(200, 200),
@@ -76,7 +74,7 @@ class PbrWithOverlayScene extends PbrModelScene {
     );
 
     // Add the overlays as layers to this scene
-    addLayer(teapotOverlayRight);
-    addLayer(teapotOverlayLeft);
+    addLayer(overlayRight);
+    addLayer(overlayLeft);
   }
 }

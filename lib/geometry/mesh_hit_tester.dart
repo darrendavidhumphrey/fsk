@@ -47,24 +47,6 @@ class MeshHitTester {
   /// Private constructor to prevent instantiation of this utility class.
   MeshHitTester._();
 
-  /// Performs a ray-mesh intersection test against a legacy [TriangleMesh].
-  static List<FskHitDetails> intersectTriangleMesh(
-      FskSceneObject object, TriangleMesh mesh, Ray ray,
-      {FskHitTestMode mode = FskHitTestMode.closest, double epsilon = 1e-6}) {
-    double? intersection = ray.intersectsWithAabb3(mesh.getBounds());
-    if (intersection == null || intersection < 0) return [];
-
-    return _intersectBuffer(
-      object,
-      mesh.vertexData,
-      TriangleMesh.componentCount,
-      null, // Not indexed
-      ray,
-      mode: mode,
-      epsilon: epsilon,
-    );
-  }
-
   /// Performs a ray-mesh intersection test against an [FskMesh].
   static List<FskHitDetails> intersectFskMesh(FskMesh mesh, Ray ray,
       {FskHitTestMode mode = FskHitTestMode.closest, double epsilon = 1e-6}) {

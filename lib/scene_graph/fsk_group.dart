@@ -118,6 +118,25 @@ class FskGroup extends FskRenderableObject with FskTransformableMixin {
   }
 
   @override
+  Aabb3 getAabb() {
+    final Aabb3 bounds = Aabb3.minMax(
+      Vector3.all(double.infinity),
+      Vector3.all(double.negativeInfinity),
+    );
+    for (final child in children) {
+      final Aabb3 childAabb = child.getAabb();
+      if (childAabb.min.x == double.infinity) continue;
+
+      if (child is FskRenderableObject && child.transformable.isTransformed()) {
+        bounds.hull(childAabb.transformed(child.transformable.getTransform(), Aabb3()));
+      } else {
+        bounds.hull(childAabb);
+      }
+    }
+    return bounds;
+  }
+
+  @override
   List<FskHitDetails> doHitTest(Ray ray,
       {FskHitTestMode mode = FskHitTestMode.closest}) {
     final List<FskHitDetails> results = [];

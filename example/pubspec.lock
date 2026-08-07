@@ -145,6 +145,14 @@ packages:
       url: "https://pub.dev"
     source: hosted
     version: "1.0.9"
+  dart_stl:
+    dependency: transitive
+    description:
+      name: dart_stl
+      sha256: "8230112e9095ff817db2da5ac4653fb078f92952f04d03083985168a3fd884b3"
+      url: "https://pub.dev"
+    source: hosted
+    version: "0.0.7"
   dart_style:
     dependency: transitive
     description:

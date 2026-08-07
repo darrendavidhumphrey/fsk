@@ -29,6 +29,11 @@ abstract class FskSceneObject with LoggableClass {
   void doRebuild() {}
   void rebuildPipelineIfNeeded();
 
+  /// Returns the axis-aligned bounding box of this object in local space.
+  vm.Aabb3 getAabb() {
+    return vm.Aabb3();
+  }
+
   /// Performs a hit test against this object.
   List<FskHitDetails> hitTest(vm.Ray ray,
       {FskHitTestMode mode = FskHitTestMode.closest}) {

@@ -254,6 +254,19 @@ class FskBitmapText extends Fsk2DRenderableObject with FskTransformableMixin, Fs
   }
 
   @override
+  Aabb3 getAabb() {
+    final Aabb3 bounds = Aabb3.minMax(
+      Vector3.copy(refBox.cachedQuad.point0),
+      Vector3.copy(refBox.cachedQuad.point0),
+    );
+    final quad = refBox.cachedQuad;
+    bounds.hullPoint(quad.point1);
+    bounds.hullPoint(quad.point2);
+    bounds.hullPoint(quad.point3);
+    return bounds;
+  }
+
+  @override
   List<FskHitDetails> doHitTest(Ray ray,
       {FskHitTestMode mode = FskHitTestMode.closest}) {
     final Vector3? hit = refBox.rayIntersect(ray);

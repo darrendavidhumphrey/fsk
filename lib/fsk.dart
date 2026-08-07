@@ -31,6 +31,7 @@ export 'scene_graph/fsk_group.dart';
 export 'scene_graph/fsk_pbr_model.dart';
 export 'scene_graph/fsk_external_model.dart';
 export 'scene_graph/fsk_obj_model.dart';
+export 'scene_graph/fsk_stl_model.dart';
 export 'scene_graph/fsk_mesh.dart';
 export 'scene_graph/fsk_mesh_renderer.dart';
 export 'scene_graph/fsk_mesh_renderer_base.dart';
@@ -69,5 +70,7 @@ export 'fsk_scene_base.dart';
 
 export 'logging.dart';
 export 'loaders/obj_loader.dart';
+export 'loaders/stl_loader.dart';
+export 'loaders/fsk_model_loader.dart';
 export 'util.dart';
 export 'vbo_filler.dart';

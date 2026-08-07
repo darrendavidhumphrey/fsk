@@ -10,6 +10,8 @@ class FskIndexedMesh extends FskRenderableObject with FskTransformableMixin, Fsk
   Float32List? vertices;
   TypedData? indices;
 
+  vm.Aabb3? _cachedAabb;
+
   /// Object that renders the indexed mesh
   final FskIndexedMeshRenderer _renderer = FskIndexedMeshRenderer();
 
@@ -44,6 +46,19 @@ class FskIndexedMesh extends FskRenderableObject with FskTransformableMixin, Fsk
   @override
   void rebuildPipelineIfNeeded() {
     _renderer.rebuildPipeline();
+  }
+
+  @override
+  vm.Aabb3 getAabb() {
+    if (_cachedAabb != null) return _cachedAabb!;
+    if (vertices == null) {
+      return vm.Aabb3.minMax(
+        vm.Vector3.all(double.infinity),
+        vm.Vector3.all(double.negativeInfinity),
+      );
+    }
+    _cachedAabb = computeAabb(vertices!, 12);
+    return _cachedAabb!;
   }
 
   @override
