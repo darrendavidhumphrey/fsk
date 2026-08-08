@@ -27,10 +27,8 @@ class ViewCubeOverlay extends ScreenSpaceOverlay {
 
     // Create a container group for the entire cube so we can rotate it easily
     final cubeRoot = FskGroup('cube_root', this);
-    // Rotate 180 degrees around Z to correct orientation relative to OrbitViewDelegate
-    // OrbitViewDelegate's default view is upside-down (rotateZ(180)). 
-    // Applying the same rotation to the cube root un-flips it while preserving text readability.
-    cubeRoot.transformable.rotation = vm.Vector3(0, 0, vm.radians(180));
+    // Rotate 180 degrees around Y to correct orientation relative to OrbitViewDelegate
+    cubeRoot.transformable.rotation = vm.Vector3(0, vm.radians(180), vm.radians(180));
 
     // Add both the cube geometry and the labels to the group
     final solids = _generateViewCubeQuads(this, actualSize);
