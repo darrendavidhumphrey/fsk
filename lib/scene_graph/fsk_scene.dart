@@ -165,6 +165,9 @@ class FskScene extends FskSceneBase {
     for (var node in rootNodes) {
       node.rebuildGeometry();
     }
+    for (var layer in layers) {
+      layer.rebuildGeometry();
+    }
   }
 
   Size get logicalSize => Size(viewportSize.width / FSK.devicePixelRatio,

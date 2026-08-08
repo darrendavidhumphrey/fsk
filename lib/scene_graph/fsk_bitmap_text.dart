@@ -187,17 +187,21 @@ class FskBitmapText extends Fsk2DRenderableObject with FskTransformableMixin, Fs
   FskBitmapText(
     super.id,
     super.parentScene,
-    super.refBox,
-    {
-    required this._font,
+    super.refBox, {
+    required BitmapFont font,
     required this._text,
     this._textColor = Colors.white,
-    this._verticalJustification = TextVerticalJustification.bottom,
-    this._horizontalJustification = TextHorizontalJustification.left,
+    this._verticalJustification =
+        TextVerticalJustification.bottom,
+    this._horizontalJustification =
+        TextHorizontalJustification.left,
     this._maxLen,
     this.scaleToFit = false,
     FskShaderMaterial? shaderMaterial,
-  }) : _width = refBox.xVector.length {
+    bool depthTestEnabled = false,
+    bool depthWriteEnabled = false,
+  })  : _font = font,
+        _width = refBox.xVector.length {
     isPickable = false;
     setRenderer(_renderer);
     _renderer.setTexture(font.textureInfo);
@@ -206,19 +210,22 @@ class FskBitmapText extends Fsk2DRenderableObject with FskTransformableMixin, Fs
       this.shaderMaterial = shaderMaterial;
     }
 
-    // Trigger the setter
-    textColor = _textColor;
+    // Explicitly calling this.textColor to call the setter method and trigger a rebuild
+    // ignore: unnecessary_this
+    this.textColor = _textColor;
 
     _font.addListener(_onFontChanged);
 
     setDepthState(
-      depthTestEnabled: false,
-      depthWriteEnabled: false,
-      depthCompareOperation: gpu.CompareFunction.always,
+      depthTestEnabled: depthTestEnabled,
+      depthWriteEnabled: depthWriteEnabled,
+      depthCompareOperation: gpu.CompareFunction.lessEqual,
     );
   }
 
-  FskBitmapText.fromData(super.id,super.parentScene, super.refBox,SkinTextData textData, {FskShaderMaterial? shaderMaterial}) {
+  FskBitmapText.fromData(super.id, super.parentScene, super.refBox,
+      SkinTextData textData,
+      {FskShaderMaterial? shaderMaterial}) {
     isPickable = false;
     setRenderer(_renderer);
     _width = refBox.xVector.length;
@@ -247,7 +254,7 @@ class FskBitmapText extends Fsk2DRenderableObject with FskTransformableMixin, Fs
     setDepthState(
       depthTestEnabled: false,
       depthWriteEnabled: false,
-      depthCompareOperation: gpu.CompareFunction.always,
+      depthCompareOperation: gpu.CompareFunction.lessEqual,
     );
   }
 

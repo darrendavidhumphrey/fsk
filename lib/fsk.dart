@@ -1,8 +1,6 @@
 export 'bitmap_fonts/bitmap_font.dart';
 export 'bitmap_fonts/bitmap_font_manager.dart';
 
-
-
 export 'geometry/edge.dart';
 export 'geometry/geometry_util.dart';
 export 'geometry/mesh_factory.dart';

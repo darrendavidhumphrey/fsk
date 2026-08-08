@@ -17,6 +17,7 @@ class FskRectangularSolid extends FskMesh {
   }) {
     vertices = MeshFactory.verticesFromSolidFaces(faces);
     uploadToGpu();
+    renderer.setTexture(FSK().textureManager.solidTextureInfo);
     renderer.addFskSubMesh(FskSubMesh(
         count: vertices!.length ~/ FskVertexBuffer.componentCount, offset: 0));
     renderer.finalizeData();
@@ -54,24 +55,25 @@ class FskRectangularSolid extends FskMesh {
     final List<Polyline> faces = [];
 
     // Define the 8 vertices relative to the center
+    // Standard RH system: +X=Right, +Y=Up, +Z=Back (towards camera)
     final v = [
-      vm.Vector3(center.x - halfWidth, center.y - halfHeight, center.z - halfDepth),
-      vm.Vector3(center.x + halfWidth, center.y - halfHeight, center.z - halfDepth),
-      vm.Vector3(center.x + halfWidth, center.y + halfHeight, center.z - halfDepth),
-      vm.Vector3(center.x - halfWidth, center.y + halfHeight, center.z - halfDepth),
-      vm.Vector3(center.x - halfWidth, center.y - halfHeight, center.z + halfDepth),
-      vm.Vector3(center.x + halfWidth, center.y - halfHeight, center.z + halfDepth),
-      vm.Vector3(center.x + halfWidth, center.y + halfHeight, center.z + halfDepth),
-      vm.Vector3(center.x - halfWidth, center.y + halfHeight, center.z + halfDepth),
+      vm.Vector3(center.x - halfWidth, center.y - halfHeight, center.z - halfDepth), // 0: BL-Far
+      vm.Vector3(center.x + halfWidth, center.y - halfHeight, center.z - halfDepth), // 1: BR-Far
+      vm.Vector3(center.x + halfWidth, center.y + halfHeight, center.z - halfDepth), // 2: TR-Far
+      vm.Vector3(center.x - halfWidth, center.y + halfHeight, center.z - halfDepth), // 3: TL-Far
+      vm.Vector3(center.x - halfWidth, center.y - halfHeight, center.z + halfDepth), // 4: BL-Near
+      vm.Vector3(center.x + halfWidth, center.y - halfHeight, center.z + halfDepth), // 5: BR-Near
+      vm.Vector3(center.x + halfWidth, center.y + halfHeight, center.z + halfDepth), // 6: TR-Near
+      vm.Vector3(center.x - halfWidth, center.y + halfHeight, center.z + halfDepth), // 7: TL-Near
     ];
 
-    // Create faces with CCW winding order for outward-facing normals (Right-handed Z-up)
-    faces.add(Polyline.fromVector3([v[0], v[1], v[5], v[4]])); // Front face (-Y)
-    faces.add(Polyline.fromVector3([v[2], v[3], v[7], v[6]])); // Back face (+Y)
-    faces.add(Polyline.fromVector3([v[1], v[2], v[6], v[5]])); // Right face (+X)
-    faces.add(Polyline.fromVector3([v[3], v[0], v[4], v[7]])); // Left face (-X)
-    faces.add(Polyline.fromVector3([v[4], v[5], v[6], v[7]])); // Top face (+Z)
-    faces.add(Polyline.fromVector3([v[1], v[0], v[3], v[2]])); // Bottom face (-Z)
+    // Create faces with CCW winding order from the OUTSIDE for backface culling.
+    faces.add(Polyline.fromVector3([v[4], v[5], v[6], v[7]])); // Front face (+Z)
+    faces.add(Polyline.fromVector3([v[1], v[0], v[3], v[2]])); // Back face (-Z)
+    faces.add(Polyline.fromVector3([v[7], v[6], v[2], v[3]])); // Top face (+Y)
+    faces.add(Polyline.fromVector3([v[4], v[0], v[1], v[5]])); // Bottom face (-Y)
+    faces.add(Polyline.fromVector3([v[5], v[1], v[2], v[6]])); // Right face (+X)
+    faces.add(Polyline.fromVector3([v[0], v[4], v[7], v[3]])); // Left face (-X)
 
     return FskRectangularSolid._(id, scene, faces, dimensions, shaderMaterial: shaderMaterial);
   }
