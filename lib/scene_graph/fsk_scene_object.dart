@@ -8,6 +8,9 @@ abstract class FskSceneObject with LoggableClass {
   final String id;
   final FskSceneBase parentScene;
 
+  /// Whether this object should be considered during hit testing.
+  bool isPickable = true;
+
   FskSceneObject(this.id, this.parentScene);
 
   bool needsRebuild = true;
@@ -96,7 +99,7 @@ abstract class FskRenderableObject extends FskSceneObject {
   @override
   List<FskHitDetails> hitTest(vm.Ray ray,
       {FskHitTestMode mode = FskHitTestMode.closest}) {
-    if (!visible) return [];
+    if (!visible || !isPickable) return [];
 
     vm.Ray localRay = ray;
     if (transformable.isTransformed()) {

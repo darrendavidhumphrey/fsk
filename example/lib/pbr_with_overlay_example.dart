@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart' hide Matrix4;
 import 'package:fsk/fsk.dart';
+import 'package:fsk_examples/view_cube_overlay.dart';
 import 'package:vector_math/vector_math.dart' hide Colors;
 import 'pbr_model_scene.dart';
 
@@ -53,17 +54,18 @@ class PbrWithOverlayScene extends PbrModelScene {
     await super.onInit();
 
     // Create the overlay in the upper right corner - Opts in to input
-    final overlayRight = StlOverlay(
+    final overlayRight = ViewCubeOverlay(
       id: 'pip_right',
+      cubeSize: 50.0,
       right: 20,
       top: 20,
-      screenSpaceSize: const Size(400, 400),
+      screenSpaceSize: const Size(300, 300),
       interceptInput: true,
-      // Use an orbit delegate so we can see the teapot from different angles
+      // Use an orbit delegate so we can see the cube from different angles
       navigationDelegate: OrbitViewDelegate(boxFit: FskBoxFit.bestFit),
     );
 
-    // Create the overlay in the upper left corner - Does NOT opt in
+    // Create the overlay in the upper left corner - Does NOT opt in to input
     final overlayLeft = StlOverlay(
       id: 'pip_left',
       left: 20,

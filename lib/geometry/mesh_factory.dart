@@ -15,20 +15,36 @@ class MeshFactory {
 
   // --- FskMesh Creation ---
 
+  /// Generates vertex data for a solid from its faces.
+  static Float32List verticesFromSolidFaces(List<Polyline> faces) {
+    int triangleCount = 0;
+    for (var face in faces) {
+      if (face.length > 2) {
+        triangleCount += (face.length - 2);
+      }
+    }
+
+    int newVertexCount = triangleCount * 3;
+    final vertices =
+        Float32List(newVertexCount * FskVertexBuffer.componentCount);
+    final filler = VboFiller(vertices);
+    for (var face in faces) {
+      if (face.length > 2) {
+        _addTexturedTriFan(filler, face, true);
+      }
+    }
+    return vertices;
+  }
+
   /// Creates an [FskMesh] from a solid's faces.
   static FskMesh meshFromSolidFaces(String id, FskSceneBase scene, List<Polyline> faces,
       {FskShaderMaterial? material}) {
-    return _createMesh(id, scene, faces, (filler, face) {
-      _addTexturedTriFan(filler, face, true);
-    }, material: material);
-  }
-
-  /// Creates an [FskMesh] by tessellating a list of [outlines] with texture coordinates.
-  static FskMesh meshFromOutlines(String id, FskSceneBase scene, List<Polyline> outlines,
-      bool generateNormals, {FskShaderMaterial? material}) {
-    return _createMesh(id, scene, outlines, (filler, outline) {
-      _addTexturedTriFan(filler, outline, generateNormals);
-    }, material: material);
+    final mesh = FskMesh(id, scene, shaderMaterial: material);
+    mesh.vertices = verticesFromSolidFaces(faces);
+    mesh.uploadToGpu();
+    mesh.renderer.addFskSubMesh(FskSubMesh(count: mesh.vertices!.length ~/ FskVertexBuffer.componentCount, offset: 0));
+    mesh.renderer.finalizeData();
+    return mesh;
   }
 
   /// Creates an [FskMesh] by tessellating a list of [outlines] with a solid [color].
@@ -47,121 +63,6 @@ class MeshFactory {
     return meshFromColorOutlines(id, parentScene, outlines, color, material: material);
   }
 
-  /// Creates a new [FskMesh] by extruding a list of [outlines] by a [depth] vector.
-  static FskMesh extrudeToMesh(String id, FskSceneBase scene, List<Polyline> outlines, Vector3 depth,
-      {FskShaderMaterial? material}) {
-    final mesh = FskMesh(id, scene, shaderMaterial: material);
-    final vertices = verticesFromExtrusion(outlines, depth);
-    if (vertices.isNotEmpty) {
-      mesh.vertices = vertices;
-      mesh.uploadToGpu();
-      mesh.renderer.addFskSubMesh(FskSubMesh(count: vertices.length ~/ FskVertexBuffer.componentCount, offset: 0));
-      mesh.renderer.finalizeData();
-    }
-    return mesh;
-  }
-
-  /// Creates an [FskMesh] from a CPU-side [TriangleMesh].
-  static FskMesh fromTriangleMesh(String id, FskSceneBase scene, TriangleMesh triangleMesh,
-      {FskShaderMaterial? material, Color color = const Color(0xFFFFFFFF)}) {
-    final mesh = FskMesh(id, scene, shaderMaterial: material);
-    final int vertexCount = triangleMesh.triangleCount * 3;
-    if (vertexCount > 0) {
-      final vertices = Float32List(vertexCount * FskVertexBuffer.componentCount);
-      final filler = VboFiller(vertices);
-      final rawData = triangleMesh.vertexData;
-
-      for (int i = 0; i < vertexCount; i++) {
-        int baseIndex = i * TriangleMesh.componentCount;
-        // P(3), T(2), N(3)
-        Vector3 pos = Vector3(rawData[baseIndex], rawData[baseIndex + 1], rawData[baseIndex + 2]);
-        Vector2 tex = Vector2(rawData[baseIndex + 3], rawData[baseIndex + 4]);
-        Vector3 normal = Vector3(rawData[baseIndex + 5], rawData[baseIndex + 6], rawData[baseIndex + 7]);
-
-        filler.addV3T2N3C4(pos, tex, normal, color);
-      }
-      mesh.vertices = vertices;
-      mesh.uploadToGpu();
-      mesh.renderer.addFskSubMesh(FskSubMesh(count: vertexCount, offset: 0));
-      mesh.renderer.finalizeData();
-    }
-
-    return mesh;
-  }
-
-  // --- Vertex Data (Float32List) Generation ---
-
-  /// Generates vertex data from a list of [faces].
-  static Float32List verticesFromSolidFaces(List<Polyline> faces) {
-    return _tessellate(faces, (filler, face) {
-      _addTexturedTriFan(filler, face, true);
-    });
-  }
-
-  /// Generates vertex data by tessellating a list of [outlines] with a solid [color].
-  static Float32List verticesFromColorOutlines(List<Polyline> outlines, Color color) {
-    return _tessellate(outlines, (filler, outline) {
-      _addTexturedTriFan(filler, outline, true, color: color);
-    });
-  }
-
-  /// Generates vertex data by tessellating a list of [outlines] with texture coordinates.
-  static Float32List verticesFromOutlines(List<Polyline> outlines, bool generateNormals) {
-    return _tessellate(outlines, (filler, outline) {
-      _addTexturedTriFan(filler, outline, generateNormals);
-    });
-  }
-
-  /// Generates vertex data by extruding a list of [outlines] by a [depth] vector.
-  static Float32List verticesFromExtrusion(List<Polyline> outlines, Vector3 depth) {
-    if (outlines.isEmpty) return Float32List(0);
-
-    // Calculate total triangles needed for top/bottom caps and side walls.
-    int topCount = 0;
-    for (var outline in outlines) {
-      if (outline.length > 2) {
-        topCount += (outline.length - 2);
-      }
-    }
-
-    int sideCount = 0;
-    for (var outline in outlines) {
-      sideCount += (outline.length) * 2;
-    }
-
-    int extrudedTriangleCount = topCount * 2 + sideCount;
-    if (extrudedTriangleCount == 0) return Float32List(0);
-
-    int vertexCount = extrudedTriangleCount * 3;
-    final vertices = Float32List(vertexCount * FskVertexBuffer.componentCount);
-    final filler = VboFiller(vertices);
-
-    // Add the top faces.
-    for (var outline in outlines) {
-      if (outline.planeIsValid && outline.length > 2) {
-        _addTexturedTriFan(filler, outline, true);
-      }
-    }
-
-    // Add the bottom faces.
-    for (var outline in outlines) {
-      if (outline.planeIsValid && outline.length > 2) {
-        Vector3 bottomNormal = -outline.normal!;
-        _addReverseTexturedTriFan(filler, outline, bottomNormal, depth);
-      }
-    }
-
-    // Add the side walls.
-    for (var outline in outlines) {
-      for (int i = 0; i < outline.length; i++) {
-        _makeSideFromEdgeVertices(filler, outline, i, depth);
-      }
-    }
-
-    return vertices;
-  }
-
-  // --- TriangleMesh (CPU) Creation ---
 
   /// Creates a [TriangleMesh] by tessellating a list of [faces].
   ///
@@ -285,30 +186,6 @@ class MeshFactory {
     return mesh;
   }
 
-  /// Generic helper to tessellate a list of outlines into a Float32List.
-  static Float32List _tessellate(List<Polyline> outlines,
-      void Function(VboFiller, Polyline) addFunction) {
-    int triangleCount = 0;
-    for (var outline in outlines) {
-      if (outline.length > 2) {
-        triangleCount += (outline.length - 2);
-      }
-    }
-
-    int newVertexCount = triangleCount * 3;
-    final vertices = Float32List(newVertexCount * FskVertexBuffer.componentCount);
-
-    if (newVertexCount > 0) {
-      final filler = VboFiller(vertices);
-      for (var outline in outlines) {
-        if (outline.length > 2) {
-          addFunction(filler, outline);
-        }
-      }
-    }
-    return vertices;
-  }
-
   /// Private helper to add a textured triangle fan for a single outline to a Float32List via VboFiller.
   static void _addTexturedTriFan(
       VboFiller filler, Polyline outline, bool generateNormals,{Color? color}) {
@@ -348,48 +225,6 @@ class MeshFactory {
         filler.addV3T2(v2, texCoord[2]);
       }
     }
-  }
-
-  /// Private helper to add a reversed textured triangle fan for the bottom cap to a Float32List via VboFiller.
-  static void _addReverseTexturedTriFan(VboFiller filler, Polyline outline, Vector3 normal, Vector3 depth) {
-    int numTris = outline.length - 2;
-
-    final bounds = outline.getBounds2D();
-    double w = bounds.max.x - bounds.min.x;
-    double h = bounds.max.y - bounds.min.y;
-    double x = bounds.min.x;
-    double y = bounds.min.y;
-
-    Vector3 v0 = outline.getVector3(0) + depth;
-    for (int j = 0; j < numTris; j++) {
-      Vector3 v1 = outline.getVector3(j + 2) + depth;
-      Vector3 v2 = outline.getVector3(j + 1) + depth;
-
-      List<Vector2> texCoord = computeTexCoords(v2, v1, v0, x, y, w, h);
-
-      filler.addV3T2N3(v2, texCoord[0], normal);
-      filler.addV3T2N3(v1, texCoord[1], normal);
-      filler.addV3T2N3(v0, texCoord[2], normal);
-    }
-  }
-
-  /// Private helper to add side wall triangles to a Float32List via VboFiller.
-  static void _makeSideFromEdgeVertices(VboFiller filler, Polyline outline, int index, Vector3 depth) {
-    Vector3 p1 = outline.getVector3(index % outline.length);
-    Vector3 p2 = outline.getVector3((index + 1) % outline.length);
-    Vector3 normal = (p2 - p1).cross(depth).normalized();
-
-    Vector3 p1z = p1 + depth;
-    Vector3 p2z = p2 + depth;
-
-    // TODO: Calculate correct texture coordinates for sides.
-    filler.addV3T2N3(p1, Vector2.zero(), normal);
-    filler.addV3T2N3(p2, Vector2(1, 0), normal);
-    filler.addV3T2N3(p2z, Vector2(1, 1), normal);
-
-    filler.addV3T2N3(p1, Vector2.zero(), normal);
-    filler.addV3T2N3(p2z, Vector2(1, 1), normal);
-    filler.addV3T2N3(p1z, Vector2(0, 1), normal);
   }
 
   /// Helper to generate the top cap of an extruded mesh for a CPU-side [TriangleMesh].

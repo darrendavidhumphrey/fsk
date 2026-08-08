@@ -187,9 +187,10 @@ class FskBitmapText extends Fsk2DRenderableObject with FskTransformableMixin, Fs
   FskBitmapText(
     super.id,
     super.parentScene,
-    this._font,
-    this._text,
-    super.refBox, {
+    super.refBox,
+    {
+    required this._font,
+    required this._text,
     this._textColor = Colors.white,
     this._verticalJustification = TextVerticalJustification.bottom,
     this._horizontalJustification = TextHorizontalJustification.left,
@@ -197,6 +198,7 @@ class FskBitmapText extends Fsk2DRenderableObject with FskTransformableMixin, Fs
     this.scaleToFit = false,
     FskShaderMaterial? shaderMaterial,
   }) : _width = refBox.xVector.length {
+    isPickable = false;
     setRenderer(_renderer);
     _renderer.setTexture(font.textureInfo);
 
@@ -217,6 +219,7 @@ class FskBitmapText extends Fsk2DRenderableObject with FskTransformableMixin, Fs
   }
 
   FskBitmapText.fromData(super.id,super.parentScene, super.refBox,SkinTextData textData, {FskShaderMaterial? shaderMaterial}) {
+    isPickable = false;
     setRenderer(_renderer);
     _width = refBox.xVector.length;
 

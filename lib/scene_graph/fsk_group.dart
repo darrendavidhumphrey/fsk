@@ -88,6 +88,13 @@ class FskGroup extends FskRenderableObject with FskTransformableMixin {
     children.add(node);
   }
 
+  /// Adds an entire list of child nodes to this group
+  void addNodes(List<FskSceneObject> nodes) {
+    for (final node in nodes) {
+      addNode(node);
+    }
+  }
+
   @override
   void draw(
       gpu.RenderPass renderPass,

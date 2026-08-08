@@ -41,6 +41,8 @@ class OrbitViewDelegate extends FskSceneNavigationDelegate {
     Vector3(0, 1, 0),
   )!;
 
+  // TODO: do picking
+
   @override
   void onPointerDown(PointerDownEvent event) {
     _pointers.add(event.pointer);

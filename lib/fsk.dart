@@ -10,7 +10,6 @@ export 'geometry/mesh_hit_tester.dart';
 export 'geometry/polyline.dart';
 export 'geometry/polyline_clipper.dart';
 export 'geometry/reference_box.dart';
-export 'geometry/solid.dart';
 export 'geometry/thick_lines.dart';
 export 'geometry/triangle_mesh.dart';
 
@@ -35,6 +34,7 @@ export 'scene_graph/fsk_stl_model.dart';
 export 'scene_graph/fsk_mesh.dart';
 export 'scene_graph/fsk_mesh_renderer.dart';
 export 'scene_graph/fsk_mesh_renderer_base.dart';
+export 'scene_graph/fsk_rectangular_solid.dart';
 export 'scene_graph/fsk_submesh.dart';
 export 'scene_graph/fsk_indexed_mesh.dart';
 export 'scene_graph/fsk_indexed_mesh_renderer.dart';
