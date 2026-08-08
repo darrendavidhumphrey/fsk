@@ -2,9 +2,10 @@ import 'package:fsk/fsk.dart';
 import 'package:vector_math/vector_math.dart' as vm;
 import 'package:flutter/material.dart' show Colors;
 
-/// A concrete implementation of a screen-space overlay that displays the view cube
+/// A concrete implementation of a screen-space overlay that displays an interactive view cube.
 class ViewCubeOverlay extends ScreenSpaceOverlay {
   final double cubeSize;
+
   ViewCubeOverlay({
     required super.id,
     required this.cubeSize,
@@ -20,180 +21,145 @@ class ViewCubeOverlay extends ScreenSpaceOverlay {
   @override
   Future<void> onInit() async {
     await super.onInit();
-    // Overlays typically don't use box-fit layout as they are explicitly sized
     useBoxFitLayout = false;
 
-    final double actualSize = cubeSize;
-
-    // Create a container group for the entire cube so we can rotate it easily
+    // Create a container group for the entire cube assembly.
     final cubeRoot = FskGroup('cube_root', this);
-    // Rotate 180 degrees around Y to correct orientation relative to OrbitViewDelegate
-    cubeRoot.transformable.rotation = vm.Vector3(0, vm.radians(180), vm.radians(180));
 
-    // Add both the cube geometry and the labels to the group
-    final solids = _generateViewCubeQuads(this, actualSize);
-    for (var solid in solids) {
-      solid.renderer.rebuildPipeline();
-      final uniforms = solid.uniforms as LightingUniforms;
-      uniforms.lightPos = vm.Vector3(200, 200, 200);
-      uniforms.kd = vm.Vector3(0.7, 0.7, 0.7);
-      uniforms.ld = vm.Vector3(1.0, 1.0, 1.0);
+    // Apply corrections to align with OrbitViewDelegate's native view.
+    // The delegate has a 180-degree flip baked in.
+    cubeRoot.transformable.rotation = vm.Vector3(
+      0,
+      vm.radians(180),
+      vm.radians(180),
+    );
 
-    }
-    cubeRoot.addNodes(solids);
-
-    final labels = _makeCubeLabels(this, actualSize);
-
-    cubeRoot.addNodes(labels);
-
+    // Generate geometry and labels.
+    cubeRoot.addNodes(_generateGeometry());
+    cubeRoot.addNodes(_generateLabels());
 
     addNode(cubeRoot);
 
-    // Focus the camera on the center of the cube
+    // Set a natural framing distance for the camera.
     if (navigationDelegate is OrbitViewDelegate) {
-      final delegate = navigationDelegate as OrbitViewDelegate;
-      delegate.setViewDistance(actualSize * 2.5);
+      (navigationDelegate as OrbitViewDelegate).setViewDistance(cubeSize * 2.5);
     }
   }
-}
 
-/// Generates the structure of cubes and rectangular solids in standard RH space.
-List<FskRectangularSolid> _generateViewCubeQuads(
-    FskSceneBase parentScene, double totalSize) {
-  final List<FskRectangularSolid> solids = [];
-  final double halfTotalSize = totalSize / 2.0;
-  final double cornerSize = totalSize / 4.0;
-  final double centralSize = totalSize - (2 * cornerSize);
-  final double edgeLength = centralSize;
-  final double halfCornerSize = cornerSize / 2.0;
-  final double centerPatchOffset = halfTotalSize - (cornerSize / 2.0);
+  List<FskRectangularSolid> _generateGeometry() {
+    final List<FskRectangularSolid> solids = [];
+    final double halfSize = cubeSize / 2.0;
+    final double cornerSize = cubeSize / 4.0;
+    final double midSize = cubeSize - (2 * cornerSize);
+    final double cornerOffset = halfSize - (cornerSize / 2.0);
 
-  // --- 1. Central Solids (Faces) ---
-  solids.add(FskRectangularSolid.rectangular(
-    scene: parentScene, center: vm.Vector3(centerPatchOffset, 0, 0),
-    dimensions: vm.Vector3(cornerSize, edgeLength, edgeLength), id: 'Face RIGHT',
-  ));
-  solids.add(FskRectangularSolid.rectangular(
-    scene: parentScene, center: vm.Vector3(-centerPatchOffset, 0, 0),
-    dimensions: vm.Vector3(cornerSize, edgeLength, edgeLength), id: 'Face LEFT',
-  ));
-  solids.add(FskRectangularSolid.rectangular(
-    scene: parentScene, center: vm.Vector3(0, centerPatchOffset, 0),
-    dimensions: vm.Vector3(edgeLength, cornerSize, edgeLength), id: 'Face TOP',
-  ));
-  solids.add(FskRectangularSolid.rectangular(
-    scene: parentScene, center: vm.Vector3(0, -centerPatchOffset, 0),
-    dimensions: vm.Vector3(edgeLength, cornerSize, edgeLength), id: 'Face BOTTOM',
-  ));
-  solids.add(FskRectangularSolid.rectangular(
-    scene: parentScene, center: vm.Vector3(0, 0, centerPatchOffset),
-    dimensions: vm.Vector3(edgeLength, edgeLength, cornerSize), id: 'Face FRONT',
-  ));
-  solids.add(FskRectangularSolid.rectangular(
-    scene: parentScene, center: vm.Vector3(0, 0, -centerPatchOffset),
-    dimensions: vm.Vector3(edgeLength, edgeLength, cornerSize), id: 'Face BACK',
-  ));
+    // 1. Central Face Segments
+    final faceData = [
+      ('RIGHT', vm.Vector3(cornerOffset, 0, 0), vm.Vector3(cornerSize, midSize, midSize)),
+      ('LEFT', vm.Vector3(-cornerOffset, 0, 0), vm.Vector3(cornerSize, midSize, midSize)),
+      ('TOP', vm.Vector3(0, cornerOffset, 0), vm.Vector3(midSize, cornerSize, midSize)),
+      ('BOTTOM', vm.Vector3(0, -cornerOffset, 0), vm.Vector3(midSize, cornerSize, midSize)),
+      ('FRONT', vm.Vector3(0, 0, cornerOffset), vm.Vector3(midSize, midSize, cornerSize)),
+      ('BACK', vm.Vector3(0, 0, -cornerOffset), vm.Vector3(midSize, midSize, cornerSize)),
+    ];
 
-  // --- 2. Corner Cubes ---
-  for (int i = 0; i < 8; i++) {
-    final double xSign = (i & 1) == 0 ? -1.0 : 1.0;
-    final double ySign = (i & 2) == 0 ? -1.0 : 1.0;
-    final double zSign = (i & 4) == 0 ? -1.0 : 1.0;
-    solids.add(FskRectangularSolid.cube(
-      scene: parentScene, center: vm.Vector3(xSign * (halfTotalSize - halfCornerSize), ySign * (halfTotalSize - halfCornerSize), zSign * (halfTotalSize - halfCornerSize)),
-      size: cornerSize, id: 'Corner $i',
-    ));
+    for (final data in faceData) {
+      solids.add(_createSolid('${data.$1}_solid', data.$2, data.$3));
+    }
+
+    // 2. Corner Cube Segments (8 combinations)
+    for (int i = 0; i < 8; i++) {
+      final pos = vm.Vector3(
+        (i & 1 == 0 ? -1 : 1) * cornerOffset,
+        (i & 2 == 0 ? -1 : 1) * cornerOffset,
+        (i & 4 == 0 ? -1 : 1) * cornerOffset,
+      );
+      solids.add(FskRectangularSolid.cube(
+        id: 'Corner_$i',
+        scene: this,
+        center: pos,
+        size: cornerSize,
+      ));
+    }
+
+    // 3. Edge Connector Segments (12 segments)
+    final edgeDims = [
+      vm.Vector3(midSize, cornerSize, cornerSize), // X-parallel
+      vm.Vector3(cornerSize, midSize, cornerSize), // Y-parallel
+      vm.Vector3(cornerSize, cornerSize, midSize), // Z-parallel
+    ];
+
+    for (int axis = 0; axis < 3; axis++) {
+      for (int i = 0; i < 4; i++) {
+        final s1 = (i & 1 == 0 ? -1 : 1) * cornerOffset;
+        final s2 = (i & 2 == 0 ? -1 : 1) * cornerOffset;
+        
+        vm.Vector3 pos;
+        if (axis == 0) {
+          pos = vm.Vector3(0, s1, s2);
+        } else if (axis == 1) {
+          pos = vm.Vector3(s1, 0, s2);
+        } else {
+          pos = vm.Vector3(s1, s2, 0);
+        }
+
+        solids.add(_createSolid('Edge_${axis}_$i', pos, edgeDims[axis]));
+      }
+    }
+
+    // Configure all solids with consistent shading.
+    for (final solid in solids) {
+      solid.renderer.rebuildPipeline();
+      final u = solid.uniforms as LightingUniforms;
+      u.lightPos = vm.Vector3(200, 200, 200);
+      u.kd = vm.Vector3(0.7, 0.7, 0.7);
+      u.ld = vm.Vector3(1.0, 1.0, 1.0);
+    }
+
+    return solids;
   }
 
-  // --- 3. Edge Solids ---
-  final double edgeOffset = halfTotalSize - halfCornerSize;
-  // Edges parallel to X
-  for (int i = 0; i < 4; i++) {
-    final double ySign = (i & 1) == 0 ? -1.0 : 1.0;
-    final double zSign = (i & 2) == 0 ? -1.0 : 1.0;
-    solids.add(FskRectangularSolid.rectangular(
-      scene: parentScene, center: vm.Vector3(0, ySign * edgeOffset, zSign * edgeOffset),
-      dimensions: vm.Vector3(edgeLength, cornerSize, cornerSize), id: 'EdgeX $i',
-    ));
-  }
-  // Edges parallel to Y
-  for (int i = 0; i < 4; i++) {
-    final double xSign = (i & 1) == 0 ? -1.0 : 1.0;
-    final double zSign = (i & 2) == 0 ? -1.0 : 1.0;
-    solids.add(FskRectangularSolid.rectangular(
-      scene: parentScene, center: vm.Vector3(xSign * edgeOffset, 0, zSign * edgeOffset),
-      dimensions: vm.Vector3(cornerSize, edgeLength, cornerSize), id: 'EdgeY $i',
-    ));
-  }
-  // Edges parallel to Z
-  for (int i = 0; i < 4; i++) {
-    final double xSign = (i & 1) == 0 ? -1.0 : 1.0;
-    final double ySign = (i & 2) == 0 ? -1.0 : 1.0;
-    solids.add(FskRectangularSolid.rectangular(
-      scene: parentScene, center: vm.Vector3(xSign * edgeOffset, ySign * edgeOffset, 0),
-      dimensions: vm.Vector3(cornerSize, cornerSize, edgeLength), id: 'EdgeZ $i',
-    ));
+  FskRectangularSolid _createSolid(String name, vm.Vector3 center, vm.Vector3 dims) {
+    return FskRectangularSolid.rectangular(
+      id: name,
+      scene: this,
+      center: center,
+      dimensions: dims,
+    );
   }
 
-  return solids;
-}
+  List<FskBitmapText> _generateLabels() {
+    final double dist = cubeSize / 2 + 0.1;
+    final double width = cubeSize * (2 / 3);
+    final double h = width / 2;
+    final font = BitmapFontManager().defaultFont!;
 
-List<FskBitmapText> _makeCubeLabels(FskSceneBase parentScene, double cubeSize) {
-  final double textDistance = cubeSize / 2 + 0.1;
-  final double textWidth = cubeSize * (2 / 3);
-  final double h = textWidth / 2;
-  final font = BitmapFontManager().defaultFont!;
+    final List<FskBitmapText> labels = [];
 
-  List<FskBitmapText> cubeLabels = [];
+    // Helper to define face orientation: Label, Origin, X-Axis, Y-Axis, Normal
+    void addLabel(String text, vm.Vector3 origin, vm.Vector3 x, vm.Vector3 y, vm.Vector3 n) {
+      labels.add(FskBitmapText(
+        '${text}_text', this,
+        ReferenceBox(origin, x, y, n),
+        font: font, text: text,
+      ));
+    }
 
-  // FRONT (+Z)
-  cubeLabels.add(FskBitmapText(
-    "FRONT", parentScene,
-    ReferenceBox(vm.Vector3(-h, -h, textDistance), vm.Vector3(textWidth, 0, 0), vm.Vector3(0, textWidth, 0), vm.Vector3(0, 0, 1)),
-    font: font, text: "FRONT",
-  ));
+    addLabel("FRONT", vm.Vector3(-h, -h, dist), vm.Vector3(width, 0, 0), vm.Vector3(0, width, 0), vm.Vector3(0, 0, 1));
+    addLabel("BACK", vm.Vector3(h, -h, -dist), vm.Vector3(-width, 0, 0), vm.Vector3(0, width, 0), vm.Vector3(0, 0, -1));
+    addLabel("TOP", vm.Vector3(-h, dist, h), vm.Vector3(width, 0, 0), vm.Vector3(0, 0, -width), vm.Vector3(0, 1, 0));
+    addLabel("BOTTOM", vm.Vector3(-h, -dist, -h), vm.Vector3(width, 0, 0), vm.Vector3(0, 0, width), vm.Vector3(0, -1, 0));
+    addLabel("RIGHT", vm.Vector3(dist, -h, h), vm.Vector3(0, 0, -width), vm.Vector3(0, width, 0), vm.Vector3(1, 0, 0));
+    addLabel("LEFT", vm.Vector3(-dist, -h, -h), vm.Vector3(0, 0, width), vm.Vector3(0, width, 0), vm.Vector3(-1, 0, 0));
 
-  // BACK (-Z)
-  cubeLabels.add(FskBitmapText(
-    "BACK", parentScene,
-    ReferenceBox(vm.Vector3(h, -h, -textDistance), vm.Vector3(-textWidth, 0, 0), vm.Vector3(0, textWidth, 0), vm.Vector3(0, 0, -1)),
-    font: font, text: "BACK",
-  ));
+    for (final label in labels) {
+      label.textColor = Colors.black;
+      label.horizontalJustification = TextHorizontalJustification.center;
+      label.verticalJustification = TextVerticalJustification.center;
+      label.setDepthState(depthTestEnabled: true, depthWriteEnabled: false);
+      label.renderer.rebuildPipeline();
+    }
 
-  // TOP (+Y)
-  cubeLabels.add(FskBitmapText(
-    "TOP", parentScene,
-    ReferenceBox(vm.Vector3(-h, textDistance, h), vm.Vector3(textWidth, 0, 0), vm.Vector3(0, 0, -textWidth), vm.Vector3(0, 1, 0)),
-    font: font, text: "TOP",
-  ));
-
-  // BOTTOM (-Y)
-  cubeLabels.add(FskBitmapText(
-    "BOTTOM", parentScene,
-    ReferenceBox(vm.Vector3(-h, -textDistance, -h), vm.Vector3(textWidth, 0, 0), vm.Vector3(0, 0, textWidth), vm.Vector3(0, -1, 0)),
-    font: font, text: "BOTTOM",
-  ));
-
-  // RIGHT (+X)
-  cubeLabels.add(FskBitmapText(
-    "RIGHT", parentScene,
-    ReferenceBox(vm.Vector3(textDistance, -h, h), vm.Vector3(0, 0, -textWidth), vm.Vector3(0, textWidth, 0), vm.Vector3(1, 0, 0)),
-    font: font, text: "RIGHT",
-  ));
-
-  // LEFT (-X)
-  cubeLabels.add(FskBitmapText(
-    "LEFT", parentScene,
-    ReferenceBox(vm.Vector3(-textDistance, -h, -h), vm.Vector3(0, 0, textWidth), vm.Vector3(0, textWidth, 0), vm.Vector3(-1, 0, 0)),
-    font: font, text: "LEFT",
-  ));
-
-  for (var label in cubeLabels) {
-    label.textColor = Colors.black;
-    label.horizontalJustification = TextHorizontalJustification.center;
-    label.verticalJustification = TextVerticalJustification.center;
-    label.setDepthState(depthTestEnabled: true, depthWriteEnabled: false);
+    return labels;
   }
-
-  return cubeLabels;
 }
