@@ -57,14 +57,13 @@ class PbrUniforms extends BaseUniforms {
 
   @override
   Float32List serializeFragmentData() {
-    final fragmentData = Float32List(20);
-    final Vector3 lp = this[kLightPosKey] as Vector3;
-    fragmentData[0] = lp.x; fragmentData[1] = lp.y; fragmentData[2] = lp.z; fragmentData[3] = 1.0;
-    final Vector3 bcf = this[kBaseColorFactorKey] as Vector3;
-    fragmentData[4] = bcf.x; fragmentData[5] = bcf.y; fragmentData[6] = bcf.z; fragmentData[7] = 1.0;
-    fragmentData[8] = (this[kRoughnessFactorKey] as num).toDouble();
-    fragmentData[9] = (this[kMetallicFactorKey] as num).toDouble();
-    fragmentData[10] = (this[kDebugModeKey] as num).toDouble();
+    final fragmentData = Float32List(BaseUniforms.kFragmentDataFloatCount);
+    int offset = 0;
+    offset = packVector3(fragmentData, offset, valuesMap[kLightPosKey]);
+    offset = packVector3(fragmentData, offset, valuesMap[kBaseColorFactorKey]);
+    offset = packDouble(fragmentData, offset, valuesMap[kRoughnessFactorKey]);
+    offset = packDouble(fragmentData, offset, valuesMap[kMetallicFactorKey]);
+    offset = packDouble(fragmentData, offset, valuesMap[kDebugModeKey]);
     return fragmentData;
   }
 }

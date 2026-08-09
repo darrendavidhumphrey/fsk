@@ -16,9 +16,9 @@ class LightingUniforms extends BaseUniforms {
   String get fragmentBlockName => 'LightingFragmentUniforms';
 
   LightingUniforms({super.vertexShader, super.fragmentShader}) {
-    this[_kKdKey] = Vector3(1.0, 1.0, 1.0);
+    this[_kKdKey] = const Color(0xFFFFFFFF);
     this[_kLdKey] = Vector3(1.0, 1.0, 1.0);
-    this[_kLightPosKey] = Vector3(0.0, 0.0, 0.0);
+    this[_kLightPosKey] = Vector3.zero();
     this[_kWorldLightPosKey] = Vector3(200.0, 200.0, 200.0);
   }
 
@@ -45,36 +45,11 @@ class LightingUniforms extends BaseUniforms {
 
   @override
   Float32List serializeFragmentData() {
-    final Float32List fragmentData = Float32List(20);
-
-    final dynamic kdVal = this[_kKdKey];
-    if (kdVal is Color) {
-      fragmentData[0] = kdVal.r;
-      fragmentData[1] = kdVal.g;
-      fragmentData[2] = kdVal.b;
-    } else if (kdVal is Vector3) {
-      fragmentData[0] = kdVal.x;
-      fragmentData[1] = kdVal.y;
-      fragmentData[2] = kdVal.z;
-    }
-    fragmentData[3] = 1.0; 
-
-    final dynamic ldVal = this[_kLdKey];
-    if (ldVal is Vector3) {
-      fragmentData[4] = ldVal.x;
-      fragmentData[5] = ldVal.y;
-      fragmentData[6] = ldVal.z;
-    }
-    fragmentData[7] = 1.0;
-
-    final dynamic lpVal = this[_kLightPosKey];
-    if (lpVal is Vector3) {
-      fragmentData[8] = lpVal.x;
-      fragmentData[9] = lpVal.y;
-      fragmentData[10] = lpVal.z;
-    }
-    fragmentData[11] = 1.0;
-
+    final Float32List fragmentData = Float32List(BaseUniforms.kFragmentDataFloatCount);
+    int offset = 0;
+    offset = packVector3(fragmentData, offset, valuesMap[_kKdKey]);
+    offset = packVector3(fragmentData, offset, valuesMap[_kLdKey]);
+    offset = packVector3(fragmentData, offset, valuesMap[_kLightPosKey]);
     return fragmentData;
   }
 }

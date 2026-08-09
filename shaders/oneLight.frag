@@ -8,8 +8,8 @@ layout(location = 2) in vec3 vEyeCoords;
 // Output Attachment Destination
 layout(location = 0) out vec4 FragColor;
 
-// Uniform Block for configuration properties (Binding 1, Set 0)
-layout(std140, set = 0, binding = 1) uniform FragmentUniforms {
+// Unified 32-float (128-byte) block size for single-pass stability.
+layout(std140, set = 0, binding = 1) uniform OneLightFragmentUniforms {
     vec4 uLightPos;          // Index 0-3
     vec4 uAmbientLight;      // Index 4-7
     vec4 uDiffuseLight;      // Index 8-11
@@ -18,8 +18,10 @@ layout(std140, set = 0, binding = 1) uniform FragmentUniforms {
     vec4 uMaterialDiffuse;   // Index 20-23
     vec4 uMaterialSpecular;  // Index 24-27
     vec4 uConfig;            // Index 28-31
-// uConfig.x = uMaterialShininess
 } fragUniforms;
+
+// Optional: Dummy sampler to ensure binding layout consistency.
+layout(set = 0, binding = 2) uniform sampler2D uSampler;
 
 void main() {
     // 1. Calculate Lighting (Phong Model)

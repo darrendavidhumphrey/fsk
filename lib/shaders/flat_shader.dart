@@ -24,8 +24,8 @@ class FlatUniforms extends BaseUniforms {
 
   @override
   Float32List serializeFragmentData() {
-    final Float32List fragmentData = Float32List(20);
-    packColor(fragmentData, 0, (this[_kModulateColor] as Color?) ?? const Color(0xFFFFFFFF));
+    final Float32List fragmentData = Float32List(BaseUniforms.kFragmentDataFloatCount);
+    packColor(fragmentData, 0, valuesMap[_kModulateColor]);
     return fragmentData;
   }
 }

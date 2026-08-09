@@ -8,13 +8,12 @@ layout(location = 3) in vec3 vTangent;
 layout(location = 0) out vec4 FragColor;
 
 // Uniform Block for configuration properties (Binding 1, Set 0)
-// Padded to 20 floats (80 bytes) to ensure absolute stability in single-pass rendering.
+// Padded to 32 floats (128 bytes) for single-pass stability.
 layout(std140, set = 0, binding = 1) uniform PbrFragmentUniforms {
     vec4 uLightPos;        // 0-3
     vec4 uBaseColorFactor; // 4-7
     vec4 uParams;          // 8-11 (x: roughness, y: metallic, z: debugMode)
-    vec4 uPadding1;        // 12-15
-    vec4 uPadding2;        // 16-19
+    vec4 uPadding[5];      // 12-31
 } fragUniforms;
 
 layout(set = 0, binding = 2) uniform sampler2D uBaseColorMap;

@@ -39,6 +39,14 @@ abstract class BaseUniforms extends ChangeNotifier with LoggableClass {
   // Unified string-accessible data registry
   final Map<String, dynamic> valuesMap = {};
 
+  /// The fixed size of the fragment uniform block (Binding 1).
+  /// This must match the size defined in all GLSL fragment shaders (32 floats / 128 bytes).
+  static const int kFragmentDataFloatCount = 32;
+
+  /// The fixed size of the vertex uniform block (Binding 0).
+  /// This contains two 4x4 matrices (32 floats / 128 bytes).
+  static const int kVertexDataFloatCount = 32;
+
   BaseUniforms({this.vertexShader, this.fragmentShader});
 
   /// Deep copies non-shader state from another uniform block.
@@ -76,14 +84,63 @@ abstract class BaseUniforms extends ChangeNotifier with LoggableClass {
   /// Override this in subclasses to apply material properties to specific uniforms.
   void applyMaterial(GlMaterial material) {}
 
-  /// Utility method to pack a Flutter color safely into a float array.
-  /// Ensures components are normalized to 0.0-1.0 range.
-  int packColor(Float32List targetList, int offset, Color color) {
-    // Explicitly using double literals to avoid any integer division issues.
-    targetList[offset++] = color.r;
-    targetList[offset++] = color.g;
-    targetList[offset++] = color.b;
-    targetList[offset++] = color.a;
+  /// Utility method to pack a color safely into a float array.
+  /// Handles Color and Vector4 types. Ensures normalized 0.0-1.0 range.
+  int packColor(Float32List targetList, int offset, dynamic colorVal) {
+    if (colorVal is Color) {
+      targetList[offset++] = colorVal.r;
+      targetList[offset++] = colorVal.g;
+      targetList[offset++] = colorVal.b;
+      targetList[offset++] = colorVal.a;
+    } else if (colorVal is Vector4) {
+      targetList[offset++] = colorVal.x;
+      targetList[offset++] = colorVal.y;
+      targetList[offset++] = colorVal.z;
+      targetList[offset++] = colorVal.w;
+    } else {
+      // Fallback to white
+      targetList[offset++] = 1.0;
+      targetList[offset++] = 1.0;
+      targetList[offset++] = 1.0;
+      targetList[offset++] = 1.0;
+    }
+    return offset;
+  }
+
+  /// Packs a Vector3 into a 4-float slot (vec4 in shader) with w=1.0.
+  /// Handles Color, Vector3, and Vector4.
+  int packVector3(Float32List targetList, int offset, dynamic value) {
+    if (value is Color) {
+      targetList[offset++] = value.r;
+      targetList[offset++] = value.g;
+      targetList[offset++] = value.b;
+    } else if (value is Vector3) {
+      targetList[offset++] = value.x;
+      targetList[offset++] = value.y;
+      targetList[offset++] = value.z;
+    } else if (value is Vector4) {
+      targetList[offset++] = value.x;
+      targetList[offset++] = value.y;
+      targetList[offset++] = value.z;
+    } else {
+      // Fallback to neutral grey
+      targetList[offset++] = 0.5;
+      targetList[offset++] = 0.5;
+      targetList[offset++] = 0.5;
+    }
+    targetList[offset++] = 1.0; // w component
+    return offset;
+  }
+
+  /// Packs a boolean as a 1.0 (true) or 0.0 (false) float.
+  int packBool(Float32List targetList, int offset, dynamic value) {
+    targetList[offset++] = (value is bool && value) ? 1.0 : 0.0;
+    return offset;
+  }
+
+  /// Packs a numeric value as a double float.
+  int packDouble(Float32List targetList, int offset, dynamic value) {
+    targetList[offset++] = (value as num? ?? 0.0).toDouble();
     return offset;
   }
 
@@ -103,7 +160,7 @@ abstract class BaseUniforms extends ChangeNotifier with LoggableClass {
     // =========================================================================
     // 1. REUSABLE VERTEX BLOCK WRITER
     // =========================================================================
-    final Float32List vertexData = Float32List(32);
+    final Float32List vertexData = Float32List(kVertexDataFloatCount);
     vertexData.setAll(0, mvMatrixLocal.storage);
     vertexData.setAll(16, pMatrixLocal.storage);
 

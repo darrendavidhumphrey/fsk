@@ -3,7 +3,6 @@ import 'dart:ui';
 import 'base_uniforms.dart';
 
 class GridUniforms extends BaseUniforms {
-  // --- Dictionary Key Constants ---
   static const String _kMajorLineColorKey = 'majorLineColor';
   static const String _kMinorLineColorKey = 'minorLineColor';
   static const String _kMmLineColorKey = 'mmLineColor';
@@ -28,14 +27,13 @@ class GridUniforms extends BaseUniforms {
     this[_kResolutionWidthKey] = 1000.0;
     this[_kResolutionHeightKey] = 1000.0;
     this[_kScaleKey] = 1.0;
-    this[_kMajorLineSpacingMMKey] = 10.0;
+    this[_kMajorLineSpacingMMKey] = 25.0;
     this[_kMinorLineSpacingMMKey] = 5.0;
-    this[_kMajorLineThicknessKey] = 1.5;
-    this[_kMinorLineThicknessKey] = 1.0;
-    this[_kMmLineThicknessKey] = 0.5;
+    this[_kMajorLineThicknessKey] = 0.25;
+    this[_kMinorLineThicknessKey] = 0.1;
+    this[_kMmLineThicknessKey] = 0.05;
   }
 
-  // --- Fragment Visual Setters ---
   set majorLineColor(Color val) => this[_kMajorLineColorKey] = val;
   set minorLineColor(Color val) => this[_kMinorLineColorKey] = val;
   set mmLineColor(Color val) => this[_kMmLineColorKey] = val;
@@ -61,22 +59,19 @@ class GridUniforms extends BaseUniforms {
 
   @override
   Float32List serializeFragmentData() {
-    final Float32List fragmentData = Float32List(20);
+    final Float32List fragmentData = Float32List(BaseUniforms.kFragmentDataFloatCount);
     int offset = 0;
-
-    offset = packColor(fragmentData, offset, this[_kMajorLineColorKey] as Color);
-    offset = packColor(fragmentData, offset, this[_kMinorLineColorKey] as Color);
-    offset = packColor(fragmentData, offset, this[_kMmLineColorKey] as Color);
-
-    fragmentData[offset++] = (this[_kResolutionWidthKey] ?? 1000.0) as double;
-    fragmentData[offset++] = (this[_kResolutionHeightKey] ?? 1000.0) as double;
-    fragmentData[offset++] = (this[_kScaleKey] ?? 1.0) as double;
-    fragmentData[offset++] = (this[_kMajorLineSpacingMMKey] ?? 10.0) as double;
-    fragmentData[offset++] = (this[_kMinorLineSpacingMMKey] ?? 5.0) as double;
-    fragmentData[offset++] = (this[_kMajorLineThicknessKey] ?? 1.0) as double;
-    fragmentData[offset++] = (this[_kMinorLineThicknessKey] ?? 0.5) as double;
-    fragmentData[offset++] = (this[_kMmLineThicknessKey] ?? 0.1) as double;
-
+    offset = packColor(fragmentData, offset, valuesMap[_kMajorLineColorKey]);
+    offset = packColor(fragmentData, offset, valuesMap[_kMinorLineColorKey]);
+    offset = packColor(fragmentData, offset, valuesMap[_kMmLineColorKey]);
+    offset = packDouble(fragmentData, offset, valuesMap[_kResolutionWidthKey]);
+    offset = packDouble(fragmentData, offset, valuesMap[_kResolutionHeightKey]);
+    offset = packDouble(fragmentData, offset, valuesMap[_kScaleKey]);
+    offset = packDouble(fragmentData, offset, valuesMap[_kMajorLineSpacingMMKey]);
+    offset = packDouble(fragmentData, offset, valuesMap[_kMinorLineSpacingMMKey]);
+    offset = packDouble(fragmentData, offset, valuesMap[_kMajorLineThicknessKey]);
+    offset = packDouble(fragmentData, offset, valuesMap[_kMinorLineThicknessKey]);
+    offset = packDouble(fragmentData, offset, valuesMap[_kMmLineThicknessKey]);
     return fragmentData;
   }
 }

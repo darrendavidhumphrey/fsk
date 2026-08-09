@@ -5,7 +5,6 @@ import 'base_uniforms.dart';
 import 'materials.dart';
 
 class OneLightUniforms extends BaseUniforms {
-  // --- Dictionary Key Constants ---
   static const String kLightPosKey = 'uLightPos';
   static const String kAmbientLightKey = 'uAmbientLight';
   static const String kDiffuseLightKey = 'uDiffuseLight';
@@ -13,28 +12,24 @@ class OneLightUniforms extends BaseUniforms {
   static const String kMaterialAmbientKey = 'uMaterialAmbient';
   static const String kMaterialDiffuseKey = 'uMaterialDiffuse';
   static const String kMaterialSpecularKey = 'uMaterialSpecular';
-  static const String kMaterialShininessKey = 'uMaterialShininess';
+  static const String kMaterialShininessKey = 'kMaterialShininess';
 
-  // --- Default Layout Value Constants ---
-  static final Vector3 _kDefaultLightPos = Vector3(100.0, 100.0, 200.0);
-  static const Color _kDefaultLightColor = Color(0xFFFFFFFF);
-  static const double _kDefaultShininess = 32.0;
-
-  // --- Buffer Structure Allocation Constants ---
-  static const int _kFragmentDataFloatCount = 32;
+  @override
+  String get vertexBlockName => 'OneLightVertexUniforms';
+  @override
+  String get fragmentBlockName => 'OneLightFragmentUniforms';
 
   OneLightUniforms({super.vertexShader, super.fragmentShader}) {
-    this[kLightPosKey] = _kDefaultLightPos;
-    this[kAmbientLightKey] = _kDefaultLightColor;
-    this[kDiffuseLightKey] = _kDefaultLightColor;
-    this[kSpecularLightKey] = _kDefaultLightColor;
-    this[kMaterialAmbientKey] = _kDefaultLightColor;
-    this[kMaterialDiffuseKey] = _kDefaultLightColor;
-    this[kMaterialSpecularKey] = _kDefaultLightColor;
-    this[kMaterialShininessKey] = _kDefaultShininess;
+    this[kLightPosKey] = Vector3(100.0, 100.0, 200.0);
+    this[kAmbientLightKey] = const Color(0xFFFFFFFF);
+    this[kDiffuseLightKey] = const Color(0xFFFFFFFF);
+    this[kSpecularLightKey] = const Color(0xFFFFFFFF);
+    this[kMaterialAmbientKey] = const Color(0xFFFFFFFF);
+    this[kMaterialDiffuseKey] = const Color(0xFFFFFFFF);
+    this[kMaterialSpecularKey] = const Color(0xFFFFFFFF);
+    this[kMaterialShininessKey] = 32.0;
   }
 
-  // --- Type-Safe Public Setters ---
   set lightPos(Vector3 val) => this[kLightPosKey] = val;
   set ambientLight(Color val) => this[kAmbientLightKey] = val;
   set diffuseLight(Color val) => this[kDiffuseLightKey] = val;
@@ -46,39 +41,24 @@ class OneLightUniforms extends BaseUniforms {
 
   @override
   void applyMaterial(GlMaterial material) {
-    setValueSilent(kMaterialAmbientKey, material.ambient);
-    setValueSilent(kMaterialDiffuseKey, material.diffuse);
-    setValueSilent(kMaterialSpecularKey, material.specular);
-    setValueSilent(kMaterialShininessKey, material.shininess);
+    this[kMaterialAmbientKey] = material.ambient;
+    this[kMaterialDiffuseKey] = material.diffuse;
+    this[kMaterialSpecularKey] = material.specular;
+    this[kMaterialShininessKey] = material.shininess;
   }
 
   @override
   Float32List serializeFragmentData() {
-    final Float32List fragmentData = Float32List(_kFragmentDataFloatCount);
-
-    // 0-3: uLightPos (vec4)
-    final Vector3 lp = this[kLightPosKey] as Vector3;
-    fragmentData[0] = lp.x;
-    fragmentData[1] = lp.y;
-    fragmentData[2] = lp.z;
-    fragmentData[3] = 1.0;
-
-    // 4-7: uAmbientLight (vec4)
-    packColor(fragmentData, 4, this[kAmbientLightKey] as Color);
-    // 8-11: uDiffuseLight (vec4)
-    packColor(fragmentData, 8, this[kDiffuseLightKey] as Color);
-    // 12-15: uSpecularLight (vec4)
-    packColor(fragmentData, 12, this[kSpecularLightKey] as Color);
-    // 16-19: uMaterialAmbient (vec4)
-    packColor(fragmentData, 16, this[kMaterialAmbientKey] as Color);
-    // 20-23: uMaterialDiffuse (vec4)
-    packColor(fragmentData, 20, this[kMaterialDiffuseKey] as Color);
-    // 24-27: uMaterialSpecular (vec4)
-    packColor(fragmentData, 24, this[kMaterialSpecularKey] as Color);
-
-    // 28-31: uConfig (vec4)
-    fragmentData[28] = (this[kMaterialShininessKey] as num).toDouble();
-
+    final Float32List fragmentData = Float32List(BaseUniforms.kFragmentDataFloatCount);
+    int offset = 0;
+    offset = packVector3(fragmentData, offset, valuesMap[kLightPosKey]);
+    offset = packColor(fragmentData, offset, valuesMap[kAmbientLightKey]);
+    offset = packColor(fragmentData, offset, valuesMap[kDiffuseLightKey]);
+    offset = packColor(fragmentData, offset, valuesMap[kSpecularLightKey]);
+    offset = packColor(fragmentData, offset, valuesMap[kMaterialAmbientKey]);
+    offset = packColor(fragmentData, offset, valuesMap[kMaterialDiffuseKey]);
+    offset = packColor(fragmentData, offset, valuesMap[kMaterialSpecularKey]);
+    offset = packDouble(fragmentData, offset, valuesMap[kMaterialShininessKey]);
     return fragmentData;
   }
 }

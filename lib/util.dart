@@ -1,5 +1,4 @@
 import 'dart:math';
-import 'dart:typed_data';
 import 'dart:ui';
 import 'package:vector_math/vector_math.dart';
 
@@ -249,13 +248,4 @@ Vector4 parseVector4(String value) {
 
 Vector4 colorToVector(Color color) {
   return Vector4(color.r, color.g, color.b, color.a);
-}
-
-// Add a color into a uniform buffer as 4 floats (0.0 - 1.0)
-int packColor(Float32List targetList, int offset, Color color) {
-  targetList[offset++] = color.r;
-  targetList[offset++] = color.g;
-  targetList[offset++] = color.b;
-  targetList[offset++] = color.a;
-  return offset;
 }

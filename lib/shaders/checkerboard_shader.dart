@@ -3,44 +3,28 @@ import 'dart:ui';
 import 'base_uniforms.dart';
 
 class CheckerBoardUniforms extends BaseUniforms {
-  // --- Dictionary Key Constants ---
   static const String _kPatternColor1Key = 'patternColor1';
   static const String _kPatternColor2Key = 'patternColor2';
   static const String _kUseTextureKey = 'useTexture';
   static const String _kTextureMixKey = 'textureMix';
   static const String _kPatternScaleKey = 'patternScale';
 
-  // --- Default Layout Value Constants ---
-  static const Color _kDefaultPatternColor1 = Color(0xFFFFFFFF);
-  static const Color _kDefaultPatternColor2 = Color(0xFF000000);
-  static const bool _kDefaultUseTexture = false;
-  static const double _kDefaultTextureMix = 0.0;
-  static const double _kDefaultPatternScale = 1.0;
-
-  // --- Buffer Structure Allocation Constants ---
-  static const int _kFragmentDataFloatCount = 20;
-  static const int _kUseTextureBufferIndex = 8;
-  static const int _kTextureMixBufferIndex = 9;
-  static const int _kPatternScaleBufferIndex = 10;
-  static const int _kPaddingBufferIndex = 11;
-
-  static const double _kBooleanTrueValue = 1.0;
-  static const double _kBooleanFalseValue = 0.0;
-  static const double _kPaddingValue = 0.0;
+  @override
+  String get vertexBlockName => 'CheckerBoardVertexUniforms';
+  @override
+  String get fragmentBlockName => 'CheckerBoardFragmentUniforms';
 
   @override
   bool get hasSampler => true;
 
   CheckerBoardUniforms({super.vertexShader, super.fragmentShader}) {
-    // Establish initialization values inside the string data store
-    this[_kPatternColor1Key] = _kDefaultPatternColor1;
-    this[_kPatternColor2Key] = _kDefaultPatternColor2;
-    this[_kUseTextureKey] = _kDefaultUseTexture;
-    this[_kTextureMixKey] = _kDefaultTextureMix;
-    this[_kPatternScaleKey] = _kDefaultPatternScale;
+    this[_kPatternColor1Key] = const Color(0xFFFFFFFF);
+    this[_kPatternColor2Key] = const Color(0xFF000000);
+    this[_kUseTextureKey] = false;
+    this[_kTextureMixKey] = 0.0;
+    this[_kPatternScaleKey] = 1.0;
   }
 
-  // --- Type-Safe Public Setters ---
   set patternColor1(Color val) => this[_kPatternColor1Key] = val;
   set patternColor2(Color val) => this[_kPatternColor2Key] = val;
   set useTexture(bool val) => this[_kUseTextureKey] = val;
@@ -49,19 +33,13 @@ class CheckerBoardUniforms extends BaseUniforms {
 
   @override
   Float32List serializeFragmentData() {
-    final Float32List fragmentData = Float32List(_kFragmentDataFloatCount);
+    final Float32List fragmentData = Float32List(BaseUniforms.kFragmentDataFloatCount);
     int offset = 0;
-
-    // Pull from the map dynamically by constant name
-    offset = packColor(fragmentData, offset, this[_kPatternColor1Key] as Color);
-    offset = packColor(fragmentData, offset, this[_kPatternColor2Key] as Color);
-
-    final bool useTex = this[_kUseTextureKey] as bool;
-    fragmentData[_kUseTextureBufferIndex] = useTex ? _kBooleanTrueValue : _kBooleanFalseValue;
-    fragmentData[_kTextureMixBufferIndex] = (this[_kTextureMixKey] as num).toDouble();
-    fragmentData[_kPatternScaleBufferIndex] = (this[_kPatternScaleKey] as num).toDouble();
-    fragmentData[_kPaddingBufferIndex] = _kPaddingValue; // Struct alignment padding
-
+    offset = packColor(fragmentData, offset, valuesMap[_kPatternColor1Key]);
+    offset = packColor(fragmentData, offset, valuesMap[_kPatternColor2Key]);
+    offset = packBool(fragmentData, offset, valuesMap[_kUseTextureKey]);
+    offset = packDouble(fragmentData, offset, valuesMap[_kTextureMixKey]);
+    offset = packDouble(fragmentData, offset, valuesMap[_kPatternScaleKey]);
     return fragmentData;
   }
 }

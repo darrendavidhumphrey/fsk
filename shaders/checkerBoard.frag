@@ -6,17 +6,17 @@ layout(location = 0) in vec2 vTextureCoord;
 // Output Attachment Destination
 layout(location = 0) out vec4 FragColor;
 
-// Shifted to Binding 1 (Set 0) to avoid collisions with the Vertex block
-layout(std140, set = 0, binding = 1) uniform FragmentUniforms {
-    vec4 uPatternColor1;
-    vec4 uPatternColor2;
-    float uUseTexture;
-    float uTextureMix;
-    float uPatternScale;
-    float uPadding;
+// Unified 32-float (128-byte) block size for single-pass stability.
+layout(std140, set = 0, binding = 1) uniform CheckerBoardFragmentUniforms {
+    vec4 uPatternColor1; // 0-3
+    vec4 uPatternColor2; // 4-7
+    float uUseTexture;   // 8
+    float uTextureMix;   // 9
+    float uPatternScale; // 10
+    float uPaddingScalar;// 11
+    vec4 uPadding[5];    // 12-31
 } fragUniforms;
 
-// Shifted to Binding 2 (Set 0)
 layout(set = 0, binding = 2) uniform sampler2D uSampler;
 
 void main() {

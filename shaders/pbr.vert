@@ -20,7 +20,6 @@ void main(void) {
     vNormal = normalize(mat3(vertUniforms.uMVMatrix) * aVertexNormal);
     vTextureCoord = aTextureCoord;
 
-    // Robust tangent generation
     vec3 n = aVertexNormal;
     vec3 c1 = cross(n, vec3(0.0, 0.0, 1.0));
     vec3 c2 = cross(n, vec3(0.0, 1.0, 0.0));

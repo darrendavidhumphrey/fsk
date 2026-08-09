@@ -1,11 +1,9 @@
 #version 460 core
 
-// Match the layout definitions explicitly
 layout(location = 0) in vec3 aVertexPosition;
 layout(location = 1) in vec2 aTextureCoord;
 
-// Uniform Block (Binding 0, Set 0)
-layout(std140, set = 0, binding = 0) uniform VertexUniforms {
+layout(std140, set = 0, binding = 0) uniform BitmapTextVertexUniforms {
     mat4 uMVMatrix;
     mat4 uPMatrix;
 } vertUniforms;
