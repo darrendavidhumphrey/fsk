@@ -7,10 +7,14 @@ layout(location = 3) in vec3 vTangent;
 
 layout(location = 0) out vec4 FragColor;
 
-layout(std140, set = 0, binding = 1) uniform FragmentUniforms {
-    vec4 uLightPos;
-    vec4 uBaseColorFactor;
-    vec4 uParams; // x: roughness, y: metallic, z: debugMode
+// Uniform Block for configuration properties (Binding 1, Set 0)
+// Padded to 20 floats (80 bytes) to ensure absolute stability in single-pass rendering.
+layout(std140, set = 0, binding = 1) uniform PbrFragmentUniforms {
+    vec4 uLightPos;        // 0-3
+    vec4 uBaseColorFactor; // 4-7
+    vec4 uParams;          // 8-11 (x: roughness, y: metallic, z: debugMode)
+    vec4 uPadding1;        // 12-15
+    vec4 uPadding2;        // 16-19
 } fragUniforms;
 
 layout(set = 0, binding = 2) uniform sampler2D uBaseColorMap;
@@ -51,33 +55,27 @@ vec3 fresnelSchlick(float cosTheta, vec3 F0) {
 }
 
 void main() {
-    // 1. TBN / Normals (View Space)
     vec3 N = normalize(vNormal);
     vec3 T = normalize(vTangent);
     vec3 B = cross(N, T);
     mat3 TBN = mat3(T, B, N);
 
-    // Sample and unpack normal map
     vec3 tangentNormal = texture(uNormalMap, vTextureCoord).rgb * 2.0 - 1.0;
     vec3 worldNormal = normalize(TBN * tangentNormal);
 
-    // 2. Vectors
     vec3 V = normalize(-vEyeCoords);
     vec3 L = normalize(fragUniforms.uLightPos.xyz - vEyeCoords);
     vec3 H = normalize(V + L);
 
-    // 3. Material Properties
     vec4 albedo = texture(uBaseColorMap, vTextureCoord) * fragUniforms.uBaseColorFactor;
 
     vec4 mrSample = texture(uMetallicRoughnessMap, vTextureCoord);
     float roughness = mrSample.g * fragUniforms.uParams.x;
     float metallic = mrSample.b * fragUniforms.uParams.y;
 
-    // Fresnel reflection at zero incidence
     vec3 F0 = vec3(0.04);
     F0 = mix(F0, albedo.rgb, metallic);
 
-    // 4. Cook-Torrance BRDF
     float NDF = DistributionGGX(worldNormal, H, roughness);
     float G = GeometrySmith(worldNormal, V, L, roughness);
     vec3 F = fresnelSchlick(max(dot(H, V), 0.0), F0);
@@ -93,15 +91,10 @@ void main() {
     float NdotL = max(dot(worldNormal, L), 0.0);
     vec3 diffuse = kD * albedo.rgb / PI;
 
-    // Light intensity boost (x3)
     vec3 lo = (diffuse + specular) * NdotL * 3.0;
-
-    // Stronger ambient light base
     vec3 ambient = vec3(0.15) * albedo.rgb;
     vec3 color = ambient + lo;
 
-    // 5. Final Output: Exposure Tone Mapping & Gamma Correction
-    // Adjusted tone mapping to be less aggressive at lower intensities
     color = color / (color + vec3(1.0));
     color = pow(color, vec3(1.0/2.2));
 

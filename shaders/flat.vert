@@ -7,7 +7,7 @@ layout(location = 2) in vec3 aVertexNormal; // Fully preserved layout positionin
 layout(location = 3) in vec4 aVertexColor;
 
 // Uniform Block (Binding 0, Set 0)
-layout(std140, set = 0, binding = 0) uniform VertexUniforms {
+layout(std140, set = 0, binding = 0) uniform FlatVertexUniforms {
     mat4 uMVMatrix;
     mat4 uPMatrix;
 } vertUniforms;

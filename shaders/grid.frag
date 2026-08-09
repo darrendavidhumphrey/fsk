@@ -8,7 +8,7 @@ layout(location = 0) out vec4 fragColor;
 
 // Uniform Block Block for configuration properties (Binding 1, Set 0)
 // Structured strictly according to size to satisfy cross-platform std140 layout padding
-layout(std140, set = 0, binding = 1) uniform FragmentUniforms {
+layout(std140, set = 0, binding = 1) uniform GridFragmentUniforms {
 // 16-byte aligned parameters first
     vec4 u_majorLineColor;
     vec4 u_minorLineColor;
@@ -25,6 +25,9 @@ layout(std140, set = 0, binding = 1) uniform FragmentUniforms {
     float u_minorLineThickness;
     float u_mmLineThickness;
 } fragUniforms;
+
+// Optional: Dummy sampler to ensure binding layout consistency with other shaders in the same pass
+layout(set = 0, binding = 2) uniform sampler2D uSampler;
 
 float getCenteredLineAlpha(float pos, float spacing, float thickness, float fwidthVal) {
     // Adjust the position so the line's center is at 0.0 in a [-spacing/2, spacing/2] range
@@ -75,6 +78,6 @@ void main() {
         discard;
     }
 
-    // Apply standard pre-multiplied alpha formatting so transparency blends with underlying scene nodes
-    fragColor = vec4(color.rgb * color.a, color.a);
+    // Output straight color for use with SourceAlpha blending.
+    fragColor = color;
 }

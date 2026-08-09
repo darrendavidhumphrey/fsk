@@ -5,7 +5,7 @@ layout(location = 0) in vec3 aVertexPosition;
 layout(location = 1) in vec2 aTextureCoord;
 
 // Uniform Block (Binding 0, Set 0)
-layout(std140, set = 0, binding = 0) uniform QuadVertexUniforms {
+layout(std140, set = 0, binding = 0) uniform SimpleTextureVertexUniforms {
     mat4 uMVMatrix;
     mat4 uPMatrix;
 } vertUniforms;
