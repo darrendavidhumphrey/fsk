@@ -77,6 +77,11 @@ class FskQuadsRenderer extends FskRendererBase {
 
     rebuildPipeline();
 
+    if (pipelineKey == null) {
+      logError("FskQuadsRenderer.draw: pipelineKey is NULL");
+      return;
+    }
+
     FSK().activatePipeline(
       pipelineKey!,
       renderPass,
@@ -85,19 +90,27 @@ class FskQuadsRenderer extends FskRendererBase {
 
     _vbo.bind(renderPass);
 
+    if (uniforms == null) {
+      logError("FskQuadsRenderer.draw: uniforms is NULL");
+      return;
+    }
+
+    // 1. Assign matrices FIRST so onUpdate can use them for View-Space transforms
     uniforms!.mvMatrix = mvMatrix;
     uniforms!.pMatrix = pMatrix;
 
+    // 2. Perform per-frame updates
     uniforms!.onUpdate(viewportSize);
 
+    // 3. Synchronize renderer-specific properties
     if (uniforms is SimpleTextureUniforms) {
-      final stu = uniforms as SimpleTextureUniforms;
-      stu.setModulateColor(_modulateColor);
+      (uniforms as SimpleTextureUniforms).setModulateColor(_modulateColor);
     }
     
-    if (textureInfo != null) {
-      uniforms!.texture = textureInfo!.texture;
-      uniforms!.samplerOptions = textureInfo!.samplerOptions;
+    // 4. Robust Texture Binding: Always bind a texture to Slot 2 to prevent state leaks.
+    if (uniforms!.hasSampler) {
+       uniforms!.texture = (textureInfo != null) ? textureInfo!.texture : FSK().textureManager.transparentTexture;
+       uniforms!.samplerOptions = (textureInfo != null) ? textureInfo!.samplerOptions : null;
     }
 
     uniforms!.bind(renderPass, transients);

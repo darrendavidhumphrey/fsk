@@ -68,18 +68,26 @@ abstract class FskMeshRendererBase extends FskRendererBase {
       return;
     }
 
+    // 1. Assign matrices FIRST so onUpdate can use them for View-Space transforms
     uniforms!.mvMatrix = mvMatrix;
     uniforms!.pMatrix = pMatrix;
 
+    // 2. Perform per-frame updates (like light-to-view transformation)
     uniforms!.onUpdate(viewportSize);
 
     for (var subMesh in _subMeshes) {
-      if (subMesh.textureInfo != null) {
-        uniforms!.texture = subMesh.textureInfo!.texture;
-        uniforms!.samplerOptions = subMesh.textureInfo!.samplerOptions;
-      } else if (textureInfo != null) {
-        uniforms!.texture = textureInfo!.texture;
-        uniforms!.samplerOptions = textureInfo!.samplerOptions;
+      // 3. Robust Texture Binding: Always bind a texture to Slot 2 to prevent state leaks.
+      if (uniforms!.hasSampler) {
+        if (subMesh.textureInfo != null) {
+          uniforms!.texture = subMesh.textureInfo!.texture;
+          uniforms!.samplerOptions = subMesh.textureInfo!.samplerOptions;
+        } else if (textureInfo != null) {
+          uniforms!.texture = textureInfo!.texture;
+          uniforms!.samplerOptions = textureInfo!.samplerOptions;
+        } else {
+          uniforms!.texture = FSK().textureManager.solidTexture; // Default for meshes
+          uniforms!.samplerOptions = null;
+        }
       }
 
       if (subMesh.material != null) {

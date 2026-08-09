@@ -27,7 +27,10 @@ abstract class BaseUniforms extends ChangeNotifier with LoggableClass {
   gpu.Texture? textureIn;
   gpu.SamplerOptions? samplerOptions;
   String get samplerUniformName => 'uSampler';
-  bool get hasSampler => false;
+  
+  /// Whether this shader uses a sampler. 
+  /// Set to true by default to match our unified shader signatures (Binding 2).
+  bool get hasSampler => true;
 
   set texture(gpu.Texture? val) {
     textureIn = val;
