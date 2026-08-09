@@ -107,7 +107,7 @@ class ViewCubeOverlay extends ScreenSpaceOverlay {
     for (final solid in solids) {
       solid.renderer.rebuildPipeline();
       final u = solid.uniforms as LightingUniforms;
-      u.lightPos = vm.Vector3(200, 200, 200);
+      u.isHeadlamp = true; // Light follows the camera
       u.kd = vm.Vector3(0.7, 0.7, 0.7);
       u.ld = vm.Vector3(1.0, 1.0, 1.0);
       

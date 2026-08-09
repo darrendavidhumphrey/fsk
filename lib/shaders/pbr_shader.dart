@@ -11,6 +11,7 @@ class PbrUniforms extends BaseUniforms {
   static const String kRoughnessFactorKey = 'uRoughnessFactor';
   static const String kMetallicFactorKey = 'uMetallicFactor';
   static const String kDebugModeKey = 'uDebugMode';
+  static const String kIsHeadlampKey = 'isHeadlamp';
 
   @override
   String get vertexBlockName => 'PbrVertexUniforms';
@@ -27,6 +28,7 @@ class PbrUniforms extends BaseUniforms {
     this[kRoughnessFactorKey] = 1.0;
     this[kMetallicFactorKey] = 1.0;
     this[kDebugModeKey] = 0.0;
+    this[kIsHeadlampKey] = false;
   }
 
   set lightPos(Vector3 val) => this[kWorldLightPosKey] = val;
@@ -34,9 +36,16 @@ class PbrUniforms extends BaseUniforms {
   set roughnessFactor(double val) => this[kRoughnessFactorKey] = val;
   set metallicFactor(double val) => this[kMetallicFactorKey] = val;
   set debugMode(double val) => this[kDebugModeKey] = val;
+  set isHeadlamp(bool val) => this[kIsHeadlampKey] = val;
 
   @override
   void onUpdate(Size viewportSize) {
+    if (this[kIsHeadlampKey] as bool) {
+      // Light is at the camera in View Space
+      this[kLightPosKey] = Vector3.zero();
+      return;
+    }
+
     // Transform light position into View Space every frame.
     final dynamic worldPosVal = valuesMap[kWorldLightPosKey];
     final Vector3 worldPos = (worldPosVal is Vector3) ? worldPosVal : Vector3(200, 200, 200);
