@@ -1,6 +1,5 @@
 import 'package:flutter/material.dart' hide Matrix4;
 import 'package:fsk/fsk.dart';
-import 'package:fsk_examples/view_cube_overlay.dart';
 import 'package:vector_math/vector_math.dart' hide Colors;
 import 'pbr_model_scene.dart';
 
