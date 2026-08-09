@@ -12,9 +12,11 @@ class FragmentValues {
 
   FragmentValues(int size) : buffer = Float32List(size);
 
-  /// Resets the packing offset to the beginning of the buffer.
+  /// Resets the packing offset and zeros the buffer to prevent state leakage.
   void clear() {
     _offset = 0;
+    // Zero out the entire buffer to ensure un-packed floats don't contain stale data.
+    buffer.fillRange(0, buffer.length, 0.0);
   }
 
   /// Utility method to pack a color safely.
@@ -26,12 +28,13 @@ class FragmentValues {
       buffer[_offset++] = colorVal.b;
       buffer[_offset++] = colorVal.a;
     } else if (colorVal is Vector4) {
+      // Defensive support for Vector4 from internal loaders
       buffer[_offset++] = colorVal.x;
       buffer[_offset++] = colorVal.y;
       buffer[_offset++] = colorVal.z;
       buffer[_offset++] = colorVal.w;
     } else {
-      // Fallback to white
+      // Fallback to solid white
       buffer[_offset++] = 1.0;
       buffer[_offset++] = 1.0;
       buffer[_offset++] = 1.0;

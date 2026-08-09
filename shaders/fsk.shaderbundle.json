@@ -70,5 +70,13 @@
   "PbrFragment": {
     "type": "fragment",
     "file": "shaders/pbr.frag"
+  },
+  "BitmapTextVertex": {
+    "type": "vertex",
+    "file": "shaders/bitmapText.vert"
+  },
+  "BitmapTextFragment": {
+    "type": "fragment",
+    "file": "shaders/bitmapText.frag"
   }
 }

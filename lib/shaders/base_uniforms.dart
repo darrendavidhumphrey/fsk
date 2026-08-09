@@ -1,3 +1,4 @@
+import 'dart:typed_data';
 import 'dart:ui';
 import 'package:flutter/foundation.dart';
 import 'package:flutter_gpu/gpu.dart' as gpu;
@@ -28,10 +29,6 @@ abstract class BaseUniforms extends ChangeNotifier with LoggableClass {
   gpu.Texture? textureIn;
   gpu.SamplerOptions? samplerOptions;
   String get samplerUniformName => 'uSampler';
-
-  /// Whether this shader uses a sampler.
-  /// Set to true by default to match our unified shader signatures (Binding 2).
-  bool get hasSampler => true;
 
   set texture(gpu.Texture? val) {
     textureIn = val;
@@ -114,7 +111,7 @@ abstract class BaseUniforms extends ChangeNotifier with LoggableClass {
 
     final gpu.BufferView vertexBufferView = transients.emplace(
       vertexData.buffer.asByteData(
-        vertexData.offsetInBytes,
+        0,
         vertexData.lengthInBytes,
       ),
     );
@@ -130,7 +127,7 @@ abstract class BaseUniforms extends ChangeNotifier with LoggableClass {
     serializeFragmentData();
     final gpu.BufferView fragmentBufferView = transients.emplace(
       fragmentData.buffer.buffer.asByteData(
-        fragmentData.buffer.offsetInBytes,
+        0,
         fragmentData.buffer.lengthInBytes,
       ),
     );
@@ -138,16 +135,16 @@ abstract class BaseUniforms extends ChangeNotifier with LoggableClass {
         fragmentShader!.getUniformSlot(fragmentBlockName);
     renderPass.bindUniform(fragmentSlot, fragmentBufferView);
 
-    if (hasSampler) {
-      final gpu.UniformSlot textureSlot = fragmentShader!.getUniformSlot(
-        samplerUniformName,
-      );
+    // =========================================================================
+    // 3. UNIFIED SAMPLER BINDING (Binding 2)
+    // =========================================================================
+    final gpu.UniformSlot textureSlot = fragmentShader!.getUniformSlot(
+      samplerUniformName,
+    );
 
-      final gpu.Texture textureToBind =
-          textureIn ?? FSK().textureManager.transparentTexture!;
-      renderPass.bindTexture(textureSlot, textureToBind,
-          sampler: samplerOptions);
-    }
+    final gpu.Texture textureToBind =
+        textureIn ?? FSK().textureManager.transparentTexture!;
+    renderPass.bindTexture(textureSlot, textureToBind, sampler: samplerOptions);
 
     bindAdditionalTextures(renderPass);
   }

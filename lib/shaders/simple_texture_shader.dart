@@ -16,11 +16,6 @@ class SimpleTextureUniforms extends BaseUniforms {
     this[_kModulateColorKey] = const Color(0xFFFFFFFF);
   }
 
-  @override
-  bool get hasSampler => true;
-  @override
-  String get samplerUniformName => 'uSampler';
-
   void setModulateColor(Color color) {
     this[_kModulateColorKey] = color;
   }

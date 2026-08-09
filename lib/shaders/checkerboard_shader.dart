@@ -13,9 +13,6 @@ class CheckerBoardUniforms extends BaseUniforms {
   @override
   String get fragmentBlockName => 'CheckerBoardFragmentUniforms';
 
-  @override
-  bool get hasSampler => true;
-
   CheckerBoardUniforms({super.vertexShader, super.fragmentShader}) {
     this[_kPatternColor1Key] = const Color(0xFFFFFFFF);
     this[_kPatternColor2Key] = const Color(0xFF000000);

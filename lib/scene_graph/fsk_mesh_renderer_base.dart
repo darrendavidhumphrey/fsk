@@ -77,17 +77,15 @@ abstract class FskMeshRendererBase extends FskRendererBase {
 
     for (var subMesh in _subMeshes) {
       // 3. Robust Texture Binding: Always bind a texture to Slot 2 to prevent state leaks.
-      if (uniforms!.hasSampler) {
-        if (subMesh.textureInfo != null) {
-          uniforms!.texture = subMesh.textureInfo!.texture;
-          uniforms!.samplerOptions = subMesh.textureInfo!.samplerOptions;
-        } else if (textureInfo != null) {
-          uniforms!.texture = textureInfo!.texture;
-          uniforms!.samplerOptions = textureInfo!.samplerOptions;
-        } else {
-          uniforms!.texture = FSK().textureManager.solidTexture; // Default for meshes
-          uniforms!.samplerOptions = null;
-        }
+      if (subMesh.textureInfo != null) {
+        uniforms!.texture = subMesh.textureInfo!.texture;
+        uniforms!.samplerOptions = subMesh.textureInfo!.samplerOptions;
+      } else if (textureInfo != null) {
+        uniforms!.texture = textureInfo!.texture;
+        uniforms!.samplerOptions = textureInfo!.samplerOptions;
+      } else {
+        uniforms!.texture = FSK().textureManager.solidTexture; // Default for meshes
+        uniforms!.samplerOptions = null;
       }
 
       if (subMesh.material != null) {

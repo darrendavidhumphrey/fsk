@@ -108,10 +108,10 @@ class FskQuadsRenderer extends FskRendererBase {
     }
     
     // 4. Robust Texture Binding: Always bind a texture to Slot 2 to prevent state leaks.
-    if (uniforms!.hasSampler) {
-       uniforms!.texture = (textureInfo != null) ? textureInfo!.texture : FSK().textureManager.transparentTexture;
-       uniforms!.samplerOptions = (textureInfo != null) ? textureInfo!.samplerOptions : null;
-    }
+    uniforms!.texture = (textureInfo != null)
+        ? textureInfo!.texture
+        : FSK().textureManager.transparentTexture;
+    uniforms!.samplerOptions = (textureInfo != null) ? textureInfo!.samplerOptions : null;
 
     uniforms!.bind(renderPass, transients);
 

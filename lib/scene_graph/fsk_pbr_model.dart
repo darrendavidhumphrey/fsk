@@ -63,11 +63,11 @@ class FskPbrModel extends FskExternalModel {
       renderer.rebuildPipeline();
 
       // Inject environment state if the renderer supports it.
-      // LightingUniforms handles View-Space transformation automatically onUpdate.
+      // LightingUniforms and PbrUniforms now handle View-Space transformation automatically onUpdate.
       if (renderer.uniforms is PbrUniforms) {
         final pbr = renderer.uniforms as PbrUniforms;
-        pbr.setValueSilent(PbrUniforms.kLightPosKey, lightPosition);
-        pbr.setValueSilent(PbrUniforms.kDebugModeKey, 0.0);
+        pbr.lightPos = lightPosition;
+        pbr.debugMode = 0.0;
       } else if (renderer.uniforms is LightingUniforms) {
         final lighting = renderer.uniforms as LightingUniforms;
         lighting.lightPos = lightPosition;

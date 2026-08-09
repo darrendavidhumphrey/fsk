@@ -5,7 +5,7 @@ import 'dart:typed_data';
 import 'package:flutter/services.dart';
 import 'package:vector_math/vector_math.dart';
 import '../fsk.dart';
-import 'fsk_model_loader.dart';
+
 
 /// A lightweight, dependency-free GLTF 2.0 loader for the FSK engine.
 class FskGltfLoader extends FskModelLoader {
@@ -91,8 +91,6 @@ class FskGltfLoader extends FskModelLoader {
     final List<dynamic> sceneNodes = scenes[sceneIndex]['nodes'];
 
     // GLTF models are often Y-up and facing +Z.
-    // In our coordinate system (Y-down, camera at -Z), they appear upside down and facing away.
-    // We create a correction group to handle this so the rootGroup's frame of reference stays at 0.
     final correctionGroup = FskModelLoader.createCorrectionGroup(rootGroup.id, scene);
     rootGroup.addNode(correctionGroup);
     if (rootGroup is FskExternalModel) {
@@ -247,8 +245,7 @@ class FskGltfLoader extends FskModelLoader {
         final int texIdx = (pbr['baseColorTexture']['index'] as num).toInt();
         final info =
             _textures[(_json!['textures'][texIdx]['source'] as num).toInt()];
-        uniforms.texture = info.texture;
-        uniforms.samplerOptions = info.samplerOptions;
+        mesh.renderer.setTexture(info); // Set on renderer to avoid override
       }
       if (pbr.containsKey('metallicRoughnessTexture')) {
         final int texIdx = (pbr['metallicRoughnessTexture']['index'] as num)
@@ -311,8 +308,6 @@ class FskGltfLoader extends FskModelLoader {
       }
       return res;
     } else {
-      // Flutter GPU doesn't support uint8 indices, so for uint16 or uint8
-      // create a Uint16 list
       final res = Uint16List(count);
 
       if (type == gltfUint16) {

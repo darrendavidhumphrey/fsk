@@ -20,10 +20,11 @@ void main(void) {
     vNormal = normalize(mat3(vertUniforms.uMVMatrix) * aVertexNormal);
     vTextureCoord = aTextureCoord;
 
+    // Procedural tangent generation for models without tangent data
     vec3 n = aVertexNormal;
     vec3 c1 = cross(n, vec3(0.0, 0.0, 1.0));
     vec3 c2 = cross(n, vec3(0.0, 1.0, 0.0));
-    vec3 t = length(c1) > length(c2) ? c1 : c2;
+    vec3 t = (length(c1) > length(c2)) ? c1 : c2;
     vTangent = normalize(mat3(vertUniforms.uMVMatrix) * t);
 
     gl_Position = vertUniforms.uPMatrix * eyeCoords;

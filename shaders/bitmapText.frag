@@ -9,9 +9,10 @@ layout(std140, set = 0, binding = 1) uniform BitmapTextFragmentUniforms {
     vec4 uPadding[9]; // 4-39
 } fragUniforms;
 
-layout(set = 0, binding = 2) uniform sampler2D uTextSampler;
+// Unified Binding: All fragment shaders in this pass use Binding 2 for their primary sampler.
+layout(set = 0, binding = 2) uniform sampler2D uSampler;
 
 void main(void) {
-    vec4 texColor = texture(uTextSampler, v_uv);
+    vec4 texColor = texture(uSampler, v_uv);
     FragColor = texColor * fragUniforms.uTextColor;
 }

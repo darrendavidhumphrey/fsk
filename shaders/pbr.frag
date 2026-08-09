@@ -7,8 +7,7 @@ layout(location = 3) in vec3 vTangent;
 
 layout(location = 0) out vec4 FragColor;
 
-// Uniform Block for configuration properties (Binding 1, Set 0)
-// Padded to 40 floats (160 bytes) to ensure absolute stability in single-pass rendering.
+// Unified 40-float (160-byte) block size for single-pass stability.
 layout(std140, set = 0, binding = 1) uniform PbrFragmentUniforms {
     vec4 uLightPos;        // 0-3
     vec4 uBaseColorFactor; // 4-7
@@ -16,7 +15,10 @@ layout(std140, set = 0, binding = 1) uniform PbrFragmentUniforms {
     vec4 uPadding[7];      // 12-39
 } fragUniforms;
 
-layout(set = 0, binding = 2) uniform sampler2D uBaseColorMap;
+// Unified Binding: All fragment shaders in this pass use Binding 2 for their primary sampler.
+layout(set = 0, binding = 2) uniform sampler2D uSampler;
+
+// Additional samplers for PBR specific maps
 layout(set = 0, binding = 3) uniform sampler2D uNormalMap;
 layout(set = 0, binding = 4) uniform sampler2D uMetallicRoughnessMap;
 
@@ -59,18 +61,25 @@ void main() {
     vec3 B = cross(N, T);
     mat3 TBN = mat3(T, B, N);
 
-    vec3 tangentNormal = texture(uNormalMap, vTextureCoord).rgb * 2.0 - 1.0;
+    vec4 normalSample = texture(uNormalMap, vTextureCoord);
+    vec3 tangentNormal = (normalSample.a < 0.01) ? vec3(0, 0, 1) : normalSample.rgb * 2.0 - 1.0;
     vec3 worldNormal = normalize(TBN * tangentNormal);
 
     vec3 V = normalize(-vEyeCoords);
     vec3 L = normalize(fragUniforms.uLightPos.xyz - vEyeCoords);
     vec3 H = normalize(V + L);
 
-    vec4 albedo = texture(uBaseColorMap, vTextureCoord) * fragUniforms.uBaseColorFactor;
+    // Albedo from primary uSampler slot
+    vec4 albedoSample = texture(uSampler, vTextureCoord);
+    vec4 albedo = albedoSample * fragUniforms.uBaseColorFactor;
 
     vec4 mrSample = texture(uMetallicRoughnessMap, vTextureCoord);
-    float roughness = mrSample.g * fragUniforms.uParams.x;
-    float metallic = mrSample.b * fragUniforms.uParams.y;
+    // If maps are missing, fallback to uniform material factors
+    float roughness = (mrSample.a < 0.01) ? fragUniforms.uParams.x : mrSample.g * fragUniforms.uParams.x;
+    float metallic = (mrSample.a < 0.01) ? fragUniforms.uParams.y : mrSample.b * fragUniforms.uParams.y;
+
+    // Constrain roughness to prevent divide-by-zero artifacts
+    roughness = clamp(roughness, 0.05, 1.0);
 
     vec3 F0 = vec3(0.04);
     F0 = mix(F0, albedo.rgb, metallic);
@@ -80,8 +89,7 @@ void main() {
     vec3 F = fresnelSchlick(max(dot(H, V), 0.0), F0);
 
     vec3 kS = F;
-    vec3 kD = vec3(1.0) - kS;
-    kD *= 1.0 - metallic;
+    vec3 kD = (vec3(1.0) - kS) * (1.0 - metallic);
 
     vec3 numerator = NDF * G * F;
     float denominator = 4.0 * max(dot(worldNormal, V), 0.0) * max(dot(worldNormal, L), 0.0) + 0.0001;
@@ -90,12 +98,14 @@ void main() {
     float NdotL = max(dot(worldNormal, L), 0.0);
     vec3 diffuse = kD * albedo.rgb / PI;
 
-    vec3 lo = (diffuse + specular) * NdotL * 3.0;
+    // Natural lighting balance
+    vec3 lo = (diffuse + specular) * NdotL * 1.5;
     vec3 ambient = vec3(0.15) * albedo.rgb;
     vec3 color = ambient + lo;
 
+    // Tonemapping and gamma correction for natural appearance
     color = color / (color + vec3(1.0));
     color = pow(color, vec3(1.0/2.2));
 
-    FragColor = vec4(color * albedo.a, albedo.a);
+    FragColor = vec4(color, albedo.a);
 }

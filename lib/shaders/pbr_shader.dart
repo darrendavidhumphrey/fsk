@@ -1,3 +1,4 @@
+import 'dart:ui';
 import 'package:flutter_gpu/gpu.dart' as gpu;
 import 'package:vector_math/vector_math.dart';
 import '../fsk_singleton.dart';
@@ -5,6 +6,7 @@ import 'base_uniforms.dart';
 
 class PbrUniforms extends BaseUniforms {
   static const String kLightPosKey = 'uLightPos';
+  static const String kWorldLightPosKey = 'worldLightPos';
   static const String kBaseColorFactorKey = 'uBaseColorFactor';
   static const String kRoughnessFactorKey = 'uRoughnessFactor';
   static const String kMetallicFactorKey = 'uMetallicFactor';
@@ -19,23 +21,29 @@ class PbrUniforms extends BaseUniforms {
   gpu.Texture? metallicRoughnessMap;
 
   PbrUniforms({super.vertexShader, super.fragmentShader}) {
-    this[kLightPosKey] = Vector3(100.0, 100.0, 200.0);
+    this[kLightPosKey] = Vector3.zero();
+    this[kWorldLightPosKey] = Vector3(200.0, 200.0, 200.0);
     this[kBaseColorFactorKey] = Vector3(1.0, 1.0, 1.0);
     this[kRoughnessFactorKey] = 1.0;
     this[kMetallicFactorKey] = 1.0;
     this[kDebugModeKey] = 0.0;
   }
 
-  @override
-  bool get hasSampler => true;
-  @override
-  String get samplerUniformName => 'uBaseColorMap';
-
-  set lightPos(Vector3 val) => this[kLightPosKey] = val;
+  set lightPos(Vector3 val) => this[kWorldLightPosKey] = val;
   set baseColorFactor(Vector3 val) => this[kBaseColorFactorKey] = val;
   set roughnessFactor(double val) => this[kRoughnessFactorKey] = val;
   set metallicFactor(double val) => this[kMetallicFactorKey] = val;
   set debugMode(double val) => this[kDebugModeKey] = val;
+
+  @override
+  void onUpdate(Size viewportSize) {
+    // Transform light position into View Space every frame.
+    final dynamic worldPosVal = valuesMap[kWorldLightPosKey];
+    final Vector3 worldPos = (worldPosVal is Vector3) ? worldPosVal : Vector3(200, 200, 200);
+    
+    final Vector4 viewPos = mvMatrixLocal.transform(Vector4(worldPos.x, worldPos.y, worldPos.z, 1.0));
+    this[kLightPosKey] = Vector3(viewPos.x, viewPos.y, viewPos.z);
+  }
 
   @override
   void copyFrom(BaseUniforms other) {
