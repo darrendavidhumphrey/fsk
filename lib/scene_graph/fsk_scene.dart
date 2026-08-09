@@ -99,7 +99,7 @@ class FskScene extends FskSceneBase {
     try {
       super.drawScene(commandBuffer, renderTarget, transients);
 
-      // Calculate the layout matrix (e.g. for BoxFit logic).
+      // 1. Calculate the layout matrix (e.g. for BoxFit logic).
       vm.Matrix4 layoutMatrix = vm.Matrix4.identity();
       if (useBoxFitLayout) {
         vm.Matrix4? boxFitMatrix =
@@ -119,22 +119,18 @@ class FskScene extends FskSceneBase {
         );
       }
 
-      // 3. Combine layout with the current view matrix (mvMatrix).
+      // 2. Combine layout with the current view matrix (mvMatrix).
       final vm.Matrix4 finalMvMatrix = layoutMatrix * mvMatrix;
 
-      bool hasCleared = !autoClear;
+      // 3. Create a single RenderPass for all root nodes.
+      final renderPass = commandBuffer.createRenderPass(
+        autoClear ? renderTarget.renderTarget : renderTarget.loadTarget,
+      );
 
-      for (var node in rootNodes) {
+      setupScissor(renderPass);
+
+      for (final node in rootNodes) {
         if (node is FskRenderableObject && node.visible) {
-          // Force hardware state reset between top-level nodes by creating a new RenderPass.
-          // The first visible node clears the buffer; subsequent nodes load it.
-          final renderPass = commandBuffer.createRenderPass(
-            hasCleared ? renderTarget.loadTarget : renderTarget.renderTarget,
-          );
-          hasCleared = true;
-
-          setupScissor(renderPass);
-
           node.draw(
             renderPass,
             transients,
@@ -145,14 +141,8 @@ class FskScene extends FskSceneBase {
         }
       }
 
-      // Ensure the buffer is cleared at least once, even if no nodes were visible.
-      if (!hasCleared) {
-        commandBuffer.createRenderPass(renderTarget.renderTarget);
-        hasCleared = true;
-      }
-
-      // Draw overlays
-      for (var layer in layers) {
+      // 4. Draw overlays (each manages its own passes for depth/scissor isolation)
+      for (final layer in layers) {
         layer.drawScene(commandBuffer, renderTarget, transients);
       }
     } catch (e, s) {
@@ -338,6 +328,12 @@ class FskScene extends FskSceneBase {
     } catch (e, stackTrace) {
       logError("Error skin XML '$skinPath': $e");
       logError(stackTrace.toString());
+    }
+  }
+
+  void dumpSceneGraph() {
+    for (var node in rootNodes) {
+      node.dumpSceneGraph();
     }
   }
 }

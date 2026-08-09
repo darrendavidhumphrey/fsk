@@ -90,11 +90,13 @@ abstract class FskRendererBase extends ChangeNotifier with LoggableClass {
       pipelineKey!.fragShader,
     );
 
-    if (uniforms != null) {
-      newUniforms.copyFrom(uniforms!);
+    // Synchronize current renderer state into the new uniform instance
+    if (_uniforms != null) {
+      newUniforms.copyFrom(_uniforms!);
     }
 
-    uniforms = newUniforms;
+    _uniforms = newUniforms;
     pipeLineNeedsRebuild = false;
+    notifyListeners();
   }
 }

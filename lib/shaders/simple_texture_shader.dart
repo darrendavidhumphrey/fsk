@@ -1,26 +1,20 @@
 import 'dart:typed_data';
 import 'dart:ui';
+import 'package:vector_math/vector_math.dart' as vm;
 import 'materials.dart';
 
 import 'base_uniforms.dart';
 
 class SimpleTextureUniforms extends BaseUniforms {
-  // --- Dictionary Key Constants ---
   static const String _kModulateColorKey = 'uModulateColor';
+  
   @override
-  String get vertexBlockName => 'QuadVertexUniforms';
+  String get vertexBlockName => 'SimpleTextureVertexUniforms';
   @override
-  String get fragmentBlockName => 'FragmentUniforms';
-
-  // --- Default Layout Value Constants ---
-  static const Color _kDefaultModulateColor = Color(0xFFFFFFFF);
-
-  // --- Buffer Structure Allocation Constants ---
-  static const int _kFragmentDataFloatCount = 4;
+  String get fragmentBlockName => 'SimpleTextureFragmentUniforms';
 
   SimpleTextureUniforms({super.vertexShader, super.fragmentShader}) {
-    // Establish initialization values inside the string data store
-    this[_kModulateColorKey] = _kDefaultModulateColor;
+    this[_kModulateColorKey] = const Color(0xFFFFFFFF);
   }
 
   @override
@@ -28,24 +22,37 @@ class SimpleTextureUniforms extends BaseUniforms {
   @override
   String get samplerUniformName => 'uSampler';
 
-  // --- Type-Safe Public Methods ---
-
-  /// Type-safe method to update the modulation color configuration payload.
   void setModulateColor(Color color) {
     this[_kModulateColorKey] = color;
   }
 
   @override
   void applyMaterial(GlMaterial material) {
-    setValueSilent(_kModulateColorKey, material.diffuse);
+    this[_kModulateColorKey] = material.diffuse;
   }
 
   @override
   Float32List serializeFragmentData() {
-    final Float32List fragmentData = Float32List(_kFragmentDataFloatCount);
+    final Float32List fragmentData = Float32List(20);
 
-    // Pack modulateColor into the first 4 floats (16 bytes)
-    packColor(fragmentData, 0, this[_kModulateColorKey] as Color);
+    final dynamic colorVal = valuesMap[_kModulateColorKey];
+    
+    if (colorVal is Color) {
+      fragmentData[0] = colorVal.r;
+      fragmentData[1] = colorVal.g;
+      fragmentData[2] = colorVal.b;
+      fragmentData[3] = colorVal.a;
+    } else if (colorVal is vm.Vector4) {
+      fragmentData[0] = colorVal.x;
+      fragmentData[1] = colorVal.y;
+      fragmentData[2] = colorVal.z;
+      fragmentData[3] = colorVal.w;
+    } else {
+      fragmentData[0] = 1.0;
+      fragmentData[1] = 1.0;
+      fragmentData[2] = 1.0;
+      fragmentData[3] = 1.0;
+    }
 
     return fragmentData;
   }

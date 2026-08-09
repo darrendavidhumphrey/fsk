@@ -38,15 +38,17 @@ class FskPbrModel extends FskExternalModel {
     gpu.RenderPass renderPass,
     gpu.HostBuffer transients,
     Matrix4 pMatrix,
-    Matrix4 mvMatrix,
+    Matrix4 mvMatrix, // This is (Layout * CameraView)
     Size viewportSize,
   ) {
     if (!visible) return;
-    // We initiate the custom recursive rendering starting from this node.
-    _renderRecursive(this, renderPass, transients, pMatrix, mvMatrix, viewportSize);
+
+    // We override the custom recursive rendering to handle mixed node types
+    // while still injecting environment state.
+    _drawRecursive(this, renderPass, transients, pMatrix, mvMatrix, viewportSize);
   }
 
-  void _renderRecursive(
+  void _drawRecursive(
     FskSceneObject node,
     gpu.RenderPass renderPass,
     gpu.HostBuffer transients,
@@ -54,61 +56,33 @@ class FskPbrModel extends FskExternalModel {
     Matrix4 view,
     Size viewportSize,
   ) {
-    bool isVisible = true;
-    Matrix4 currentMv = view;
+    if (node is! FskRenderableObject || !node.visible) return;
 
-    if (node is FskRenderableObject) {
-      if (!node.visible) return;
-      isVisible = node.visible;
-      // Hierarchical math: Post-multiplication (View * Local)
-      currentMv = view.clone()..multiply(node.transformable.getTransform());
-    }
-
-    if (!isVisible) return;
-
-    if (node is FskIndexedMesh) {
-      final renderer = node.renderer;
+    final renderer = node.renderer;
+    if (renderer != null) {
       renderer.rebuildPipeline();
 
-      final uniforms = renderer.uniforms!;
-      uniforms.onUpdate(viewportSize);
-
-      // No need to clone these matrix assignments -- the setter method in
-      // uniforms is calling copyInto()
-      uniforms.mvMatrix = currentMv;
-      uniforms.pMatrix = proj;
-
-      // Update light position for PBR materials
-      if (uniforms is PbrUniforms) {
-        uniforms.setValueSilent(PbrUniforms.kLightPosKey, lightPosition);
-        uniforms.setValueSilent(PbrUniforms.kDebugModeKey, 0.0); // Full PBR
-      }
-
-      FSK().activatePipeline(renderer.pipelineKey!, renderPass, renderer.layout);
-
-      renderer.vbo.bind(renderPass);
-
-      for (var subMesh in renderer.subMeshes) {
-        if (subMesh.textureInfo != null) {
-          uniforms.texture = subMesh.textureInfo!.texture;
-          uniforms.samplerOptions = subMesh.textureInfo!.samplerOptions;
-        }
-
-        if (subMesh.material != null) {
-          uniforms.applyMaterial(subMesh.material!);
-        }
-
-        uniforms.bind(renderPass, transients);
-
-        renderer.ibo.bind(renderPass, offsetInIndices: subMesh.firstIndex);
-        renderer.ibo.drawTrianglesIndexed(renderPass, count: subMesh.indexCount);
+      // Inject environment state if the renderer supports it.
+      // LightingUniforms handles View-Space transformation automatically onUpdate.
+      if (renderer.uniforms is PbrUniforms) {
+        final pbr = renderer.uniforms as PbrUniforms;
+        pbr.setValueSilent(PbrUniforms.kLightPosKey, lightPosition);
+        pbr.setValueSilent(PbrUniforms.kDebugModeKey, 0.0);
+      } else if (renderer.uniforms is LightingUniforms) {
+        final lighting = renderer.uniforms as LightingUniforms;
+        lighting.lightPos = lightPosition;
       }
     }
 
     if (node is FskGroup) {
+      final Matrix4 currentMv = view.clone()..multiply(node.transformable.getTransform());
+
       for (final child in node.children) {
-        _renderRecursive(child, renderPass, transients, proj, currentMv, viewportSize);
+        _drawRecursive(
+            child, renderPass, transients, proj, currentMv, viewportSize);
       }
+    } else {
+      node.draw(renderPass, transients, proj, view, viewportSize);
     }
   }
 }

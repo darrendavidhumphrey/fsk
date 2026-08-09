@@ -68,6 +68,9 @@ abstract class FskMeshRendererBase extends FskRendererBase {
       return;
     }
 
+    uniforms!.mvMatrix = mvMatrix;
+    uniforms!.pMatrix = pMatrix;
+
     uniforms!.onUpdate(viewportSize);
 
     for (var subMesh in _subMeshes) {
@@ -78,9 +81,6 @@ abstract class FskMeshRendererBase extends FskRendererBase {
         uniforms!.texture = textureInfo!.texture;
         uniforms!.samplerOptions = textureInfo!.samplerOptions;
       }
-
-      uniforms!.mvMatrix = mvMatrix;
-      uniforms!.pMatrix = pMatrix;
 
       if (subMesh.material != null) {
         uniforms!.applyMaterial(subMesh.material!);

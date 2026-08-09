@@ -16,31 +16,23 @@ class GridUniforms extends BaseUniforms {
   static const String _kMinorLineThicknessKey = 'minorLineThickness';
   static const String _kMmLineThicknessKey = 'mmLineThickness';
 
-  // --- Default Layout Value Constants ---
-  static const Color _kDefaultMajorLineColor = Color(0xFFFFFFFF);
-  static const Color _kDefaultMinorLineColor = Color(0xFFB0B0B0);
-  static const Color _kDefaultMmLineColor = Color(0xFF606060);
-  static const double _kDefaultResolutionWidth = 1000.0;
-  static const double _kDefaultResolutionHeight = 1000.0;
-  static const double _kDefaultScale = 1.0;
-  static const double _kDefaultMajorLineSpacingMM = 10.0;
-  static const double _kDefaultMinorLineSpacingMM = 5.0;
-  static const double _kDefaultMajorLineThickness = 1.5;
-  static const double _kDefaultMinorLineThickness = 1.0;
-  static const double _kDefaultMmLineThickness = 0.5;
+  @override
+  String get vertexBlockName => 'GridVertexUniforms';
+  @override
+  String get fragmentBlockName => 'GridFragmentUniforms';
 
   GridUniforms({super.vertexShader, super.fragmentShader}) {
-    this[_kMajorLineColorKey] = _kDefaultMajorLineColor;
-    this[_kMinorLineColorKey] = _kDefaultMinorLineColor;
-    this[_kMmLineColorKey] = _kDefaultMmLineColor;
-    this[_kResolutionWidthKey] = _kDefaultResolutionWidth;
-    this[_kResolutionHeightKey] = _kDefaultResolutionHeight;
-    this[_kScaleKey] = _kDefaultScale;
-    this[_kMajorLineSpacingMMKey] = _kDefaultMajorLineSpacingMM;
-    this[_kMinorLineSpacingMMKey] = _kDefaultMinorLineSpacingMM;
-    this[_kMajorLineThicknessKey] = _kDefaultMajorLineThickness;
-    this[_kMinorLineThicknessKey] = _kDefaultMinorLineThickness;
-    this[_kMmLineThicknessKey] = _kDefaultMmLineThickness;
+    this[_kMajorLineColorKey] = const Color(0xFFFFFFFF);
+    this[_kMinorLineColorKey] = const Color(0xFFB0B0B0);
+    this[_kMmLineColorKey] = const Color(0xFF606060);
+    this[_kResolutionWidthKey] = 1000.0;
+    this[_kResolutionHeightKey] = 1000.0;
+    this[_kScaleKey] = 1.0;
+    this[_kMajorLineSpacingMMKey] = 10.0;
+    this[_kMinorLineSpacingMMKey] = 5.0;
+    this[_kMajorLineThicknessKey] = 1.5;
+    this[_kMinorLineThicknessKey] = 1.0;
+    this[_kMmLineThicknessKey] = 0.5;
   }
 
   // --- Fragment Visual Setters ---
@@ -48,13 +40,11 @@ class GridUniforms extends BaseUniforms {
   set minorLineColor(Color val) => this[_kMinorLineColorKey] = val;
   set mmLineColor(Color val) => this[_kMmLineColorKey] = val;
 
-  /// Sets the viewport resolution components into the string registry.
   void setResolution(double width, double height) {
     setValueSilent(_kResolutionWidthKey, width);
     setValueSilent(_kResolutionHeightKey, height);
   }
 
-  // --- Grid Sizing and Thickness Setters ---
   set scale(double val) => this[_kScaleKey] = val;
   set majorLineSpacingMM(double val) => this[_kMajorLineSpacingMMKey] = val;
   set minorLineSpacingMM(double value) => this[_kMinorLineSpacingMMKey] = value;
@@ -64,7 +54,6 @@ class GridUniforms extends BaseUniforms {
 
   @override
   void onUpdate(Size viewportSize) {
-    // If not manually set, default to a scale that makes 1 unit = 1mm
     if (valuesMap[_kResolutionWidthKey] == null) {
       setResolution(viewportSize.width, viewportSize.height);
     }

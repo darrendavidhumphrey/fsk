@@ -6,7 +6,7 @@ import 'package:fsk/fsk.dart';
 import 'fsk_renderer_base.dart';
 
 class FskQuadsRenderer extends FskRendererBase {
-  bool _vertsDownloaded = false;
+  bool _verticesDownloaded = false;
 
   bool _premultiplyAlpha = true;
 
@@ -36,7 +36,10 @@ class FskQuadsRenderer extends FskRendererBase {
   }
 
   void setModulateColor(Color color) {
-    _modulateColor = color;
+    if (_modulateColor != color) {
+      _modulateColor = color;
+      pipeLineNeedsRebuild = true; // Force refresh
+    }
   }
 
   /////////////////////////////////////////////////////////////////////////////
@@ -46,7 +49,7 @@ class FskQuadsRenderer extends FskRendererBase {
 
   void setVertices(Float32List vertices) {
     _vbo.uploadData(vertices);
-    _vertsDownloaded = vertices.isNotEmpty;
+    _verticesDownloaded = vertices.isNotEmpty;
   }
 
   void setFromUnrolledQuads(int numQuads, Float32List vertexTexCoordArray) {
@@ -68,7 +71,7 @@ class FskQuadsRenderer extends FskRendererBase {
     Size viewportSize,
   ) {
     // It's not an error for the renderer to be empty
-    if (!_vertsDownloaded) {
+    if (!_verticesDownloaded) {
       return;
     }
 
@@ -82,19 +85,20 @@ class FskQuadsRenderer extends FskRendererBase {
 
     _vbo.bind(renderPass);
 
+    uniforms!.mvMatrix = mvMatrix;
+    uniforms!.pMatrix = pMatrix;
+
     uniforms!.onUpdate(viewportSize);
 
     if (uniforms is SimpleTextureUniforms) {
-      uniforms!.setValueSilent('uModulateColor', _modulateColor);
+      final stu = uniforms as SimpleTextureUniforms;
+      stu.setModulateColor(_modulateColor);
     }
     
     if (textureInfo != null) {
       uniforms!.texture = textureInfo!.texture;
       uniforms!.samplerOptions = textureInfo!.samplerOptions;
     }
-    
-    uniforms!.mvMatrix = mvMatrix;
-    uniforms!.pMatrix = pMatrix;
 
     uniforms!.bind(renderPass, transients);
 

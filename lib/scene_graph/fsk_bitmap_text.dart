@@ -62,6 +62,9 @@ class FskBitmapText extends Fsk2DRenderableObject with FskTransformableMixin, Fs
   /// Object that renders the quads
   final FskQuadsRenderer _renderer = FskQuadsRenderer();
 
+  @override
+  FskQuadsRenderer get renderer => _renderer;
+
   /// Optional maxLen field can truncate the text
   int? _maxLen;
 

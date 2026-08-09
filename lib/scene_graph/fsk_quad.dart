@@ -35,6 +35,9 @@ class FskQuad extends Fsk2DRenderableObject with FskTransformableMixin, FskDepth
   /// Object that renders the quads
   final FskQuadsRenderer _renderer = FskQuadsRenderer();
 
+  @override
+  FskQuadsRenderer get renderer => _renderer;
+
   // The quad geometry
   Quad _quad = Quad();
   Quad get quad => _quad;

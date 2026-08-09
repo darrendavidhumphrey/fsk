@@ -18,7 +18,7 @@ class CheckerBoardUniforms extends BaseUniforms {
   static const double _kDefaultPatternScale = 1.0;
 
   // --- Buffer Structure Allocation Constants ---
-  static const int _kFragmentDataFloatCount = 12;
+  static const int _kFragmentDataFloatCount = 20;
   static const int _kUseTextureBufferIndex = 8;
   static const int _kTextureMixBufferIndex = 9;
   static const int _kPatternScaleBufferIndex = 10;

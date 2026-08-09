@@ -58,6 +58,10 @@ abstract class FskSceneObject with LoggableClass {
     }
     return null;
   }
+
+  void dumpSceneGraph() {
+    logInfo("  $id");
+  }
 }
 
 abstract class FskRenderableObject extends FskSceneObject {
@@ -67,15 +71,16 @@ abstract class FskRenderableObject extends FskSceneObject {
   FskRenderableObject(super.id, super.parentScene);
   FskRendererBase? _renderer;
 
-  FskRendererBase get renderer => _renderer!;
+  FskRendererBase? get renderer => _renderer;
 
   BaseUniforms? get uniforms => _renderer?.uniforms;
   set uniforms(BaseUniforms? value) {
-    if (_renderer == null) return;
-    if (_renderer!.uniforms == value) return;
-    _renderer!.uniforms?.removeListener(_onRendererChanged);
-    _renderer!.uniforms = value;
-    _renderer!.uniforms?.addListener(_onRendererChanged);
+    final r = _renderer;
+    if (r == null) return;
+    if (r.uniforms == value) return;
+    r.uniforms?.removeListener(_onRendererChanged);
+    r.uniforms = value;
+    r.uniforms?.addListener(_onRendererChanged);
 
     // Only trigger a rebuild if we're not currently in the middle of a draw/rebuild cycle
     if (!needsRebuild) {
@@ -87,7 +92,8 @@ abstract class FskRenderableObject extends FskSceneObject {
       vm.Matrix4 pMatrix, vm.Matrix4 mvMatrix, Size viewportSize) {
     if (!visible) return;
 
-    vm.Matrix4 finalMvMatrix = mvMatrix.clone();
+    // Apply this leaf node's local transformation relative to the parent context (mvMatrix).
+    final vm.Matrix4 finalMvMatrix = mvMatrix.clone();
     if (transformable.isTransformed()) {
       finalMvMatrix.multiply(transformable.getTransform());
     }
@@ -119,23 +125,42 @@ abstract class FskRenderableObject extends FskSceneObject {
   }
 
   void setRenderer(FskRendererBase newRenderer) {
+    if (_renderer == newRenderer) return;
+
     _renderer?.removeListener(_onRendererChanged);
     _renderer?.uniforms?.removeListener(_onRendererChanged);
+
     _renderer = newRenderer;
+
     _renderer?.addListener(_onRendererChanged);
     _renderer?.uniforms?.addListener(_onRendererChanged);
-  }
-
-  void _onRendererChanged() {
+    
     parentScene.setNeedsUpdate();
   }
 
+  // Track which set of uniforms are currently active.
+  BaseUniforms? _lastSubscribedUniforms;
+
+  void _onRendererChanged() {
+    final currentUniforms = _renderer?.uniforms;
+    if (currentUniforms != _lastSubscribedUniforms) {
+      // 1. Properly detach from the old instance to prevent leaks
+      _lastSubscribedUniforms?.removeListener(_onRendererChanged);
+
+      // 2. Attach to the new instance
+      _lastSubscribedUniforms = currentUniforms;
+      _lastSubscribedUniforms?.addListener(_onRendererChanged);
+    }
+
+    parentScene.setNeedsUpdate();
+  }
   set shaderMaterial(FskShaderMaterial value) {
-    if (_renderer == null) return;
-    _renderer!.uniforms?.removeListener(_onRendererChanged);
-    _renderer!.shaderMaterial = value;
-    _renderer!.rebuildPipeline();
-    _renderer!.uniforms?.addListener(_onRendererChanged);
+    final r = _renderer;
+    if (r == null) return;
+    r.uniforms?.removeListener(_onRendererChanged);
+    r.shaderMaterial = value;
+    r.rebuildPipeline();
+    r.uniforms?.addListener(_onRendererChanged);
     parentScene.setNeedsUpdate();
   }
 }

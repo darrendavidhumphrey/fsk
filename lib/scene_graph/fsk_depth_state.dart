@@ -24,24 +24,28 @@ class FskDepthState {
 }
 
 mixin FskDepthStateMixin on FskRenderableObject {
-  bool get depthTestEnabled => renderer.depthState.depthTestEnabled;
+  bool get depthTestEnabled => renderer?.depthState.depthTestEnabled ?? true;
   set depthTestEnabled(bool value) {
-    renderer.depthState.depthTestEnabled = value;
-    renderer.pipeLineNeedsRebuild = true;
+    if (renderer == null) return;
+    renderer!.depthState.depthTestEnabled = value;
+    renderer!.pipeLineNeedsRebuild = true;
     parentScene.setNeedsUpdate();
   }
 
-  bool get depthWriteEnabled => renderer.depthState.depthWriteEnabled;
+  bool get depthWriteEnabled => renderer?.depthState.depthWriteEnabled ?? true;
   set depthWriteEnabled(bool value) {
-    renderer.depthState.depthWriteEnabled = value;
-    renderer.pipeLineNeedsRebuild = true;
+    if (renderer == null) return;
+    renderer!.depthState.depthWriteEnabled = value;
+    renderer!.pipeLineNeedsRebuild = true;
     parentScene.setNeedsUpdate();
   }
 
-  gpu.CompareFunction get depthCompareOperation => renderer.depthState.depthCompareOperation;
+  gpu.CompareFunction get depthCompareOperation =>
+      renderer?.depthState.depthCompareOperation ?? gpu.CompareFunction.less;
   set depthCompareOperation(gpu.CompareFunction value) {
-    renderer.depthState.depthCompareOperation = value;
-    renderer.pipeLineNeedsRebuild = true;
+    if (renderer == null) return;
+    renderer!.depthState.depthCompareOperation = value;
+    renderer!.pipeLineNeedsRebuild = true;
     parentScene.setNeedsUpdate();
   }
 
@@ -50,12 +54,13 @@ mixin FskDepthStateMixin on FskRenderableObject {
     bool? depthWriteEnabled,
     gpu.CompareFunction? depthCompareOperation,
   }) {
-    renderer.depthState.setDepthState(
+    if (renderer == null) return;
+    renderer!.depthState.setDepthState(
       depthTestEnabled: depthTestEnabled,
       depthWriteEnabled: depthWriteEnabled,
       depthCompareOperation: depthCompareOperation,
     );
-    renderer.pipeLineNeedsRebuild = true;
+    renderer!.pipeLineNeedsRebuild = true;
     parentScene.setNeedsUpdate();
   }
 }

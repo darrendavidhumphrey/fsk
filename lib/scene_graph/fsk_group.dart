@@ -28,6 +28,15 @@ class FskGroup extends FskRenderableObject with FskTransformableMixin {
 
   final List<FskSceneObject> children = [];
 
+
+  @override
+  void dumpSceneGraph() {
+    logInfo("  $id");
+    for (var child in children) {
+      child.dumpSceneGraph();
+    }
+  }
+
   static void registerWithFactories() {
     SkinObjectDataFactory.register('group', (node, anchors, parseObject) {
       final String? shaderName = node.getAttribute('shader');
@@ -105,21 +114,17 @@ class FskGroup extends FskRenderableObject with FskTransformableMixin {
       ) {
     if (!visible) return;
 
-    // Create the child object's local translation matrix
-    final Matrix4 localTranslation = Matrix4.identity();
-
-    // Handle dynamic translations
+    // Apply this group's transformation once at this level.
+    final Matrix4 currentMv = mvMatrix.clone();
     if (transformable.isTransformed()) {
-      localTranslation.setFrom(transformable.getTransform());
+      currentMv.multiply(transformable.getTransform());
     }
 
-    // Pass down the fully computed local-to-world context downward
+    // Pass the accumulated context down.
+    // Each child (including nested Groups) will apply its own transform during its own draw() call.
     for (var child in children) {
-      // Clone the incoming matrix to ensure absolute isolation between child branches
-      final Matrix4 mvTrans = mvMatrix.clone()..multiply(localTranslation);
-
       if (child is FskRenderableObject) {
-        child.draw(renderPass, transients, pMatrix, mvTrans, viewportSize);
+        child.draw(renderPass, transients, pMatrix, currentMv, viewportSize);
       }
     }
   }
