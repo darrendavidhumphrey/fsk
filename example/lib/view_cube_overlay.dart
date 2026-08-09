@@ -28,11 +28,7 @@ class ViewCubeOverlay extends ScreenSpaceOverlay {
 
     // Apply corrections to align with OrbitViewDelegate's native view.
     // The delegate has a 180-degree flip baked in.
-    cubeRoot.transformable.rotation = vm.Vector3(
-      0,
-      vm.radians(180),
-      vm.radians(180),
-    );
+    cubeRoot.transformable.rotation = vm.Vector3(0, vm.radians(180), vm.radians(180));
 
     // Generate geometry and labels.
     cubeRoot.addNodes(_generateGeometry());
@@ -114,6 +110,9 @@ class ViewCubeOverlay extends ScreenSpaceOverlay {
       u.lightPos = vm.Vector3(200, 200, 200);
       u.kd = vm.Vector3(0.7, 0.7, 0.7);
       u.ld = vm.Vector3(1.0, 1.0, 1.0);
+      
+      // Ensure the material is explicitly applied to prevent white fallback
+      solid.renderer.uniforms?.applyMaterial(GlMaterial(Colors.grey, Colors.grey, Colors.black, 32.0));
     }
 
     return solids;
