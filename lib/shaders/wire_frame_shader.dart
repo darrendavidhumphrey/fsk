@@ -1,4 +1,3 @@
-import 'dart:typed_data';
 import 'dart:ui';
 import 'package:vector_math/vector_math.dart';
 import 'base_uniforms.dart';
@@ -18,30 +17,24 @@ class WireFrameUniforms extends BaseUniforms {
   static const String kOutlineColorKey = 'uOutlineColor';
   static const String kOutlineWidthKey = 'uOutlineWidth';
 
-  // --- Default Layout Value Constants ---
-  static final Vector3 _kDefaultLightPos = Vector3(100.0, 100.0, 200.0);
-  static const Color _kDefaultLightColor = Color(0xFFFFFFFF);
-  static const double _kDefaultShininess = 32.0;
-  static const bool _kDefaultOutlineEnabled = true;
-  static const bool _kDefaultDrawFill = true;
-  static const double _kDefaultOutlineWidth = 1.0;
-
-  // --- Buffer Structure Allocation Constants ---
-  static const int _kFragmentDataFloatCount = 36;
+  @override
+  String get vertexBlockName => 'WireFrameVertexUniforms';
+  @override
+  String get fragmentBlockName => 'WireFrameFragmentUniforms';
 
   WireFrameUniforms({super.vertexShader, super.fragmentShader}) {
-    this[kLightPosKey] = _kDefaultLightPos;
-    this[kAmbientLightKey] = _kDefaultLightColor;
-    this[kDiffuseLightKey] = _kDefaultLightColor;
-    this[kSpecularLightKey] = _kDefaultLightColor;
-    this[kMaterialAmbientKey] = _kDefaultLightColor;
-    this[kMaterialDiffuseKey] = _kDefaultLightColor;
-    this[kMaterialSpecularKey] = _kDefaultLightColor;
-    this[kMaterialShininessKey] = _kDefaultShininess;
-    this[kOutlineEnabledKey] = _kDefaultOutlineEnabled;
-    this[kDrawFillKey] = _kDefaultDrawFill;
+    this[kLightPosKey] = Vector3(100.0, 100.0, 200.0);
+    this[kAmbientLightKey] = const Color(0xFFFFFFFF);
+    this[kDiffuseLightKey] = const Color(0xFFFFFFFF);
+    this[kSpecularLightKey] = const Color(0xFFFFFFFF);
+    this[kMaterialAmbientKey] = const Color(0xFFFFFFFF);
+    this[kMaterialDiffuseKey] = const Color(0xFFFFFFFF);
+    this[kMaterialSpecularKey] = const Color(0xFFFFFFFF);
+    this[kMaterialShininessKey] = 32.0;
+    this[kOutlineEnabledKey] = true;
+    this[kDrawFillKey] = true;
     this[kOutlineColorKey] = const Color(0xFF000000);
-    this[kOutlineWidthKey] = _kDefaultOutlineWidth;
+    this[kOutlineWidthKey] = 1.0;
   }
 
   // --- Type-Safe Public Setters ---
@@ -59,37 +52,19 @@ class WireFrameUniforms extends BaseUniforms {
   set outlineWidth(double val) => this[kOutlineWidthKey] = val;
 
   @override
-  Float32List serializeFragmentData() {
-    final Float32List fragmentData = Float32List(_kFragmentDataFloatCount);
-
-    // 0-3: uLightPos (vec4)
-    final Vector3 lp = this[kLightPosKey] as Vector3;
-    fragmentData[0] = lp.x;
-    fragmentData[1] = lp.y;
-    fragmentData[2] = lp.z;
-    fragmentData[3] = 1.0;
-
-    // 4-7: uAmbientLight (vec4)
-    packColor(fragmentData, 4, this[kAmbientLightKey] as Color);
-    // 8-11: uDiffuseLight (vec4)
-    packColor(fragmentData, 8, this[kDiffuseLightKey] as Color);
-    // 12-15: uSpecularLight (vec4)
-    packColor(fragmentData, 12, this[kSpecularLightKey] as Color);
-    // 16-19: uMaterialAmbient (vec4)
-    packColor(fragmentData, 16, this[kMaterialAmbientKey] as Color);
-    // 20-23: uMaterialDiffuse (vec4)
-    packColor(fragmentData, 20, this[kMaterialDiffuseKey] as Color);
-    // 24-27: uMaterialSpecular (vec4)
-    packColor(fragmentData, 24, this[kMaterialSpecularKey] as Color);
-    // 28-31: uOutlineColor (vec4)
-    packColor(fragmentData, 28, this[kOutlineColorKey] as Color);
-
-    // 32-35: uConfig (vec4)
-    fragmentData[32] = (this[kMaterialShininessKey] as num).toDouble();
-    fragmentData[33] = (this[kOutlineEnabledKey] as bool) ? 1.0 : 0.0;
-    fragmentData[34] = (this[kDrawFillKey] as bool) ? 1.0 : 0.0;
-    fragmentData[35] = (this[kOutlineWidthKey] as num).toDouble();
-
-    return fragmentData;
+  void serializeFragmentData() {
+    fragmentData.clear();
+    fragmentData.packVector3(valuesMap[kLightPosKey]);
+    fragmentData.packColor(valuesMap[kAmbientLightKey]);
+    fragmentData.packColor(valuesMap[kDiffuseLightKey]);
+    fragmentData.packColor(valuesMap[kSpecularLightKey]);
+    fragmentData.packColor(valuesMap[kMaterialAmbientKey]);
+    fragmentData.packColor(valuesMap[kMaterialDiffuseKey]);
+    fragmentData.packColor(valuesMap[kMaterialSpecularKey]);
+    fragmentData.packColor(valuesMap[kOutlineColorKey]);
+    fragmentData.packDouble(valuesMap[kMaterialShininessKey]);
+    fragmentData.packBool(valuesMap[kOutlineEnabledKey]);
+    fragmentData.packBool(valuesMap[kDrawFillKey]);
+    fragmentData.packDouble(valuesMap[kOutlineWidthKey]);
   }
 }

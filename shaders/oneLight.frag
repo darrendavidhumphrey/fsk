@@ -8,7 +8,7 @@ layout(location = 2) in vec3 vEyeCoords;
 // Output Attachment Destination
 layout(location = 0) out vec4 FragColor;
 
-// Unified 32-float (128-byte) block size for single-pass stability.
+// Unified 40-float (160-byte) block size for single-pass stability.
 layout(std140, set = 0, binding = 1) uniform OneLightFragmentUniforms {
     vec4 uLightPos;          // Index 0-3
     vec4 uAmbientLight;      // Index 4-7
@@ -18,6 +18,7 @@ layout(std140, set = 0, binding = 1) uniform OneLightFragmentUniforms {
     vec4 uMaterialDiffuse;   // Index 20-23
     vec4 uMaterialSpecular;  // Index 24-27
     vec4 uConfig;            // Index 28-31
+    vec4 uPadding[2];        // Index 32-39
 } fragUniforms;
 
 // Optional: Dummy sampler to ensure binding layout consistency.

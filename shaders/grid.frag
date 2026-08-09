@@ -7,7 +7,7 @@ layout(location = 0) in vec2 v_uv;
 layout(location = 0) out vec4 fragColor;
 
 // Uniform Block Block for configuration properties (Binding 1, Set 0)
-// Padded to 32 floats (128 bytes) to ensure absolute stability in single-pass rendering.
+// Unified 40-float (160-byte) block size for single-pass stability.
 layout(std140, set = 0, binding = 1) uniform GridFragmentUniforms {
     vec4 u_majorLineColor; // 0-3
     vec4 u_minorLineColor; // 4-7
@@ -19,7 +19,7 @@ layout(std140, set = 0, binding = 1) uniform GridFragmentUniforms {
     float u_majorLineThickness; // 17
     float u_minorLineThickness; // 18
     float u_mmLineThickness;    // 19
-    vec4 uPadding[3];           // 20-31
+    vec4 uPadding[5];           // 20-39
 } fragUniforms;
 
 // Unified Binding: All fragment shaders in this pass use Binding 2 for their primary sampler.

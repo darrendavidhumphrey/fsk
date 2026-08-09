@@ -1,4 +1,3 @@
-import 'dart:typed_data';
 import 'dart:ui';
 import 'base_uniforms.dart';
 
@@ -32,14 +31,12 @@ class CheckerBoardUniforms extends BaseUniforms {
   set patternScale(double val) => this[_kPatternScaleKey] = val;
 
   @override
-  Float32List serializeFragmentData() {
-    final Float32List fragmentData = Float32List(BaseUniforms.kFragmentDataFloatCount);
-    int offset = 0;
-    offset = packColor(fragmentData, offset, valuesMap[_kPatternColor1Key]);
-    offset = packColor(fragmentData, offset, valuesMap[_kPatternColor2Key]);
-    offset = packBool(fragmentData, offset, valuesMap[_kUseTextureKey]);
-    offset = packDouble(fragmentData, offset, valuesMap[_kTextureMixKey]);
-    offset = packDouble(fragmentData, offset, valuesMap[_kPatternScaleKey]);
-    return fragmentData;
+  void serializeFragmentData() {
+    fragmentData.clear();
+    fragmentData.packColor(valuesMap[_kPatternColor1Key]);
+    fragmentData.packColor(valuesMap[_kPatternColor2Key]);
+    fragmentData.packBool(valuesMap[_kUseTextureKey]);
+    fragmentData.packDouble(valuesMap[_kTextureMixKey]);
+    fragmentData.packDouble(valuesMap[_kPatternScaleKey]);
   }
 }

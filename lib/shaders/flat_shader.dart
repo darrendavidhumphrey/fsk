@@ -1,4 +1,3 @@
-import 'dart:typed_data';
 import 'dart:ui';
 import 'base_uniforms.dart';
 import 'materials.dart';
@@ -23,9 +22,8 @@ class FlatUniforms extends BaseUniforms {
   }
 
   @override
-  Float32List serializeFragmentData() {
-    final Float32List fragmentData = Float32List(BaseUniforms.kFragmentDataFloatCount);
-    packColor(fragmentData, 0, valuesMap[_kModulateColor]);
-    return fragmentData;
+  void serializeFragmentData() {
+    fragmentData.clear();
+    fragmentData.packColor(valuesMap[_kModulateColor]);
   }
 }

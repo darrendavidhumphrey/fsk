@@ -1,4 +1,3 @@
-import 'dart:typed_data';
 import 'dart:ui';
 import 'base_uniforms.dart';
 
@@ -58,20 +57,18 @@ class GridUniforms extends BaseUniforms {
   }
 
   @override
-  Float32List serializeFragmentData() {
-    final Float32List fragmentData = Float32List(BaseUniforms.kFragmentDataFloatCount);
-    int offset = 0;
-    offset = packColor(fragmentData, offset, valuesMap[_kMajorLineColorKey]);
-    offset = packColor(fragmentData, offset, valuesMap[_kMinorLineColorKey]);
-    offset = packColor(fragmentData, offset, valuesMap[_kMmLineColorKey]);
-    offset = packDouble(fragmentData, offset, valuesMap[_kResolutionWidthKey]);
-    offset = packDouble(fragmentData, offset, valuesMap[_kResolutionHeightKey]);
-    offset = packDouble(fragmentData, offset, valuesMap[_kScaleKey]);
-    offset = packDouble(fragmentData, offset, valuesMap[_kMajorLineSpacingMMKey]);
-    offset = packDouble(fragmentData, offset, valuesMap[_kMinorLineSpacingMMKey]);
-    offset = packDouble(fragmentData, offset, valuesMap[_kMajorLineThicknessKey]);
-    offset = packDouble(fragmentData, offset, valuesMap[_kMinorLineThicknessKey]);
-    offset = packDouble(fragmentData, offset, valuesMap[_kMmLineThicknessKey]);
-    return fragmentData;
+  void serializeFragmentData() {
+    fragmentData.clear();
+    fragmentData.packColor(valuesMap[_kMajorLineColorKey]);
+    fragmentData.packColor(valuesMap[_kMinorLineColorKey]);
+    fragmentData.packColor(valuesMap[_kMmLineColorKey]);
+    fragmentData.packDouble(valuesMap[_kResolutionWidthKey]);
+    fragmentData.packDouble(valuesMap[_kResolutionHeightKey]);
+    fragmentData.packDouble(valuesMap[_kScaleKey]);
+    fragmentData.packDouble(valuesMap[_kMajorLineSpacingMMKey]);
+    fragmentData.packDouble(valuesMap[_kMinorLineSpacingMMKey]);
+    fragmentData.packDouble(valuesMap[_kMajorLineThicknessKey]);
+    fragmentData.packDouble(valuesMap[_kMinorLineThicknessKey]);
+    fragmentData.packDouble(valuesMap[_kMmLineThicknessKey]);
   }
 }

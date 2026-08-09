@@ -31,9 +31,8 @@ class SimpleTextureUniforms extends BaseUniforms {
   }
 
   @override
-  Float32List serializeFragmentData() {
-    final Float32List fragmentData = Float32List(BaseUniforms.kFragmentDataFloatCount);
-    packColor(fragmentData, 0, valuesMap[_kModulateColorKey]);
-    return fragmentData;
+  void serializeFragmentData() {
+    fragmentData.clear();
+    fragmentData.packColor(valuesMap[_kModulateColorKey]);
   }
 }

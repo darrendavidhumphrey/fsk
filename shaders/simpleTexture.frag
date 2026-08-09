@@ -4,10 +4,10 @@ layout(location = 0) in vec2 vTextureCoord;
 layout(location = 0) out vec4 FragColor;
 
 // Uniform Block for configuration properties (Binding 1, Set 0)
-// Padded to 32 floats (128 bytes) for single-pass stability.
+// Padded to 40 floats (160 bytes) for single-pass stability.
 layout(std140, set = 0, binding = 1) uniform SimpleTextureFragmentUniforms {
     vec4 uModulateColor; // 0-3
-    vec4 uPadding[7];     // 4-31
+    vec4 uPadding[9];     // 4-39
 } fragUniforms;
 
 layout(set = 0, binding = 2) uniform sampler2D uSampler;

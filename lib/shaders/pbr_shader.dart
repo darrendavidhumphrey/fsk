@@ -1,4 +1,3 @@
-import 'dart:typed_data';
 import 'package:flutter_gpu/gpu.dart' as gpu;
 import 'package:vector_math/vector_math.dart';
 import '../fsk_singleton.dart';
@@ -56,14 +55,12 @@ class PbrUniforms extends BaseUniforms {
   }
 
   @override
-  Float32List serializeFragmentData() {
-    final fragmentData = Float32List(BaseUniforms.kFragmentDataFloatCount);
-    int offset = 0;
-    offset = packVector3(fragmentData, offset, valuesMap[kLightPosKey]);
-    offset = packVector3(fragmentData, offset, valuesMap[kBaseColorFactorKey]);
-    offset = packDouble(fragmentData, offset, valuesMap[kRoughnessFactorKey]);
-    offset = packDouble(fragmentData, offset, valuesMap[kMetallicFactorKey]);
-    offset = packDouble(fragmentData, offset, valuesMap[kDebugModeKey]);
-    return fragmentData;
+  void serializeFragmentData() {
+    fragmentData.clear();
+    fragmentData.packVector3(valuesMap[kLightPosKey]);
+    fragmentData.packVector3(valuesMap[kBaseColorFactorKey]);
+    fragmentData.packDouble(valuesMap[kRoughnessFactorKey]);
+    fragmentData.packDouble(valuesMap[kMetallicFactorKey]);
+    fragmentData.packDouble(valuesMap[kDebugModeKey]);
   }
 }

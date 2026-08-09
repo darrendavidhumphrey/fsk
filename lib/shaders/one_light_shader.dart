@@ -1,4 +1,3 @@
-import 'dart:typed_data';
 import 'dart:ui';
 import 'package:vector_math/vector_math.dart';
 import 'base_uniforms.dart';
@@ -48,17 +47,15 @@ class OneLightUniforms extends BaseUniforms {
   }
 
   @override
-  Float32List serializeFragmentData() {
-    final Float32List fragmentData = Float32List(BaseUniforms.kFragmentDataFloatCount);
-    int offset = 0;
-    offset = packVector3(fragmentData, offset, valuesMap[kLightPosKey]);
-    offset = packColor(fragmentData, offset, valuesMap[kAmbientLightKey]);
-    offset = packColor(fragmentData, offset, valuesMap[kDiffuseLightKey]);
-    offset = packColor(fragmentData, offset, valuesMap[kSpecularLightKey]);
-    offset = packColor(fragmentData, offset, valuesMap[kMaterialAmbientKey]);
-    offset = packColor(fragmentData, offset, valuesMap[kMaterialDiffuseKey]);
-    offset = packColor(fragmentData, offset, valuesMap[kMaterialSpecularKey]);
-    offset = packDouble(fragmentData, offset, valuesMap[kMaterialShininessKey]);
-    return fragmentData;
+  void serializeFragmentData() {
+    fragmentData.clear();
+    fragmentData.packVector3(valuesMap[kLightPosKey]);
+    fragmentData.packColor(valuesMap[kAmbientLightKey]);
+    fragmentData.packColor(valuesMap[kDiffuseLightKey]);
+    fragmentData.packColor(valuesMap[kSpecularLightKey]);
+    fragmentData.packColor(valuesMap[kMaterialAmbientKey]);
+    fragmentData.packColor(valuesMap[kMaterialDiffuseKey]);
+    fragmentData.packColor(valuesMap[kMaterialSpecularKey]);
+    fragmentData.packDouble(valuesMap[kMaterialShininessKey]);
   }
 }

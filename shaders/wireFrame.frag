@@ -7,6 +7,7 @@ layout(location = 3) in vec3 vBarycentric;
 
 layout(location = 0) out vec4 FragColor;
 
+// Unified 40-float (160-byte) block size for single-pass stability.
 layout(std140, set = 0, binding = 1) uniform WireFrameFragmentUniforms {
     vec4 uLightPos;          // 0-3
     vec4 uAmbientLight;      // 4-7
@@ -17,6 +18,7 @@ layout(std140, set = 0, binding = 1) uniform WireFrameFragmentUniforms {
     vec4 uMaterialSpecular;  // 24-27
     vec4 uOutlineColor;      // 28-31
     vec4 uConfig;            // 32-35
+    vec4 uPadding;           // 36-39
 } fragUniforms;
 
 layout(set = 0, binding = 2) uniform sampler2D uSampler;

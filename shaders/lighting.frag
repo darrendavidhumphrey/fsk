@@ -7,12 +7,12 @@ layout(location = 2) in vec3 vEyeCoords;
 layout(location = 0) out vec4 FragColor;
 
 // Uniform Block for configuration properties (Binding 1, Set 0)
-// Padded to 32 floats (128 bytes) for single-pass stability.
+// Unified 40-float (160-byte) block size for single-pass stability.
 layout(std140, set = 0, binding = 1) uniform LightingFragmentUniforms {
     vec4 uKd;        // Offset 0
     vec4 uLd;        // Offset 16
     vec4 uLightPos;  // Offset 32 (View Space)
-    vec4 uPadding[5]; // Offset 48-127
+    vec4 uPadding[7]; // Offset 48-159
 } fragUniforms;
 
 layout(set = 0, binding = 2) uniform sampler2D uSampler;
