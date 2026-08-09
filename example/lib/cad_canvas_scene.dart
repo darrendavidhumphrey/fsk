@@ -29,6 +29,7 @@ class CADCanvasScene extends FskScene {
       shaderMaterial: FskShaderMaterial.grid,
     );
 
+
     // 2. Configure persistent uniforms once
     final uniforms = gridQuad.uniforms as GridUniforms;
     uniforms.scale = 0.1; // 1 unit = 1mm
