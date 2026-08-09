@@ -80,12 +80,6 @@ abstract class BaseUniforms extends ChangeNotifier with LoggableClass {
     notifyListeners();
   }
 
-  /// Updates a value without triggering a scene redraw.
-  /// Use this for per-frame calculated values like resolution or time.
-  void setValueSilent(String key, dynamic value) {
-    valuesMap[key] = value;
-  }
-
   /// Override this in subclasses to apply material properties to specific uniforms.
   void applyMaterial(GlMaterial material) {}
 

@@ -38,8 +38,8 @@ class GridUniforms extends BaseUniforms {
   set mmLineColor(Color val) => this[_kMmLineColorKey] = val;
 
   void setResolution(double width, double height) {
-    setValueSilent(_kResolutionWidthKey, width);
-    setValueSilent(_kResolutionHeightKey, height);
+    this[_kResolutionWidthKey] = width;
+    this[_kResolutionHeightKey] = height;
   }
 
   set scale(double val) => this[_kScaleKey] = val;
