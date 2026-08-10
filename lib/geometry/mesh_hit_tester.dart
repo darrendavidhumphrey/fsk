@@ -1,8 +1,6 @@
 import 'dart:typed_data';
 import 'package:fsk/fsk.dart';
-import 'package:vector_math/vector_math.dart';
-
-import 'triangle_mesh.dart';
+import 'package:vector_math/vector_math.dart' as vm;
 
 /// Modes for controlling hit test traversal and results.
 enum FskHitTestMode {
@@ -22,13 +20,13 @@ class FskHitDetails {
   final FskSceneObject hitObject;
 
   /// The exact point of intersection in world space.
-  final Vector3 hitPoint;
+  final vm.Vector3 hitPoint;
 
   /// The distance from the ray's origin to the hit point.
   final double distance;
 
   /// The surface normal at the hit point.
-  final Vector3 normal;
+  final vm.Vector3 normal;
 
   /// Additional data appropriate to the object that was hit (e.g. triangle index).
   final dynamic hitData;
@@ -48,7 +46,7 @@ class MeshHitTester {
   MeshHitTester._();
 
   /// Performs a ray-mesh intersection test against an [FskMesh].
-  static List<FskHitDetails> intersectFskMesh(FskMesh mesh, Ray ray,
+  static List<FskHitDetails> intersectFskMesh(FskMesh mesh, vm.Ray ray,
       {FskHitTestMode mode = FskHitTestMode.closest, double epsilon = 1e-6}) {
     if (mesh.vertices == null) return [];
     return _intersectBuffer(
@@ -64,7 +62,7 @@ class MeshHitTester {
 
   /// Performs a ray-mesh intersection test against an [FskIndexedMesh].
   static List<FskHitDetails> intersectFskIndexedMesh(
-      FskIndexedMesh mesh, Ray ray,
+      FskIndexedMesh mesh, vm.Ray ray,
       {FskHitTestMode mode = FskHitTestMode.closest, double epsilon = 1e-6}) {
     if (mesh.vertices == null || mesh.indices == null) return [];
     return _intersectBuffer(
@@ -84,7 +82,7 @@ class MeshHitTester {
     Float32List vertices,
     int stride,
     TypedData? indices,
-    Ray ray, {
+    vm.Ray ray, {
     FskHitTestMode mode = FskHitTestMode.closest,
     double epsilon = 1e-6,
   }) {
@@ -158,13 +156,13 @@ class MeshHitTester {
     return hits;
   }
 
-  static Vector3 _getVertex(Float32List vertices, int index, int stride) {
+  static vm.Vector3 _getVertex(Float32List vertices, int index, int stride) {
     final int base = index * stride;
-    return Vector3(vertices[base], vertices[base + 1], vertices[base + 2]);
+    return vm.Vector3(vertices[base], vertices[base + 1], vertices[base + 2]);
   }
 
-  static Vector3? _intersectRayTriangle(
-      Vector3 p0, Vector3 v1, Vector3 v2, Ray ray,
+  static vm.Vector3? _intersectRayTriangle(
+      vm.Vector3 p0, vm.Vector3 v1, vm.Vector3 v2, vm.Ray ray,
       {double epsilon = 1e-6}) {
     final edge1 = v1 - p0;
     final edge2 = v2 - p0;

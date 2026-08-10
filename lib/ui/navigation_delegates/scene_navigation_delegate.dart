@@ -1,5 +1,5 @@
 import 'package:flutter/material.dart' hide Matrix4;
-import 'package:vector_math/vector_math.dart';
+import 'package:vector_math/vector_math.dart' as vm;
 import 'package:fsk/fsk.dart';
 
 enum FskBoxFit {
@@ -12,12 +12,12 @@ enum FskBoxFit {
 
 abstract class FskSceneNavigationDelegate with ChangeNotifier, FskInputHandlerDefaultMixin {
   late FskSceneBase scene;
-  late Matrix4 _projectionMatrix;
-  late Matrix4 _viewMatrix;
+  late vm.Matrix4 _projectionMatrix;
+  late vm.Matrix4 _viewMatrix;
 
   FskSceneNavigationDelegate({this._viewRect = defaultViewRect, this._boxFit = FskBoxFit.none}) {
-    _projectionMatrix = Matrix4.identity();
-    _viewMatrix = Matrix4.identity();
+    _projectionMatrix = vm.Matrix4.identity();
+    _viewMatrix = vm.Matrix4.identity();
   }
 
   bool _needsUpdate = true;
@@ -44,21 +44,21 @@ abstract class FskSceneNavigationDelegate with ChangeNotifier, FskInputHandlerDe
     setNeedsUpdate(true);
   }
 
-  void setViewMatrix(Matrix4 matrix) => matrix.copyInto(_viewMatrix);
-  void setProjectionMatrix(Matrix4 matrix) => matrix.copyInto(_projectionMatrix);
+  void setViewMatrix(vm.Matrix4 matrix) => matrix.copyInto(_viewMatrix);
+  void setProjectionMatrix(vm.Matrix4 matrix) => matrix.copyInto(_projectionMatrix);
 
-  Matrix4 getProjectionMatrix() {
+  vm.Matrix4 getProjectionMatrix() {
     if (needsUpdate) updateSceneMatrices();
     return _projectionMatrix;
   }
 
-  Matrix4 getViewMatrix() {
+  vm.Matrix4 getViewMatrix() {
     if (needsUpdate) updateSceneMatrices();
     return _viewMatrix;
   }
 
-  Matrix4 createViewMatrix();
-  Matrix4 createProjectionMatrix();
+  vm.Matrix4 createViewMatrix();
+  vm.Matrix4 createProjectionMatrix();
 
   void updateSceneMatrices({bool force = false}) {
     if (needsUpdate || force) {
@@ -78,7 +78,7 @@ abstract class FskSceneNavigationDelegate with ChangeNotifier, FskInputHandlerDe
   /// Creates a matrix that scales and translates content of [contentSize] to fit
   /// the current view.
   /// This version anchors (0,0) of the content to the viewport origin.
-  Matrix4 createBoxFitMatrix(Size contentSize) {
+  vm.Matrix4 createBoxFitMatrix(Size contentSize) {
     double scaleX = 1.0;
     double scaleY = 1.0;
 
@@ -108,8 +108,8 @@ abstract class FskSceneNavigationDelegate with ChangeNotifier, FskInputHandlerDe
         break;
     }
 
-    return Matrix4.identity()
-      ..translateByVector3(Vector3(_viewRect.left, _viewRect.top, 0.0))
-      ..scaleByVector3(Vector3(scaleX, scaleY, 1.0));
+    return vm.Matrix4.identity()
+      ..translateByVector3(vm.Vector3(_viewRect.left, _viewRect.top, 0.0))
+      ..scaleByVector3(vm.Vector3(scaleX, scaleY, 1.0));
   }
 }

@@ -4,7 +4,7 @@ import 'dart:convert';
 import 'dart:typed_data';
 import 'package:flutter/services.dart' show rootBundle;
 import 'package:fsk/fsk.dart';
-import 'package:vector_math/vector_math.dart';
+import 'package:vector_math/vector_math.dart' as vm;
 
 /// A record type representing a unique combination of position, texture coordinate,
 /// and normal indices. Used as a key to de-duplicate vertices.
@@ -99,9 +99,9 @@ class WavefrontObjModel extends FskModelLoader {
   ///    builds the face indices, and groups them into meshes.
   void loadFromString(String objFileContent) {
     // Temporary lists to hold the raw attribute data from the file.
-    List<Vector3> tempPositions = [];
-    List<Vector2> tempTextureCoordinates = [];
-    List<Vector3> tempNormals = [];
+    List<vm.Vector3> tempPositions = [];
+    List<vm.Vector2> tempTextureCoordinates = [];
+    List<vm.Vector3> tempNormals = [];
 
     HashMap<_VertexCombo, int> uniqueVertexMap = HashMap();
     int nextAvailableIndex = 0;
@@ -150,18 +150,18 @@ class WavefrontObjModel extends FskModelLoader {
       String prefix = parts[0];
 
       if (prefix == "v") {
-        tempPositions.add(Vector3(
+        tempPositions.add(vm.Vector3(
           double.parse(parts[1]),
           double.parse(parts[2]),
           double.parse(parts[3]),
         ));
       } else if (prefix == "vt") {
-        tempTextureCoordinates.add(Vector2(
+        tempTextureCoordinates.add(vm.Vector2(
           double.parse(parts[1]),
           double.parse(parts[2]),
         ));
       } else if (prefix == "vn") {
-        tempNormals.add(Vector3(
+        tempNormals.add(vm.Vector3(
           double.parse(parts[1]),
           double.parse(parts[2]),
           double.parse(parts[3]),
@@ -190,12 +190,12 @@ class WavefrontObjModel extends FskModelLoader {
             // Get texture coords or default to zero
             final tex = (currentCombination.$2 >= 0 && currentCombination.$2 < tempTextureCoordinates.length)
                 ? tempTextureCoordinates[currentCombination.$2]
-                : Vector2.zero();
+                : vm.Vector2.zero();
                 
             // Get normal or default to zero
             final norm = (currentCombination.$3 >= 0 && currentCombination.$3 < tempNormals.length)
                 ? tempNormals[currentCombination.$3]
-                : Vector3.zero();
+                : vm.Vector3.zero();
 
             // This is a new, unique vertex. Write its data to the buffer.
             filler.addV3T2N3(pos, tex, norm);

@@ -1,7 +1,7 @@
 import 'dart:typed_data';
 import 'dart:ui';
 
-import 'package:vector_math/vector_math.dart';
+import 'package:vector_math/vector_math.dart' as vm;
 
 /// Encapsulates a reusable buffer for packing fragment shader uniform data.
 class FragmentValues {
@@ -27,7 +27,7 @@ class FragmentValues {
       buffer[_offset++] = colorVal.g;
       buffer[_offset++] = colorVal.b;
       buffer[_offset++] = colorVal.a;
-    } else if (colorVal is Vector4) {
+    } else if (colorVal is vm.Vector4) {
       // Defensive support for Vector4 from internal loaders
       buffer[_offset++] = colorVal.x;
       buffer[_offset++] = colorVal.y;
@@ -49,11 +49,11 @@ class FragmentValues {
       buffer[_offset++] = value.r;
       buffer[_offset++] = value.g;
       buffer[_offset++] = value.b;
-    } else if (value is Vector3) {
+    } else if (value is vm.Vector3) {
       buffer[_offset++] = value.x;
       buffer[_offset++] = value.y;
       buffer[_offset++] = value.z;
-    } else if (value is Vector4) {
+    } else if (value is vm.Vector4) {
       buffer[_offset++] = value.x;
       buffer[_offset++] = value.y;
       buffer[_offset++] = value.z;

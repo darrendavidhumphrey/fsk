@@ -5,7 +5,7 @@ import 'dart:ui';
 import 'package:dart_stl/stl_reader.dart';
 import 'package:flutter/services.dart' show rootBundle;
 import 'package:fsk/fsk.dart';
-import 'package:vector_math/vector_math.dart';
+import 'package:vector_math/vector_math.dart' as vm;
 
 /// Represents a 3D model loaded from an STL file (ASCII or Binary).
 class StlLoader extends FskModelLoader {
@@ -57,28 +57,28 @@ class StlLoader extends FskModelLoader {
     int offset = 84;
     for (int i = 0; i < count; i++) {
       // Binary STL: Normal (3f), V1 (3f), V2 (3f), V3 (3f), Attr (2b) = 50 bytes
-      Vector3 normal = Vector3(
+      vm.Vector3 normal = vm.Vector3(
         data.getFloat32(offset, Endian.little),
         data.getFloat32(offset + 4, Endian.little),
         data.getFloat32(offset + 8, Endian.little),
       );
       offset += 12;
 
-      final v1 = Vector3(
+      final v1 = vm.Vector3(
         data.getFloat32(offset, Endian.little),
         data.getFloat32(offset + 4, Endian.little),
         data.getFloat32(offset + 8, Endian.little),
       );
       offset += 12;
 
-      final v2 = Vector3(
+      final v2 = vm.Vector3(
         data.getFloat32(offset, Endian.little),
         data.getFloat32(offset + 4, Endian.little),
         data.getFloat32(offset + 8, Endian.little),
       );
       offset += 12;
 
-      final v3 = Vector3(
+      final v3 = vm.Vector3(
         data.getFloat32(offset, Endian.little),
         data.getFloat32(offset + 4, Endian.little),
         data.getFloat32(offset + 8, Endian.little),
@@ -94,9 +94,9 @@ class StlLoader extends FskModelLoader {
 
       // Add 3 vertices for the triangle. STL is unindexed vertex soup.
       // Use zero UVs and solid white color.
-      filler.addV3T2N3C4(v1, Vector2.zero(), normal, const Color(0xFFFFFFFF));
-      filler.addV3T2N3C4(v2, Vector2.zero(), normal, const Color(0xFFFFFFFF));
-      filler.addV3T2N3C4(v3, Vector2.zero(), normal, const Color(0xFFFFFFFF));
+      filler.addV3T2N3C4(v1, vm.Vector2.zero(), normal, const Color(0xFFFFFFFF));
+      filler.addV3T2N3C4(v2, vm.Vector2.zero(), normal, const Color(0xFFFFFFFF));
+      filler.addV3T2N3C4(v3, vm.Vector2.zero(), normal, const Color(0xFFFFFFFF));
     }
   }
 
@@ -112,21 +112,21 @@ class StlLoader extends FskModelLoader {
 
     for (final tri in triangles) {
       // dart_stl uses vector_math_64 (double precision), FSK uses vector_math (32-bit).
-      final v1 = Vector3(tri.point0.x, tri.point0.y, tri.point0.z);
-      final v2 = Vector3(tri.point1.x, tri.point1.y, tri.point1.z);
-      final v3 = Vector3(tri.point2.x, tri.point2.y, tri.point2.z);
+      final v1 = vm.Vector3(tri.point0.x, tri.point0.y, tri.point0.z);
+      final v2 = vm.Vector3(tri.point1.x, tri.point1.y, tri.point1.z);
+      final v3 = vm.Vector3(tri.point2.x, tri.point2.y, tri.point2.z);
 
       // STL face normal from dart_stl
-      Vector3 normal = Vector3(tri.normal.x, tri.normal.y, tri.normal.z);
+      vm.Vector3 normal = vm.Vector3(tri.normal.x, tri.normal.y, tri.normal.z);
 
       // If normal is missing or invalid, compute it
       if (normal.length2 < 1e-9) {
         normal = (v2 - v1).cross(v3 - v1)..normalize();
       }
 
-      filler.addV3T2N3C4(v1, Vector2.zero(), normal, const Color(0xFFFFFFFF));
-      filler.addV3T2N3C4(v2, Vector2.zero(), normal, const Color(0xFFFFFFFF));
-      filler.addV3T2N3C4(v3, Vector2.zero(), normal, const Color(0xFFFFFFFF));
+      filler.addV3T2N3C4(v1, vm.Vector2.zero(), normal, const Color(0xFFFFFFFF));
+      filler.addV3T2N3C4(v2, vm.Vector2.zero(), normal, const Color(0xFFFFFFFF));
+      filler.addV3T2N3C4(v3, vm.Vector2.zero(), normal, const Color(0xFFFFFFFF));
     }
   }
 

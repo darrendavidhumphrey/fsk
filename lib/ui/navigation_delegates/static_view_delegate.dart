@@ -1,34 +1,34 @@
 import 'dart:math' as math;
 
 import 'package:fsk/ui/navigation_delegates/scene_navigation_delegate.dart';
-import 'package:vector_math/vector_math.dart';
+import 'package:vector_math/vector_math.dart' as vm;
 
 /// A navigation delegate that implements a static view
 class StaticViewDelegate extends FskSceneNavigationDelegate {
   StaticViewDelegate({super.viewRect,super.boxFit});
 
   // The rotation of the view, in degrees
-  Vector3 _rotation = Vector3(45,0,0);
-  Vector3 _orbitCenter = Vector3(0, 0, 0);
-  Vector3 _eyeLocation = Vector3(0, 0, -500);
+  vm.Vector3 _rotation = vm.Vector3(45,0,0);
+  vm.Vector3 _orbitCenter = vm.Vector3(0, 0, 0);
+  vm.Vector3 _eyeLocation = vm.Vector3(0, 0, -500);
 
   double _fovYDegrees = 60;
   double _zNear = 0.1;
   double _zFar = 5000000;
 
-  set rotation(Vector3 value) {
+  set rotation(vm.Vector3 value) {
     if (_rotation == value) return;
     _rotation = value;
     setNeedsUpdate(true);
   }
 
-  set orbitCenter(Vector3 value) {
+  set orbitCenter(vm.Vector3 value) {
     if (_orbitCenter == value) return;
     _orbitCenter = value;
     setNeedsUpdate(true);
   }
 
-  set eyeLocation(Vector3 value) {
+  set eyeLocation(vm.Vector3 value) {
     if (_eyeLocation == value) return;
     _eyeLocation = value;
     setNeedsUpdate(true);
@@ -56,24 +56,24 @@ class StaticViewDelegate extends FskSceneNavigationDelegate {
   double get fovYDegrees => _fovYDegrees;
   double get zNear => _zNear;
   double get zFar => _zFar;
-  Vector3 get rotation => _rotation;
+  vm.Vector3 get rotation => _rotation;
 
   @override
-  Matrix4 createViewMatrix() {
-    final Matrix4 view = Matrix4.identity();
+  vm.Matrix4 createViewMatrix() {
+    final vm.Matrix4 view = vm.Matrix4.identity();
 
     // Scale the view matrix Y-axis by -1.0.
     // This flips the camera's orientation with the top-left projection matrix
-    view.scaleByVector3(Vector3(1.0, -1.0, 1.0));
+    view.scaleByVector3(vm.Vector3(1.0, -1.0, 1.0));
 
     // 1. Move the camera back along the Z-axis by the viewing distance
     // (Assuming _eyeLocation.z acts as your orbit radius distance)
-    view.translateByVector3(Vector3(0.0, 0.0, -_eyeLocation.z));
+    view.translateByVector3(vm.Vector3(0.0, 0.0, -_eyeLocation.z));
 
     // 2. Apply camera orbital rotation angles
-    view.rotateX(radians(_rotation.x));
-    view.rotateY(radians(_rotation.y));
-    view.rotateZ(radians(_rotation.z));
+    view.rotateX(vm.radians(_rotation.x));
+    view.rotateY(vm.radians(_rotation.y));
+    view.rotateZ(vm.radians(_rotation.z));
 
     // 3. Move the world origin to your focal point target
     view.translateByVector3(-_orbitCenter);
@@ -82,17 +82,17 @@ class StaticViewDelegate extends FskSceneNavigationDelegate {
   }
 
   @override
-  Matrix4 createProjectionMatrix() {
+  vm.Matrix4 createProjectionMatrix() {
     final double aspectRatio = scene.viewportSize.width / scene.viewportSize.height;
-    final double fovYRadians = radians(_fovYDegrees);
+    final double fovYRadians = vm.radians(_fovYDegrees);
 
     // 1. Calculate focal length components
     final double g = 1.0 / math.tan(fovYRadians / 2.0);
     final double depthRange = zFar - zNear;
 
-    if (depthRange == 0 || aspectRatio == 0) return Matrix4.identity();
+    if (depthRange == 0 || aspectRatio == 0) return vm.Matrix4.identity();
 
-    final Matrix4 proj = Matrix4.zero();
+    final vm.Matrix4 proj = vm.Matrix4.zero();
 
     // 2. Build explicit Vulkan/Metal perspective mapping
     proj.setEntry(0, 0, g / aspectRatio);

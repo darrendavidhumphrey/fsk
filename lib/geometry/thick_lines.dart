@@ -1,10 +1,10 @@
 import 'package:fsk/fsk.dart';
-import 'package:vector_math/vector_math.dart';
+import 'package:vector_math/vector_math.dart' as vm;
 
 Polyline createThickLineSegment(
-  Vector3 p1,
-  Vector3 p2,
-  Vector3 normal,
+  vm.Vector3 p1,
+  vm.Vector3 p2,
+  vm.Vector3 normal,
   double thickness,
 ) {
   double halfThickness = thickness / 2.0;
@@ -16,15 +16,15 @@ Polyline createThickLineSegment(
   normal.normalize();
 
   // 1. Calculate segment direction
-  Vector3 segment = p2 - p1;
+  vm.Vector3 segment = p2 - p1;
   segment.normalize(); // Normalize for consistent calculations
 
   // 2. Calculate displacement direction (perpendicular to segment and normal)
-  Vector3 displacementDirection = segment.cross(normal);
+  vm.Vector3 displacementDirection = segment.cross(normal);
   displacementDirection.normalize(); // Ensure unit length
 
   // 3. Scale by half thickness
-  Vector3 displacement = displacementDirection * halfThickness;
+  vm.Vector3 displacement = displacementDirection * halfThickness;
 
   // 4. Generate the four vertices for the quad
   // Vertex 0: P1 + displacement
@@ -40,12 +40,12 @@ Polyline createThickLineSegment(
   ]);
 }
 
-List<Polyline> createThickOutline3DFromQuad(Quad q, double thickness) {
+List<Polyline> createThickOutline3DFromQuad(vm.Quad q, double thickness) {
   Polyline p = Polyline.fromVector3([q.point0, q.point1, q.point2, q.point3]);
   return createThickOutline3D(p, thickness);
 }
 
-List<Polyline> createThickOutline3DFromPoints(List<Vector3> points,double thickness) {
+List<Polyline> createThickOutline3DFromPoints(List<vm.Vector3> points,double thickness) {
   Polyline p = Polyline.fromVector3(points);
   return createThickOutline3D(p, thickness);
 }
@@ -69,26 +69,26 @@ List<Polyline> createThickOutline3D(Polyline polygon, double thickness) {
   }
 
   // 1. Determine the polygon's normal vector
-  Vector3 normal = polygon.normal!;
+  vm.Vector3 normal = polygon.normal!;
 
   List<Edge> edges = [];
 
   final int length = polygon.length;
   for (int i = 0; i < length; i++) {
-    Vector3 prevPoint = polygon.getVector3((i - 1 + length) % length);
-    Vector3 currentPoint = polygon.getVector3(i);
-    Vector3 nextPoint = polygon.getVector3((i + 1) % length);
+    vm.Vector3 prevPoint = polygon.getVector3((i - 1 + length) % length);
+    vm.Vector3 currentPoint = polygon.getVector3(i);
+    vm.Vector3 nextPoint = polygon.getVector3((i + 1) % length);
 
     // Direction vectors for incoming and outgoing segments
-    Vector3 incomingSegment = (currentPoint - prevPoint).normalized();
-    Vector3 outgoingSegment = (nextPoint - currentPoint).normalized();
+    vm.Vector3 incomingSegment = (currentPoint - prevPoint).normalized();
+    vm.Vector3 outgoingSegment = (nextPoint - currentPoint).normalized();
 
     // 2. Calculate perpendicular vectors for incoming and outgoing segments
-    Vector3 incomingPerpendicular = incomingSegment.cross(normal).normalized();
-    Vector3 outgoingPerpendicular = outgoingSegment.cross(normal).normalized();
+    vm.Vector3 incomingPerpendicular = incomingSegment.cross(normal).normalized();
+    vm.Vector3 outgoingPerpendicular = outgoingSegment.cross(normal).normalized();
 
     // 3. Calculate the angle bisector
-    Vector3 miterDirection = (incomingPerpendicular + outgoingPerpendicular)
+    vm.Vector3 miterDirection = (incomingPerpendicular + outgoingPerpendicular)
         .normalized();
 
     // Check if the miter needs to be flipped for sharp corners (concave vs convex)
@@ -104,7 +104,7 @@ List<Polyline> createThickOutline3D(Polyline polygon, double thickness) {
         halfThickness / miterDirection.dot(incomingPerpendicular);
 
     // 5. Generate the mitered vertices
-    Vector3 miterOffset = miterDirection * miterLength;
+    vm.Vector3 miterOffset = miterDirection * miterLength;
 
     // For each point, we will have two vertices: outer and inner
     // This forms a quad for the segment.

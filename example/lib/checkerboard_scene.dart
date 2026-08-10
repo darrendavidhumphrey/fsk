@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart' hide Matrix4;
 import 'package:fsk/fsk.dart';
-import 'package:vector_math/vector_math.dart' hide Colors;
+import 'package:vector_math/vector_math.dart' as vm;
 
 class CheckerBoardScene extends FskScene {
   CheckerBoardScene({super.navigationDelegate,super.clearColor=Colors.white});
@@ -12,10 +12,10 @@ class CheckerBoardScene extends FskScene {
 
     // Create a ReferenceBox that matches the 2D layout expectation (Origin at 0,0)
     final refBox = ReferenceBox(
-      Vector3.zero(),
-      Vector3(500, 0, 0),
-      Vector3(0, 500, 0),
-      Vector3(0, 0, 1),
+      vm.Vector3.zero(),
+      vm.Vector3(500, 0, 0),
+      vm.Vector3(0, 500, 0),
+      vm.Vector3(0, 0, 1),
     );
 
     final checkerQuad = FskQuad(

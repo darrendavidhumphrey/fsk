@@ -2,13 +2,13 @@ import 'dart:ui';
 
 import 'package:flutter_gpu/gpu.dart' as gpu;
 import 'package:fsk/fsk.dart';
-import 'package:vector_math/vector_math.dart';
+import 'package:vector_math/vector_math.dart' as vm;
 import 'package:xml/xml.dart';
 
 import '../skins/skin_data.dart';
 
 class SkinGroupData extends SkinGroupDataExplicit {
-  final Vector3 anchor;
+  final vm.Vector3 anchor;
   @override
   final List<SkinObjectData> children;
 
@@ -117,14 +117,14 @@ class FskGroup extends FskRenderableObject with FskTransformableMixin {
   void draw(
       gpu.RenderPass renderPass,
       gpu.HostBuffer transients,
-      Matrix4 pMatrix,
-      Matrix4 mvMatrix,
+      vm.Matrix4 pMatrix,
+      vm.Matrix4 mvMatrix,
       Size viewportSize,
       ) {
     if (!visible) return;
 
     // Apply this group's transformation once at this level.
-    final Matrix4 currentMv = mvMatrix.clone();
+    final vm.Matrix4 currentMv = mvMatrix.clone();
     if (transformable.isTransformed()) {
       currentMv.multiply(transformable.getTransform());
     }
@@ -139,17 +139,17 @@ class FskGroup extends FskRenderableObject with FskTransformableMixin {
   }
 
   @override
-  Aabb3 getAabb() {
-    final Aabb3 bounds = Aabb3.minMax(
-      Vector3.all(double.infinity),
-      Vector3.all(double.negativeInfinity),
+  vm.Aabb3 getAabb() {
+    final vm.Aabb3 bounds = vm.Aabb3.minMax(
+      vm.Vector3.all(double.infinity),
+      vm.Vector3.all(double.negativeInfinity),
     );
     for (final child in children) {
-      final Aabb3 childAabb = child.getAabb();
+      final vm.Aabb3 childAabb = child.getAabb();
       if (childAabb.min.x == double.infinity) continue;
 
       if (child is FskRenderableObject && child.transformable.isTransformed()) {
-        bounds.hull(childAabb.transformed(child.transformable.getTransform(), Aabb3()));
+        bounds.hull(childAabb.transformed(child.transformable.getTransform(), vm.Aabb3()));
       } else {
         bounds.hull(childAabb);
       }
@@ -158,7 +158,7 @@ class FskGroup extends FskRenderableObject with FskTransformableMixin {
   }
 
   @override
-  List<FskHitDetails> doHitTest(Ray ray,
+  List<FskHitDetails> doHitTest(vm.Ray ray,
       {FskHitTestMode mode = FskHitTestMode.closest}) {
     final List<FskHitDetails> results = [];
 

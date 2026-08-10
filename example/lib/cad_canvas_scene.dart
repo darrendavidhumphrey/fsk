@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart' hide Matrix4;
 import 'package:fsk/fsk.dart';
-import 'package:vector_math/vector_math.dart' hide Colors;
+import 'package:vector_math/vector_math.dart' as vm;
 
 const double _gridSize = 500;
 
@@ -51,11 +51,11 @@ class CADCanvasScene extends FskScene {
   }
 
   void makeHandlebars() {
-    List<Vector3> handles = [
-      Vector3(50, 50, 0),
-      Vector3(150, 50, 0),
-      Vector3(150, 150, 0),
-      Vector3(50, 150, 0),
+    List<vm.Vector3> handles = [
+      vm.Vector3(50, 50, 0),
+      vm.Vector3(150, 50, 0),
+      vm.Vector3(150, 150, 0),
+      vm.Vector3(50, 150, 0),
     ];
     final handlebarSize = const Size.square(10);
     FskGroup group = FskGroup("handles", this);
@@ -118,14 +118,14 @@ class CADCanvasScene extends FskScene {
       sceneId: 'axis',
       onModelLoaded: (model) {
         final uniforms = model.mesh.uniforms as LightingUniforms;
-        uniforms.lightPos = Vector3(500, 500, 500);
+        uniforms.lightPos = vm.Vector3(500, 500, 500);
 
         // Scale up the axis
-        model.scale = Vector3.all(2);
+        model.scale = vm.Vector3.all(2);
         // Move it to the corner of the grid
-        model.position = Vector3(-_gridSize / 2, -_gridSize / 2, 0);
+        model.position = vm.Vector3(-_gridSize / 2, -_gridSize / 2, 0);
         // rotate the axis 90 degrees about the Y axis
-        model.rotation = Vector3(0, 0, radians(90));
+        model.rotation = vm.Vector3(0, 0, vm.radians(90));
       },
     );
 

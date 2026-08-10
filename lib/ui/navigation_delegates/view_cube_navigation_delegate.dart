@@ -1,14 +1,14 @@
 import 'dart:ui';
 import 'package:flutter/gestures.dart';
 import 'package:flutter/material.dart' show Colors;
-import 'package:vector_math/vector_math.dart' hide Colors;
+import 'package:vector_math/vector_math.dart' as vm;
 import 'package:fsk/fsk.dart';
 
 /// A mixin that provides interactive highlighting, clicking, and rotation tracking
 /// for a View Cube implementation.
 mixin ViewCubeInputMixin on OrbitViewDelegate {
   FskRenderableObject? _highlightedObject;
-  Vector3? _originalKd;
+  vm.Vector3? _originalKd;
 
   /// The color used to highlight the cube segments on hover.
   Color highlightColor = Colors.lightBlue;
@@ -41,15 +41,15 @@ mixin ViewCubeInputMixin on OrbitViewDelegate {
       if (u is LightingUniforms) {
         // Capture the original color before modifying it
         final dynamic currentKd = u.valuesMap['Kd'];
-        if (currentKd is Vector3) {
-          _originalKd = Vector3.copy(currentKd);
+        if (currentKd is vm.Vector3) {
+          _originalKd = vm.Vector3.copy(currentKd);
         } else if (currentKd is Color) {
-          _originalKd = Vector3(currentKd.r, currentKd.g, currentKd.b);
+          _originalKd = vm.Vector3(currentKd.r, currentKd.g, currentKd.b);
         } else {
-          _originalKd = Vector3(1, 1, 1);
+          _originalKd = vm.Vector3(1, 1, 1);
         }
 
-        u.kd = Vector3(highlightColor.r, highlightColor.g, highlightColor.b);
+        u.kd = vm.Vector3(highlightColor.r, highlightColor.g, highlightColor.b);
       }
     } else {
       _originalKd = null;
@@ -59,7 +59,7 @@ mixin ViewCubeInputMixin on OrbitViewDelegate {
   @override
   bool onPointerDown(PointerDownEvent event) {
     // Perform hit test to see if we should consume the input
-    Ray mouseRay = getWorldRay(event.localPosition);
+    vm.Ray mouseRay = getWorldRay(event.localPosition);
     List<FskHitDetails> hits =
         scene.hitTest(mouseRay, mode: FskHitTestMode.closest);
 
@@ -78,7 +78,7 @@ mixin ViewCubeInputMixin on OrbitViewDelegate {
       final double distance = (event.localPosition - _pointerDownPos!).distance;
       if (distance < _kClickThreshold) {
         // Perform hit test for the click
-        Ray mouseRay = getWorldRay(event.localPosition);
+        vm.Ray mouseRay = getWorldRay(event.localPosition);
         List<FskHitDetails> hits =
             scene.hitTest(mouseRay, mode: FskHitTestMode.closest);
 
@@ -105,7 +105,7 @@ mixin ViewCubeInputMixin on OrbitViewDelegate {
 
   @override
   bool onPointerHover(PointerHoverEvent event) {
-    Ray mouseRay = getWorldRay(event.localPosition);
+    vm.Ray mouseRay = getWorldRay(event.localPosition);
     List<FskHitDetails> hits =
         scene.hitTest(mouseRay, mode: FskHitTestMode.closest);
 

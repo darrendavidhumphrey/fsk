@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart' hide Matrix4;
 import 'package:fsk/fsk.dart';
-import 'package:vector_math/vector_math.dart' hide Colors;
+import 'package:vector_math/vector_math.dart' as vm;
 
 class PbrModelScene extends FskScene {
   PbrModelScene({super.navigationDelegate,super.clearColor= const Color(0xFF101015)});
@@ -17,10 +17,10 @@ class PbrModelScene extends FskScene {
       sceneId: 'helmet',
       onModelLoaded: (model) {
         // Configure light position
-        model.lightPosition = Vector3(200, 200, 0);
+        model.lightPosition = vm.Vector3(200, 200, 0);
 
         // Optimized scale for standard orbit distance
-        model.transformable.scale = Vector3.all(100.0);
+        model.transformable.scale = vm.Vector3.all(100.0);
       },
     );
 

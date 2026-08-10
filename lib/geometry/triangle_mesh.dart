@@ -1,6 +1,5 @@
 import 'package:flutter/foundation.dart';
-import 'package:vector_math/vector_math.dart'
-    show Vector3, Triangle, Vector2;
+import 'package:vector_math/vector_math.dart' as vm;
 
 /// A data class that stores the geometry for a collection of triangles.
 ///
@@ -34,14 +33,14 @@ class TriangleMesh {
   /// Returns a new [Vector3] with the vertex position at the given [index].
   /// This method allocates a new object. For performance-critical code, consider
   /// using [getVertexInto] instead.
-  Vector3 getVertex(int index) {
+  vm.Vector3 getVertex(int index) {
     final int j = index * componentCount;
-    return Vector3(vertexData[j], vertexData[j + 1], vertexData[j + 2]);
+    return vm.Vector3(vertexData[j], vertexData[j + 1], vertexData[j + 2]);
   }
 
   /// Copies the vertex position at [index] into the provided [out] vector.
   /// This method does not allocate new memory and is faster in tight loops.
-  void getVertexInto(int index, Vector3 out) {
+  void getVertexInto(int index, vm.Vector3 out) {
     final int j = index * componentCount;
     out.setValues(vertexData[j], vertexData[j + 1], vertexData[j + 2]);
   }
@@ -49,14 +48,14 @@ class TriangleMesh {
   /// Returns a new [Vector3] with the normal vector at the given [index].
   /// This method allocates a new object. For performance-critical code, consider
   /// using [getNormalInto] instead.
-  Vector3 getNormal(int index) {
+  vm.Vector3 getNormal(int index) {
     final int j = index * componentCount + normalOffset;
-    return Vector3(vertexData[j], vertexData[j + 1], vertexData[j + 2]);
+    return vm.Vector3(vertexData[j], vertexData[j + 1], vertexData[j + 2]);
   }
 
   /// Copies the normal vector at [index] into the provided [out] vector.
   /// This method does not allocate new memory and is faster in tight loops.
-  void getNormalInto(int index, Vector3 out) {
+  void getNormalInto(int index, vm.Vector3 out) {
     final int j = index * componentCount + normalOffset;
     out.setValues(vertexData[j], vertexData[j + 1], vertexData[j + 2]);
   }
@@ -64,20 +63,20 @@ class TriangleMesh {
   /// Returns a new [Triangle] at the given [index].
   /// This method allocates a new object. For performance-critical code, consider
   /// using [getTriangleInto] instead.
-  Triangle getTriangle(int index) {
+  vm.Triangle getTriangle(int index) {
     final int i = index * componentCount * 3;
     final int j = i + componentCount;
     final int k = j + componentCount;
 
-    return Triangle.points(
-        Vector3(vertexData[i], vertexData[i + 1], vertexData[i + 2]),
-        Vector3(vertexData[j], vertexData[j + 1], vertexData[j + 2]),
-        Vector3(vertexData[k], vertexData[k + 1], vertexData[k + 2]));
+    return vm.Triangle.points(
+        vm.Vector3(vertexData[i], vertexData[i + 1], vertexData[i + 2]),
+        vm.Vector3(vertexData[j], vertexData[j + 1], vertexData[j + 2]),
+        vm.Vector3(vertexData[k], vertexData[k + 1], vertexData[k + 2]));
   }
 
   /// Copies the triangle at [index] into the provided [out] triangle.
   /// This method does not allocate new memory and is faster in tight loops.
-  void getTriangleInto(int index, Triangle out) {
+  void getTriangleInto(int index, vm.Triangle out) {
     final int i = index * componentCount * 3;
     final int j = i + componentCount;
     final int k = j + componentCount;
@@ -89,7 +88,7 @@ class TriangleMesh {
   /// A low-level helper to write a single vertex's full attribute data into the
   /// flat [vertexData] array at a specific [vertexIndex].
   void _addVertex(
-      int vertexIndex, Vector3 pos, Vector3 normal, Vector2 tex) {
+      int vertexIndex, vm.Vector3 pos, vm.Vector3 normal, vm.Vector2 tex) {
     int meshIndex = vertexIndex * componentCount;
     vertexData[meshIndex++] = pos.x;
     vertexData[meshIndex++] = pos.y;
@@ -104,8 +103,8 @@ class TriangleMesh {
   /// A low-level method to add a single triangle to the mesh data.
   ///
   /// This is intended to be used by geometry creation APIs like [MeshFactory].
-  int addTriangle(Vector3 v0, Vector3 v1, Vector3 v2, Vector3 normal,
-      List<Vector2> texCoord, int currentTriangle) {
+  int addTriangle(vm.Vector3 v0, vm.Vector3 v1, vm.Vector3 v2, vm.Vector3 normal,
+      List<vm.Vector2> texCoord, int currentTriangle) {
     int vertexIndex = currentTriangle * 3;
     _addVertex(vertexIndex, v0, normal, texCoord[0]);
     _addVertex(vertexIndex + 1, v1, normal, texCoord[1]);

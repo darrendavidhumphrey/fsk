@@ -1,5 +1,5 @@
 import 'dart:ui';
-import 'package:vector_math/vector_math.dart';
+import 'package:vector_math/vector_math.dart' as vm;
 import 'base_uniforms.dart';
 import 'materials.dart';
 
@@ -19,7 +19,7 @@ class OneLightUniforms extends BaseUniforms {
   String get fragmentBlockName => 'OneLightFragmentUniforms';
 
   OneLightUniforms({super.vertexShader, super.fragmentShader}) {
-    this[kLightPosKey] = Vector3(100.0, 100.0, 200.0);
+    this[kLightPosKey] = vm.Vector3(100.0, 100.0, 200.0);
     this[kAmbientLightKey] = const Color(0xFFFFFFFF);
     this[kDiffuseLightKey] = const Color(0xFFFFFFFF);
     this[kSpecularLightKey] = const Color(0xFFFFFFFF);
@@ -29,7 +29,7 @@ class OneLightUniforms extends BaseUniforms {
     this[kMaterialShininessKey] = 32.0;
   }
 
-  set lightPos(Vector3 val) => this[kLightPosKey] = val;
+  set lightPos(vm.Vector3 val) => this[kLightPosKey] = val;
   set ambientLight(Color val) => this[kAmbientLightKey] = val;
   set diffuseLight(Color val) => this[kDiffuseLightKey] = val;
   set specularLight(Color val) => this[kSpecularLightKey] = val;

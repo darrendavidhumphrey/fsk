@@ -1,5 +1,5 @@
 import 'dart:ui';
-import 'package:vector_math/vector_math.dart';
+import 'package:vector_math/vector_math.dart' as vm;
 import 'package:xml/xml.dart';
 import 'package:fsk/fsk.dart';
 
@@ -139,7 +139,7 @@ class SkinFontData {
 
 class SkinAnchorData {
   final String id;
-  final Vector3 val;
+  final vm.Vector3 val;
   SkinAnchorData({required this.id, required this.val});
 }
 
@@ -152,10 +152,10 @@ abstract class SkinObjectData {
 
   static ReferenceBox screenRectToRefBox(Rect screenRect) {
     return ReferenceBox(
-      Vector3(screenRect.left, screenRect.top, 0),
-      Vector3(screenRect.width, 0, 0),
-      Vector3(0, screenRect.height, 0),
-      Vector3(0, 0, 1),
+      vm.Vector3(screenRect.left, screenRect.top, 0),
+      vm.Vector3(screenRect.width, 0, 0),
+      vm.Vector3(0, screenRect.height, 0),
+      vm.Vector3(0, 0, 1),
     );
   }
 }

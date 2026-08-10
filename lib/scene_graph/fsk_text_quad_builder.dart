@@ -1,6 +1,6 @@
 import 'dart:math';
 import 'dart:typed_data';
-import 'package:vector_math/vector_math.dart' hide Colors;
+import 'package:vector_math/vector_math.dart' as vm;
 import '../fsk.dart';
 
 class FskBitmapTextQuadBuilderResult {
@@ -176,8 +176,8 @@ class FskBitmapTextQuadBuilder {
     }
   }
 
-  int  _addQuad(int index, Vector2 blc, Vector2 trc, double tLeft, double tTop, double tRight, double tBottom) {
-    Quad q = screenRect.calcQuadFrom2DVectors(blc, trc);
+  int  _addQuad(int index, vm.Vector2 blc, vm.Vector2 trc, double tLeft, double tTop, double tRight, double tBottom) {
+    vm.Quad q = screenRect.calcQuadFrom2DVectors(blc, trc);
     _vertexData[index++] = q.point0.x;
     _vertexData[index++] = q.point0.y;
     _vertexData[index++] = q.point0.z;
@@ -226,8 +226,8 @@ class FskBitmapTextQuadBuilder {
       final double charTop = unscaledVAdjust + unscaledBase - charInfo.yOffset;
       final double charBottom = charTop - charInfo.region.height;
 
-      final blc = Vector2(left * _ratio, charBottom * _ratio );
-      final trc = Vector2(right * _ratio, charTop * _ratio);
+      final blc = vm.Vector2(left * _ratio, charBottom * _ratio );
+      final trc = vm.Vector2(right * _ratio, charTop * _ratio);
       
       final tLeft = charInfo.region.left / font.scaleW;
       final tTop = charInfo.region.top / font.scaleH;

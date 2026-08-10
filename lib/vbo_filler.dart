@@ -1,6 +1,6 @@
 import 'dart:typed_data';
 import 'dart:ui';
-import 'package:vector_math/vector_math.dart';
+import 'package:vector_math/vector_math.dart' as vm;
 
 /// A utility class for filling a vertex buffer list with data.
 class VboFiller {
@@ -26,7 +26,7 @@ class VboFiller {
 
 
   /// Adds a [Vector3] to the array.
-  void _addV3(Vector3 vec) {
+  void _addV3(vm.Vector3 vec) {
     list[_currentPosition++] = vec.x;
     list[_currentPosition++] = vec.y;
     list[_currentPosition++] = vec.z;
@@ -40,7 +40,7 @@ class VboFiller {
   }
 
   /// Adds a [Vector3] for position and a [Color] to the array.
-  void addV3C4(Vector3 vec, Color color) {
+  void addV3C4(vm.Vector3 vec, Color color) {
     _checkStrideSpace();
    _addV3(vec);
    _currentPosition += 2; // SKip T2
@@ -49,13 +49,13 @@ class VboFiller {
   }
 
   /// Adds a [Vector2] to the array.
-  void _addT2(Vector2 vec) {
+  void _addT2(vm.Vector2 vec) {
     list[_currentPosition++] = vec.x;
     list[_currentPosition++] = vec.y;
   }
 
   /// Adds a [Vector3] for position and a [Vector2] for texture coordinates.
-  void addV3T2(Vector3 v3, Vector2 t2) {
+  void addV3T2(vm.Vector3 v3, vm.Vector2 t2) {
     _checkStrideSpace();
     _addV3(v3);
     _addT2(t2);
@@ -65,7 +65,7 @@ class VboFiller {
   }
 
   /// Adds a [Vector3] for position, a [Vector2] for texture coordinates, and a [Vector3] for the normal.
-  void addV3T2N3(Vector3 v, Vector2 tc, Vector3 n) {
+  void addV3T2N3(vm.Vector3 v, vm.Vector2 tc, vm.Vector3 n) {
     _checkStrideSpace();
     _addV3(v);
     _addT2(tc);
@@ -75,7 +75,7 @@ class VboFiller {
   }
 
   /// Adds a [Vector3] for position, a [Vector2] for texture coordinates, a [Vector3] for the normal and a Color for the color.
-  void addV3T2N3C4(Vector3 v, Vector2 tc, Vector3 n,Color c) {
+  void addV3T2N3C4(vm.Vector3 v, vm.Vector2 tc, vm.Vector3 n,Color c) {
     _checkStrideSpace();
     _addV3(v);
     _addT2(tc);
@@ -86,11 +86,11 @@ class VboFiller {
   /// Adds a textured quad to the array using two triangles.
   /// The quad's vertex positions are defined by [q], and the texture coordinates
   /// are derived from the rectangle [tr].
-  void addTexturedQuad(Quad q, Rect tr) {
-    Vector2 tTlc = Vector2(tr.left, tr.top);
-    Vector2 tTrc = Vector2(tr.right, tr.top);
-    Vector2 tBlc = Vector2(tr.left, tr.bottom);
-    Vector2 tBrc = Vector2(tr.right, tr.bottom);
+  void addTexturedQuad(vm.Quad q, Rect tr) {
+    vm.Vector2 tTlc = vm.Vector2(tr.left, tr.top);
+    vm.Vector2 tTrc = vm.Vector2(tr.right, tr.top);
+    vm.Vector2 tBlc = vm.Vector2(tr.left, tr.bottom);
+    vm.Vector2 tBrc = vm.Vector2(tr.right, tr.bottom);
 
     // First triangle: bottom-left, bottom-right, top-right
     addV3T2(q.point0, tBlc);
@@ -108,11 +108,11 @@ class VboFiller {
   void _addTexturedUnitQuad(Rect r, double z) {
     Rect tr = Rect.fromLTWH(0, 0, 1, 1);
 
-    Quad q = Quad.points(
-      Vector3(r.left, r.bottom, z),
-      Vector3(r.right, r.bottom, z),
-      Vector3(r.right, r.top, z),
-      Vector3(r.left, r.top, z),
+    vm.Quad q = vm.Quad.points(
+      vm.Vector3(r.left, r.bottom, z),
+      vm.Vector3(r.right, r.bottom, z),
+      vm.Vector3(r.right, r.top, z),
+      vm.Vector3(r.left, r.top, z),
     );
 
     addTexturedQuad(q, tr);
@@ -128,7 +128,7 @@ class VboFiller {
 
   // Makes ONE quad only, setting the vbo size to 6 vertices with texture
   //   /// coordinates from [0, 0] to [1, 1].
-  static Float32List makeTexturedQuad(Quad q, Rect tr) {
+  static Float32List makeTexturedQuad(vm.Quad q, Rect tr) {
     final list = Float32List(6 * 12);
     var filler = VboFiller(list);
     filler.addTexturedQuad(q,tr);
@@ -136,7 +136,7 @@ class VboFiller {
   }
 
   // Appends a list of quads to a VBO
-  static Float32List verticesFromTexturedQuads(List<Quad> quads, List<Rect> tr) {
+  static Float32List verticesFromTexturedQuads(List<vm.Quad> quads, List<Rect> tr) {
     assert (quads.length == tr.length);
     final list = Float32List(quads.length * 6 * 12);
     var filler = VboFiller(list);
@@ -171,30 +171,30 @@ class VboFiller {
 
       // First triangle: bottom-left, bottom-right, top-right
       filler.addV3T2(
-        Vector3(xyzuv[v0Index], xyzuv[v0Index + 1], xyzuv[v0Index + 2]),
-        Vector2(xyzuv[blIndex], xyzuv[blIndex + 1]),
+        vm.Vector3(xyzuv[v0Index], xyzuv[v0Index + 1], xyzuv[v0Index + 2]),
+        vm.Vector2(xyzuv[blIndex], xyzuv[blIndex + 1]),
       );
       filler.addV3T2(
-        Vector3(xyzuv[v1Index], xyzuv[v1Index + 1], xyzuv[v1Index + 2]),
-        Vector2(xyzuv[brIndex], xyzuv[brIndex + 1]),
+        vm.Vector3(xyzuv[v1Index], xyzuv[v1Index + 1], xyzuv[v1Index + 2]),
+        vm.Vector2(xyzuv[brIndex], xyzuv[brIndex + 1]),
       );
       filler.addV3T2(
-        Vector3(xyzuv[v2Index], xyzuv[v2Index + 1], xyzuv[v2Index + 2]),
-        Vector2(xyzuv[trIndex], xyzuv[trIndex + 1]),
+        vm.Vector3(xyzuv[v2Index], xyzuv[v2Index + 1], xyzuv[v2Index + 2]),
+        vm.Vector2(xyzuv[trIndex], xyzuv[trIndex + 1]),
       );
 
       // Second triangle: bottom-left, top-right, top-left
       filler.addV3T2(
-        Vector3(xyzuv[v0Index], xyzuv[v0Index + 1], xyzuv[v0Index + 2]),
-        Vector2(xyzuv[blIndex], xyzuv[blIndex + 1]),
+        vm.Vector3(xyzuv[v0Index], xyzuv[v0Index + 1], xyzuv[v0Index + 2]),
+        vm.Vector2(xyzuv[blIndex], xyzuv[blIndex + 1]),
       );
       filler.addV3T2(
-        Vector3(xyzuv[v2Index], xyzuv[v2Index + 1], xyzuv[v2Index + 2]),
-        Vector2(xyzuv[trIndex], xyzuv[trIndex + 1]),
+        vm.Vector3(xyzuv[v2Index], xyzuv[v2Index + 1], xyzuv[v2Index + 2]),
+        vm.Vector2(xyzuv[trIndex], xyzuv[trIndex + 1]),
       );
       filler.addV3T2(
-        Vector3(xyzuv[v3Index], xyzuv[v3Index + 1], xyzuv[v3Index + 2]),
-        Vector2(xyzuv[tlIndex], xyzuv[tlIndex + 1]),
+        vm.Vector3(xyzuv[v3Index], xyzuv[v3Index + 1], xyzuv[v3Index + 2]),
+        vm.Vector2(xyzuv[tlIndex], xyzuv[tlIndex + 1]),
       );
     }
     return list;

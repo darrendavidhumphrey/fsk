@@ -5,7 +5,7 @@ import 'package:flutter/material.dart' show Colors;
 import 'package:flutter_gpu/gpu.dart' as gpu;
 import 'package:fsk/fsk.dart';
 import 'package:fsk/scene_graph/fsk_depth_state.dart';
-import 'package:vector_math/vector_math.dart' hide Colors;
+import 'package:vector_math/vector_math.dart' as vm;
 import '../skins/skin_data.dart';
 import 'fsk_quads_renderer.dart';
 import 'fsk_text_quad_builder.dart';
@@ -274,10 +274,10 @@ class FskBitmapText extends Fsk2DRenderableObject with FskTransformableMixin, Fs
   }
 
   @override
-  Aabb3 getAabb() {
-    final Aabb3 bounds = Aabb3.minMax(
-      Vector3.copy(refBox.cachedQuad.point0),
-      Vector3.copy(refBox.cachedQuad.point0),
+  vm.Aabb3 getAabb() {
+    final vm.Aabb3 bounds = vm.Aabb3.minMax(
+      vm.Vector3.copy(refBox.cachedQuad.point0),
+      vm.Vector3.copy(refBox.cachedQuad.point0),
     );
     final quad = refBox.cachedQuad;
     bounds.hullPoint(quad.point1);
@@ -287,9 +287,9 @@ class FskBitmapText extends Fsk2DRenderableObject with FskTransformableMixin, Fs
   }
 
   @override
-  List<FskHitDetails> doHitTest(Ray ray,
+  List<FskHitDetails> doHitTest(vm.Ray ray,
       {FskHitTestMode mode = FskHitTestMode.closest}) {
-    final Vector3? hit = refBox.rayIntersect(ray);
+    final vm.Vector3? hit = refBox.rayIntersect(ray);
     if (hit == null) return [];
 
     return [

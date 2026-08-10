@@ -1,7 +1,7 @@
 import 'dart:typed_data';
 import 'dart:ui';
 import 'package:fsk/fsk.dart';
-import 'package:vector_math/vector_math.dart';
+import 'package:vector_math/vector_math.dart' as vm;
 
 /// A utility class with static methods to create complex [TriangleMesh] objects
 /// or generate [Float32List] vertex data.
@@ -57,7 +57,7 @@ class MeshFactory {
 
   /// Creates an [FskMesh] that forms a thick, mitered outline around a [quad].
   static FskMesh meshFromQuadOutline(
-      {required String id, required FskSceneBase parentScene, required Quad quad, required double thickness, required Color color,
+      {required String id, required FskSceneBase parentScene, required vm.Quad quad, required double thickness, required Color color,
       FskShaderMaterial? material}) {
     final outlines = createThickOutline3DFromQuad(quad, thickness);
     return meshFromColorOutlines(id, parentScene, outlines, color, material: material);
@@ -94,7 +94,7 @@ class MeshFactory {
 
   /// Creates a new [TriangleMesh] by extruding a list of [outlines] by a [depth] vector.
   /// This generates top, bottom, and side faces to create a closed 3D shape.
-  static TriangleMesh extrude(List<Polyline> outlines, Vector3 depth) {
+  static TriangleMesh extrude(List<Polyline> outlines, vm.Vector3 depth) {
     if (outlines.isEmpty) {
       return TriangleMesh.empty();
     }
@@ -131,7 +131,7 @@ class MeshFactory {
     // Add the bottom faces (reversed winding order).
     for (var outline in outlines) {
       if (outline.planeIsValid) {
-        Vector3 bottomNormal = -outline.normal!;
+        vm.Vector3 bottomNormal = -outline.normal!;
         currentTriangle = _addOutlineAsReverseTriFan(
             result, outline, bottomNormal, currentTriangle, depth);
       }
@@ -190,8 +190,8 @@ class MeshFactory {
   static void _addTexturedTriFan(
       VboFiller filler, Polyline outline, bool generateNormals,{Color? color}) {
     int numTris = outline.length - 2;
-    Vector3 v0 = outline.getVector3(0);
-    Vector3 normal = Vector3.zero();
+    vm.Vector3 v0 = outline.getVector3(0);
+    vm.Vector3 normal = vm.Vector3.zero();
 
     if (outline.planeIsValid) {
       normal = outline.normal!;
@@ -204,10 +204,10 @@ class MeshFactory {
     double y = bounds.min.y;
 
     for (int j = 0; j < numTris; j++) {
-      Vector3 v1 = outline.getVector3(j + 1);
-      Vector3 v2 = outline.getVector3(j + 2);
+      vm.Vector3 v1 = outline.getVector3(j + 1);
+      vm.Vector3 v2 = outline.getVector3(j + 2);
 
-      List<Vector2> texCoord = computeTexCoords(v0, v1, v2, x, y, w, h);
+      List<vm.Vector2> texCoord = computeTexCoords(v0, v1, v2, x, y, w, h);
 
       if (generateNormals) {
         if (color != null) {
@@ -239,12 +239,12 @@ class MeshFactory {
     double x = bounds.min.x;
     double y = bounds.min.y;
 
-    Vector3 v0 = outline.getVector3(0);
+    vm.Vector3 v0 = outline.getVector3(0);
     for (int i = 0; i < numTris; i++) {
-      Vector3 v1 = outline.getVector3(i + 1);
-      Vector3 v2 = outline.getVector3(i + 2);
+      vm.Vector3 v1 = outline.getVector3(i + 1);
+      vm.Vector3 v2 = outline.getVector3(i + 2);
 
-      List<Vector2> texCoord = computeTexCoords(v0, v1, v2, x, y, w, h);
+      List<vm.Vector2> texCoord = computeTexCoords(v0, v1, v2, x, y, w, h);
 
       currentTriangle = mesh.addTriangle(
           v0, v1, v2, outline.normal!, texCoord, currentTriangle);
@@ -254,7 +254,7 @@ class MeshFactory {
 
   /// Helper to generate the bottom cap of an extruded mesh with reversed winding for a CPU-side [TriangleMesh].
   static int _addOutlineAsReverseTriFan(TriangleMesh mesh, Polyline outline,
-      Vector3 normal, int currentTriangle, Vector3 depth) {
+      vm.Vector3 normal, int currentTriangle, vm.Vector3 depth) {
     if (!outline.planeIsValid) return currentTriangle;
     int numTris = outline.length - 2;
 
@@ -264,12 +264,12 @@ class MeshFactory {
     double x = bounds.min.x;
     double y = bounds.min.y;
 
-    Vector3 v0 = outline.getVector3(0) + depth;
+    vm.Vector3 v0 = outline.getVector3(0) + depth;
     for (int i = 0; i < numTris; i++) {
-      Vector3 v1 = outline.getVector3(i + 2) + depth;
-      Vector3 v2 = outline.getVector3(i + 1) + depth;
+      vm.Vector3 v1 = outline.getVector3(i + 2) + depth;
+      vm.Vector3 v2 = outline.getVector3(i + 1) + depth;
 
-      List<Vector2> texCoord = computeTexCoords(v2, v1, v0, x, y, w, h);
+      List<vm.Vector2> texCoord = computeTexCoords(v2, v1, v0, x, y, w, h);
 
       currentTriangle =
           mesh.addTriangle(v2, v1, v0, normal, texCoord, currentTriangle);
@@ -279,20 +279,20 @@ class MeshFactory {
 
   /// Helper to generate the two triangles that form a side wall from one edge of an outline for a CPU-side [TriangleMesh].
   static int _makeSideFromEdge(TriangleMesh mesh, Polyline outline, int index,
-      int currentTriangle, Vector3 depth) {
-    Vector3 p1 = outline.getVector3(index % outline.length);
-    Vector3 p2 = outline.getVector3((index + 1) % outline.length);
-    Vector3 normal = (p2 - p1).cross(depth).normalized();
+      int currentTriangle, vm.Vector3 depth) {
+    vm.Vector3 p1 = outline.getVector3(index % outline.length);
+    vm.Vector3 p2 = outline.getVector3((index + 1) % outline.length);
+    vm.Vector3 normal = (p2 - p1).cross(depth).normalized();
 
-    Vector3 p1z = p1 + depth;
-    Vector3 p2z = p2 + depth;
+    vm.Vector3 p1z = p1 + depth;
+    vm.Vector3 p2z = p2 + depth;
 
     // TODO: Calculate correct texture coordinates for sides.
-    List<Vector2> texCoord = [Vector2.zero(), Vector2(1, 0), Vector2(1, 1)];
+    List<vm.Vector2> texCoord = [vm.Vector2.zero(), vm.Vector2(1, 0), vm.Vector2(1, 1)];
     currentTriangle =
         mesh.addTriangle(p1, p2, p2z, normal, texCoord, currentTriangle);
 
-    texCoord = [Vector2.zero(), Vector2(1, 1), Vector2(0, 1)];
+    texCoord = [vm.Vector2.zero(), vm.Vector2(1, 1), vm.Vector2(0, 1)];
     currentTriangle =
         mesh.addTriangle(p1, p2z, p1z, normal, texCoord, currentTriangle);
 

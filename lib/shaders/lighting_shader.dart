@@ -1,4 +1,4 @@
-import 'package:vector_math/vector_math.dart';
+import 'package:vector_math/vector_math.dart' as vm;
 import 'base_uniforms.dart';
 import 'materials.dart';
 import 'dart:ui';
@@ -17,29 +17,29 @@ class LightingUniforms extends BaseUniforms {
 
   LightingUniforms({super.vertexShader, super.fragmentShader}) {
     this[_kKdKey] = const Color(0xFFFFFFFF);
-    this[_kLdKey] = Vector3(1.0, 1.0, 1.0);
-    this[_kLightPosKey] = Vector3.zero();
-    this[_kWorldLightPosKey] = Vector3(200.0, 200.0, 200.0);
+    this[_kLdKey] = vm.Vector3(1.0, 1.0, 1.0);
+    this[_kLightPosKey] = vm.Vector3.zero();
+    this[_kWorldLightPosKey] = vm.Vector3(200.0, 200.0, 200.0);
     this[_kIsHeadlampKey] = false;
   }
 
-  set kd(Vector3 val) => this[_kKdKey] = val;
-  set ld(Vector3 val) => this[_kLdKey] = val;
-  set lightPos(Vector3 val) => this[_kWorldLightPosKey] = val;
+  set kd(vm.Vector3 val) => this[_kKdKey] = val;
+  set ld(vm.Vector3 val) => this[_kLdKey] = val;
+  set lightPos(vm.Vector3 val) => this[_kWorldLightPosKey] = val;
   set isHeadlamp(bool val) => this[_kIsHeadlampKey] = val;
 
   @override
   void onUpdate(Size viewportSize) {
     if (this[_kIsHeadlampKey] as bool) {
       // Light is at the camera in View Space
-      this[_kLightPosKey] = Vector3.zero();
+      this[_kLightPosKey] = vm.Vector3.zero();
       return;
     }
 
     final dynamic worldPosVal = valuesMap[_kWorldLightPosKey];
-    final Vector3 worldPos = (worldPosVal is Vector3) ? worldPosVal : Vector3(200, 200, 200);
-    final Vector4 viewPos = mvMatrixLocal.transform(Vector4(worldPos.x, worldPos.y, worldPos.z, 1.0));
-    this[_kLightPosKey] = Vector3(viewPos.x, viewPos.y, viewPos.z);
+    final vm.Vector3 worldPos = (worldPosVal is vm.Vector3) ? worldPosVal : vm.Vector3(200, 200, 200);
+    final vm.Vector4 viewPos = mvMatrixLocal.transform(vm.Vector4(worldPos.x, worldPos.y, worldPos.z, 1.0));
+    this[_kLightPosKey] = vm.Vector3(viewPos.x, viewPos.y, viewPos.z);
   }
 
   @override

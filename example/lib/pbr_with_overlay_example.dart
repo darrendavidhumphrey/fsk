@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart' hide Matrix4;
 import 'package:fsk/fsk.dart';
-import 'package:vector_math/vector_math.dart' hide Colors;
+import 'package:vector_math/vector_math.dart' as vm;
 import 'pbr_model_scene.dart';
 
 /// A concrete implementation of a screen-space overlay that displays a STL file.
@@ -29,12 +29,12 @@ class StlOverlay extends ScreenSpaceOverlay {
       sceneId: 'honeycomb_wall_$id',
       onModelLoaded: (model) {
         // Center and scale the teapot for the overlay viewport
-        model.transformable.scale = Vector3.all(1);
+        model.transformable.scale = vm.Vector3.all(1);
         model.centerModel();
         
         // Use the standard lighting uniforms since ObjModel defaults to LightingShader
         final uniforms = model.mesh.uniforms as LightingUniforms;
-        uniforms.lightPos = Vector3(500, 500, 500);
+        uniforms.lightPos = vm.Vector3(500, 500, 500);
       },
     );
 

@@ -1,7 +1,7 @@
 import 'dart:math';
 import 'package:flutter/material.dart' hide Matrix4;
 import 'package:flutter/gestures.dart' hide Matrix4;
-import 'package:vector_math/vector_math.dart';
+import 'package:vector_math/vector_math.dart' as vm;
 import 'package:fsk/fsk.dart';
 
 /// A mixin that provides input handling logic for an orbit-style camera.
@@ -75,8 +75,8 @@ mixin OrbitInputMixin on FskSceneNavigationDelegate {
     final double deltaYaw = deltaX * yawSensitivity * pi;
     final double deltaPitch = deltaY * pitchSensitivity * pi;
 
-    final newYaw = _yawStart + degrees(deltaYaw);
-    final newPitch = _pitchStart + degrees(deltaPitch);
+    final newYaw = _yawStart + vm.degrees(deltaYaw);
+    final newPitch = _pitchStart + vm.degrees(deltaPitch);
 
     setOrbitRotation(newYaw, newPitch);
     return true;
@@ -145,46 +145,46 @@ class OrbitViewDelegate extends FskSceneNavigationDelegate with OrbitInputMixin 
 
   OrbitViewDelegate({super.viewRect, super.boxFit});
 
-  final double verticalFieldOfView = radians(60);
+  final double verticalFieldOfView = vm.radians(60);
 
   /// A plane at z=0 used for calculating logical coordinates from a pick ray.
-  final Plane _projectPlane = makePlaneFromVertices(
-    Vector3.zero(),
-    Vector3(1, 0, 0),
-    Vector3(0, 1, 0),
+  final vm.Plane _projectPlane = makePlaneFromVertices(
+    vm.Vector3.zero(),
+    vm.Vector3(1, 0, 0),
+    vm.Vector3(0, 1, 0),
   )!;
 
   /// Creates the view matrix based on the current yaw, pitch, and distance.
   @override
-  Matrix4 createViewMatrix() {
-    Vector3 up = Vector3(0, 1, 0);
-    Vector3 orbitCenter = getOrbitCenter();
+  vm.Matrix4 createViewMatrix() {
+    vm.Vector3 up = vm.Vector3(0, 1, 0);
+    vm.Vector3 orbitCenter = getOrbitCenter();
 
     // Use the library's makeViewMatrix for a correct look-at matrix.
-    Matrix4 v = makeViewMatrix(getEyeLocation(), orbitCenter, up);
+    vm.Matrix4 v = vm.makeViewMatrix(getEyeLocation(), orbitCenter, up);
 
     // Apply rotations around the orbit center.
     v.translateByVector3(orbitCenter);
-    v.rotateZ(radians(180));
-    v.rotateY(radians(yaw));
-    v.rotateX(radians(pitch));
+    v.rotateZ(vm.radians(180));
+    v.rotateY(vm.radians(yaw));
+    v.rotateX(vm.radians(pitch));
     v.translateByVector3(-orbitCenter);
     return v;
   }
 
   /// Calculates the camera's position in 3D space.
-  Vector3 getEyeLocation() {
-    return Vector3(0, 0, -distance);
+  vm.Vector3 getEyeLocation() {
+    return vm.Vector3(0, 0, -distance);
   }
 
   /// The point in space that the camera orbits around.
-  Vector3 getOrbitCenter() {
-    return Vector3(0, 0, 0);
+  vm.Vector3 getOrbitCenter() {
+    return vm.Vector3(0, 0, 0);
   }
 
   /// Converts a 2D screen position into a 3D coordinate on the logical Z=0 plane.
-  Vector3? getLogicalCoordinates(Offset mousePosition) {
-    Ray ray = computePickRay(
+  vm.Vector3? getLogicalCoordinates(Offset mousePosition) {
+    vm.Ray ray = computePickRay(
       mousePosition,
       viewRect.size,
       getProjectionMatrix(),
@@ -196,8 +196,8 @@ class OrbitViewDelegate extends FskSceneNavigationDelegate with OrbitInputMixin 
   }
 
   /// Gets the world-space picking ray for a given screen position.
-  Ray getWorldRay(Offset mousePosition) {
-    Ray ray = computePickRay(
+  vm.Ray getWorldRay(Offset mousePosition) {
+    vm.Ray ray = computePickRay(
       mousePosition,
       viewRect.size,
       getProjectionMatrix(),
@@ -210,11 +210,11 @@ class OrbitViewDelegate extends FskSceneNavigationDelegate with OrbitInputMixin 
 
   /// Creates the perspective projection matrix.
   @override
-  Matrix4 createProjectionMatrix() {
+  vm.Matrix4 createProjectionMatrix() {
     final double aspectRatio = viewRect.width / viewRect.height;
 
-    Matrix4 proj = Matrix4.identity();
-    setPerspectiveMatrix(
+    vm.Matrix4 proj = vm.Matrix4.identity();
+    vm.setPerspectiveMatrix(
       proj,
       verticalFieldOfView,
       aspectRatio,
@@ -225,7 +225,7 @@ class OrbitViewDelegate extends FskSceneNavigationDelegate with OrbitInputMixin 
     // flutter_gpu (Impeller) expects Z in [0, 1] (Vulkan style).
     // The vector_math matrix produces Z in [-1, 1] (OpenGL style).
     // We remap: Z_new = 0.5 * Z_old + 0.5
-    final Matrix4 remap = Matrix4.identity();
+    final vm.Matrix4 remap = vm.Matrix4.identity();
     remap.setEntry(2, 2, 0.5);
     remap.setEntry(2, 3, 0.5);
 

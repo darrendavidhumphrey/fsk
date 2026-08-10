@@ -1,7 +1,7 @@
 import 'dart:ui';
 import 'package:flutter/material.dart' show Colors;
 import 'package:flutter_gpu/gpu.dart' as gpu;
-import 'package:vector_math/vector_math.dart' hide Colors;
+import 'package:vector_math/vector_math.dart' as vm;
 import 'package:fsk/fsk.dart';
 import '../skins/skin_data.dart';
 import 'fsk_depth_state.dart';
@@ -39,8 +39,8 @@ class FskQuad extends Fsk2DRenderableObject with FskTransformableMixin, FskDepth
   FskQuadsRenderer get renderer => _renderer;
 
   // The quad geometry
-  Quad _quad = Quad();
-  Quad get quad => _quad;
+  vm.Quad _quad = vm.Quad();
+  vm.Quad get quad => _quad;
 
   bool _premultiplyAlpha = true;
   Color _modulateColor = const Color(0xFFFFFFFF);
@@ -154,10 +154,10 @@ class FskQuad extends Fsk2DRenderableObject with FskTransformableMixin, FskDepth
 
   static ReferenceBox _createRefBox(Size size) {
     return ReferenceBox(
-      Vector3(-size.width / 2, -size.height / 2, 0.0),
-      Vector3(size.width, 0, 0),
-      Vector3(0, size.height, 0),
-      Vector3(0, 0, 1),
+      vm.Vector3(-size.width / 2, -size.height / 2, 0.0),
+      vm.Vector3(size.width, 0, 0),
+      vm.Vector3(0, size.height, 0),
+      vm.Vector3(0, 0, 1),
     );
   }
 
@@ -183,7 +183,7 @@ class FskQuad extends Fsk2DRenderableObject with FskTransformableMixin, FskDepth
 
   factory FskQuad.atPoint(
     String id,
-    Vector3 location,
+    vm.Vector3 location,
     Size size,
     FskSceneBase scene, {
     Color modulateColor = Colors.white,
@@ -204,8 +204,8 @@ class FskQuad extends Fsk2DRenderableObject with FskTransformableMixin, FskDepth
   }
 
   void _updateQuad() {
-    Vector2 blc = Vector2(0, 0);
-    Vector2 trc = Vector2(refBox.xVector.length, refBox.yVector.length);
+    vm.Vector2 blc = vm.Vector2(0, 0);
+    vm.Vector2 trc = vm.Vector2(refBox.xVector.length, refBox.yVector.length);
     _quad = refBox.calcQuadFrom2DVectors(blc, trc);
   }
 
@@ -217,10 +217,10 @@ class FskQuad extends Fsk2DRenderableObject with FskTransformableMixin, FskDepth
   }
 
   @override
-  Aabb3 getAabb() {
-    final Aabb3 bounds = Aabb3.minMax(
-      Vector3.copy(_quad.point0),
-      Vector3.copy(_quad.point0),
+  vm.Aabb3 getAabb() {
+    final vm.Aabb3 bounds = vm.Aabb3.minMax(
+      vm.Vector3.copy(_quad.point0),
+      vm.Vector3.copy(_quad.point0),
     );
     bounds.hullPoint(_quad.point1);
     bounds.hullPoint(_quad.point2);
@@ -229,16 +229,16 @@ class FskQuad extends Fsk2DRenderableObject with FskTransformableMixin, FskDepth
   }
 
   @override
-  List<FskHitDetails> doHitTest(Ray ray,
+  List<FskHitDetails> doHitTest(vm.Ray ray,
       {FskHitTestMode mode = FskHitTestMode.closest}) {
     // 1. Ray-Plane intersection
-    final Vector3? hit = rayIntersect(ray);
+    final vm.Vector3? hit = rayIntersect(ray);
     if (hit == null) return [];
 
     // 2. Check if hit point is inside quad
     // A Quad in vector_math is point0, point1, point2, point3
     // We can check if it's within the ReferenceBox bounds in 2D
-    final Vector3 localHit = refBox.calcLocalCoordinates(hit);
+    final vm.Vector3 localHit = refBox.calcLocalCoordinates(hit);
     if (localHit.x >= 0 &&
         localHit.x <= refBox.xVector.length &&
         localHit.y >= 0 &&
@@ -257,7 +257,7 @@ class FskQuad extends Fsk2DRenderableObject with FskTransformableMixin, FskDepth
     return [];
   }
 
-  Vector3? rayIntersect(Ray ray) {
+  vm.Vector3? rayIntersect(vm.Ray ray) {
      // ReferenceBox or Quad doesn't have a direct plane hit test?
      // Actually ReferenceBox has rayIntersect.
      return refBox.rayIntersect(ray);

@@ -1,4 +1,4 @@
-import 'package:vector_math/vector_math.dart';
+import 'package:vector_math/vector_math.dart' as vm;
 import 'geometry_util.dart';
 import 'polyline.dart';
 /// Represents an immutable, oriented bounding box in 3D space.
@@ -8,31 +8,31 @@ import 'polyline.dart';
 /// on a valid plane, like `rayIntersect`, will fail gracefully.
 class ReferenceBox {
   /// The origin point of the box in 3D space.
-  final Vector3 origin;
+  final vm.Vector3 origin;
 
   /// A vector representing the direction and magnitude of the box's local X-axis.
-  final Vector3 xVector;
+  final vm.Vector3 xVector;
 
   /// A vector representing the direction and magnitude of the box's local Y-axis.
-  final Vector3 yVector;
+  final vm.Vector3 yVector;
 
   /// A vector representing the direction and magnitude of the box's local Z-axis.
-  final Vector3 zVector;
+  final vm.Vector3 zVector;
 
   /// The plane on which the box is defined. Can be null if the box is invalid.
-  late final Plane? plane;
+  late final vm.Plane? plane;
 
   /// The normalized direction of the box's local X-axis.
-  late final Vector3 xAxis;
+  late final vm.Vector3 xAxis;
 
   /// The normalized direction of the box's local Y-axis.
-  late final Vector3 yAxis;
+  late final vm.Vector3 yAxis;
 
   /// The normalized direction of the box's local Z-axis.
-  late final Vector3 zAxis;
+  late final vm.Vector3 zAxis;
 
   /// The four corners of the box's base, cached for performance.
-  late final Quad cachedQuad;
+  late final vm.Quad cachedQuad;
 
   /// A flag indicating whether the box has a valid, non-degenerate plane.
   late final bool _isValid;
@@ -42,7 +42,7 @@ class ReferenceBox {
   ///
   /// Returns the calculated normal if the plane is valid, otherwise returns a
   /// default `Vector3(0, 0, 1)`.
-  Vector3 get normal => plane?.normal ?? Vector3(0, 0, 1);
+  vm.Vector3 get normal => plane?.normal ?? vm.Vector3(0, 0, 1);
 
   /// Creates a ReferenceBox from an origin and three basis vectors.
   ///
@@ -54,10 +54,10 @@ class ReferenceBox {
 
   /// Creates a degenerate ReferenceBox at the origin, which will be marked as invalid.
   ReferenceBox.zero()
-      : origin = Vector3.zero(),
-        xVector = Vector3.zero(),
-        yVector = Vector3.zero(),
-        zVector = Vector3.zero() {
+      : origin = vm.Vector3.zero(),
+        xVector = vm.Vector3.zero(),
+        yVector = vm.Vector3.zero(),
+        zVector = vm.Vector3.zero() {
     _initialize();
   }
 
@@ -92,10 +92,10 @@ class ReferenceBox {
         normalizedY.isNaN ||
         normalizedZ.isInfinite ||
         normalizedZ.isNaN) {
-      xAxis = Vector3.zero();
-      yAxis = Vector3.zero();
-      zAxis = Vector3.zero();
-      plane = Plane.components(0, 0, 1, 0); // Assign a default plane.
+      xAxis = vm.Vector3.zero();
+      yAxis = vm.Vector3.zero();
+      zAxis = vm.Vector3.zero();
+      plane = vm.Plane.components(0, 0, 1, 0); // Assign a default plane.
       _isValid = false; // Mark this instance as invalid.
     } else {
       xAxis = normalizedX;
@@ -109,28 +109,28 @@ class ReferenceBox {
   }
 
   /// Helper to calculate the quad corners based on the primary vectors.
-  Quad _calculateQuad() {
+  vm.Quad _calculateQuad() {
     final p0 = origin;
     final p1 = p0 + xVector;
     final p2 = p1 + yVector;
     final p3 = p0 + yVector;
-    return Quad.points(p0, p1, p2, p3);
+    return vm.Quad.points(p0, p1, p2, p3);
   }
 
   /// Returns a new planar [ReferenceBox] offset and scaled from this one's plane.
-  ReferenceBox makeBoxFromOffsets2D(Vector2 startOffset, Vector2 endOffset) {
+  ReferenceBox makeBoxFromOffsets2D(vm.Vector2 startOffset, vm.Vector2 endOffset) {
     final newOrigin =
         origin + (xAxis * startOffset.x) + (yAxis * startOffset.y);
     final newXVector = xAxis * (endOffset.x - startOffset.x);
     final newYVector = yAxis * (endOffset.y - startOffset.y);
     //final newZVector = newXVector.cross(newYVector);
-    final newZVector = Vector3(0, 0, 1);
+    final newZVector = vm.Vector3(0, 0, 1);
     return ReferenceBox(newOrigin, newXVector, newYVector, newZVector);
   }
 
   /// Returns a new [ReferenceBox] offset from this one using 2D coordinates.
   ReferenceBox subBoxFromOffsets(
-      Vector2 startOffset2D, Vector2 endOffset2D, Vector3 zVector) {
+      vm.Vector2 startOffset2D, vm.Vector2 endOffset2D, vm.Vector3 zVector) {
     final corners = calcCornersFrom2DVectors(
       origin,
       startOffset2D,
@@ -144,12 +144,12 @@ class ReferenceBox {
   }
 
   /// Helper to calculate 3D corner positions from 2D offsets in the box's local space.
-  static List<Vector3> calcCornersFrom2DVectors(
-    Vector3 origin3D,
-    Vector2 startOffset2D,
-    Vector2 endOffset2D,
-    Vector3 xAxis,
-    Vector3 yAxis,
+  static List<vm.Vector3> calcCornersFrom2DVectors(
+    vm.Vector3 origin3D,
+    vm.Vector2 startOffset2D,
+    vm.Vector2 endOffset2D,
+    vm.Vector3 xAxis,
+    vm.Vector3 yAxis,
   ) {
     return [
       origin3D + (xAxis * startOffset2D.x) + (yAxis * startOffset2D.y),
@@ -160,7 +160,7 @@ class ReferenceBox {
   }
 
   /// Calculates a [Quad] from 2D offsets in the box's local space.
-  Quad calcQuadFrom2DVectors(Vector2 startOffset2D, Vector2 endOffset2D) {
+  vm.Quad calcQuadFrom2DVectors(vm.Vector2 startOffset2D, vm.Vector2 endOffset2D) {
     final corners = calcCornersFrom2DVectors(
       origin,
       startOffset2D,
@@ -168,11 +168,11 @@ class ReferenceBox {
       xAxis,
       yAxis,
     );
-    return Quad.points(corners[0], corners[1], corners[2], corners[3]);
+    return vm.Quad.points(corners[0], corners[1], corners[2], corners[3]);
   }
 
   /// Creates a [Polyline] from 2D offsets in the box's local space.
-  Polyline polylineFrom2DVectors(Vector2 startOffset2D, Vector2 endOffset2D) {
+  Polyline polylineFrom2DVectors(vm.Vector2 startOffset2D, vm.Vector2 endOffset2D) {
     final corners = calcCornersFrom2DVectors(
       origin,
       startOffset2D,
@@ -194,14 +194,14 @@ class ReferenceBox {
   }
 
   /// Transforms a 2D point from the box's local XY plane into 3D world space.
-  Vector3 transformPointToReferencePlane(Vector2 v) {
+  vm.Vector3 transformPointToReferencePlane(vm.Vector2 v) {
     return origin + (xAxis * v.x) + (yAxis * v.y);
   }
 
   /// Calculates the local coordinates of a 3D [point] relative to the box's origin and axes.
-  Vector3 calcLocalCoordinates(Vector3 point) {
-    final Vector3 offset = point - origin;
-    return Vector3(
+  vm.Vector3 calcLocalCoordinates(vm.Vector3 point) {
+    final vm.Vector3 offset = point - origin;
+    return vm.Vector3(
       offset.dot(xAxis),
       offset.dot(yAxis),
       offset.dot(zAxis),
@@ -212,7 +212,7 @@ class ReferenceBox {
   ///
   /// Returns the intersection point if the box is valid and the ray intersects
   /// the box's quad, otherwise returns `null`.
-  Vector3? rayIntersect(Ray pickRay) {
+  vm.Vector3? rayIntersect(vm.Ray pickRay) {
     if (!isValid) {
       return null;
     }

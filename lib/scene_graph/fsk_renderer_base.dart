@@ -1,7 +1,7 @@
 import 'package:flutter/foundation.dart';
 import 'dart:ui';
 import 'package:flutter_gpu/gpu.dart' as gpu;
-import 'package:vector_math/vector_math.dart';
+import 'package:vector_math/vector_math.dart' as vm;
 import '../gpu/fsk_shader_material.dart';
 import '../gpu/fsk_texture_manager.dart';
 import '../gpu/gpu_pipeline_key.dart';
@@ -55,8 +55,8 @@ abstract class FskRendererBase extends ChangeNotifier with LoggableClass {
   void draw(
     gpu.RenderPass renderPass,
     gpu.HostBuffer transients,
-    Matrix4 pMatrix,
-    Matrix4 mvMatrix,
+    vm.Matrix4 pMatrix,
+    vm.Matrix4 mvMatrix,
     Size viewportSize,
   );
 

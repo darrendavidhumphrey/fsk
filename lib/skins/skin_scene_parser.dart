@@ -1,7 +1,7 @@
 import 'dart:io';
 import 'package:flutter/foundation.dart';
 import 'package:flutter/services.dart';
-import 'package:vector_math/vector_math.dart';
+import 'package:vector_math/vector_math.dart' as vm;
 import 'package:xml/xml.dart';
 import 'package:fsk/fsk.dart';
 import 'skin_data.dart';
@@ -145,7 +145,7 @@ class SkinSceneParser with LoggableClass {
     return Rect.zero;
   }
 
-  static Vector3 parseVector3(String s, Map<String, SkinAnchorData> anchors) {
+  static vm.Vector3 parseVector3(String s, Map<String, SkinAnchorData> anchors) {
     if (anchors.containsKey(s)) {
       return anchors[s]!.val.clone();
     }
@@ -156,9 +156,9 @@ class SkinSceneParser with LoggableClass {
       double x = double.parse(match.group(1)!);
       double y = double.parse(match.group(2)!);
       double z = double.parse(match.group(3)!);
-      return Vector3(x, y, z);
+      return vm.Vector3(x, y, z);
     }
-    return Vector3.zero();
+    return vm.Vector3.zero();
   }
 
   /// Converts a semicolon or comma-separated key:value string into a Map configuration profile.

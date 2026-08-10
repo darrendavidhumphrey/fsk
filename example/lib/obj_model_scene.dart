@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart' hide Matrix4;
 import 'package:fsk/fsk.dart';
-import 'package:vector_math/vector_math.dart' hide Colors;
+import 'package:vector_math/vector_math.dart' as vm;
 
 // Loads a simple OBJ model and puts it in an orbit view
 class ObjModelScene extends FskScene {
@@ -22,9 +22,9 @@ class ObjModelScene extends FskScene {
             '3D/Teapot/Bricks051_1K-JPG_Color.jpg',
           ),
       onModelLoaded: (model) {
-        model.transformable.scale = Vector3.all(5.0);
+        model.transformable.scale = vm.Vector3.all(5.0);
         final uniforms = model.mesh.uniforms as LightingUniforms;
-        uniforms.lightPos = Vector3(500, 500, 500);
+        uniforms.lightPos = vm.Vector3(500, 500, 500);
       },
     );
 

@@ -1,6 +1,6 @@
 import 'dart:ui';
 import 'package:flutter_gpu/gpu.dart' as gpu;
-import 'package:vector_math/vector_math.dart';
+import 'package:vector_math/vector_math.dart' as vm;
 import '../fsk.dart';
 
 /// A specialized group node that implements a custom PBR rendering pass for its subtree.
@@ -8,7 +8,7 @@ import '../fsk.dart';
 /// (like light position) into any child meshes using [PbrUniforms].
 class FskPbrModel extends FskExternalModel {
   /// The world-space position of the light source for this model's PBR rendering.
-  Vector3 lightPosition = Vector3(200, 200, 0);
+  vm.Vector3 lightPosition = vm.Vector3(200, 200, 0);
 
   FskPbrModel(super.id, super.parentScene);
 
@@ -37,8 +37,8 @@ class FskPbrModel extends FskExternalModel {
   void draw(
     gpu.RenderPass renderPass,
     gpu.HostBuffer transients,
-    Matrix4 pMatrix,
-    Matrix4 mvMatrix, // This is (Layout * CameraView)
+    vm.Matrix4 pMatrix,
+    vm.Matrix4 mvMatrix, // This is (Layout * CameraView)
     Size viewportSize,
   ) {
     if (!visible) return;
@@ -52,8 +52,8 @@ class FskPbrModel extends FskExternalModel {
     FskSceneObject node,
     gpu.RenderPass renderPass,
     gpu.HostBuffer transients,
-    Matrix4 proj,
-    Matrix4 view,
+    vm.Matrix4 proj,
+    vm.Matrix4 view,
     Size viewportSize,
   ) {
     if (node is! FskRenderableObject || !node.visible) return;
@@ -75,7 +75,7 @@ class FskPbrModel extends FskExternalModel {
     }
 
     if (node is FskGroup) {
-      final Matrix4 currentMv = view.clone()..multiply(node.transformable.getTransform());
+      final vm.Matrix4 currentMv = view.clone()..multiply(node.transformable.getTransform());
 
       for (final child in node.children) {
         _drawRecursive(

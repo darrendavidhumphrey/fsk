@@ -1,9 +1,8 @@
-import 'dart:typed_data';
 import 'dart:ui';
 import 'package:flutter/foundation.dart';
 import 'package:flutter_gpu/gpu.dart' as gpu;
 import 'package:fsk/fsk.dart';
-import 'package:vector_math/vector_math.dart';
+import 'package:vector_math/vector_math.dart' as vm;
 
 import 'fragment_values.dart';
 
@@ -15,14 +14,14 @@ abstract class BaseUniforms extends ChangeNotifier with LoggableClass {
   String get fragmentBlockName => 'FragmentUniforms';
 
   // Shared Vertex Uniform State
-  final Matrix4 mvMatrixLocal = Matrix4.identity();
-  final Matrix4 pMatrixLocal = Matrix4.identity();
+  final vm.Matrix4 mvMatrixLocal = vm.Matrix4.identity();
+  final vm.Matrix4 pMatrixLocal = vm.Matrix4.identity();
 
-  set mvMatrix(Matrix4 value) {
+  set mvMatrix(vm.Matrix4 value) {
     value.copyInto(mvMatrixLocal);
   }
 
-  set pMatrix(Matrix4 value) {
+  set pMatrix(vm.Matrix4 value) {
     value.copyInto(pMatrixLocal);
   }
 
@@ -55,7 +54,9 @@ abstract class BaseUniforms extends ChangeNotifier with LoggableClass {
   BaseUniforms({this.vertexShader, this.fragmentShader});
 
   /// Releases resources held by this uniform block.
+  @override
   void dispose() {
+    super.dispose();
     additionalTextures.clear();
     textureIn = null;
   }

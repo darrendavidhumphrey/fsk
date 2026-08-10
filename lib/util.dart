@@ -1,6 +1,6 @@
 import 'dart:math';
 import 'dart:ui';
-import 'package:vector_math/vector_math.dart';
+import 'package:vector_math/vector_math.dart' as vm;
 
 import 'logging.dart';
 
@@ -17,11 +17,11 @@ double clampAngle0To360(double angle) {
 }
 
 /// Utility extensions for 3D vector operations.
-extension Dist3D on Vector3 {
+extension Dist3D on vm.Vector3 {
   /// Calculates the shortest distance from this point to a 3D line segment [a]-[b].
-  double distanceToLineSegment3D(Vector3 a, Vector3 b) {
-    Vector3 segmentVector = b - a;
-    Vector3 pointToSegmentStart = this - a;
+  double distanceToLineSegment3D(vm.Vector3 a, vm.Vector3 b) {
+    vm.Vector3 segmentVector = b - a;
+    vm.Vector3 pointToSegmentStart = this - a;
 
     // Project this point onto the line defined by the segment.
     // t is the normalized position of the closest point on the infinite line.
@@ -31,26 +31,26 @@ extension Dist3D on Vector3 {
     // Otherwise, the closest point is one of the endpoints.
     t = t.clamp(0.0, 1.0);
 
-    Vector3 closestPointOnSegment = a + segmentVector * t;
+    vm.Vector3 closestPointOnSegment = a + segmentVector * t;
 
     return distanceTo(closestPointOnSegment);
   }
 }
 
 /// Utility extension for [Quad] objects.
-extension QuadNormal on Quad {
+extension QuadNormal on vm.Quad {
   /// Computes the normalized surface normal of the quad.
-  Vector3 getSurfaceNormal() {
-    Vector3 normal = (point1 - point0).cross(point2 - point0);
+  vm.Vector3 getSurfaceNormal() {
+    vm.Vector3 normal = (point1 - point0).cross(point2 - point0);
     normal.normalize();
     return normal;
   }
 }
 
 /// Utility extensions for [Quaternion] operations.
-extension QuaternionExtensions on Quaternion {
+extension QuaternionExtensions on vm.Quaternion {
   /// Calculates the dot product between this quaternion and another.
-  double dotProduct(Quaternion q2) {
+  double dotProduct(vm.Quaternion q2) {
     return x * q2.x + y * q2.y + z * q2.z + w * q2.w;
   }
 
@@ -63,8 +63,8 @@ extension QuaternionExtensions on Quaternion {
   }
 
   /// Returns a new quaternion that is the negated version of this one.
-  Quaternion negated() {
-    return Quaternion(-x, -y, -z, -w);
+  vm.Quaternion negated() {
+    return vm.Quaternion(-x, -y, -z, -w);
   }
 }
 
@@ -72,7 +72,7 @@ extension QuaternionExtensions on Quaternion {
 ///
 /// This function is safe and does not modify the input quaternions [q1] and [q2].
 /// [t] is the interpolation factor, clamped between 0.0 and 1.0.
-Quaternion slerp(Quaternion q1, Quaternion q2, double t) {
+vm.Quaternion slerp(vm.Quaternion q1, vm.Quaternion q2, double t) {
   // Work on copies to avoid modifying the original quaternions.
   var q1Copy = q1.normalized();
   var q2Copy = q2.normalized();
@@ -94,7 +94,7 @@ Quaternion slerp(Quaternion q1, Quaternion q2, double t) {
     final y = q1Copy.y * (1 - t) + q2Copy.y * t;
     final z = q1Copy.z * (1 - t) + q2Copy.z * t;
     final w = q1Copy.w * (1 - t) + q2Copy.w * t;
-    return Quaternion(x, y, z, w).normalized();
+    return vm.Quaternion(x, y, z, w).normalized();
   }
 
   // Standard slerp calculation.
@@ -114,17 +114,17 @@ Quaternion slerp(Quaternion q1, Quaternion q2, double t) {
   final y = (q1Copy.y * s0) + (q2Copy.y * s1);
   final z = (q1Copy.z * s0) + (q2Copy.z * s1);
   final w = (q1Copy.w * s0) + (q2Copy.w * s1);
-  return Quaternion(x, y, z, w);
+  return vm.Quaternion(x, y, z, w);
 }
 
 /// Computes normalized 2D texture coordinates (UVs) for a triangle's vertices.
 ///
 /// The coordinates are calculated relative to a bounding box defined by the
 /// origin [x],[y] and dimensions [w],[h].
-List<Vector2> computeTexCoords(
-  Vector3 p0,
-  Vector3 p1,
-  Vector3 p2,
+List<vm.Vector2> computeTexCoords(
+  vm.Vector3 p0,
+  vm.Vector3 p1,
+  vm.Vector3 p2,
   double x,
   double y,
   double w,
@@ -144,29 +144,29 @@ List<Vector2> computeTexCoords(
   final double height = h > 1e-6 ? h : 1.0;
 
   return [
-    Vector2((p0.x - x) / width, (p0.y - y) / height),
-    Vector2((p1.x - x) / width, (p1.y - y) / height),
-    Vector2((p2.x - x) / width, (p2.y - y) / height),
+    vm.Vector2((p0.x - x) / width, (p0.y - y) / height),
+    vm.Vector2((p1.x - x) / width, (p1.y - y) / height),
+    vm.Vector2((p2.x - x) / width, (p2.y - y) / height),
   ];
 }
 
 /// Extracts the camera's local right, up, and forward axes from its [viewMatrix].
-({Vector3 right, Vector3 up, Vector3 forward}) getCameraAxes(
-  Matrix4 viewMatrix,
+({vm.Vector3 right, vm.Vector3 up, vm.Vector3 forward}) getCameraAxes(
+  vm.Matrix4 viewMatrix,
 ) {
-  final Matrix4 inverseViewMatrix = viewMatrix.clone()..invert();
+  final vm.Matrix4 inverseViewMatrix = viewMatrix.clone()..invert();
 
-  final Vector3 right = Vector3(
+  final vm.Vector3 right = vm.Vector3(
     inverseViewMatrix.entry(0, 0),
     inverseViewMatrix.entry(1, 0),
     inverseViewMatrix.entry(2, 0),
   )..normalize();
-  final Vector3 up = Vector3(
+  final vm.Vector3 up = vm.Vector3(
     inverseViewMatrix.entry(0, 1),
     inverseViewMatrix.entry(1, 1),
     inverseViewMatrix.entry(2, 1),
   )..normalize();
-  final Vector3 forward = Vector3(
+  final vm.Vector3 forward = vm.Vector3(
     inverseViewMatrix.entry(0, 2),
     inverseViewMatrix.entry(1, 2),
     inverseViewMatrix.entry(2, 2),
@@ -199,21 +199,21 @@ Color parseHexColor(String? hex,{required Color defaultColor}) {
 
 /// Parses a space or comma-separated string into a [Vector2].
 /// Returns [Vector2.zero] on failure.
-Vector2 parseVector2(String value) {
+vm.Vector2 parseVector2(String value) {
   final parts = value
       .split(RegExp(r'[,\s]+'))
       .where((s) => s.isNotEmpty)
       .map((p) => double.tryParse(p.trim()))
       .toList();
   if (parts.length >= 2 && parts[0] != null && parts[1] != null) {
-    return Vector2(parts[0]!, parts[1]!);
+    return vm.Vector2(parts[0]!, parts[1]!);
   }
-  return Vector2.zero();
+  return vm.Vector2.zero();
 }
 
 /// Parses a space or comma-separated string into a [Vector3].
 /// Returns [Vector3.zero] on failure.
-Vector3 parseVector3(String value) {
+vm.Vector3 parseVector3(String value) {
   final parts = value
       .split(RegExp(r'[,\s]+'))
       .where((s) => s.isNotEmpty)
@@ -223,14 +223,14 @@ Vector3 parseVector3(String value) {
       parts[0] != null &&
       parts[1] != null &&
       parts[2] != null) {
-    return Vector3(parts[0]!, parts[1]!, parts[2]!);
+    return vm.Vector3(parts[0]!, parts[1]!, parts[2]!);
   }
-  return Vector3.zero();
+  return vm.Vector3.zero();
 }
 
 /// Parses a space or comma-separated string into a [Vector4].
 /// Returns [Vector4.zero] on failure.
-Vector4 parseVector4(String value) {
+vm.Vector4 parseVector4(String value) {
   final parts = value
       .split(RegExp(r'[,\s]+'))
       .where((s) => s.isNotEmpty)
@@ -241,11 +241,11 @@ Vector4 parseVector4(String value) {
       parts[1] != null &&
       parts[2] != null &&
       parts[3] != null) {
-    return Vector4(parts[0]!, parts[1]!, parts[2]!, parts[3]!);
+    return vm.Vector4(parts[0]!, parts[1]!, parts[2]!, parts[3]!);
   }
-  return Vector4.zero();
+  return vm.Vector4.zero();
 }
 
-Vector4 colorToVector(Color color) {
-  return Vector4(color.r, color.g, color.b, color.a);
+vm.Vector4 colorToVector(Color color) {
+  return vm.Vector4(color.r, color.g, color.b, color.a);
 }

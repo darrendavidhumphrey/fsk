@@ -3,7 +3,7 @@ import 'dart:convert';
 import 'dart:math';
 import 'dart:typed_data';
 import 'package:flutter/services.dart';
-import 'package:vector_math/vector_math.dart';
+import 'package:vector_math/vector_math.dart' as vm;
 import '../fsk.dart';
 
 
@@ -119,7 +119,7 @@ class FskGltfLoader extends FskModelLoader {
     if (node is FskRenderableObject) {
       if (nodeJson.containsKey('translation')) {
         final List<dynamic> t = nodeJson['translation'];
-        node.transformable.position = Vector3(
+        node.transformable.position = vm.Vector3(
           t[0].toDouble(),
           t[1].toDouble(),
           t[2].toDouble(),
@@ -127,13 +127,13 @@ class FskGltfLoader extends FskModelLoader {
       }
       if (nodeJson.containsKey('rotation')) {
         final List<dynamic> q = nodeJson['rotation'];
-        final quat = Quaternion(
+        final quat = vm.Quaternion(
           q[0].toDouble(),
           q[1].toDouble(),
           q[2].toDouble(),
           q[3].toDouble(),
         );
-        final euler = Vector3.zero();
+        final euler = vm.Vector3.zero();
         final m = quat.asRotationMatrix().storage;
         euler.y = asin(m[2].clamp(-1.0, 1.0));
         if (euler.y.abs() < 0.999) {
@@ -146,7 +146,7 @@ class FskGltfLoader extends FskModelLoader {
       }
       if (nodeJson.containsKey('scale')) {
         final List<dynamic> s = nodeJson['scale'];
-        node.transformable.scale = Vector3(
+        node.transformable.scale = vm.Vector3(
           s[0].toDouble(),
           s[1].toDouble(),
           s[2].toDouble(),
@@ -235,7 +235,7 @@ class FskGltfLoader extends FskModelLoader {
       final pbr = mat['pbrMetallicRoughness'];
       if (pbr.containsKey('baseColorFactor')) {
         final List<dynamic> c = pbr['baseColorFactor'];
-        uniforms.baseColorFactor = Vector3(
+        uniforms.baseColorFactor = vm.Vector3(
           c[0].toDouble(),
           c[1].toDouble(),
           c[2].toDouble(),

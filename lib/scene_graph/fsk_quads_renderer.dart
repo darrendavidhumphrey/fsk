@@ -1,6 +1,6 @@
 import 'dart:typed_data';
 import 'dart:ui';
-import 'package:vector_math/vector_math.dart';
+import 'package:vector_math/vector_math.dart' as vm;
 import 'package:flutter_gpu/gpu.dart' as gpu;
 import 'package:fsk/fsk.dart';
 import 'fsk_renderer_base.dart';
@@ -63,7 +63,7 @@ class FskQuadsRenderer extends FskRendererBase {
     setVertices(vertices);
   }
 
-  void setFromQuads(List<Quad> quads, List<Rect> textureQuads) {
+  void setFromQuads(List<vm.Quad> quads, List<Rect> textureQuads) {
     final vertices = VboFiller.verticesFromTexturedQuads(quads, textureQuads);
     setVertices(vertices);
   }
@@ -72,8 +72,8 @@ class FskQuadsRenderer extends FskRendererBase {
   void draw(
     gpu.RenderPass renderPass,
     gpu.HostBuffer transients,
-    Matrix4 pMatrix,
-    Matrix4 mvMatrix,
+    vm.Matrix4 pMatrix,
+    vm.Matrix4 mvMatrix,
     Size viewportSize,
   ) {
     // It's not an error for the renderer to be empty

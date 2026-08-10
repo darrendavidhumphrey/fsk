@@ -1,12 +1,12 @@
 import 'package:fsk/fsk.dart';
-import 'package:vector_math/vector_math.dart';
+import 'package:vector_math/vector_math.dart' as vm;
 
 class FskTransformable with LoggableClass {
-  final Vector3 _anchor = Vector3.zero();
-  final Vector3 _position = Vector3.zero();
-  final Vector3 _rotation = Vector3.zero();
-  final Vector3 _scale = Vector3.all(1.0);
-  final Matrix4 _transform = Matrix4.identity();
+  final vm.Vector3 _anchor = vm.Vector3.zero();
+  final vm.Vector3 _position = vm.Vector3.zero();
+  final vm.Vector3 _rotation = vm.Vector3.zero();
+  final vm.Vector3 _scale = vm.Vector3.all(1.0);
+  final vm.Matrix4 _transform = vm.Matrix4.identity();
 
   bool _dirty = true;
   bool _isScaled = false;
@@ -34,46 +34,46 @@ class FskTransformable with LoggableClass {
 
   FskTransformable();
 
-  Vector3 get anchor => _anchor;
-  Vector3 get position => _position;
-  Vector3 get rotation => _rotation;
-  Vector3 get scale => _scale;
+  vm.Vector3 get anchor => _anchor;
+  vm.Vector3 get position => _position;
+  vm.Vector3 get rotation => _rotation;
+  vm.Vector3 get scale => _scale;
 
-  set anchor(Vector3 value) {
+  set anchor(vm.Vector3 value) {
     _anchor.setFrom(value);
     _isAnchorSet = (_anchor.x != 0 || _anchor.y != 0 || _anchor.z != 0);
     _dirty = true;
   }
-  set position(Vector3 value) {
+  set position(vm.Vector3 value) {
     _position.setFrom(value);
     _isTranslated = (_position.x != 0 || _position.y != 0 || _position.z != 0);
     _dirty = true;
   }
-  set rotation(Vector3 value) {
+  set rotation(vm.Vector3 value) {
     _rotation.setFrom(value);
     _isRotated = (_rotation.x != 0 || _rotation.y != 0 || _rotation.z != 0);
     _dirty = true;
   }
-  set scale(Vector3 value) {
+  set scale(vm.Vector3 value) {
     _scale.setFrom(value);
     _isScaled = (_scale.x != 1.0 || _scale.y != 1.0 || _scale.z != 1.0);
     _dirty = true;
   }
 
-  Matrix4 getTransform() {
+  vm.Matrix4 getTransform() {
     if (_dirty) _updateTransform();
     return _transform;
   }
 }
 
 mixin FskTransformableMixin on FskRenderableObject {
-  Vector3 get anchor => transformable.anchor;
-  Vector3 get position => transformable.position;
-  Vector3 get rotation => transformable.rotation;
-  Vector3 get scale => transformable.scale;
+  vm.Vector3 get anchor => transformable.anchor;
+  vm.Vector3 get position => transformable.position;
+  vm.Vector3 get rotation => transformable.rotation;
+  vm.Vector3 get scale => transformable.scale;
 
-  set anchor(Vector3 v) => transformable.anchor = v;
-  set position(Vector3 v) => transformable.position = v;
-  set rotation(Vector3 v) => transformable.rotation = v;
-  set scale(Vector3 v) => transformable.scale = v;
+  set anchor(vm.Vector3 v) => transformable.anchor = v;
+  set position(vm.Vector3 v) => transformable.position = v;
+  set rotation(vm.Vector3 v) => transformable.rotation = v;
+  set scale(vm.Vector3 v) => transformable.scale = v;
 }

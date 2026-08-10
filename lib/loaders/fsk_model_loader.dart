@@ -1,5 +1,5 @@
 import 'package:fsk/fsk.dart';
-import 'package:vector_math/vector_math.dart';
+import 'package:vector_math/vector_math.dart' as vm;
 
 /// Base class for model loaders.
 abstract class FskModelLoader with LoggableClass {
@@ -11,7 +11,7 @@ abstract class FskModelLoader with LoggableClass {
     final correctionGroup = FskGroup('${sceneId}_correction', parentScene);
     // Y-axis 180 to face camera, Z-axis 180 to flip right-side up
     correctionGroup.transformable.rotation =
-        Vector3(0, radians(180), radians(180));
+        vm.Vector3(0, vm.radians(180), vm.radians(180));
     return correctionGroup;
   }
 }

@@ -1,7 +1,7 @@
 import 'dart:typed_data';
 import 'dart:math';
 import 'geometry_util.dart';
-import 'package:vector_math/vector_math.dart';
+import 'package:vector_math/vector_math.dart' as vm;
 
 /// An immutable class representing a 3D polyline (a connected sequence of line segments).
 ///
@@ -16,7 +16,7 @@ class Polyline {
 
   /// The plane on which the polyline is defined.
   /// This is calculated once at construction time.
-  late final Plane plane;
+  late final vm.Plane plane;
 
   /// A flag indicating whether the calculated plane is valid.
   /// A plane is invalid if the polyline has fewer than 3 vertices or if its
@@ -24,7 +24,7 @@ class Polyline {
   late final bool planeIsValid;
 
   /// The normal vector of the polyline's plane. Returns null if the plane is invalid.
-  Vector3? get normal => planeIsValid ? plane.normal : null;
+  vm.Vector3? get normal => planeIsValid ? plane.normal : null;
 
   /// A read-only view of the raw vertex data.
   Float32List get vertices => _vertices;
@@ -42,13 +42,13 @@ class Polyline {
   }
 
   /// Creates a Polyline from a list of 2D points, assuming they lie on the XY plane (z=0).
-  Polyline.fromVector2(List<Vector2> points)
+  Polyline.fromVector2(List<vm.Vector2> points)
       : this._internal(Float32List.fromList(
           points.expand((v) => [v.x, v.y, 0.0]).toList(growable: false),
         ));
 
   /// Creates a Polyline from a list of 3D points.
-  Polyline.fromVector3(List<Vector3> points)
+  Polyline.fromVector3(List<vm.Vector3> points)
       : this._internal(Float32List.fromList(
           points.expand((v) => [v.x, v.y, v.z]).toList(growable: false),
         ));
@@ -70,27 +70,27 @@ class Polyline {
         }).toList(growable: false)));
 
   /// Gets the vertex at the specified [index] as a [Vector2], ignoring the z-coordinate.
-  Vector2 getVector2(int index) {
+  vm.Vector2 getVector2(int index) {
     final int j = index * 3;
-    return Vector2(_vertices[j], _vertices[j + 1]);
+    return vm.Vector2(_vertices[j], _vertices[j + 1]);
   }
 
   /// Gets the vertex at the specified [index] as a [Vector3].
-  Vector3 getVector3(int index) {
+  vm.Vector3 getVector3(int index) {
     final int j = index * 3;
-    return Vector3(_vertices[j], _vertices[j + 1], _vertices[j + 2]);
+    return vm.Vector3(_vertices[j], _vertices[j + 1], _vertices[j + 2]);
   }
 
   /// Calculates the plane of the polyline from its first three vertices.
   /// This method is called once during construction.
   void _calculatePlane() {
     if (length < 3) {
-      plane = Plane.components(0, 0, 1, 0); // Default plane
+      plane = vm.Plane.components(0, 0, 1, 0); // Default plane
       planeIsValid = false;
       return;
     }
 
-    Plane? p = makePlaneFromVertices(
+    vm.Plane? p = makePlaneFromVertices(
       getVector3(0),
       getVector3(1),
       getVector3(2),
@@ -99,7 +99,7 @@ class Polyline {
       plane = p;
       planeIsValid = true;
     } else {
-      plane = Plane.components(0, 0, 1, 0);
+      plane = vm.Plane.components(0, 0, 1, 0);
       planeIsValid = false;
     }
   }
@@ -109,7 +109,7 @@ class Polyline {
   /// This method first checks if the point lies on the polyline's plane. If it does,
   /// it uses the cross-product method to determine if the point lies on the same
   /// side of all edges.
-  bool containsPoint(Vector3 point) {
+  bool containsPoint(vm.Vector3 point) {
     if (!planeIsValid) {
       return false;
     }
@@ -122,13 +122,13 @@ class Polyline {
     double? referenceDotProductSign;
 
     for (int i = 0; i < length; i++) {
-      final Vector3 p1 = getVector3(i);
-      final Vector3 p2 = getVector3((i + 1) % length); // Wrap around
+      final vm.Vector3 p1 = getVector3(i);
+      final vm.Vector3 p2 = getVector3((i + 1) % length); // Wrap around
 
-      final Vector3 edge = p2 - p1;
-      final Vector3 pointToEdgeStart = point - p1;
+      final vm.Vector3 edge = p2 - p1;
+      final vm.Vector3 pointToEdgeStart = point - p1;
 
-      final Vector3 crossProductResult = edge.cross(pointToEdgeStart);
+      final vm.Vector3 crossProductResult = edge.cross(pointToEdgeStart);
       final double dotProductWithNormal = crossProductResult.dot(plane.normal);
 
       // If the point is collinear with the edge, skip to the next edge.
@@ -159,8 +159,8 @@ class Polyline {
     double minDistance = 0.0001;
 
     for (int i = 0; i < length; i++) {
-      Vector3 p1 = getVector3(i);
-      Vector3 p2 = getVector3((i + 1) % length);
+      vm.Vector3 p1 = getVector3(i);
+      vm.Vector3 p2 = getVector3((i + 1) % length);
       double distance = p1.distanceTo(p2);
       if (distance >= minDistance) {
         result.add(i);
@@ -171,10 +171,10 @@ class Polyline {
 
   /// Returns a new, transformed [Polyline] by applying a 2D transformation
   /// in 3D space, defined by an origin and basis vectors.
-  Polyline transform(Vector3 origin3D, Vector3 xAxis, Vector3 yAxis) {
+  Polyline transform(vm.Vector3 origin3D, vm.Vector3 xAxis, vm.Vector3 yAxis) {
     final newVertices = Float32List(length * 3);
     for (int i = 0, j = 0; i < length; i++, j += 3) {
-      Vector3 v = getVector3(i);
+      vm.Vector3 v = getVector3(i);
       v = origin3D + (xAxis * v.x) + (yAxis * v.y);
       newVertices[j] = v.x;
       newVertices[j + 1] = v.y;
@@ -187,12 +187,12 @@ class Polyline {
   ///
   /// Returns the intersection point if it is within the bounds of the polyline,
   /// otherwise returns `null`.
-  Vector3? rayIntersect(Ray pickRay) {
+  vm.Vector3? rayIntersect(vm.Ray pickRay) {
     if (!planeIsValid) {
       return null;
     }
 
-    final Vector3? intersectionPoint = intersectRayWithPlane(pickRay, plane);
+    final vm.Vector3? intersectionPoint = intersectRayWithPlane(pickRay, plane);
 
     if (intersectionPoint != null && containsPoint(intersectionPoint)) {
       return intersectionPoint;
@@ -203,21 +203,21 @@ class Polyline {
 
   /// Calculates the 2D bounding box of the polyline on the XY plane.
   /// Returns a record containing the minimum and maximum corner points.
-  ({Vector2 min, Vector2 max}) getBounds2D() {
+  ({vm.Vector2 min, vm.Vector2 max}) getBounds2D() {
     double minX = double.infinity;
     double maxX = double.negativeInfinity;
     double minY = double.infinity;
     double maxY = double.negativeInfinity;
 
     for (int i = 0; i < length; i++) {
-      Vector2 v = getVector2(i);
+      vm.Vector2 v = getVector2(i);
       minX = min(minX, v.x);
       minY = min(minY, v.y);
       maxX = max(maxX, v.x);
       maxY = max(maxY, v.y);
     }
 
-    return (min: Vector2(minX, minY), max: Vector2(maxX, maxY));
+    return (min: vm.Vector2(minX, minY), max: vm.Vector2(maxX, maxY));
   }
 
   /// Checks for value equality. Two [Polyline] instances are considered equal

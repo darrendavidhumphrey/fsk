@@ -1,11 +1,11 @@
 import 'dart:typed_data';
-import 'package:vector_math/vector_math.dart';
+import 'package:vector_math/vector_math.dart' as vm;
 import 'polyline.dart';
 /// Represents one edge of the convex clipping polygon, defined by a point on the
 /// edge and an inward-pointing normal vector.
 class ClipEdge {
-  final Vector2 normal;
-  final Vector2 pointOnEdge;
+  final vm.Vector2 normal;
+  final vm.Vector2 pointOnEdge;
 
   ClipEdge(this.normal, this.pointOnEdge);
 }
@@ -20,10 +20,10 @@ class PolylineClipper {
   static List<ClipEdge> _precomputeClipEdgesFromRect(
     double left, double top, double right, double bottom) {
     return [
-      ClipEdge(Vector2(1, 0), Vector2(left, top)),
-      ClipEdge(Vector2(-1, 0), Vector2(right, top)),
-      ClipEdge(Vector2(0, -1), Vector2(left, top)),
-      ClipEdge(Vector2(0, 1), Vector2(left, bottom)),
+      ClipEdge(vm.Vector2(1, 0), vm.Vector2(left, top)),
+      ClipEdge(vm.Vector2(-1, 0), vm.Vector2(right, top)),
+      ClipEdge(vm.Vector2(0, -1), vm.Vector2(left, top)),
+      ClipEdge(vm.Vector2(0, 1), vm.Vector2(left, bottom)),
     ];
   }
 

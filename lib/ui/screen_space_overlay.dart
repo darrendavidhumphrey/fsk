@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart' hide Matrix4;
 import 'package:fsk/fsk.dart';
 import 'package:flutter_gpu/gpu.dart' as gpu;
-import 'package:vector_math/vector_math.dart' hide Colors;
+import 'package:vector_math/vector_math.dart' as vm;
 
 /// An abstract base class for a [FskSceneLayer] that is rendered in 2D screen space
 /// rather than 3D world space.
@@ -12,7 +12,6 @@ import 'package:vector_math/vector_math.dart' hide Colors;
 /// (left or right) of the parent viewport.
 abstract class ScreenSpaceOverlay extends FskScene {
   /// The unique identifier for this overlay.
-  @override
   final String id;
 
   /// The distance in screen pixels from the top edge of the parent viewport.
@@ -115,7 +114,7 @@ abstract class ScreenSpaceOverlay extends FskScene {
 
     // 1. Clear depth and draw background if it exists
     if (_backgroundNode != null) {
-      final Matrix4 bgP = Matrix4.identity();
+      final vm.Matrix4 bgP = vm.Matrix4.identity();
       // Simple ortho mapping [-w/2, w/2] to [-1, 1]
       // Using project's standard ortho logic
       bgP.setEntry(0, 0, 2.0 / screenSpaceSize.width);
@@ -133,7 +132,7 @@ abstract class ScreenSpaceOverlay extends FskScene {
         physicalWidth,
         physicalHeight,
         bgP,
-        Matrix4.identity(),
+        vm.Matrix4.identity(),
         screenSpaceSize,
       );
     } else {
@@ -195,8 +194,8 @@ abstract class ScreenSpaceOverlay extends FskScene {
     double y,
     double width,
     double height,
-    Matrix4 pMatrix,
-    Matrix4 mvMatrix,
+    vm.Matrix4 pMatrix,
+    vm.Matrix4 mvMatrix,
     Size logicalSize,
   ) {
     final renderPass = commandBuffer.createRenderPass(target);
