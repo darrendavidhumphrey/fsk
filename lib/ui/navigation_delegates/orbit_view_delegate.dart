@@ -35,33 +35,35 @@ mixin OrbitInputMixin on FskSceneNavigationDelegate {
   }
 
   @override
-  void onPointerDown(PointerDownEvent event) {
+  bool onPointerDown(PointerDownEvent event) {
     _pointers.add(event.pointer);
     _dragStart = event.localPosition;
     _yawStart = yaw;
     _pitchStart = pitch;
     setNeedsUpdate(true);
+    return true;
   }
 
   @override
-  void onPointerUp(PointerUpEvent event) {
+  bool onPointerUp(PointerUpEvent event) {
     _pointers.remove(event.pointer);
     _dragStart = Offset.zero;
     setNeedsUpdate(true);
+    return true;
   }
 
   @override
-  void onPointerCancel(PointerCancelEvent event) {
+  bool onPointerCancel(PointerCancelEvent event) {
     // Treat cancel as a pointer up event to reset state.
-    onPointerUp(PointerUpEvent(
+    return onPointerUp(PointerUpEvent(
       position: event.position,
       pointer: event.pointer,
     ));
   }
 
   @override
-  void onPointerMove(PointerMoveEvent event) {
-    if (_dragStart == Offset.zero || _pointers.length > 1) return;
+  bool onPointerMove(PointerMoveEvent event) {
+    if (_dragStart == Offset.zero || _pointers.length > 1) return false;
 
     final deltaX = _dragStart.dx - event.localPosition.dx;
     final deltaY = event.localPosition.dy - _dragStart.dy;
@@ -77,12 +79,13 @@ mixin OrbitInputMixin on FskSceneNavigationDelegate {
     final newPitch = _pitchStart + degrees(deltaPitch);
 
     setOrbitRotation(newYaw, newPitch);
+    return true;
   }
 
   @override
-  void onPointerSignal(PointerSignalEvent event) {
+  bool onPointerSignal(PointerSignalEvent event) {
     const double minRadius = 3;
-    if (event is! PointerScrollEvent) return;
+    if (event is! PointerScrollEvent) return false;
 
     PointerScrollEvent scrollEvent = event;
 
@@ -99,16 +102,18 @@ mixin OrbitInputMixin on FskSceneNavigationDelegate {
       newRadius = minRadius;
     }
     setViewDistance(newRadius);
+    return true;
   }
 
   @override
-  void onScaleStart(ScaleStartDetails details) {
+  bool onScaleStart(ScaleStartDetails details) {
     _baseDistance = distance;
+    return true;
   }
 
   @override
-  void onScaleUpdate(ScaleUpdateDetails details) {
-    if (_pointers.length < 2 || details.scale == 1.0) return;
+  bool onScaleUpdate(ScaleUpdateDetails details) {
+    if (_pointers.length < 2 || details.scale == 1.0) return false;
 
     const double minRadius = 3;
     // Scale the distance inversely proportional to the gesture scale.
@@ -119,10 +124,11 @@ mixin OrbitInputMixin on FskSceneNavigationDelegate {
     }
 
     setViewDistance(newDistance);
+    return true;
   }
 
   @override
-  void onScaleEnd(ScaleEndDetails details) {}
+  bool onScaleEnd(ScaleEndDetails details) => true;
 
   @override
   KeyEventResult onKeyEvent(KeyEvent event) {
@@ -183,8 +189,6 @@ class OrbitViewDelegate extends FskSceneNavigationDelegate with OrbitInputMixin 
       viewRect.size,
       getProjectionMatrix(),
       getViewMatrix(),
-      ndcNear: 0.0,
-      ndcFar: 1.0,
     );
     return intersectRayWithPlane(ray, _projectPlane);
   }
@@ -196,8 +200,6 @@ class OrbitViewDelegate extends FskSceneNavigationDelegate with OrbitInputMixin 
       viewRect.size,
       getProjectionMatrix(),
       getViewMatrix(),
-      ndcNear: 0.0,
-      ndcFar: 1.0,
     );
     return ray;
   }

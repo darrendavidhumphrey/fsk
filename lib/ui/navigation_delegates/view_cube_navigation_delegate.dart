@@ -18,10 +18,10 @@ mixin ViewCubeInputMixin on OrbitViewDelegate {
   static const double _kClickThreshold = 5.0;
 
   /// Callback interface for when a cube segment is clicked.
-  void onCubeClicked(String id) {}
+  void onCubeClicked(String id) ;
 
   /// Callback interface for when the cube is rotated.
-  void onCubeRotated(double yaw, double pitch) {}
+  void onCubeRotated(double yaw, double pitch);
 
   void _updateHighlight(FskRenderableObject? newTarget) {
     if (_highlightedObject == newTarget) return;
@@ -57,13 +57,23 @@ mixin ViewCubeInputMixin on OrbitViewDelegate {
   }
 
   @override
-  void onPointerDown(PointerDownEvent event) {
+  bool onPointerDown(PointerDownEvent event) {
+    // Perform hit test to see if we should consume the input
+    Ray mouseRay = getWorldRay(event.localPosition);
+    List<FskHitDetails> hits =
+        scene.hitTest(mouseRay, mode: FskHitTestMode.closest);
+
+    if (hits.isEmpty) {
+      return false; // Let it pass through to layers/scene underneath
+    }
+
     _pointerDownPos = event.localPosition;
-    super.onPointerDown(event);
+    return super.onPointerDown(event);
   }
 
   @override
-  void onPointerUp(PointerUpEvent event) {
+  bool onPointerUp(PointerUpEvent event) {
+    bool handled = false;
     if (_pointerDownPos != null) {
       final double distance = (event.localPosition - _pointerDownPos!).distance;
       if (distance < _kClickThreshold) {
@@ -74,25 +84,27 @@ mixin ViewCubeInputMixin on OrbitViewDelegate {
 
         if (hits.isNotEmpty) {
           onCubeClicked(hits[0].hitObject.id);
+          handled = true;
         }
       }
       _pointerDownPos = null;
     }
-    super.onPointerUp(event);
+    return super.onPointerUp(event) || handled;
   }
 
   @override
-  void onPointerMove(PointerMoveEvent event) {
+  bool onPointerMove(PointerMoveEvent event) {
     final double oldYaw = yaw;
     final double oldPitch = pitch;
-    super.onPointerMove(event);
+    bool handled = super.onPointerMove(event);
     if (oldYaw != yaw || oldPitch != pitch) {
       onCubeRotated(yaw, pitch);
     }
+    return handled;
   }
 
   @override
-  void onPointerHover(PointerHoverEvent event) {
+  bool onPointerHover(PointerHoverEvent event) {
     Ray mouseRay = getWorldRay(event.localPosition);
     List<FskHitDetails> hits =
         scene.hitTest(mouseRay, mode: FskHitTestMode.closest);
@@ -101,20 +113,19 @@ mixin ViewCubeInputMixin on OrbitViewDelegate {
       final hitObj = hits[0].hitObject;
       if (hitObj is FskRenderableObject) {
         _updateHighlight(hitObj);
-      } else {
-        _updateHighlight(null);
+        super.onPointerHover(event);
+        return true; // We handled the hover highlight
       }
-    } else {
-      _updateHighlight(null);
     }
 
-    super.onPointerHover(event);
+    _updateHighlight(null);
+    return super.onPointerHover(event);
   }
 
   @override
-  void onPointerExit(PointerExitEvent event) {
+  bool onPointerExit(PointerExitEvent event) {
     _updateHighlight(null);
-    super.onPointerExit(event);
+    return super.onPointerExit(event);
   }
 }
 

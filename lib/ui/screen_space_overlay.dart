@@ -12,6 +12,7 @@ import 'package:vector_math/vector_math.dart' hide Colors;
 /// (left or right) of the parent viewport.
 abstract class ScreenSpaceOverlay extends FskScene {
   /// The unique identifier for this overlay.
+  @override
   final String id;
 
   /// The distance in screen pixels from the top edge of the parent viewport.
@@ -83,7 +84,7 @@ abstract class ScreenSpaceOverlay extends FskScene {
     // Use local size (converted to physical) for matrix calculations within the overlay
     viewportSize = Size(screenSpaceSize.width * physicalDpr,
         screenSpaceSize.height * physicalDpr);
-    
+
     // Important: Update matrices for this overlay's viewport size before drawing anything
     updateMatrices();
 
@@ -118,13 +119,13 @@ abstract class ScreenSpaceOverlay extends FskScene {
       // Simple ortho mapping [-w/2, w/2] to [-1, 1]
       // Using project's standard ortho logic
       bgP.setEntry(0, 0, 2.0 / screenSpaceSize.width);
-      bgP.setEntry(1, 1, 2.0 / screenSpaceSize.height); 
-      bgP.setEntry(2, 2, 0.001); 
+      bgP.setEntry(1, 1, 2.0 / screenSpaceSize.height);
+      bgP.setEntry(2, 2, 0.001);
       bgP.setEntry(3, 3, 1.0);
 
       _drawNode(
         commandBuffer,
-        renderTarget.loadColorClearDepthTarget, 
+        renderTarget.loadColorClearDepthTarget,
         transients,
         _backgroundNode!,
         origin.dx,
@@ -136,16 +137,17 @@ abstract class ScreenSpaceOverlay extends FskScene {
         screenSpaceSize,
       );
     } else {
-        // Even if no background, we must clear depth before drawing overlay content
-        // to ensure it draws on top of the main scene.
-        final renderPass = commandBuffer.createRenderPass(renderTarget.loadColorClearDepthTarget);
-        // Scissor to the overlay area anyway to be safe, though clearing depth is global
-        renderPass.setScissor(gpu.Scissor(
-            x: origin.dx.toInt(),
-            y: origin.dy.toInt(),
-            width: physicalWidth.toInt(),
-            height: physicalHeight.toInt(),
-        ));
+      // Even if no background, we must clear depth before drawing overlay content
+      // to ensure it draws on top of the main scene.
+      final renderPass =
+          commandBuffer.createRenderPass(renderTarget.loadColorClearDepthTarget);
+      // Scissor to the overlay area anyway to be safe, though clearing depth is global
+      renderPass.setScissor(gpu.Scissor(
+        x: origin.dx.toInt(),
+        y: origin.dy.toInt(),
+        width: physicalWidth.toInt(),
+        height: physicalHeight.toInt(),
+      ));
     }
 
     // 2. Draw all child nodes via super (uses navigationDelegate matrices)
@@ -238,12 +240,10 @@ abstract class ScreenSpaceOverlay extends FskScene {
   /// Converts a global screen coordinate into a local coordinate within this overlay.
   /// Both [screen] and the returned [Offset] are in logical pixels.
   Offset screenToViewport(Offset screen, Size parentViewportSizeLogical) {
-    final double x = left != null
-        ? left!
-        : (parentViewportSizeLogical.width - screenSpaceSize.width - right!);
-    final double y = top != null
-        ? top!
-        : (parentViewportSizeLogical.height - screenSpaceSize.height - bottom!);
+    final double x =
+        left ?? (parentViewportSizeLogical.width - screenSpaceSize.width - right!);
+    final double y =
+        top ?? (parentViewportSizeLogical.height - screenSpaceSize.height - bottom!);
     return screen - Offset(x, y);
   }
 

@@ -24,7 +24,8 @@ class FskScene extends FskSceneBase {
     isReady = false;
   }
 
-  FskScene.fromSkinFile(String skinPath, {super.navigationDelegate,super.clearColor}) {
+  FskScene.fromSkinFile(String skinPath,
+      {super.navigationDelegate, super.clearColor}) {
     isReady = false;
     _pendingSkinPath = skinPath;
   }
@@ -168,134 +169,123 @@ class FskScene extends FskSceneBase {
       viewportSize.height / FSK.devicePixelRatio);
 
   @override
-  void onPointerDown(PointerDownEvent event) {
+  bool onPointerDown(PointerDownEvent event) {
     for (var layer in layers.reversed) {
       if (layer.interceptInput &&
           layer.isPointInViewport(event.localPosition, logicalSize)) {
-        _pointerCaptures[event.pointer] = layer;
         final origin = event.localPosition -
             layer.screenToViewport(event.localPosition, logicalSize);
-        final transformed = event.transformed(
-            Matrix4.translationValues(-origin.dx, -origin.dy, 0) * (event.transform ?? Matrix4.identity()));
-        layer.onPointerDown(transformed);
-        return;
+        final transformedEvent = event
+            .transformed(Matrix4.translationValues(-origin.dx, -origin.dy, 0));
+
+        if (layer.onPointerDown(transformedEvent)) {
+          _pointerCaptures[event.pointer] = layer;
+          return true;
+        }
       }
     }
     _pointerCaptures[event.pointer] = null;
-    super.onPointerDown(event);
+    return super.onPointerDown(event);
   }
 
   @override
-  void onPointerMove(PointerMoveEvent event) {
+  bool onPointerMove(PointerMoveEvent event) {
     if (_pointerCaptures.containsKey(event.pointer)) {
       final layer = _pointerCaptures[event.pointer];
       if (layer != null) {
         final origin = event.localPosition -
             layer.screenToViewport(event.localPosition, logicalSize);
-        final transformed = event.transformed(
-           Matrix4.translationValues(-origin.dx, -origin.dy, 0) * (event.transform ?? Matrix4.identity()));
-        layer.onPointerMove(transformed);
-        return;
+        return layer.onPointerMove(event.transformed(
+            Matrix4.translationValues(-origin.dx, -origin.dy, 0)));
       }
-    } else {
-      // If we don't have a capture, but this is a move event without a down 
-      // (like mouse hover), we can still do a hit test for signals.
-      // But for rotation drags, we should rely on the capture.
     }
-    super.onPointerMove(event);
+    return super.onPointerMove(event);
   }
 
   @override
-  void onPointerUp(PointerUpEvent event) {
+  bool onPointerUp(PointerUpEvent event) {
     if (_pointerCaptures.containsKey(event.pointer)) {
       final layer = _pointerCaptures[event.pointer];
       _pointerCaptures.remove(event.pointer);
       if (layer != null) {
         final origin = event.localPosition -
             layer.screenToViewport(event.localPosition, logicalSize);
-        final transformed = event.transformed(
-            Matrix4.translationValues(-origin.dx, -origin.dy, 0) * (event.transform ?? Matrix4.identity()));
-        layer.onPointerUp(transformed);
-        return;
+        return layer.onPointerUp(event.transformed(
+            Matrix4.translationValues(-origin.dx, -origin.dy, 0)));
       }
     }
-    super.onPointerUp(event);
+    return super.onPointerUp(event);
   }
 
   @override
-  void onPointerCancel(PointerCancelEvent event) {
+  bool onPointerCancel(PointerCancelEvent event) {
     if (_pointerCaptures.containsKey(event.pointer)) {
       final layer = _pointerCaptures[event.pointer];
       _pointerCaptures.remove(event.pointer);
       if (layer != null) {
         final origin = event.localPosition -
             layer.screenToViewport(event.localPosition, logicalSize);
-        final transformed = event.transformed(
-            Matrix4.translationValues(-origin.dx, -origin.dy, 0) * (event.transform ?? Matrix4.identity()));
-        layer.onPointerCancel(transformed);
-        return;
+        return layer.onPointerCancel(event.transformed(
+            Matrix4.translationValues(-origin.dx, -origin.dy, 0)));
       }
     }
-    super.onPointerCancel(event);
+    return super.onPointerCancel(event);
   }
 
   @override
-  void onPointerSignal(PointerSignalEvent event) {
-    // Pointer signals (like scroll) don't have a 'down' event to capture.
-    // We hit test these on the fly.
+  bool onPointerSignal(PointerSignalEvent event) {
     for (var layer in layers.reversed) {
       if (layer.interceptInput &&
           layer.isPointInViewport(event.localPosition, logicalSize)) {
         final origin = event.localPosition -
             layer.screenToViewport(event.localPosition, logicalSize);
-        final transformed = event.transformed(
-            Matrix4.translationValues(-origin.dx, -origin.dy, 0) * (event.transform ?? Matrix4.identity())) as PointerSignalEvent;
-        layer.onPointerSignal(transformed);
-        return;
+        final transformedEvent = event.transformed(
+                Matrix4.translationValues(-origin.dx, -origin.dy, 0))
+            as PointerSignalEvent;
+        if (layer.onPointerSignal(transformedEvent)) return true;
       }
     }
-    super.onPointerSignal(event);
+    return super.onPointerSignal(event);
   }
 
   @override
-  void onPointerHover(PointerHoverEvent event) {
+  bool onPointerHover(PointerHoverEvent event) {
     for (var layer in layers.reversed) {
       if (layer.interceptInput &&
           layer.isPointInViewport(event.localPosition, logicalSize)) {
         final origin = event.localPosition -
             layer.screenToViewport(event.localPosition, logicalSize);
-        final transformed = event.transformed(
-            Matrix4.translationValues(-origin.dx, -origin.dy, 0) * (event.transform ?? Matrix4.identity()));
-        layer.onPointerHover(transformed);
-        return;
+        final transformedEvent = event
+            .transformed(Matrix4.translationValues(-origin.dx, -origin.dy, 0));
+        if (layer.onPointerHover(transformedEvent)) return true;
       }
     }
-    super.onPointerHover(event);
+    return super.onPointerHover(event);
   }
 
   @override
-  void onScaleStart(ScaleStartDetails details) {
+  bool onScaleStart(ScaleStartDetails details) {
     for (var layer in layers.reversed) {
       if (layer.interceptInput &&
           layer.isPointInViewport(details.localFocalPoint, logicalSize)) {
-        layer.onScaleStart(ScaleStartDetails(
+        final transformedDetails = ScaleStartDetails(
           focalPoint: details.focalPoint,
           localFocalPoint:
               layer.screenToViewport(details.localFocalPoint, logicalSize),
           pointerCount: details.pointerCount,
-        ));
-        return;
+        );
+        if (layer.onScaleStart(transformedDetails)) return true;
       }
     }
-    super.onScaleStart(details);
+    return super.onScaleStart(details);
   }
 
   @override
-  void onScaleUpdate(ScaleUpdateDetails details) {
+  bool onScaleUpdate(ScaleUpdateDetails details) {
     for (var layer in layers.reversed) {
       if (layer.interceptInput &&
           layer.isPointInViewport(details.localFocalPoint, logicalSize)) {
-        layer.onScaleUpdate(ScaleUpdateDetails(
+        final transformedDetails = ScaleUpdateDetails(
           focalPoint: details.focalPoint,
           localFocalPoint:
               layer.screenToViewport(details.localFocalPoint, logicalSize),
@@ -305,16 +295,22 @@ class FskScene extends FskSceneBase {
           rotation: details.rotation,
           pointerCount: details.pointerCount,
           focalPointDelta: details.focalPointDelta,
-        ));
-        return;
+        );
+        if (layer.onScaleUpdate(transformedDetails)) return true;
       }
     }
-    super.onScaleUpdate(details);
+    return super.onScaleUpdate(details);
   }
 
   @override
-  void onScaleEnd(ScaleEndDetails details) {
-    super.onScaleEnd(details);
+  bool onScaleEnd(ScaleEndDetails details) {
+    // ScaleEnd typically follows the capture from ScaleStart/Update.
+    // For now, we propagate to all if needed, or simply follow the capture logic if implemented.
+    bool handled = false;
+    for (var layer in layers) {
+      if (layer.onScaleEnd(details)) handled = true;
+    }
+    return super.onScaleEnd(details) || handled;
   }
 
   @override
