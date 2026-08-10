@@ -189,6 +189,8 @@ class OrbitViewDelegate extends FskSceneNavigationDelegate with OrbitInputMixin 
       viewRect.size,
       getProjectionMatrix(),
       getViewMatrix(),
+      ndcNear: 0.0,
+      ndcFar: 1.0,
     );
     return intersectRayWithPlane(ray, _projectPlane);
   }
@@ -200,6 +202,8 @@ class OrbitViewDelegate extends FskSceneNavigationDelegate with OrbitInputMixin 
       viewRect.size,
       getProjectionMatrix(),
       getViewMatrix(),
+      ndcNear: 0.0,
+      ndcFar: 1.0,
     );
     return ray;
   }

@@ -175,8 +175,9 @@ class FskScene extends FskSceneBase {
           layer.isPointInViewport(event.localPosition, logicalSize)) {
         final origin = event.localPosition -
             layer.screenToViewport(event.localPosition, logicalSize);
-        final transformedEvent = event
-            .transformed(Matrix4.translationValues(-origin.dx, -origin.dy, 0));
+        final transformedEvent = event.transformed(
+            Matrix4.translationValues(-origin.dx, -origin.dy, 0) *
+                (event.transform ?? Matrix4.identity()));
 
         if (layer.onPointerDown(transformedEvent)) {
           _pointerCaptures[event.pointer] = layer;
@@ -196,7 +197,8 @@ class FskScene extends FskSceneBase {
         final origin = event.localPosition -
             layer.screenToViewport(event.localPosition, logicalSize);
         return layer.onPointerMove(event.transformed(
-            Matrix4.translationValues(-origin.dx, -origin.dy, 0)));
+            Matrix4.translationValues(-origin.dx, -origin.dy, 0) *
+                (event.transform ?? Matrix4.identity())));
       }
     }
     return super.onPointerMove(event);
@@ -211,7 +213,8 @@ class FskScene extends FskSceneBase {
         final origin = event.localPosition -
             layer.screenToViewport(event.localPosition, logicalSize);
         return layer.onPointerUp(event.transformed(
-            Matrix4.translationValues(-origin.dx, -origin.dy, 0)));
+            Matrix4.translationValues(-origin.dx, -origin.dy, 0) *
+                (event.transform ?? Matrix4.identity())));
       }
     }
     return super.onPointerUp(event);
@@ -226,7 +229,8 @@ class FskScene extends FskSceneBase {
         final origin = event.localPosition -
             layer.screenToViewport(event.localPosition, logicalSize);
         return layer.onPointerCancel(event.transformed(
-            Matrix4.translationValues(-origin.dx, -origin.dy, 0)));
+            Matrix4.translationValues(-origin.dx, -origin.dy, 0) *
+                (event.transform ?? Matrix4.identity())));
       }
     }
     return super.onPointerCancel(event);
@@ -240,8 +244,8 @@ class FskScene extends FskSceneBase {
         final origin = event.localPosition -
             layer.screenToViewport(event.localPosition, logicalSize);
         final transformedEvent = event.transformed(
-                Matrix4.translationValues(-origin.dx, -origin.dy, 0))
-            as PointerSignalEvent;
+            Matrix4.translationValues(-origin.dx, -origin.dy, 0) *
+                (event.transform ?? Matrix4.identity())) as PointerSignalEvent;
         if (layer.onPointerSignal(transformedEvent)) return true;
       }
     }
@@ -255,8 +259,9 @@ class FskScene extends FskSceneBase {
           layer.isPointInViewport(event.localPosition, logicalSize)) {
         final origin = event.localPosition -
             layer.screenToViewport(event.localPosition, logicalSize);
-        final transformedEvent = event
-            .transformed(Matrix4.translationValues(-origin.dx, -origin.dy, 0));
+        final transformedEvent = event.transformed(
+            Matrix4.translationValues(-origin.dx, -origin.dy, 0) *
+                (event.transform ?? Matrix4.identity()));
         if (layer.onPointerHover(transformedEvent)) return true;
       }
     }

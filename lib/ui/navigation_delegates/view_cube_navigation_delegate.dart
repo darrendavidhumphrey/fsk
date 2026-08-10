@@ -138,4 +138,11 @@ class ViewCubeNavigationDelegate extends OrbitViewDelegate
   }) {
     this.highlightColor = highlightColor;
   }
+
+  @override
+  void onCubeClicked(String id) {}
+
+  /// Callback interface for when the cube is rotated.
+  @override
+  void onCubeRotated(double yaw, double pitch) {}
 }
