@@ -56,7 +56,7 @@ class ViewCubeOverlay extends ScreenSpaceOverlay {
     ];
 
     for (final data in faceData) {
-      solids.add(_createSolid('${data.$1}_solid', data.$2, data.$3));
+      solids.add(_createSolid(data.$1, data.$2, data.$3));
     }
 
     // 2. Corner Cube Segments (8 combinations)

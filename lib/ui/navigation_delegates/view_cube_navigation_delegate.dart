@@ -13,6 +13,16 @@ class ViewCubeNavigationDelegate extends OrbitViewDelegate {
 
   static final Vector3 _kHighlightColor = Vector3(0.4, 0.7, 1.0); // Light Blue
 
+  // State for distinguishing click from drag
+  Offset? _pointerDownPos;
+  static const double _kClickThreshold = 5.0;
+
+  /// Callback interface for when a cube segment is clicked.
+  /// Derived classes can override this to handle navigation or other actions.
+  void onCubeClicked(String id) {
+    print('ViewCubeNavigationDelegate: Clicked on "$id"');
+  }
+
   void _updateHighlight(FskRenderableObject? newTarget) {
     if (_highlightedObject == newTarget) return;
 
@@ -45,6 +55,31 @@ class ViewCubeNavigationDelegate extends OrbitViewDelegate {
     } else {
       _originalKd = null;
     }
+  }
+
+  @override
+  void onPointerDown(PointerDownEvent event) {
+    _pointerDownPos = event.localPosition;
+    super.onPointerDown(event);
+  }
+
+  @override
+  void onPointerUp(PointerUpEvent event) {
+    if (_pointerDownPos != null) {
+      final double distance = (event.localPosition - _pointerDownPos!).distance;
+      if (distance < _kClickThreshold) {
+        // Perform hit test for the click
+        Ray mouseRay = getWorldRay(event.localPosition);
+        List<FskHitDetails> hits =
+            scene.hitTest(mouseRay, mode: FskHitTestMode.closest);
+
+        if (hits.isNotEmpty) {
+          onCubeClicked(hits[0].hitObject.id);
+        }
+      }
+      _pointerDownPos = null;
+    }
+    super.onPointerUp(event);
   }
 
   @override
