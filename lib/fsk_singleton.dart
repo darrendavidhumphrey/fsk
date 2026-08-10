@@ -106,6 +106,7 @@ class FSK extends ChangeNotifier with LoggableClass {
       _assetManifest ??= await AssetManifest.loadFromAssetBundle(rootBundle);
 
       await textureManager.init();
+      await BitmapFontManager().init();
 
       // We try common paths for the compiled shader bundle in order of probability.
       final List<String> possiblePaths = [

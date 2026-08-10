@@ -50,16 +50,13 @@ class BitmapFontManager with LoggableClass {
   }
 
   /// Returns the default font, which is expected to be named "default".
-  /// Lazily creates the font if it doesn't exist.
   BitmapFont? get defaultFont {
-    final font = _fonts["default"];
+    return _fonts["default"];
+  }
 
-    // Asynchronously Lazily instantiate the default font
-    if (font == null) {
-      createDefaultFont();
-      return _fonts["default"];
-    }
-    return font;
+  /// Explicitly initializes the manager, ensuring the default font is loaded.
+  Future<void> init() async {
+    await createFont("default", creatoDisplayBoldXml, "CreatoDisplay-Bold.png");
   }
 
   Future<void> createFontFromFile(
@@ -121,10 +118,5 @@ class BitmapFontManager with LoggableClass {
       logError("Error loading font '$fontName': $e");
       logError("StackTrace: $stackTrace");
     }
-  }
-
-  /// A convenience method to create and register the default font for the application.
-  void createDefaultFont() {
-    createFontSync("default", creatoDisplayBoldXml, "CreatoDisplay-Bold.png");
   }
 }
