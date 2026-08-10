@@ -1,26 +1,30 @@
 import 'dart:ui';
-
 import 'package:flutter/gestures.dart';
-import 'package:vector_math/vector_math.dart';
+import 'package:flutter/material.dart' show Colors;
+import 'package:vector_math/vector_math.dart' hide Colors;
 import 'package:fsk/fsk.dart';
 
-
-class ViewCubeNavigationDelegate extends OrbitViewDelegate {
-  ViewCubeNavigationDelegate({super.viewRect, super.boxFit});
-
+/// A mixin that provides interactive highlighting, clicking, and rotation tracking
+/// for a View Cube implementation.
+mixin ViewCubeInputMixin on OrbitViewDelegate {
   FskRenderableObject? _highlightedObject;
   Vector3? _originalKd;
 
-  static final Vector3 _kHighlightColor = Vector3(0.4, 0.7, 1.0); // Light Blue
+  /// The color used to highlight the cube segments on hover.
+  Color highlightColor = Colors.lightBlue;
 
   // State for distinguishing click from drag
   Offset? _pointerDownPos;
   static const double _kClickThreshold = 5.0;
 
   /// Callback interface for when a cube segment is clicked.
-  /// Derived classes can override this to handle navigation or other actions.
   void onCubeClicked(String id) {
-    print('ViewCubeNavigationDelegate: Clicked on "$id"');
+    //print('ViewCubeInputMixin: Clicked on "$id"');
+  }
+
+  /// Callback interface for when the cube is rotated.
+  void onCubeRotated(double yaw, double pitch) {
+    //print('ViewCubeInputMixin: Rotated to yaw=$yaw, pitch=$pitch');
   }
 
   void _updateHighlight(FskRenderableObject? newTarget) {
@@ -40,7 +44,6 @@ class ViewCubeNavigationDelegate extends OrbitViewDelegate {
       final u = _highlightedObject!.uniforms;
       if (u is LightingUniforms) {
         // Capture the original color before modifying it
-        // We use a dynamic access to the value map to get the CURRENT value
         final dynamic currentKd = u.valuesMap['Kd'];
         if (currentKd is Vector3) {
           _originalKd = Vector3.copy(currentKd);
@@ -50,7 +53,7 @@ class ViewCubeNavigationDelegate extends OrbitViewDelegate {
           _originalKd = Vector3(1, 1, 1);
         }
 
-        u.kd = _kHighlightColor;
+        u.kd = Vector3(highlightColor.r, highlightColor.g, highlightColor.b);
       }
     } else {
       _originalKd = null;
@@ -83,6 +86,16 @@ class ViewCubeNavigationDelegate extends OrbitViewDelegate {
   }
 
   @override
+  void onPointerMove(PointerMoveEvent event) {
+    final double oldYaw = yaw;
+    final double oldPitch = pitch;
+    super.onPointerMove(event);
+    if (oldYaw != yaw || oldPitch != pitch) {
+      onCubeRotated(yaw, pitch);
+    }
+  }
+
+  @override
   void onPointerHover(PointerHoverEvent event) {
     Ray mouseRay = getWorldRay(event.localPosition);
     List<FskHitDetails> hits =
@@ -106,5 +119,16 @@ class ViewCubeNavigationDelegate extends OrbitViewDelegate {
   void onPointerExit(PointerExitEvent event) {
     _updateHighlight(null);
     super.onPointerExit(event);
+  }
+}
+
+class ViewCubeNavigationDelegate extends OrbitViewDelegate
+    with ViewCubeInputMixin {
+  ViewCubeNavigationDelegate({
+    super.viewRect,
+    super.boxFit,
+    Color highlightColor = Colors.lightBlue,
+  }) {
+    this.highlightColor = highlightColor;
   }
 }
