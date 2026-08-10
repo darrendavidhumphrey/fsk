@@ -18,14 +18,10 @@ mixin ViewCubeInputMixin on OrbitViewDelegate {
   static const double _kClickThreshold = 5.0;
 
   /// Callback interface for when a cube segment is clicked.
-  void onCubeClicked(String id) {
-    //print('ViewCubeInputMixin: Clicked on "$id"');
-  }
+  void onCubeClicked(String id) {}
 
   /// Callback interface for when the cube is rotated.
-  void onCubeRotated(double yaw, double pitch) {
-    //print('ViewCubeInputMixin: Rotated to yaw=$yaw, pitch=$pitch');
-  }
+  void onCubeRotated(double yaw, double pitch) {}
 
   void _updateHighlight(FskRenderableObject? newTarget) {
     if (_highlightedObject == newTarget) return;

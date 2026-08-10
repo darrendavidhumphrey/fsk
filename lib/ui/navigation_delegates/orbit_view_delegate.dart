@@ -4,26 +4,13 @@ import 'package:flutter/gestures.dart' hide Matrix4;
 import 'package:vector_math/vector_math.dart';
 import 'package:fsk/fsk.dart';
 
-/// A navigation delegate that implements a classic 3D orbit camera.
-///
-/// This class handles user input to rotate (orbit) around a central point,
-/// and zoom (dolly) the camera towards and away from that point.
-class OrbitViewDelegate extends FskSceneNavigationDelegate {
-
-  OrbitViewDelegate({super.viewRect,super.boxFit});
-  static const double _initialYaw = 0;
-  static const double _initialPitch = 0;
-
-  final double verticalFieldOfView = radians(60);
-
-  double _yaw = _initialYaw;
-  double get yaw => _yaw;
-
-  double _pitch = _initialPitch;
-  double get pitch => _pitch;
-
-  double _distance = 300;
-  double get distance => _distance;
+/// A mixin that provides input handling logic for an orbit-style camera.
+/// This mixin expects to be applied to a [FskSceneNavigationDelegate].
+mixin OrbitInputMixin on FskSceneNavigationDelegate {
+  // Camera state managed by the mixin
+  double yaw = 0;
+  double pitch = 0;
+  double distance = 300;
 
   // State variables for drag-based rotation.
   Offset _dragStart = Offset.zero;
@@ -34,14 +21,18 @@ class OrbitViewDelegate extends FskSceneNavigationDelegate {
   double _baseDistance = 0;
   final Set<int> _pointers = {};
 
-  /// A plane at z=0 used for calculating logical coordinates from a pick ray.
-  final Plane _projectPlane = makePlaneFromVertices(
-    Vector3.zero(),
-    Vector3(1, 0, 0),
-    Vector3(0, 1, 0),
-  )!;
+  /// Programmatically sets the camera rotation.
+  void setOrbitRotation(double newYaw, double newPitch) {
+    yaw = clampAngle0To360(newYaw);
+    pitch = clampAngle0To360(newPitch);
+    setNeedsUpdate(true);
+  }
 
-  // TODO: do picking
+  /// Sets the distance of the camera from the orbit center.
+  void setViewDistance(double newDistance) {
+    distance = newDistance;
+    setNeedsUpdate(true);
+  }
 
   @override
   void onPointerDown(PointerDownEvent event) {
@@ -77,24 +68,20 @@ class OrbitViewDelegate extends FskSceneNavigationDelegate {
 
     // Scale sensitivity by viewport size to make rotation feel consistent
     // regardless of widget size.
-    final double yawSensitivity = 1 / scene.viewportSize.width;
-    final double pitchSensitivity = 1 / scene.viewportSize.height;
+    final double yawSensitivity = 1 / viewRect.width;
+    final double pitchSensitivity = 1 / viewRect.height;
     final double deltaYaw = deltaX * yawSensitivity * pi;
     final double deltaPitch = deltaY * pitchSensitivity * pi;
 
     final newYaw = _yawStart + degrees(deltaYaw);
     final newPitch = _pitchStart + degrees(deltaPitch);
 
-    _yaw = clampAngle0To360(newYaw);
-    _pitch = clampAngle0To360(newPitch);
-    setNeedsUpdate(true);
+    setOrbitRotation(newYaw, newPitch);
   }
 
   @override
   void onPointerSignal(PointerSignalEvent event) {
     const double minRadius = 3;
-    double viewRadius = distance;
-
     if (event is! PointerScrollEvent) return;
 
     PointerScrollEvent scrollEvent = event;
@@ -106,13 +93,12 @@ class OrbitViewDelegate extends FskSceneNavigationDelegate {
       deltaRadius = -deltaRadius;
     }
 
-    viewRadius += deltaRadius;
+    double newRadius = distance + deltaRadius;
 
-    if (viewRadius < minRadius) {
-      viewRadius = minRadius;
+    if (newRadius < minRadius) {
+      newRadius = minRadius;
     }
-    setViewDistance(viewRadius);
-    setNeedsUpdate(true);
+    setViewDistance(newRadius);
   }
 
   @override
@@ -126,7 +112,6 @@ class OrbitViewDelegate extends FskSceneNavigationDelegate {
 
     const double minRadius = 3;
     // Scale the distance inversely proportional to the gesture scale.
-    // If details.scale is 2.0 (pinch open), we want distance to be halved.
     double newDistance = _baseDistance / details.scale;
 
     if (newDistance < minRadius) {
@@ -134,24 +119,34 @@ class OrbitViewDelegate extends FskSceneNavigationDelegate {
     }
 
     setViewDistance(newDistance);
-    setNeedsUpdate(true);
   }
 
   @override
   void onScaleEnd(ScaleEndDetails details) {}
 
-  /// Sets the distance of the camera from the orbit center.
-  void setViewDistance(double distance) {
-    _distance = distance;
-    setNeedsUpdate(true);
+  @override
+  KeyEventResult onKeyEvent(KeyEvent event) {
+    // TODO: Implement keyboard controls for orbit, pan, or zoom.
+    return KeyEventResult.ignored;
   }
+}
 
-  /// Programmatically sets the camera rotation.
-  void setOrbitRotation(double yaw, double pitch) {
-    _yaw = clampAngle0To360(yaw);
-    _pitch = clampAngle0To360(pitch);
-    setNeedsUpdate(true);
-  }
+/// A navigation delegate that implements a classic 3D orbit camera.
+///
+/// This class handles user input to rotate (orbit) around a central point,
+/// and zoom (dolly) the camera towards and away from that point.
+class OrbitViewDelegate extends FskSceneNavigationDelegate with OrbitInputMixin {
+
+  OrbitViewDelegate({super.viewRect, super.boxFit});
+
+  final double verticalFieldOfView = radians(60);
+
+  /// A plane at z=0 used for calculating logical coordinates from a pick ray.
+  final Plane _projectPlane = makePlaneFromVertices(
+    Vector3.zero(),
+    Vector3(1, 0, 0),
+    Vector3(0, 1, 0),
+  )!;
 
   /// Creates the view matrix based on the current yaw, pitch, and distance.
   @override
@@ -185,9 +180,11 @@ class OrbitViewDelegate extends FskSceneNavigationDelegate {
   Vector3? getLogicalCoordinates(Offset mousePosition) {
     Ray ray = computePickRay(
       mousePosition,
-      scene.viewportSize,
+      viewRect.size,
       getProjectionMatrix(),
       getViewMatrix(),
+      ndcNear: 0.0,
+      ndcFar: 1.0,
     );
     return intersectRayWithPlane(ray, _projectPlane);
   }
@@ -196,9 +193,11 @@ class OrbitViewDelegate extends FskSceneNavigationDelegate {
   Ray getWorldRay(Offset mousePosition) {
     Ray ray = computePickRay(
       mousePosition,
-      scene.viewportSize,
+      viewRect.size,
       getProjectionMatrix(),
       getViewMatrix(),
+      ndcNear: 0.0,
+      ndcFar: 1.0,
     );
     return ray;
   }
@@ -206,8 +205,7 @@ class OrbitViewDelegate extends FskSceneNavigationDelegate {
   /// Creates the perspective projection matrix.
   @override
   Matrix4 createProjectionMatrix() {
-    final double aspectRatio =
-        scene.viewportSize.width / scene.viewportSize.height;
+    final double aspectRatio = viewRect.width / viewRect.height;
 
     Matrix4 proj = Matrix4.identity();
     setPerspectiveMatrix(
@@ -226,11 +224,5 @@ class OrbitViewDelegate extends FskSceneNavigationDelegate {
     remap.setEntry(2, 3, 0.5);
 
     return remap * proj;
-  }
-
-  @override
-  KeyEventResult onKeyEvent(KeyEvent event) {
-    // TODO: Implement keyboard controls for orbit, pan, or zoom.
-    return KeyEventResult.ignored;
   }
 }

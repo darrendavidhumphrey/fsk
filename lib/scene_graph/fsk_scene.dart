@@ -175,8 +175,9 @@ class FskScene extends FskSceneBase {
         _pointerCaptures[event.pointer] = layer;
         final origin = event.localPosition -
             layer.screenToViewport(event.localPosition, logicalSize);
-        layer.onPointerDown(event.transformed(
-            Matrix4.translationValues(-origin.dx, -origin.dy, 0)));
+        final transformed = event.transformed(
+            Matrix4.translationValues(-origin.dx, -origin.dy, 0) * (event.transform ?? Matrix4.identity()));
+        layer.onPointerDown(transformed);
         return;
       }
     }
@@ -191,8 +192,9 @@ class FskScene extends FskSceneBase {
       if (layer != null) {
         final origin = event.localPosition -
             layer.screenToViewport(event.localPosition, logicalSize);
-        layer.onPointerMove(event.transformed(
-           Matrix4.translationValues(-origin.dx, -origin.dy, 0)));
+        final transformed = event.transformed(
+           Matrix4.translationValues(-origin.dx, -origin.dy, 0) * (event.transform ?? Matrix4.identity()));
+        layer.onPointerMove(transformed);
         return;
       }
     } else {
@@ -211,8 +213,9 @@ class FskScene extends FskSceneBase {
       if (layer != null) {
         final origin = event.localPosition -
             layer.screenToViewport(event.localPosition, logicalSize);
-        layer.onPointerUp(event.transformed(
-            Matrix4.translationValues(-origin.dx, -origin.dy, 0)));
+        final transformed = event.transformed(
+            Matrix4.translationValues(-origin.dx, -origin.dy, 0) * (event.transform ?? Matrix4.identity()));
+        layer.onPointerUp(transformed);
         return;
       }
     }
@@ -227,8 +230,9 @@ class FskScene extends FskSceneBase {
       if (layer != null) {
         final origin = event.localPosition -
             layer.screenToViewport(event.localPosition, logicalSize);
-        layer.onPointerCancel(event.transformed(
-            Matrix4.translationValues(-origin.dx, -origin.dy, 0)));
+        final transformed = event.transformed(
+            Matrix4.translationValues(-origin.dx, -origin.dy, 0) * (event.transform ?? Matrix4.identity()));
+        layer.onPointerCancel(transformed);
         return;
       }
     }
@@ -244,8 +248,9 @@ class FskScene extends FskSceneBase {
           layer.isPointInViewport(event.localPosition, logicalSize)) {
         final origin = event.localPosition -
             layer.screenToViewport(event.localPosition, logicalSize);
-        layer.onPointerSignal(event.transformed(
-            Matrix4.translationValues(-origin.dx, -origin.dy, 0)) as PointerSignalEvent);
+        final transformed = event.transformed(
+            Matrix4.translationValues(-origin.dx, -origin.dy, 0) * (event.transform ?? Matrix4.identity())) as PointerSignalEvent;
+        layer.onPointerSignal(transformed);
         return;
       }
     }
@@ -259,8 +264,9 @@ class FskScene extends FskSceneBase {
           layer.isPointInViewport(event.localPosition, logicalSize)) {
         final origin = event.localPosition -
             layer.screenToViewport(event.localPosition, logicalSize);
-        layer.onPointerHover(event.transformed(
-            Matrix4.translationValues(-origin.dx, -origin.dy, 0)));
+        final transformed = event.transformed(
+            Matrix4.translationValues(-origin.dx, -origin.dy, 0) * (event.transform ?? Matrix4.identity()));
+        layer.onPointerHover(transformed);
         return;
       }
     }

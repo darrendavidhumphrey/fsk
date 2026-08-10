@@ -238,8 +238,12 @@ abstract class ScreenSpaceOverlay extends FskScene {
   /// Converts a global screen coordinate into a local coordinate within this overlay.
   /// Both [screen] and the returned [Offset] are in logical pixels.
   Offset screenToViewport(Offset screen, Size parentViewportSizeLogical) {
-    final double x = left ?? (parentViewportSizeLogical.width - screenSpaceSize.width - right!);
-    final double y = top ?? (parentViewportSizeLogical.height - screenSpaceSize.height - bottom!);
+    final double x = left != null
+        ? left!
+        : (parentViewportSizeLogical.width - screenSpaceSize.width - right!);
+    final double y = top != null
+        ? top!
+        : (parentViewportSizeLogical.height - screenSpaceSize.height - bottom!);
     return screen - Offset(x, y);
   }
 

@@ -74,7 +74,7 @@ Vector3 unProject(Vector4 ndcVector, Matrix4 inverseCombinedMatrix) {
 /// Takes a [mousePosition] in screen space (origin top-left) and transforms it
 /// into a [Ray] in 3D world space.
 Ray computePickRay(
-    Offset mousePosition, Size viewportSize, Matrix4 projection, Matrix4 view) {
+    Offset mousePosition, Size viewportSize, Matrix4 projection, Matrix4 view, {double ndcNear = -1.0, double ndcFar = 1.0}) {
   double winX = mousePosition.dx;
   double winY = mousePosition.dy;
 
@@ -87,8 +87,8 @@ Ray computePickRay(
   final double ndcY = 1.0 - (winY * 2.0) / viewportSize.height;
 
   // Define the start and end points of the ray in NDC space.
-  final Vector4 ndcVectorNear = Vector4(ndcX, ndcY, -1, 1.0);
-  final Vector4 ndcVectorFar = Vector4(ndcX, ndcY, 1, 1.0);
+  final Vector4 ndcVectorNear = Vector4(ndcX, ndcY, ndcNear, 1.0);
+  final Vector4 ndcVectorFar = Vector4(ndcX, ndcY, ndcFar, 1.0);
 
   // Un-project these points back into world space.
   final Vector3 nearResult = unProject(ndcVectorNear, inverseCombinedMatrix);
