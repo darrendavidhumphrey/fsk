@@ -82,9 +82,9 @@ Ray computePickRay(
   final Matrix4 inverseCombinedMatrix = Matrix4.copy(combinedMatrix)..invert();
 
   // Convert screen coordinates to Normalized Device Coordinates (NDC) [-1, 1].
+  // Note: Y is flipped because screen coords are top-down, NDC is bottom-up.
   final double ndcX = (winX * 2.0) / viewportSize.width - 1.0;
-
-  final double ndcY = (winY * 2.0) / viewportSize.height - 1.0;
+  final double ndcY = 1.0 - (winY * 2.0) / viewportSize.height;
 
   // Define the start and end points of the ray in NDC space.
   final Vector4 ndcVectorNear = Vector4(ndcX, ndcY, -1, 1.0);
