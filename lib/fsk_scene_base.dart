@@ -1,14 +1,13 @@
 import 'dart:async';
 import 'dart:ui' as ui;
 import 'package:flutter/material.dart' hide Matrix4;
-import 'package:flutter/gestures.dart' hide Matrix4;
-import 'package:flutter/services.dart';
 import 'package:flutter_gpu/gpu.dart' as gpu;
 import 'package:fsk/fsk.dart';
 import 'package:vector_math/vector_math.dart' as vm;
 
 /// An abstract base class for a 3D scene, representing the root of a scene graph.
-abstract class FskSceneBase extends ChangeNotifier with LoggableClass {
+abstract class FskSceneBase extends ChangeNotifier
+    with LoggableClass, FskSceneInputDispatcherMixin {
   vm.Matrix4 pMatrix = vm.Matrix4.identity();
   vm.Matrix4 mvMatrix = vm.Matrix4.identity();
 
@@ -17,11 +16,12 @@ abstract class FskSceneBase extends ChangeNotifier with LoggableClass {
   Size get viewportSize => _viewportSize;
   set viewportSize(Size value) => _viewportSize = value;
 
+  @override
   FskSceneNavigationDelegate? navigationDelegate;
 
   /// Internal test hook for visual captures
   bool captureRequested = false;
-  
+
   Completer<ui.Image>? _captureCompleter;
 
   Future<ui.Image> captureFrameInternal() {
@@ -65,7 +65,8 @@ abstract class FskSceneBase extends ChangeNotifier with LoggableClass {
   }
 
   int _frameCount = 0;
-  int get frameCount => _overrideFrameCount >= 0 ? _overrideFrameCount : _frameCount;
+  int get frameCount =>
+      _overrideFrameCount >= 0 ? _overrideFrameCount : _frameCount;
 
   int _overrideFrameCount = -1;
 
@@ -77,7 +78,7 @@ abstract class FskSceneBase extends ChangeNotifier with LoggableClass {
     notifyListeners();
   }
 
-  FskSceneBase({this.navigationDelegate,this.clearColor=Colors.black}) {
+  FskSceneBase({this.navigationDelegate, this.clearColor = Colors.black}) {
     navigationDelegate?.setScene(this);
   }
 
@@ -151,32 +152,7 @@ abstract class FskSceneBase extends ChangeNotifier with LoggableClass {
   void rebuildGeometry() {}
   void clearRetainedBuffers() {}
 
-  // --- Input Dispatchers ---
-  // These methods allow the scene to intercept or transform input before
-  // it reaches the navigation delegate.
-
-  void onPointerDown(PointerDownEvent event) =>
-      navigationDelegate?.onPointerDown(event);
-  void onPointerMove(PointerMoveEvent event) =>
-      navigationDelegate?.onPointerMove(event);
-  void onPointerHover(PointerHoverEvent event) =>
-      navigationDelegate?.onPointerHover(event);
-  void onPointerUp(PointerUpEvent event) =>
-      navigationDelegate?.onPointerUp(event);
-  void onPointerCancel(PointerCancelEvent event) =>
-      navigationDelegate?.onPointerCancel(event);
-  void onPointerSignal(PointerSignalEvent event) =>
-      navigationDelegate?.onPointerSignal(event);
-  void onScaleStart(ScaleStartDetails details) =>
-      navigationDelegate?.onScaleStart(details);
-  void onScaleUpdate(ScaleUpdateDetails details) =>
-      navigationDelegate?.onScaleUpdate(details);
-  void onScaleEnd(ScaleEndDetails details) =>
-      navigationDelegate?.onScaleEnd(details);
-  KeyEventResult onKeyEvent(KeyEvent event) =>
-      navigationDelegate?.onKeyEvent(event) ?? KeyEventResult.ignored;
-
-
   /// Hit Testing
-  List<FskHitDetails> hitTest(vm.Ray ray,{FskHitTestMode mode = FskHitTestMode.closest});
+  List<FskHitDetails> hitTest(vm.Ray ray,
+      {FskHitTestMode mode = FskHitTestMode.closest});
 }

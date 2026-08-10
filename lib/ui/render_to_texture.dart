@@ -56,8 +56,8 @@ class RenderToTextureState extends State<RenderToTexture> {
         onPointerSignal: (event) => widget.scene.onPointerSignal(event),
         onPointerCancel: (event) => widget.scene.onPointerCancel(event),
         child: MouseRegion(
-          onEnter: (PointerEnterEvent event) { /* TODO */ },
-          onExit: (PointerExitEvent event) { /* TODO */ },
+          onEnter: (PointerEnterEvent event) => widget.scene.onPointerEnter(event),
+          onExit: (PointerExitEvent event) => widget.scene.onPointerExit(event),
           onHover:(event) => widget.scene.onPointerHover(event),
           child: Focus(
             autofocus: true,

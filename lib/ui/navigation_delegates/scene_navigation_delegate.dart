@@ -1,4 +1,3 @@
-import 'package:flutter/gestures.dart' hide Matrix4;
 import 'package:flutter/material.dart' hide Matrix4;
 import 'package:vector_math/vector_math.dart';
 import 'package:fsk/fsk.dart';
@@ -11,7 +10,7 @@ enum FskBoxFit {
   bestFit,
 }
 
-abstract class FskSceneNavigationDelegate with ChangeNotifier {
+abstract class FskSceneNavigationDelegate with ChangeNotifier, FskInputHandlerDefaultMixin {
   late FskSceneBase scene;
   late Matrix4 _projectionMatrix;
   late Matrix4 _viewMatrix;
@@ -75,21 +74,6 @@ abstract class FskSceneNavigationDelegate with ChangeNotifier {
     this.scene = scene;
     setNeedsUpdate(true);
   }
-
-  // Input Handlers
-  void onTapDown(TapDownDetails event) {}
-  void onPointerDown(PointerDownEvent event) {}
-  void onPointerMove(PointerMoveEvent event) {}
-  void onPointerHover(PointerHoverEvent event) {}
-  void onPointerUp(PointerUpEvent event) {}
-  void onPointerCancel(PointerCancelEvent event) {}
-  void onPointerSignal(PointerSignalEvent event) {}
-
-
-  void onScaleStart(ScaleStartDetails details) {}
-  void onScaleUpdate(ScaleUpdateDetails details) {}
-  void onScaleEnd(ScaleEndDetails details) {}
-  KeyEventResult onKeyEvent(KeyEvent event) => KeyEventResult.ignored;
 
   /// Creates a matrix that scales and translates content of [contentSize] to fit
   /// the current view.

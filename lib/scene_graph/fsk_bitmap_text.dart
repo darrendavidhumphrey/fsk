@@ -75,7 +75,7 @@ class FskBitmapText extends Fsk2DRenderableObject with FskTransformableMixin, Fs
   bool scaleToFit = false;
 
   void _onFontChanged() {
-    print("$id _onFontChanged called initialized=${_font.isInitialized} font=${_font.name}");
+    logInfo("$id _onFontChanged called initialized=${_font.isInitialized} font=${_font.name}");
     if (_font.isInitialized) {
       _renderer.setTexture(_font.textureInfo);
       setNeedsRebuild();
