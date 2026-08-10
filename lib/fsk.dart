@@ -42,6 +42,7 @@ export 'scene_graph/fsk_indexed_mesh.dart';
 export 'scene_graph/fsk_indexed_mesh_renderer.dart';
 export 'scene_graph/fsk_quad.dart';
 export 'scene_graph/fsk_scene.dart';
+export 'scene_graph/fsk_scene_layer_dispatcher_mixin.dart';
 export 'scene_graph/fsk_scene_object.dart';
 export 'scene_graph/fsk_text_alignment.dart';
 export 'scene_graph/fsk_transformable.dart';
