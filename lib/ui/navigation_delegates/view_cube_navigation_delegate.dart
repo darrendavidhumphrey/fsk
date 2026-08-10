@@ -56,6 +56,20 @@ mixin ViewCubeInputMixin on OrbitViewDelegate {
     }
   }
 
+  // Consume scroll wheel events so the cube doesn't dolly in/out
+  @override
+  bool onPointerSignal(PointerSignalEvent event) {
+    vm.Ray mouseRay = getWorldRay(event.localPosition);
+    List<FskHitDetails> hits =
+    scene.hitTest(mouseRay, mode: FskHitTestMode.closest);
+
+    if (hits.isEmpty) {
+      return false; // Let it pass through to layers/scene underneath
+    }
+
+    return true;
+  }
+
   @override
   bool onPointerDown(PointerDownEvent event) {
     // Perform hit test to see if we should consume the input

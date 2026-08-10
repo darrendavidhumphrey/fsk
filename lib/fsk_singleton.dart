@@ -98,13 +98,13 @@ class FSK extends ChangeNotifier with LoggableClass {
 
   /// This must be called once before any other operations.
   Future<bool> init() async {
-    logInfo('FSK.init() called. Current state: $_state');
     if (_state == FskState.initialized) return true;
     _state = FskState.initialized;
 
+    logVerbose('FSK.init() called. Current state: $_state');
     try {
-      _assetManifest ??= await AssetManifest.loadFromAssetBundle(rootBundle);
 
+      _assetManifest ??= await AssetManifest.loadFromAssetBundle(rootBundle);
       await textureManager.init();
       await BitmapFontManager().init();
 
@@ -128,7 +128,6 @@ class FSK extends ChangeNotifier with LoggableClass {
           logVerbose('Shader bundle load failed for $path: $e');
         }
       }
-      
       if (!loaded) {
         logWarning('Failed to load shader bundle from prioritized paths. Searching AssetManifest...');
 
@@ -156,7 +155,7 @@ class FSK extends ChangeNotifier with LoggableClass {
           throw Exception('Shader bundle not found in assets. Ensure you are running with --enable-impeller and --enable-flutter-gpu.');
         }
       }
-      
+      logVerbose('FSK.init() success');
       return true;
     } catch (e) {
       _state = FskState.uninitialized; // Reset on failure
