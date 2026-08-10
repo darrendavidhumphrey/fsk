@@ -36,10 +36,6 @@ class ViewCubeOverlay extends ScreenSpaceOverlay {
 
     addNode(cubeRoot);
 
-    // Set a natural framing distance for the camera.
-    if (navigationDelegate is OrbitViewDelegate) {
-      (navigationDelegate as OrbitViewDelegate).setViewDistance(cubeSize * 2.5);
-    }
   }
 
   List<FskRectangularSolid> _generateGeometry() {

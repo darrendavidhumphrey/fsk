@@ -80,9 +80,12 @@ abstract class FskSceneNavigationDelegate with ChangeNotifier {
   void onTapDown(TapDownDetails event) {}
   void onPointerDown(PointerDownEvent event) {}
   void onPointerMove(PointerMoveEvent event) {}
+  void onPointerHover(PointerHoverEvent event) {}
   void onPointerUp(PointerUpEvent event) {}
   void onPointerCancel(PointerCancelEvent event) {}
   void onPointerSignal(PointerSignalEvent event) {}
+
+
   void onScaleStart(ScaleStartDetails details) {}
   void onScaleUpdate(ScaleUpdateDetails details) {}
   void onScaleEnd(ScaleEndDetails details) {}

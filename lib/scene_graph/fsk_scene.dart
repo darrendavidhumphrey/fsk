@@ -65,6 +65,7 @@ class FskScene extends FskSceneBase {
   }
 
   /// Performs a hit test traversal of the scene graph.
+  @override
   List<FskHitDetails> hitTest(vm.Ray ray,
       {FskHitTestMode mode = FskHitTestMode.closest}) {
     final List<FskHitDetails> results = [];
@@ -198,6 +199,30 @@ class FskScene extends FskSceneBase {
     }
     super.onPointerMove(event);
   }
+
+  @override
+  void onPointerHover(PointerHoverEvent event) {
+    for (var layer in layers.reversed) {
+      if (layer.interceptInput &&
+        layer.isPointInViewport(event.localPosition, logicalSize)) {
+            final origin = event.localPosition -
+                layer.screenToViewport(event.localPosition, logicalSize);
+            layer.onPointerHover(event.transformed(
+                Matrix4.translationValues(-origin.dx, -origin.dy, 0)));
+            return;
+        }
+      }
+      /*
+    } else {
+      // If we don't have a capture, but this is a move event without a down
+      // (like mouse hover), we can still do a hit test for signals.
+      // But for rotation drags, we should rely on the capture.
+    }
+
+       */
+    super.onPointerHover(event);
+  }
+
 
   @override
   void onPointerUp(PointerUpEvent event) {

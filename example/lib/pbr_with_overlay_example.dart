@@ -52,10 +52,11 @@ class PbrWithOverlayScene extends PbrModelScene {
     // Initialize the base PBR model scene first
     await super.onInit();
 
+    final double cubeSize = 50;
     // Create the overlay in the upper right corner - Opts in to input
     final overlayRight = ViewCubeOverlay(
       id: 'pip_right',
-      cubeSize: 50.0,
+      cubeSize: cubeSize,
       right: 20,
       top: 20,
       screenSpaceSize: const Size(300, 300),
@@ -63,6 +64,10 @@ class PbrWithOverlayScene extends PbrModelScene {
       // Use an orbit delegate so we can see the cube from different angles
       navigationDelegate: OrbitViewDelegate(boxFit: FskBoxFit.bestFit),
     );
+
+     var nav = overlayRight.navigationDelegate as OrbitViewDelegate;
+     nav.setViewDistance(cubeSize * 2.5);
+
 
     // Create the overlay in the upper left corner - Does NOT opt in to input
     final overlayLeft = StlOverlay(

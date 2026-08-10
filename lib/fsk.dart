@@ -11,7 +11,6 @@ export 'geometry/reference_box.dart';
 export 'geometry/thick_lines.dart';
 export 'geometry/triangle_mesh.dart';
 
-
 export 'gpu/fsk_index_buffer.dart';
 export 'gpu/gpu_pipeline_key.dart';
 export 'gpu/fsk_render_target.dart';
@@ -20,13 +19,11 @@ export 'gpu/fsk_shader_material.dart';
 export 'gpu/fsk_texture_manager.dart';
 export 'gpu/fsk_vertex_buffer.dart';
 
-
 export 'loaders/fsk_gltf_loader.dart';
 export 'loaders/fsk_model_loader.dart';
 export 'loaders/fsk_mtlx_loader.dart';
 export 'loaders/fsk_obj_loader.dart';
 export 'loaders/fsk_stl_loader.dart';
-
 
 export 'scenes/view_cube_overlay.dart';
 

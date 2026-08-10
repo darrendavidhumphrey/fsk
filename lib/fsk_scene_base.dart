@@ -159,6 +159,8 @@ abstract class FskSceneBase extends ChangeNotifier with LoggableClass {
       navigationDelegate?.onPointerDown(event);
   void onPointerMove(PointerMoveEvent event) =>
       navigationDelegate?.onPointerMove(event);
+  void onPointerHover(PointerHoverEvent event) =>
+      navigationDelegate?.onPointerHover(event);
   void onPointerUp(PointerUpEvent event) =>
       navigationDelegate?.onPointerUp(event);
   void onPointerCancel(PointerCancelEvent event) =>
@@ -173,4 +175,8 @@ abstract class FskSceneBase extends ChangeNotifier with LoggableClass {
       navigationDelegate?.onScaleEnd(details);
   KeyEventResult onKeyEvent(KeyEvent event) =>
       navigationDelegate?.onKeyEvent(event) ?? KeyEventResult.ignored;
+
+
+  /// Hit Testing
+  List<FskHitDetails> hitTest(vm.Ray ray,{FskHitTestMode mode = FskHitTestMode.closest});
 }

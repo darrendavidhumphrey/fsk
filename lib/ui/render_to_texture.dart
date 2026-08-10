@@ -1,3 +1,4 @@
+import 'package:flutter/gestures.dart';
 import 'package:flutter/material.dart';
 import 'package:fsk/fsk.dart';
 
@@ -54,13 +55,18 @@ class RenderToTextureState extends State<RenderToTexture> {
         onPointerUp: (event) => widget.scene.onPointerUp(event),
         onPointerSignal: (event) => widget.scene.onPointerSignal(event),
         onPointerCancel: (event) => widget.scene.onPointerCancel(event),
-        child: Focus(
-          autofocus: true,
-          focusNode: _focusNode,
-          onKeyEvent: (node, event) => widget.scene.onKeyEvent(event),
-          child: GPURenderWidget(
-            scene: widget.scene,
-            useAntiAliasing: widget.useAntiAliasing,
+        child: MouseRegion(
+          onEnter: (PointerEnterEvent event) { /* TODO */ },
+          onExit: (PointerExitEvent event) { /* TODO */ },
+          onHover:(event) => widget.scene.onPointerHover(event),
+          child: Focus(
+            autofocus: true,
+            focusNode: _focusNode,
+            onKeyEvent: (node, event) => widget.scene.onKeyEvent(event),
+            child: GPURenderWidget(
+              scene: widget.scene,
+              useAntiAliasing: widget.useAntiAliasing,
+            ),
           ),
         ),
       ),
