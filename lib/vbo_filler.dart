@@ -2,6 +2,8 @@ import 'dart:typed_data';
 import 'dart:ui';
 import 'package:vector_math/vector_math.dart' as vm;
 
+import 'gpu/fsk_vertex_buffer.dart';
+
 /// A utility class for filling a vertex buffer list with data.
 class VboFiller {
   /// The underlying [Float32List] that is being filled.
@@ -17,7 +19,7 @@ class VboFiller {
   /// Checks if there is enough space in the array for the next write.
   /// Throws a [RangeError] if there is not enough space.
   void _checkStrideSpace() {
-    if (_currentPosition > list.length - 12) {
+    if (_currentPosition > list.length - FskVertexBuffer.componentCount) {
       throw RangeError(
           'Not enough space in the Float32Array for a full vertex stride. '
               'Required: 12 elements, Available: ${list.length - _currentPosition}');
@@ -120,7 +122,7 @@ class VboFiller {
 
   // Makes ONE quad only, setting the vbo size to 6 vertices
   static Float32List makeTexturedUnitQuad(Rect r, double z) {
-    final list = Float32List(6 * 12);
+    final list = Float32List(6 * FskVertexBuffer.componentCount);
     var filler = VboFiller(list);
     filler._addTexturedUnitQuad(r,z);
     return list;
@@ -129,7 +131,7 @@ class VboFiller {
   // Makes ONE quad only, setting the vbo size to 6 vertices with texture
   //   /// coordinates from [0, 0] to [1, 1].
   static Float32List makeTexturedQuad(vm.Quad q, Rect tr) {
-    final list = Float32List(6 * 12);
+    final list = Float32List(6 * FskVertexBuffer.componentCount);
     var filler = VboFiller(list);
     filler.addTexturedQuad(q,tr);
     return list;
@@ -138,7 +140,7 @@ class VboFiller {
   // Appends a list of quads to a VBO
   static Float32List verticesFromTexturedQuads(List<vm.Quad> quads, List<Rect> tr) {
     assert (quads.length == tr.length);
-    final list = Float32List(quads.length * 6 * 12);
+    final list = Float32List(quads.length * 6 * FskVertexBuffer.componentCount);
     var filler = VboFiller(list);
 
     for (var i = 0; i < quads.length; i++) {
@@ -155,7 +157,7 @@ class VboFiller {
     }
 
     final int numQuadVerts = 6 * numQuads;
-    final list = Float32List(numQuadVerts * 12);
+    final list = Float32List(numQuadVerts * FskVertexBuffer.componentCount);
     final filler = VboFiller(list);
 
     for (int i = 0; i < numQuads; i++) {

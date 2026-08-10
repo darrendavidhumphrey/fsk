@@ -193,9 +193,9 @@ class FskGltfLoader extends FskModelLoader {
         ? _getFloatData((attrs['TEXCOORD_0'] as num).toInt())
         : Float32List(count * 2);
 
-    final vertexData = Float32List(count * 12);
+    final vertexData = Float32List(count * FskVertexBuffer.componentCount);
     for (int i = 0; i < count; i++) {
-      final int b = i * 12;
+      final int b = i * FskVertexBuffer.componentCount;
       vertexData[b + 0] = positions[i * 3 + 0];
       vertexData[b + 1] = positions[i * 3 + 1];
       vertexData[b + 2] = positions[i * 3 + 2];

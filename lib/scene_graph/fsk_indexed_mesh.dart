@@ -57,7 +57,7 @@ class FskIndexedMesh extends FskRenderableObject with FskTransformableMixin, Fsk
         vm.Vector3.all(double.negativeInfinity),
       );
     }
-    _cachedAabb = computeAabb(vertices!, 12);
+    _cachedAabb = computeAabb(vertices!, FskVertexBuffer.componentCount);
     return _cachedAabb!;
   }
 

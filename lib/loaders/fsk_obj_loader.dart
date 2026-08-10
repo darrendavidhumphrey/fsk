@@ -130,7 +130,7 @@ class WavefrontObjModel extends FskModelLoader {
 
     // Allocate the vertex buffer with the final, correct size.
     final totalUniqueVertices = uniqueVertexMap.length;
-    vertices = Float32List(totalUniqueVertices * 12);
+    vertices = Float32List(totalUniqueVertices * FskVertexBuffer.componentCount);
     final filler = VboFiller(vertices!);
 
     // Reset state for the main parsing pass.

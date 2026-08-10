@@ -51,7 +51,7 @@ class StlLoader extends FskModelLoader {
   void _loadBinary(ByteData data, int count) {
     triangleCount = count;
     // Standard FSK stride is 12 floats (V3, T2, N3, C4)
-    vertices = Float32List(count * 3 * 12);
+    vertices = Float32List(count * 3 * FskVertexBuffer.componentCount);
     final filler = VboFiller(vertices!);
 
     int offset = 84;
@@ -62,28 +62,28 @@ class StlLoader extends FskModelLoader {
         data.getFloat32(offset + 4, Endian.little),
         data.getFloat32(offset + 8, Endian.little),
       );
-      offset += 12;
+      offset += FskVertexBuffer.componentCount;
 
       final v1 = vm.Vector3(
         data.getFloat32(offset, Endian.little),
         data.getFloat32(offset + 4, Endian.little),
         data.getFloat32(offset + 8, Endian.little),
       );
-      offset += 12;
+      offset += FskVertexBuffer.componentCount;
 
       final v2 = vm.Vector3(
         data.getFloat32(offset, Endian.little),
         data.getFloat32(offset + 4, Endian.little),
         data.getFloat32(offset + 8, Endian.little),
       );
-      offset += 12;
+      offset += FskVertexBuffer.componentCount;
 
       final v3 = vm.Vector3(
         data.getFloat32(offset, Endian.little),
         data.getFloat32(offset + 4, Endian.little),
         data.getFloat32(offset + 8, Endian.little),
       );
-      offset += 12;
+      offset += FskVertexBuffer.componentCount;
 
       offset += 2; // attribute byte count
 
@@ -107,7 +107,7 @@ class StlLoader extends FskModelLoader {
     }
 
     triangleCount = triangles.length;
-    vertices = Float32List(triangleCount * 3 * 12);
+    vertices = Float32List(triangleCount * 3 * FskVertexBuffer.componentCount);
     final filler = VboFiller(vertices!);
 
     for (final tri in triangles) {
