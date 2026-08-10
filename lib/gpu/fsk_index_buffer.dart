@@ -49,6 +49,12 @@ class FskIndexBuffer {
     _activeIndexCount = count;
   }
 
+  /// Explicitly releases GPU resources.
+  void dispose() {
+    _deviceBuffer = null;
+    _activeIndexCount = 0;
+  }
+
   void bind(gpu.RenderPass renderPass, {int offsetInIndices = 0}) {
     if (_deviceBuffer == null) return;
 

@@ -105,6 +105,15 @@ class FskGroup extends FskRenderableObject with FskTransformableMixin {
   }
 
   @override
+  void dispose() {
+    for (final child in children) {
+      child.dispose();
+    }
+    children.clear();
+    super.dispose();
+  }
+
+  @override
   void draw(
       gpu.RenderPass renderPass,
       gpu.HostBuffer transients,

@@ -9,6 +9,12 @@ class FskIndexedMeshRenderer extends FskMeshRendererBase {
   FskIndexedMeshRenderer();
 
   @override
+  void dispose() {
+    _ibo.dispose();
+    super.dispose();
+  }
+
+  @override
   void drawFskSubMesh(gpu.RenderPass renderPass, FskSubMesh subMesh) {
     _ibo.bind(renderPass, offsetInIndices: subMesh.firstIndex);
     _ibo.drawTrianglesIndexed(renderPass, count: subMesh.indexCount);

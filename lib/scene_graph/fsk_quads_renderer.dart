@@ -47,6 +47,12 @@ class FskQuadsRenderer extends FskRendererBase {
   /////////////////////////////////////////////////////////////////////////////
   FskQuadsRenderer();
 
+  @override
+  void dispose() {
+    _vbo.dispose();
+    super.dispose();
+  }
+
   void setVertices(Float32List vertices) {
     _vbo.uploadData(vertices);
     _verticesDownloaded = vertices.isNotEmpty;
@@ -108,7 +114,7 @@ class FskQuadsRenderer extends FskRendererBase {
     }
     
     // 4. Robust Texture Binding: Always bind a texture to Slot 2 to prevent state leaks.
-    uniforms!.texture = (textureInfo != null)
+    uniforms!.texture = (textureInfo != null && textureInfo!.texture != null)
         ? textureInfo!.texture
         : FSK().textureManager.transparentTexture;
     uniforms!.samplerOptions = (textureInfo != null) ? textureInfo!.samplerOptions : null;

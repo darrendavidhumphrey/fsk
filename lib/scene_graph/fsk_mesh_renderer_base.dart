@@ -24,6 +24,16 @@ abstract class FskMeshRendererBase extends FskRendererBase {
 
   FskMeshRendererBase();
 
+  @override
+  void dispose() {
+    vbo.dispose();
+    for (final subMesh in _subMeshes) {
+      subMesh.textureInfo = null;
+    }
+    _subMeshes.clear();
+    super.dispose();
+  }
+
   void clearFskSubMeshes() {
     _subMeshes.clear();
     _dataUploaded = false;

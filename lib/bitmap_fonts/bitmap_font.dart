@@ -70,8 +70,8 @@ class BitmapFont extends ChangeNotifier with LoggableClass {
   /// This is null until [loadFontTexture] is called and completes.
   FskTextureInfo? textureInfo;
 
-  /// Returns true if the font's texture has been loaded and is ready for use.
-  bool get isInitialized => (textureInfo != null);
+  /// Returns true if the font's metrics and texture have been loaded and are ready for use.
+  bool get isInitialized => (textureInfo != null && textureInfo!.isLoaded && textureInfo!.texture != null);
 
   /// Creates a new BitmapFont.
   BitmapFont(

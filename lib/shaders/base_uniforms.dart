@@ -54,6 +54,12 @@ abstract class BaseUniforms extends ChangeNotifier with LoggableClass {
 
   BaseUniforms({this.vertexShader, this.fragmentShader});
 
+  /// Releases resources held by this uniform block.
+  void dispose() {
+    additionalTextures.clear();
+    textureIn = null;
+  }
+
   /// Deep copies non-shader state from another uniform block.
   void copyFrom(BaseUniforms other) {
     valuesMap.addAll(other.valuesMap);

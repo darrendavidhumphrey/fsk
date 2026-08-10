@@ -59,6 +59,9 @@ class FskScene extends FskSceneBase {
   }
 
   void clearNodes() {
+    for (var node in rootNodes) {
+      node.dispose();
+    }
     rootNodes.clear();
     nodeMap.clear();
     setNeedsUpdate();
@@ -201,30 +204,6 @@ class FskScene extends FskSceneBase {
   }
 
   @override
-  void onPointerHover(PointerHoverEvent event) {
-    for (var layer in layers.reversed) {
-      if (layer.interceptInput &&
-        layer.isPointInViewport(event.localPosition, logicalSize)) {
-            final origin = event.localPosition -
-                layer.screenToViewport(event.localPosition, logicalSize);
-            layer.onPointerHover(event.transformed(
-                Matrix4.translationValues(-origin.dx, -origin.dy, 0)));
-            return;
-        }
-      }
-      /*
-    } else {
-      // If we don't have a capture, but this is a move event without a down
-      // (like mouse hover), we can still do a hit test for signals.
-      // But for rotation drags, we should rely on the capture.
-    }
-
-       */
-    super.onPointerHover(event);
-  }
-
-
-  @override
   void onPointerUp(PointerUpEvent event) {
     if (_pointerCaptures.containsKey(event.pointer)) {
       final layer = _pointerCaptures[event.pointer];
@@ -271,6 +250,21 @@ class FskScene extends FskSceneBase {
       }
     }
     super.onPointerSignal(event);
+  }
+
+  @override
+  void onPointerHover(PointerHoverEvent event) {
+    for (var layer in layers.reversed) {
+      if (layer.interceptInput &&
+          layer.isPointInViewport(event.localPosition, logicalSize)) {
+        final origin = event.localPosition -
+            layer.screenToViewport(event.localPosition, logicalSize);
+        layer.onPointerHover(event.transformed(
+            Matrix4.translationValues(-origin.dx, -origin.dy, 0)));
+        return;
+      }
+    }
+    super.onPointerHover(event);
   }
 
   @override

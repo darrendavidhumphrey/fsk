@@ -50,6 +50,11 @@ class FskVertexBuffer {
     _vertexCount = 0;
   }
 
+  /// Explicitly releases GPU resources.
+  void dispose() {
+    clear();
+  }
+
   /// Allocate host CPU memory arrays to store structural coordinates.
   Float32List? requestBuffer(int newVertexCount) {
 

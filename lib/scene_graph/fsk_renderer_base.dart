@@ -60,6 +60,12 @@ abstract class FskRendererBase extends ChangeNotifier with LoggableClass {
     Size viewportSize,
   );
 
+  /// Cleans up resources held by this renderer.
+  void dispose() {
+    _uniforms?.dispose();
+    _uniforms = null;
+  }
+
   // Shared implementation of pipeline reconstruction
   void rebuildPipeline() {
     if (!pipeLineNeedsRebuild && pipelineKey != null) return;

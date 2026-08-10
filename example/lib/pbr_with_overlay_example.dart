@@ -62,7 +62,7 @@ class PbrWithOverlayScene extends PbrModelScene {
       screenSpaceSize: const Size(300, 300),
       interceptInput: true,
       // Use an orbit delegate so we can see the cube from different angles
-      navigationDelegate: OrbitViewDelegate(boxFit: FskBoxFit.bestFit),
+      navigationDelegate: ViewCubeNavigationDelegate(boxFit: FskBoxFit.bestFit),
     );
 
      var nav = overlayRight.navigationDelegate as OrbitViewDelegate;

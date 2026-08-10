@@ -13,6 +13,9 @@ abstract class FskSceneObject with LoggableClass {
 
   FskSceneObject(this.id, this.parentScene);
 
+  /// Cleans up resources held by this object.
+  void dispose() {}
+
   bool needsRebuild = true;
   void setNeedsRebuild() {
     needsRebuild = true;
@@ -140,6 +143,16 @@ abstract class FskRenderableObject extends FskSceneObject {
 
   // Track which set of uniforms are currently active.
   BaseUniforms? _lastSubscribedUniforms;
+
+  @override
+  void dispose() {
+    _renderer?.removeListener(_onRendererChanged);
+    _lastSubscribedUniforms?.removeListener(_onRendererChanged);
+    _renderer?.dispose();
+    _renderer = null;
+    _lastSubscribedUniforms = null;
+    super.dispose();
+  }
 
   void _onRendererChanged() {
     final currentUniforms = _renderer?.uniforms;

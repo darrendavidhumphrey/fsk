@@ -75,6 +75,7 @@ class FskBitmapText extends Fsk2DRenderableObject with FskTransformableMixin, Fs
   bool scaleToFit = false;
 
   void _onFontChanged() {
+    print("$id _onFontChanged called initialized=${_font.isInitialized} font=${_font.name}");
     if (_font.isInitialized) {
       _renderer.setTexture(_font.textureInfo);
       setNeedsRebuild();
@@ -259,6 +260,12 @@ class FskBitmapText extends Fsk2DRenderableObject with FskTransformableMixin, Fs
       depthWriteEnabled: false,
       depthCompareOperation: gpu.CompareFunction.lessEqual,
     );
+  }
+
+  @override
+  void dispose() {
+    _font.removeListener(_onFontChanged);
+    super.dispose();
   }
 
   @override
