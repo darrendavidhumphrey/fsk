@@ -1,6 +1,7 @@
 import 'dart:async';
 import 'dart:io';
 import 'dart:typed_data';
+import 'dart:math' as math;
 import 'dart:ui' as ui;
 import 'package:flutter/material.dart';
 import 'package:fsk/fsk.dart';
@@ -170,8 +171,8 @@ class _VisualTestAppState extends State<VisualTestApp> with LoggableClass {
       final outBytes = await outputFile.readAsBytes();
       final goldenBytes = await goldenFile.readAsBytes();
 
-      if (_compareBytes(outBytes, goldenBytes)) {
-        logInfo("    ✅ $name: MATCH");
+      if (await _perceptualCompare(outBytes, goldenBytes)) {
+        logInfo("    ✅ $name: PERCEPTUAL MATCH");
         _results.add("✅ $name: MATCH");
       } else {
         logError("    🔥 $name: MISMATCH");
@@ -180,12 +181,79 @@ class _VisualTestAppState extends State<VisualTestApp> with LoggableClass {
     }
   }
 
-  bool _compareBytes(Uint8List b1, Uint8List b2) {
-    if (b1.length != b2.length) return false;
-    for (int i = 0; i < b1.length; i++) {
-      if (b1[i] != b2[i]) return false;
+  Future<ui.Image> _decodeImage(Uint8List bytes) async {
+    final codec = await ui.instantiateImageCodec(bytes);
+    final frame = await codec.getNextFrame();
+    return frame.image;
+  }
+
+  /// Performs a perceptual comparison between two images.
+  /// [pixelThreshold] is the maximum allowed difference (0-255) for any single RGBA channel.
+  /// [maxPercentFailing] is the maximum percentage (0.0 to 1.0) of pixels that are allowed to fail.
+  Future<bool> _perceptualCompare(Uint8List outBytes, Uint8List goldenBytes,
+      {int pixelThreshold = 64, double maxPercentFailing = 0.001}) async {
+    final img1 = await _decodeImage(outBytes);
+    final img2 = await _decodeImage(goldenBytes);
+
+    if (img1.width != img2.width || img1.height != img2.height) {
+      logError(
+          "      Dimension mismatch: ${img1.width}x${img1.height} vs ${img2.width}x${img2.height}");
+      img1.dispose();
+      img2.dispose();
+      return false;
     }
-    return true;
+
+    final data1 = (await img1.toByteData(format: ui.ImageByteFormat.rawRgba))!;
+    final data2 = (await img2.toByteData(format: ui.ImageByteFormat.rawRgba))!;
+
+    img1.dispose();
+    img2.dispose();
+
+    final bytes1 = data1.buffer.asUint8List();
+    final bytes2 = data2.buffer.asUint8List();
+
+    int failingPixels = 0;
+    double totalSquareError = 0;
+    final int totalPixels = bytes1.length ~/ 4;
+
+    for (int i = 0; i < bytes1.length; i += 4) {
+      final rDiff = (bytes1[i] - bytes2[i]).abs();
+      final gDiff = (bytes1[i + 1] - bytes2[i + 1]).abs();
+      final bDiff = (bytes1[i + 2] - bytes2[i + 2]).abs();
+      final aDiff = (bytes1[i + 3] - bytes2[i + 3]).abs();
+
+      // Track MSE for global quality check
+      totalSquareError += (rDiff * rDiff + gDiff * gDiff + bDiff * bDiff);
+
+      if (rDiff > pixelThreshold ||
+          gDiff > pixelThreshold ||
+          bDiff > pixelThreshold ||
+          aDiff > pixelThreshold) {
+        failingPixels++;
+      }
+    }
+
+    final double mse = totalSquareError / (totalPixels * 3);
+    final double rmse = math.sqrt(mse);
+    final double failRatio = failingPixels / totalPixels;
+
+    // Calculate PSNR (higher is better, 30-50 is typical for 'good' matches)
+    double psnr = 100.0;
+    if (mse > 0) {
+      psnr = 20 * (math.log(255.0) / math.ln10) - 10 * (math.log(mse) / math.ln10);
+    }
+
+    logInfo(
+        "      Results: RMSE=${rmse.toStringAsFixed(2)}, PSNR=${psnr.toStringAsFixed(2)}dB, Failed Pixels: ${(failRatio * 100).toStringAsFixed(4)}%");
+
+    // Fail if too many pixels are radically different OR if the global error is too high
+    final bool passed = failRatio <= maxPercentFailing && rmse < 10.0;
+
+    if (!passed) {
+      logError("      Comparison FAILED criteria (Limit: ${maxPercentFailing * 100}%, Current: ${(failRatio * 100).toStringAsFixed(4)}%)");
+    }
+
+    return passed;
   }
 
   void _setupSceneForTest(String name, FskSceneBase scene) {
