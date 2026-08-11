@@ -182,14 +182,14 @@ class FskScenePainter extends CustomPainter with LoggableClass {
 
       canvas.drawImage(uiImage, Offset.zero, Paint());
       canvas.restore();
-      
-    // Test hook: Capture a handle for the test harness if requested
-    if (scene.captureRequested) {
-      scene.onFrameCaptured(uiImage);
-    } else {
-      // Normal frame: explicitly dispose to prevent GPU leaks
-      uiImage.dispose();
-    }
+
+      // Test hook: Capture a handle for the test harness if requested
+      if (scene.captureRequested) {
+        scene.onFrameCaptured(uiImage);
+      } else {
+        // Normal frame: explicitly dispose to prevent GPU leaks
+        uiImage.dispose();
+      }
     } catch (e, s) {
       logError("Exception in FskScenePainter.paint: $e\n$s");
     }

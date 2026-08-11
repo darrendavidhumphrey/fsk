@@ -71,7 +71,9 @@ class BitmapFont extends ChangeNotifier with LoggableClass {
   FskTextureInfo? textureInfo;
 
   /// Returns true if the font's metrics and texture have been loaded and are ready for use.
-  bool get isInitialized => (textureInfo != null && textureInfo!.isLoaded && textureInfo!.texture != null);
+  bool get isInitialized => (textureInfo != null &&
+      textureInfo!.isLoaded &&
+      textureInfo!.texture != null);
 
   /// Creates a new BitmapFont.
   BitmapFont(
@@ -88,7 +90,7 @@ class BitmapFont extends ChangeNotifier with LoggableClass {
     try {
       // Updated to utilize Flutter GPU sampling and texture structures
       // Note: Ensure your textureManager is updated to return a gpu.Texture object
-      textureInfo = await FSK().textureManager.createTextureFromAsset(
+      final info = await FSK().textureManager.createTextureFromAsset(
         name,
         textureName,
         minFilter: gpu.MinMagFilter.linear,
@@ -96,8 +98,15 @@ class BitmapFont extends ChangeNotifier with LoggableClass {
         wrapS: gpu.SamplerAddressMode.clampToEdge,
         wrapT: gpu.SamplerAddressMode.clampToEdge,
       );
-      logVerbose("Loaded font texture into Flutter GPU: $textureName");
-      notifyListeners();
+
+      textureInfo = info;
+
+      if (isInitialized) {
+        logVerbose("Loaded font texture into Flutter GPU: $textureName");
+        notifyListeners();
+      } else {
+        logError("Font texture loaded but failed initialization check: $textureName");
+      }
     } catch (e) {
       logError("Failed loading $textureName into Flutter GPU: $e");
       rethrow;

@@ -8,7 +8,7 @@ import 'fsk_renderer_base.dart';
 class FskQuadsRenderer extends FskRendererBase {
   bool _verticesDownloaded = false;
 
-  bool _premultiplyAlpha = true;
+  bool _premultiplyAlpha = false;
 
   // Color to modulate the texture with
   Color _modulateColor = const Color(0xFFFFFFFF);
@@ -22,6 +22,9 @@ class FskQuadsRenderer extends FskRendererBase {
   @override
   gpu.BlendFactor get srcColorFactor =>
       _premultiplyAlpha ? gpu.BlendFactor.one : gpu.BlendFactor.sourceAlpha;
+
+  @override
+  gpu.BlendFactor get dstColorFactor => gpu.BlendFactor.oneMinusSourceAlpha;
 
   /// The vertex buffer object that holds the geometry for rendering.
   final FskVertexBuffer _vbo = FskVertexBuffer();
@@ -38,7 +41,7 @@ class FskQuadsRenderer extends FskRendererBase {
   void setModulateColor(Color color) {
     if (_modulateColor != color) {
       _modulateColor = color;
-      pipeLineNeedsRebuild = true; // Force refresh
+      // No pipeline rebuild needed for modulation color change (it's a uniform)
     }
   }
 
@@ -110,13 +113,23 @@ class FskQuadsRenderer extends FskRendererBase {
 
     // 3. Synchronize renderer-specific properties
     if (uniforms is SimpleTextureUniforms) {
-      (uniforms as SimpleTextureUniforms).setModulateColor(_modulateColor);
+      final modulate = _premultiplyAlpha
+          ? Color.from(
+              alpha: _modulateColor.a,
+              red: _modulateColor.r * _modulateColor.a,
+              green: _modulateColor.g * _modulateColor.a,
+              blue: _modulateColor.b * _modulateColor.a,
+            )
+          : _modulateColor;
+      (uniforms as SimpleTextureUniforms).setModulateColor(modulate);
     }
     
     // 4. Robust Texture Binding: Always bind a texture to Slot 2 to prevent state leaks.
-    uniforms!.texture = (textureInfo != null && textureInfo!.texture != null)
-        ? textureInfo!.texture
-        : FSK().textureManager.transparentTexture;
+    if (textureInfo == null || textureInfo!.texture == null) {
+      uniforms!.texture = FSK().textureManager.transparentTexture;
+    } else {
+      uniforms!.texture = textureInfo!.texture;
+    }
     uniforms!.samplerOptions = (textureInfo != null) ? textureInfo!.samplerOptions : null;
 
     uniforms!.bind(renderPass, transients);

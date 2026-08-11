@@ -75,7 +75,7 @@ class FskBitmapText extends Fsk2DRenderableObject with FskTransformableMixin, Fs
   bool scaleToFit = false;
 
   void _onFontChanged() {
-    logInfo("$id _onFontChanged called initialized=${_font.isInitialized} font=${_font.name}");
+    logVerbose("$id _onFontChanged called initialized=${_font.isInitialized} font=${_font.name}");
     if (_font.isInitialized) {
       _renderer.setTexture(_font.textureInfo);
       setNeedsRebuild();
@@ -220,6 +220,13 @@ class FskBitmapText extends Fsk2DRenderableObject with FskTransformableMixin, Fs
 
     _font.addListener(_onFontChanged);
 
+    // If the font is already initialized, ensure the renderer has the texture
+    // and trigger a rebuild.
+    if (_font.isInitialized) {
+      _renderer.setTexture(_font.textureInfo);
+      needsRebuild = true;
+    }
+
     setDepthState(
       depthTestEnabled: depthTestEnabled,
       depthWriteEnabled: depthWriteEnabled,
@@ -245,7 +252,13 @@ class FskBitmapText extends Fsk2DRenderableObject with FskTransformableMixin, Fs
     }
     _font = fontToUse!;
     _font.addListener(_onFontChanged);
-    _renderer.setTexture(font.textureInfo);
+
+    // If the font is already initialized, ensure the renderer has the texture
+    // and trigger a rebuild.
+    if (_font.isInitialized) {
+      _renderer.setTexture(_font.textureInfo);
+      needsRebuild = true;
+    }
 
     _text = textData.text;
     textColor = parseHexColor(textData.textColor, defaultColor: Colors.white);
@@ -306,9 +319,10 @@ class FskBitmapText extends Fsk2DRenderableObject with FskTransformableMixin, Fs
   /// Rebuilds the vertex buffer object
   @override
   void doRebuild() {
-    // If anything is wrong, just bail out and create an empty set
-    if ((!font.isInitialized) || (text.isEmpty)) {
+    // If anything is wrong, just bail out and create an empty set.
+    if (!font.isInitialized || text.isEmpty) {
       _renderer.setFromUnrolledQuads(0, Float32List(0));
+      needsRebuild = true; // Ensure we try again next frame if we bailed due to initialization
       return;
     }
 

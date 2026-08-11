@@ -1,7 +1,8 @@
 import 'package:flutter/gestures.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
-import '../fsk.dart';
+import 'package:fsk/fsk.dart';
+
 
 /// A mixin that dispatches input events to the scene's [layers].
 mixin FskSceneLayerDispatcherMixin on FskSceneBase {

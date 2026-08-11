@@ -152,7 +152,7 @@ class FskQuad extends Fsk2DRenderableObject with FskTransformableMixin, FskDepth
     _updateQuad();
   }
 
-  static ReferenceBox _createRefBox(Size size) {
+  static ReferenceBox createRefBox(Size size) {
     return ReferenceBox(
       vm.Vector3(-size.width / 2, -size.height / 2, 0.0),
       vm.Vector3(size.width, 0, 0),
@@ -173,7 +173,7 @@ class FskQuad extends Fsk2DRenderableObject with FskTransformableMixin, FskDepth
     return FskQuad(
       id,
       scene,
-      _createRefBox(size),
+      createRefBox(size),
       const Rect.fromLTWH(0, 0, 1, 1),
       modulateColor: modulateColor,
       textureId: textureId,
@@ -193,7 +193,7 @@ class FskQuad extends Fsk2DRenderableObject with FskTransformableMixin, FskDepth
     final quad = FskQuad(
       id,
       scene,
-      _createRefBox(size),
+      createRefBox(size),
       const Rect.fromLTWH(0, 0, 1, 1),
       modulateColor: modulateColor,
       textureId: textureId,

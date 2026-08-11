@@ -1,6 +1,7 @@
 import 'package:fsk/fsk.dart';
 import 'package:vector_math/vector_math.dart' as vm;
 import 'package:flutter/material.dart' show Colors;
+import 'package:flutter_gpu/gpu.dart' as gpu;
 
 /// A concrete implementation of a screen-space overlay that displays an interactive view cube.
 class ViewCubeOverlay extends ScreenSpaceOverlay {
@@ -124,7 +125,7 @@ class ViewCubeOverlay extends ScreenSpaceOverlay {
   }
 
   List<FskBitmapText> _generateLabels() {
-    final double dist = cubeSize / 2 + 0.1;
+    final double dist = cubeSize / 2 + 0.5;
     final double width = cubeSize * (2 / 3);
     final double h = width / 2;
     final font = BitmapFontManager().defaultFont!;
@@ -151,7 +152,12 @@ class ViewCubeOverlay extends ScreenSpaceOverlay {
       label.textColor = Colors.black;
       label.horizontalJustification = TextHorizontalJustification.center;
       label.verticalJustification = TextVerticalJustification.center;
-      label.setDepthState(depthTestEnabled: true, depthWriteEnabled: false);
+      label.renderer.premultiplyAlpha = false;
+      label.setDepthState(
+        depthTestEnabled: true,
+        depthWriteEnabled: false,
+        depthCompareOperation: gpu.CompareFunction.lessEqual,
+      );
       label.renderer.rebuildPipeline();
     }
 
