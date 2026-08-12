@@ -2,6 +2,7 @@ import 'package:flutter/widgets.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter/gestures.dart';
 import 'ui/navigation_delegates/scene_navigation_delegate.dart';
+import 'ui/navigation_delegates/camera_modifier.dart';
 
 /// An interface for objects that can handle raw pointer and keyboard input events
 /// within the FSK rendering engine.
@@ -21,6 +22,59 @@ abstract class FskInputHandler {
   bool onScaleUpdate(ScaleUpdateDetails details);
   bool onScaleEnd(ScaleEndDetails details);
   KeyEventResult onKeyEvent(KeyEvent event);
+}
+
+/// A mixin that implements [FskInputHandler] by passing events to [CameraModifier]s.
+///
+/// Classes using this mixin must provide a list of [modifiers].
+mixin FskCameraModifierInputMixin implements FskInputHandler {
+  List<CameraModifier> get modifiers;
+
+  bool _handleEvent(CameraModifierStatus Function(CameraModifier) call) {
+    bool anyHandled = false;
+    for (final modifier in modifiers) {
+      final status = call(modifier);
+      if (status != CameraModifierStatus.ignored) {
+        anyHandled = true;
+      }
+    }
+    return anyHandled;
+  }
+
+  @override
+  bool onPointerDown(PointerDownEvent event) => _handleEvent((m) => m.onPointerDown(event));
+  @override
+  bool onPointerMove(PointerMoveEvent event) => _handleEvent((m) => m.onPointerMove(event));
+  @override
+  bool onPointerHover(PointerHoverEvent event) => _handleEvent((m) => m.onPointerHover(event));
+  @override
+  bool onPointerUp(PointerUpEvent event) => _handleEvent((m) => m.onPointerUp(event));
+  @override
+  bool onPointerCancel(PointerCancelEvent event) => _handleEvent((m) => m.onPointerCancel(event));
+  @override
+  bool onPointerSignal(PointerSignalEvent event) => _handleEvent((m) => m.onPointerSignal(event));
+  @override
+  bool onPointerEnter(PointerEnterEvent event) => _handleEvent((m) => m.onPointerEnter(event));
+  @override
+  bool onPointerExit(PointerExitEvent event) => _handleEvent((m) => m.onPointerExit(event));
+  @override
+  bool onScaleStart(ScaleStartDetails details) => _handleEvent((m) => m.onScaleStart(details));
+  @override
+  bool onScaleUpdate(ScaleUpdateDetails details) => _handleEvent((m) => m.onScaleUpdate(details));
+  @override
+  bool onScaleEnd(ScaleEndDetails details) => _handleEvent((m) => m.onScaleEnd(details));
+
+  @override
+  KeyEventResult onKeyEvent(KeyEvent event) {
+    bool anyHandled = false;
+    for (final modifier in modifiers) {
+      final status = modifier.onKeyEvent(event);
+      if (status != CameraModifierStatus.ignored) {
+        anyHandled = true;
+      }
+    }
+    return anyHandled ? KeyEventResult.handled : KeyEventResult.ignored;
+  }
 }
 
 /// A mixin that provides default empty implementations for all [FskInputHandler] methods.

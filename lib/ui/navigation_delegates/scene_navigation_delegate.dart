@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart' hide Matrix4;
 import 'package:vector_math/vector_math.dart' as vm;
 import 'package:fsk/fsk.dart';
+import 'camera_modifier.dart';
 
 enum FskBoxFit {
   none,
@@ -10,10 +11,31 @@ enum FskBoxFit {
   bestFit,
 }
 
-abstract class FskSceneNavigationDelegate with ChangeNotifier, FskInputHandlerDefaultMixin implements FskInputHandler{
+abstract class FskSceneNavigationDelegate with ChangeNotifier, FskCameraModifierInputMixin implements FskInputHandler {
   late FskSceneBase scene;
   late vm.Matrix4 _projectionMatrix;
   late vm.Matrix4 _viewMatrix;
+
+  final Map<String, CameraModifier> _modifiers = {};
+  final List<CameraModifier> _modifierOrder = [];
+
+  @override
+  List<CameraModifier> get modifiers => List.unmodifiable(_modifierOrder);
+
+  void addModifier(String name, CameraModifier modifier) {
+    if (_modifiers.containsKey(name)) {
+      removeModifier(name);
+    }
+    _modifiers[name] = modifier;
+    _modifierOrder.add(modifier);
+  }
+
+  void removeModifier(String name) {
+    final modifier = _modifiers.remove(name);
+    if (modifier != null) {
+      _modifierOrder.remove(modifier);
+    }
+  }
 
   /// A plane at z=0 used for calculating logical coordinates from a pick ray.
   final vm.Plane _projectPlane = makePlaneFromVertices(
