@@ -67,6 +67,7 @@ export 'ui/navigation_delegates/ortho_view_delegate.dart';
 export 'ui/navigation_delegates/static_view_delegate.dart';
 export 'ui/navigation_delegates/perspective_view_delegate.dart';
 export 'ui/navigation_delegates/scene_navigation_delegate.dart';
+export 'ui/navigation_delegates/scene_modifier.dart';
 export 'ui/navigation_delegates/view_cube_navigation_delegate.dart';
 export 'fsk_input_handler.dart';
 export 'fsk_singleton.dart';
