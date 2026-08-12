@@ -3,10 +3,11 @@ import 'package:flutter/gestures.dart';
 import 'package:flutter/material.dart' show Colors;
 import 'package:vector_math/vector_math.dart' as vm;
 import 'package:fsk/fsk.dart';
+import 'scene_interaction_behavior.dart';
 
-/// A modifier that provides interactive highlighting, clicking, and rotation tracking
+/// A behavior that provides interactive highlighting, clicking, and rotation tracking
 /// for a View Cube implementation.
-class ViewCubeModifier extends SceneModifier {
+class ViewCubeHighlightBehavior extends SceneInteractionBehavior {
   final ViewCubeNavigationDelegate delegate;
 
   FskRenderableObject? _highlightedObject;
@@ -19,7 +20,7 @@ class ViewCubeModifier extends SceneModifier {
   Offset? _pointerDownPos;
   static const double _kClickThreshold = 5.0;
 
-  ViewCubeModifier(this.delegate, {this.highlightColor = Colors.lightBlue});
+  ViewCubeHighlightBehavior(this.delegate, {this.highlightColor = Colors.lightBlue});
 
   void _updateHighlight(FskRenderableObject? newTarget) {
     if (_highlightedObject == newTarget) return;
@@ -55,35 +56,35 @@ class ViewCubeModifier extends SceneModifier {
   }
 
   @override
-  SceneModifierStatus onPointerSignal(PointerSignalEvent event) {
+  SceneInteractionBehaviorStatus onPointerSignal(PointerSignalEvent event) {
     vm.Ray mouseRay = delegate.getWorldRay(event.localPosition);
     List<FskHitDetails> hits = delegate.scene.hitTest(mouseRay, mode: FskHitTestMode.closest);
 
     if (hits.isEmpty) {
-      return SceneModifierStatus.ignored;
+      return SceneInteractionBehaviorStatus.ignored;
     }
 
-    return SceneModifierStatus.consumed;
+    return SceneInteractionBehaviorStatus.consumed;
   }
 
   @override
-  SceneModifierStatus onPointerDown(PointerDownEvent event) {
+  SceneInteractionBehaviorStatus onPointerDown(PointerDownEvent event) {
     // Perform hit test to see if we should consume the input
     vm.Ray mouseRay = delegate.getWorldRay(event.localPosition);
     List<FskHitDetails> hits = delegate.scene.hitTest(mouseRay, mode: FskHitTestMode.closest);
 
     if (hits.isEmpty) {
-      return SceneModifierStatus.ignored;
+      return SceneInteractionBehaviorStatus.ignored;
     }
 
     _pointerDownPos = event.localPosition;
     // We return 'started' so that the event is marked as handled, 
-    // but the next modifiers (like OrbitRotation) can also see it.
-    return SceneModifierStatus.started;
+    // but the next behaviors (like OrbitRotation) can also see it.
+    return SceneInteractionBehaviorStatus.started;
   }
 
   @override
-  SceneModifierStatus onPointerUp(PointerUpEvent event) {
+  SceneInteractionBehaviorStatus onPointerUp(PointerUpEvent event) {
     bool handled = false;
     if (_pointerDownPos != null) {
       final double distance = (event.localPosition - _pointerDownPos!).distance;
@@ -99,30 +100,23 @@ class ViewCubeModifier extends SceneModifier {
       }
       _pointerDownPos = null;
     }
-    return handled ? SceneModifierStatus.finished : SceneModifierStatus.ignored;
+    return handled ? SceneInteractionBehaviorStatus.finished : SceneInteractionBehaviorStatus.ignored;
   }
 
   @override
-  SceneModifierStatus onPointerMove(PointerMoveEvent event) {
+  SceneInteractionBehaviorStatus onPointerMove(PointerMoveEvent event) {
     final double oldYaw = delegate.yaw;
     final double oldPitch = delegate.pitch;
     
-    // ViewCubeModifier doesn't actually perform the rotation itself, 
-    // it just tracks it. We return ignored so OrbitRotationModifier handles it,
-    // but we can't easily detect if it *will* change unless we are after it.
-    // However, the mixin called super.onPointerMove(event) and then checked the diff.
-    // In the SceneModifier pattern, if this modifier is added *after* OrbitRotationModifier,
-    // it can see the changes.
-    
     if (oldYaw != delegate.yaw || oldPitch != delegate.pitch) {
       delegate.onCubeRotated(delegate.yaw, delegate.pitch);
-      return SceneModifierStatus.consumed;
+      return SceneInteractionBehaviorStatus.consumed;
     }
-    return SceneModifierStatus.ignored;
+    return SceneInteractionBehaviorStatus.ignored;
   }
 
   @override
-  SceneModifierStatus onPointerHover(PointerHoverEvent event) {
+  SceneInteractionBehaviorStatus onPointerHover(PointerHoverEvent event) {
     vm.Ray mouseRay = delegate.getWorldRay(event.localPosition);
     List<FskHitDetails> hits = delegate.scene.hitTest(mouseRay, mode: FskHitTestMode.closest);
 
@@ -130,18 +124,18 @@ class ViewCubeModifier extends SceneModifier {
       final hitObj = hits[0].hitObject;
       if (hitObj is FskRenderableObject) {
         _updateHighlight(hitObj);
-        return SceneModifierStatus.consumed;
+        return SceneInteractionBehaviorStatus.consumed;
       }
     }
 
     _updateHighlight(null);
-    return SceneModifierStatus.ignored;
+    return SceneInteractionBehaviorStatus.ignored;
   }
 
   @override
-  SceneModifierStatus onPointerExit(PointerExitEvent event) {
+  SceneInteractionBehaviorStatus onPointerExit(PointerExitEvent event) {
     _updateHighlight(null);
-    return SceneModifierStatus.consumed;
+    return SceneInteractionBehaviorStatus.consumed;
   }
 }
 
@@ -153,12 +147,8 @@ class ViewCubeNavigationDelegate extends OrbitViewDelegate {
     super.boxFit,
     Color highlightColor = Colors.lightBlue,
   }) {
-    // The ViewCubeModifier should be added to handle its own events.
-    // We add it to the delegate's modifiers.
-    // Note: To track rotation changes correctly, this should probably be added 
-    // after or before OrbitRotationModifier depending on how we want to catch the change.
-    // If it's after, it sees the new values.
-    addModifier('view_cube', ViewCubeModifier(this, highlightColor: highlightColor));
+    // The ViewCubeHighlightBehavior should be added to handle its own events.
+    addBehavior('view_cube', ViewCubeHighlightBehavior(this, highlightColor: highlightColor));
   }
 
   /// Callback interface for when a cube segment is clicked.

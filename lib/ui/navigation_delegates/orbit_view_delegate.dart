@@ -2,10 +2,11 @@ import 'dart:math';
 import 'package:flutter/gestures.dart' hide Matrix4;
 import 'package:vector_math/vector_math.dart' as vm;
 import 'package:fsk/fsk.dart';
-import 'scene_modifier.dart';
+import 'scene_interaction_behavior.dart';
+import 'perspective_view_delegate.dart';
 
-/// A modifier that handles drag-based rotation for the orbit camera.
-class OrbitRotationModifier extends SceneModifier {
+/// A behavior that handles drag-based rotation for the orbit camera.
+class OrbitRotationBehavior extends SceneInteractionBehavior {
   final OrbitViewDelegate delegate;
   
   Offset _dragStart = Offset.zero;
@@ -14,24 +15,24 @@ class OrbitRotationModifier extends SceneModifier {
 
   bool _isDragging = false;
 
-  OrbitRotationModifier(this.delegate);
+  OrbitRotationBehavior(this.delegate);
 
   @override
-  SceneModifierStatus onPointerDown(PointerDownEvent event) {
+  SceneInteractionBehaviorStatus onPointerDown(PointerDownEvent event) {
     if (event.kind == PointerDeviceKind.mouse && event.buttons == delegate.rotationMouseButton) {
       _isDragging = true;
       _dragStart = event.localPosition;
       _yawStart = delegate.yaw;
       _pitchStart = delegate.pitch;
       delegate.setNeedsUpdate(true);
-      return SceneModifierStatus.started;
+      return SceneInteractionBehaviorStatus.started;
     }
-    return SceneModifierStatus.ignored;
+    return SceneInteractionBehaviorStatus.ignored;
   }
 
   @override
-  SceneModifierStatus onPointerMove(PointerMoveEvent event) {
-    if (_dragStart == Offset.zero || !_isDragging) return SceneModifierStatus.ignored;
+  SceneInteractionBehaviorStatus onPointerMove(PointerMoveEvent event) {
+    if (_dragStart == Offset.zero || !_isDragging) return SceneInteractionBehaviorStatus.ignored;
 
 
     final deltaX = _dragStart.dx - event.localPosition.dx;
@@ -48,22 +49,22 @@ class OrbitRotationModifier extends SceneModifier {
     final newPitch = _pitchStart + vm.degrees(deltaPitch);
 
     delegate.setOrbitRotation(newYaw, newPitch);
-    return SceneModifierStatus.consumed;
+    return SceneInteractionBehaviorStatus.consumed;
   }
 
   @override
-  SceneModifierStatus onPointerUp(PointerUpEvent event) {
+  SceneInteractionBehaviorStatus onPointerUp(PointerUpEvent event) {
     if (_isDragging) {
       _isDragging = false;
       _dragStart = Offset.zero;
       delegate.setNeedsUpdate(true);
-      return SceneModifierStatus.finished;
+      return SceneInteractionBehaviorStatus.finished;
     }
-    return SceneModifierStatus.ignored;
+    return SceneInteractionBehaviorStatus.ignored;
   }
 
   @override
-  SceneModifierStatus onPointerCancel(PointerCancelEvent event) {
+  SceneInteractionBehaviorStatus onPointerCancel(PointerCancelEvent event) {
     return onPointerUp(PointerUpEvent(
       position: event.position,
       pointer: event.pointer,
@@ -71,18 +72,18 @@ class OrbitRotationModifier extends SceneModifier {
   }
 }
 
-/// A modifier that handles zoom (dolly) for the orbit camera via scroll or pinch gestures.
-class OrbitZoomModifier extends SceneModifier {
+/// A behavior that handles zoom (dolly) for the orbit camera via scroll or pinch gestures.
+class OrbitZoomBehavior extends SceneInteractionBehavior {
   final OrbitViewDelegate delegate;
   double _baseDistance = 0;
   bool _isScaling = false;
 
-  OrbitZoomModifier(this.delegate);
+  OrbitZoomBehavior(this.delegate);
 
   @override
-  SceneModifierStatus onPointerSignal(PointerSignalEvent event) {
+  SceneInteractionBehaviorStatus onPointerSignal(PointerSignalEvent event) {
     const double minRadius = 3;
-    if (event is! PointerScrollEvent) return SceneModifierStatus.ignored;
+    if (event is! PointerScrollEvent) return SceneInteractionBehaviorStatus.ignored;
 
     PointerScrollEvent scrollEvent = event;
 
@@ -99,19 +100,19 @@ class OrbitZoomModifier extends SceneModifier {
       newRadius = minRadius;
     }
     delegate.setViewDistance(newRadius);
-    return SceneModifierStatus.consumed;
+    return SceneInteractionBehaviorStatus.consumed;
   }
 
   @override
-  SceneModifierStatus onScaleStart(ScaleStartDetails details) {
+  SceneInteractionBehaviorStatus onScaleStart(ScaleStartDetails details) {
     _baseDistance = delegate.distance;
     _isScaling = true;
-    return SceneModifierStatus.started;
+    return SceneInteractionBehaviorStatus.started;
   }
 
   @override
-  SceneModifierStatus onScaleUpdate(ScaleUpdateDetails details) {
-    if (!_isScaling || details.scale == 1.0) return SceneModifierStatus.ignored;
+  SceneInteractionBehaviorStatus onScaleUpdate(ScaleUpdateDetails details) {
+    if (!_isScaling || details.scale == 1.0) return SceneInteractionBehaviorStatus.ignored;
 
     const double minRadius = 3;
     // Scale the distance inversely proportional to the gesture scale.
@@ -122,13 +123,13 @@ class OrbitZoomModifier extends SceneModifier {
     }
 
     delegate.setViewDistance(newDistance);
-    return SceneModifierStatus.consumed;
+    return SceneInteractionBehaviorStatus.consumed;
   }
 
   @override
-  SceneModifierStatus onScaleEnd(ScaleEndDetails details) {
+  SceneInteractionBehaviorStatus onScaleEnd(ScaleEndDetails details) {
     _isScaling = false;
-    return SceneModifierStatus.finished;
+    return SceneInteractionBehaviorStatus.finished;
   }
 }
 
@@ -160,9 +161,9 @@ class OrbitViewDelegate extends PerspectiveViewDelegate {
     this.rotationMouseButton = rotationMouseButton ?? kPrimaryButton;
     this.panMouseButton = panMouseButton ?? kTertiaryButton;
 
-    // Add default modifiers for rotation and zoom.
-    addModifier('orbit_rotation', OrbitRotationModifier(this));
-    addModifier('orbit_zoom', OrbitZoomModifier(this));
+    // Add default behaviors for rotation and zoom.
+    addBehavior('orbit_rotation', OrbitRotationBehavior(this));
+    addBehavior('orbit_zoom', OrbitZoomBehavior(this));
   }
 
   /// Programmatically sets the camera rotation.

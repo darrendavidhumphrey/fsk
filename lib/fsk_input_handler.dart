@@ -2,7 +2,7 @@ import 'package:flutter/widgets.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter/gestures.dart';
 import 'ui/navigation_delegates/scene_navigation_delegate.dart';
-import 'ui/navigation_delegates/scene_modifier.dart';
+import 'ui/navigation_delegates/scene_interaction_behavior.dart';
 
 /// An interface for objects that can handle raw pointer and keyboard input events
 /// within the FSK rendering engine.
@@ -24,17 +24,17 @@ abstract class FskInputHandler {
   KeyEventResult onKeyEvent(KeyEvent event);
 }
 
-/// A mixin that implements [FskInputHandler] by passing events to [SceneModifier]s.
+/// A mixin that implements [FskInputHandler] by passing events to [SceneInteractionBehavior]s.
 ///
-/// Classes using this mixin must provide a list of [modifiers].
-mixin FskCameraModifierInputMixin implements FskInputHandler {
-  List<SceneModifier> get modifiers;
+/// Classes using this mixin must provide a list of [behaviors].
+mixin FskCameraBehaviorInputMixin implements FskInputHandler {
+  List<SceneInteractionBehavior> get behaviors;
 
-  bool _handleEvent(SceneModifierStatus Function(SceneModifier) call) {
+  bool _handleEvent(SceneInteractionBehaviorStatus Function(SceneInteractionBehavior) call) {
     bool anyHandled = false;
-    for (final modifier in modifiers.reversed) {
-      final status = call(modifier);
-      if (status != SceneModifierStatus.ignored) {
+    for (final behavior in behaviors.reversed) {
+      final status = call(behavior);
+      if (status != SceneInteractionBehaviorStatus.ignored) {
         anyHandled = true;
       }
     }
@@ -67,9 +67,9 @@ mixin FskCameraModifierInputMixin implements FskInputHandler {
   @override
   KeyEventResult onKeyEvent(KeyEvent event) {
     bool anyHandled = false;
-    for (final modifier in modifiers.reversed) {
-      final status = modifier.onKeyEvent(event);
-      if (status != SceneModifierStatus.ignored) {
+    for (final behavior in behaviors.reversed) {
+      final status = behavior.onKeyEvent(event);
+      if (status != SceneInteractionBehaviorStatus.ignored) {
         anyHandled = true;
       }
     }

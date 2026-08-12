@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart' hide Matrix4;
 import 'package:vector_math/vector_math.dart' as vm;
 import 'package:fsk/fsk.dart';
-import 'scene_modifier.dart';
+import 'scene_interaction_behavior.dart';
 
 enum FskBoxFit {
   none,
@@ -11,29 +11,29 @@ enum FskBoxFit {
   bestFit,
 }
 
-abstract class FskSceneNavigationDelegate with ChangeNotifier, FskCameraModifierInputMixin implements FskInputHandler {
+abstract class FskSceneNavigationDelegate with ChangeNotifier, FskCameraBehaviorInputMixin implements FskInputHandler {
   late FskSceneBase scene;
   late vm.Matrix4 _projectionMatrix;
   late vm.Matrix4 _viewMatrix;
 
-  final Map<String, SceneModifier> _modifiers = {};
-  final List<SceneModifier> _modifierOrder = [];
+  final Map<String, SceneInteractionBehavior> _behaviors = {};
+  final List<SceneInteractionBehavior> _behaviorOrder = [];
 
   @override
-  List<SceneModifier> get modifiers => List.unmodifiable(_modifierOrder);
+  List<SceneInteractionBehavior> get behaviors => List.unmodifiable(_behaviorOrder);
 
-  void addModifier(String name, SceneModifier modifier) {
-    if (_modifiers.containsKey(name)) {
-      removeModifier(name);
+  void addBehavior(String name, SceneInteractionBehavior behavior) {
+    if (_behaviors.containsKey(name)) {
+      removeBehavior(name);
     }
-    _modifiers[name] = modifier;
-    _modifierOrder.add(modifier);
+    _behaviors[name] = behavior;
+    _behaviorOrder.add(behavior);
   }
 
-  void removeModifier(String name) {
-    final modifier = _modifiers.remove(name);
-    if (modifier != null) {
-      _modifierOrder.remove(modifier);
+  void removeBehavior(String name) {
+    final behavior = _behaviors.remove(name);
+    if (behavior != null) {
+      _behaviorOrder.remove(behavior);
     }
   }
 
