@@ -1,15 +1,22 @@
 import 'dart:math';
-import 'dart:typed_data';
 import 'dart:ui';
 import 'package:flutter/material.dart' show Colors;
 import 'package:flutter_gpu/gpu.dart' as gpu;
-import 'package:fsk/fsk.dart';
-import 'package:fsk/scene_graph/fsk_depth_state.dart';
 import 'package:vector_math/vector_math.dart' as vm;
+import '../geometry/mesh_hit_tester.dart';
+import '../util.dart';
+import '../bitmap_fonts/bitmap_font.dart';
+import '../bitmap_fonts/bitmap_font_manager.dart';
+import '../gpu/fsk_shader_material.dart';
+import '../skins/skin_scene_parser.dart';
 import '../skins/skin_data.dart';
+import '../geometry/reference_box.dart';
+import 'fsk_scene_object.dart';
+import 'fsk_depth_state.dart';
 import 'fsk_quads_renderer.dart';
 import 'fsk_text_quad_builder.dart';
-
+import 'fsk_text_alignment.dart';
+import 'fsk_transformable.dart';
 
 class SkinTextData extends SkinObjectData {
   final String font;
@@ -42,7 +49,8 @@ class SkinTextData extends SkinObjectData {
 ///
 /// It generates a set of quads for the text, scaled to fit within a target
 /// [ReferenceBox], and renders them using a [FskQuadsRenderer].
-class FskBitmapText extends Fsk2DRenderableObject with FskTransformableMixin, FskDepthStateMixin {
+class FskBitmapText extends Fsk2DRenderableObject
+    with FskTransformableMixin, FskDepthStateMixin {
   /// The string to render
   late String _text;
 
@@ -74,8 +82,10 @@ class FskBitmapText extends Fsk2DRenderableObject with FskTransformableMixin, Fs
   /// Whether the text should scale up to fit the reference box.
   bool scaleToFit = false;
 
+  /// Cache the count of quads to be rendered
+  int numQuads = 0;
+
   void _onFontChanged() {
-    logVerbose("$id _onFontChanged called initialized=${_font.isInitialized} font=${_font.name}");
     if (_font.isInitialized) {
       _renderer.setTexture(_font.textureInfo);
       setNeedsRebuild();
@@ -86,12 +96,19 @@ class FskBitmapText extends Fsk2DRenderableObject with FskTransformableMixin, Fs
   static void registerWithFactories() {
     SkinObjectDataFactory.register('text', (node, anchors, parseObject) {
       final String? shaderName = node.getAttribute('shader');
-      final Map<String, String> shaderParamsMap = SkinSceneParser.parseShaderParams(node.getAttribute('shaderParams'));
+      final Map<String, String> shaderParamsMap =
+          SkinSceneParser.parseShaderParams(node.getAttribute('shaderParams'));
       final String rawHJustify = node.getAttribute('hJustify') ?? 'left';
       final String rawVJustify = node.getAttribute('vJustify') ?? 'top';
 
-      final hJustification = TextHorizontalJustification.fromString(rawHJustify, defaultValue: TextHorizontalJustification.left);
-      final vJustification = TextVerticalJustification.fromString(rawVJustify, defaultValue: TextVerticalJustification.top);
+      final hJustification = TextHorizontalJustification.fromString(
+        rawHJustify,
+        defaultValue: TextHorizontalJustification.left,
+      );
+      final vJustification = TextVerticalJustification.fromString(
+        rawVJustify,
+        defaultValue: TextVerticalJustification.top,
+      );
 
       return SkinTextData(
         id: node.getAttribute('id')!,
@@ -113,7 +130,7 @@ class FskBitmapText extends Fsk2DRenderableObject with FskTransformableMixin, Fs
       final textData = data as SkinTextData;
 
       final refBox = SkinObjectData.screenRectToRefBox(textData.screenRect);
-      return FskBitmapText.fromData(textData.id, scene, refBox,textData);
+      return FskBitmapText.fromData(textData.id, scene, refBox, textData);
     });
   }
 
@@ -195,17 +212,15 @@ class FskBitmapText extends Fsk2DRenderableObject with FskTransformableMixin, Fs
     required BitmapFont font,
     required this._text,
     this._textColor = Colors.white,
-    this._verticalJustification =
-        TextVerticalJustification.bottom,
-    this._horizontalJustification =
-        TextHorizontalJustification.left,
+    this._verticalJustification = TextVerticalJustification.bottom,
+    this._horizontalJustification = TextHorizontalJustification.left,
     this._maxLen,
     this.scaleToFit = false,
     FskShaderMaterial? shaderMaterial,
     bool depthTestEnabled = false,
     bool depthWriteEnabled = false,
-  })  : _font = font,
-        _width = refBox.xVector.length {
+  }) : _font = font,
+       _width = refBox.xVector.length {
     isPickable = false;
     setRenderer(_renderer);
     _renderer.setTexture(font.textureInfo);
@@ -234,9 +249,13 @@ class FskBitmapText extends Fsk2DRenderableObject with FskTransformableMixin, Fs
     );
   }
 
-  FskBitmapText.fromData(super.id, super.parentScene, super.refBox,
-      SkinTextData textData,
-      {FskShaderMaterial? shaderMaterial}) {
+  FskBitmapText.fromData(
+    super.id,
+    super.parentScene,
+    super.refBox,
+    SkinTextData textData, {
+    FskShaderMaterial? shaderMaterial,
+  }) {
     isPickable = false;
     setRenderer(_renderer);
     _width = refBox.xVector.length;
@@ -300,8 +319,10 @@ class FskBitmapText extends Fsk2DRenderableObject with FskTransformableMixin, Fs
   }
 
   @override
-  List<FskHitDetails> doHitTest(vm.Ray ray,
-      {FskHitTestMode mode = FskHitTestMode.closest}) {
+  List<FskHitDetails> doHitTest(
+    vm.Ray ray, {
+    FskHitTestMode mode = FskHitTestMode.closest,
+  }) {
     final vm.Vector3? hit = refBox.rayIntersect(ray);
     if (hit == null) return [];
 
@@ -312,8 +333,25 @@ class FskBitmapText extends Fsk2DRenderableObject with FskTransformableMixin, Fs
         distance: ray.origin.distanceTo(hit),
         normal: refBox.normal,
         hitData: null,
-      )
+      ),
     ];
+  }
+
+  @override
+  void draw(
+    gpu.RenderPass renderPass,
+    gpu.HostBuffer transients,
+    vm.Matrix4 pMatrix,
+    vm.Matrix4 mvMatrix,
+    Size viewportSize,
+  ) {
+    // If doRebuild set needsRebuild to true, then the text is not ready to draw
+    // probably because the font data or texture is not ready yet.
+    // If there are no quads in the renderer, then the text is not ready to draw.
+    if (needsRebuild || numQuads == 0) {
+      return;
+    }
+    super.draw(renderPass, transients, pMatrix, mvMatrix, viewportSize);
   }
 
   /// Rebuilds the vertex buffer object
@@ -321,8 +359,8 @@ class FskBitmapText extends Fsk2DRenderableObject with FskTransformableMixin, Fs
   void doRebuild() {
     // If anything is wrong, just bail out and create an empty set.
     if (!font.isInitialized || text.isEmpty) {
-      _renderer.setFromUnrolledQuads(0, Float32List(0));
-      needsRebuild = true; // Ensure we try again next frame if we bailed due to initialization
+      needsRebuild = true;
+      numQuads = 0;
       return;
     }
 
@@ -338,6 +376,13 @@ class FskBitmapText extends Fsk2DRenderableObject with FskTransformableMixin, Fs
     );
 
     final result = quadBuilder.build();
-    _renderer.setFromUnrolledQuads(result.numQuads, result.vertexData);
+    numQuads = result.numQuads;
+
+    logInfo("FskBitmapText($id).doRebuild: built $numQuads quads for '$text'");
+
+    // Only update the renderer if there are quads to draw
+    if (result.numQuads != 0) {
+      _renderer.setFromUnrolledQuads(result.numQuads, result.vertexData);
+    }
   }
 }

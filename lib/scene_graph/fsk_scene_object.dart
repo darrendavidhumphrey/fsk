@@ -28,8 +28,8 @@ abstract class FskSceneObject with LoggableClass {
 
   void rebuildGeometryIfNeeded() {
     if (!needsRebuild) return;
-    doRebuild();
     needsRebuild = false;
+    doRebuild();
   }
 
   void doRebuild() {}

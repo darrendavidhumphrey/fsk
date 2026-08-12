@@ -1,6 +1,9 @@
 import 'package:flutter/material.dart' hide Matrix4;
 import 'package:flutter_gpu/gpu.dart' as gpu;
-import 'package:fsk/fsk.dart';
+import '../fsk_scene_base.dart';
+import '../fsk_singleton.dart';
+import '../gpu/fsk_render_target.dart';
+import '../logging.dart';
 
 class GPURenderWidget extends StatefulWidget {
   final FskSceneBase scene;

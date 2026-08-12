@@ -1,7 +1,15 @@
-import 'package:fsk/fsk.dart';
-import 'package:vector_math/vector_math.dart' as vm;
 import 'package:flutter/material.dart' show Colors;
 import 'package:flutter_gpu/gpu.dart' as gpu;
+import 'package:vector_math/vector_math.dart' as vm;
+import '../scene_graph/fsk_group.dart';
+import '../scene_graph/fsk_bitmap_text.dart';
+import '../scene_graph/fsk_rectangular_solid.dart';
+import '../scene_graph/fsk_text_alignment.dart';
+import '../shaders/materials.dart';
+import '../shaders/lighting_shader.dart';
+import '../bitmap_fonts/bitmap_font_manager.dart';
+import '../geometry/reference_box.dart';
+import '../ui/screen_space_overlay.dart';
 
 /// A concrete implementation of a screen-space overlay that displays an interactive view cube.
 class ViewCubeOverlay extends ScreenSpaceOverlay {

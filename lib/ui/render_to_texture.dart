@@ -1,6 +1,7 @@
 import 'package:flutter/gestures.dart';
 import 'package:flutter/material.dart';
-import 'package:fsk/fsk.dart';
+import '../fsk_scene_base.dart';
+import '../ui/gpu_render_widget.dart';
 
 
 /// A widget that renders a [FskSceneBase] and provides user interaction capabilities.

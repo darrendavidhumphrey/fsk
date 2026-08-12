@@ -2,12 +2,18 @@ import 'dart:async';
 import 'dart:ui' as ui;
 import 'package:flutter/material.dart' hide Matrix4;
 import 'package:flutter_gpu/gpu.dart' as gpu;
-import 'package:fsk/fsk.dart';
 import 'package:vector_math/vector_math.dart' as vm;
+import 'fsk_singleton.dart';
+import 'fsk_input_handler.dart';
+import 'logging.dart';
+import 'gpu/fsk_render_target.dart';
+import 'geometry/mesh_hit_tester.dart';
+import 'ui/navigation_delegates/scene_navigation_delegate.dart';
 
 /// An abstract base class for a 3D scene, representing the root of a scene graph.
 abstract class FskSceneBase extends ChangeNotifier
-    with LoggableClass, FskSceneInputDispatcherMixin {
+    with LoggableClass, FskSceneInputDispatcherMixin
+    implements FskInputHandler {
   vm.Matrix4 pMatrix = vm.Matrix4.identity();
   vm.Matrix4 mvMatrix = vm.Matrix4.identity();
 
@@ -155,4 +161,15 @@ abstract class FskSceneBase extends ChangeNotifier
   /// Hit Testing
   List<FskHitDetails> hitTest(vm.Ray ray,
       {FskHitTestMode mode = FskHitTestMode.closest});
+
+  // --- Layer Interaction Interface ---
+  // These are used by the dispatcher mixin to interact with layers (overlays)
+  // without creating a circular dependency on the ScreenSpaceOverlay class.
+
+  bool get interceptInput => false;
+
+  bool isPointInViewport(Offset point, Size parentViewportSizeLogical) => false;
+
+  Offset screenToViewport(Offset screen, Size parentViewportSizeLogical) =>
+      screen;
 }

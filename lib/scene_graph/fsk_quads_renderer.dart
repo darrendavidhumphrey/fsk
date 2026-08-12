@@ -2,7 +2,12 @@ import 'dart:typed_data';
 import 'dart:ui';
 import 'package:vector_math/vector_math.dart' as vm;
 import 'package:flutter_gpu/gpu.dart' as gpu;
-import 'package:fsk/fsk.dart';
+import '../fsk_singleton.dart';
+import '../gpu/gpu_pipeline_key.dart';
+import '../gpu/fsk_vertex_buffer.dart';
+import '../gpu/fsk_shader_material.dart';
+import '../vbo_filler.dart';
+import '../shaders/simple_texture_shader.dart';
 import 'fsk_renderer_base.dart';
 
 class FskQuadsRenderer extends FskRendererBase {
@@ -41,7 +46,7 @@ class FskQuadsRenderer extends FskRendererBase {
   void setModulateColor(Color color) {
     if (_modulateColor != color) {
       _modulateColor = color;
-      // No pipeline rebuild needed for modulation color change (it's a uniform)
+      notifyListeners();
     }
   }
 
@@ -114,11 +119,11 @@ class FskQuadsRenderer extends FskRendererBase {
     // 3. Synchronize renderer-specific properties
     if (uniforms is SimpleTextureUniforms) {
       final modulate = _premultiplyAlpha
-          ? Color.from(
-              alpha: _modulateColor.a,
-              red: _modulateColor.r * _modulateColor.a,
-              green: _modulateColor.g * _modulateColor.a,
-              blue: _modulateColor.b * _modulateColor.a,
+          ? Color.fromARGB(
+              (_modulateColor.a * 255).round(),
+              (_modulateColor.r * _modulateColor.a * 255).round(),
+              (_modulateColor.g * _modulateColor.a * 255).round(),
+              (_modulateColor.b * _modulateColor.a * 255).round(),
             )
           : _modulateColor;
       (uniforms as SimpleTextureUniforms).setModulateColor(modulate);

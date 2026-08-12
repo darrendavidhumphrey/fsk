@@ -1,7 +1,11 @@
 import 'package:flutter/material.dart' hide Matrix4;
-import 'package:fsk/fsk.dart';
 import 'package:flutter_gpu/gpu.dart' as gpu;
 import 'package:vector_math/vector_math.dart' as vm;
+import '../fsk_singleton.dart';
+import '../gpu/fsk_render_target.dart';
+import '../scene_graph/fsk_scene.dart';
+import '../scene_graph/fsk_scene_object.dart';
+import '../scene_graph/fsk_quad.dart';
 
 /// An abstract base class for a [FskSceneLayer] that is rendered in 2D screen space
 /// rather than 3D world space.
@@ -35,6 +39,7 @@ abstract class ScreenSpaceOverlay extends FskScene {
 
   /// Whether this overlay should intercept input events (gestures, mouse, etc.)
   /// that fall within its bounds.
+  @override
   final bool interceptInput;
 
   /// Internal node used to draw the background clear color
@@ -238,6 +243,7 @@ abstract class ScreenSpaceOverlay extends FskScene {
 
   /// Converts a global screen coordinate into a local coordinate within this overlay.
   /// Both [screen] and the returned [Offset] are in logical pixels.
+  @override
   Offset screenToViewport(Offset screen, Size parentViewportSizeLogical) {
     final double x =
         left ?? (parentViewportSizeLogical.width - screenSpaceSize.width - right!);
@@ -248,6 +254,7 @@ abstract class ScreenSpaceOverlay extends FskScene {
 
   /// Checks if a global screen coordinate is within the bounds of this overlay.
   /// [point] is in logical pixels.
+  @override
   bool isPointInViewport(Offset point, Size parentViewportSizeLogical) {
     final viewportRelative = screenToViewport(point, parentViewportSizeLogical);
     return viewportRelative.dx >= 0 &&
