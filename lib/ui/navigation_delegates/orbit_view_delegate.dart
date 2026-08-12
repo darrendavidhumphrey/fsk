@@ -128,7 +128,7 @@ class OrbitZoomModifier extends CameraModifier {
 ///
 /// This class handles user input to rotate (orbit) around a central point,
 /// and zoom (dolly) the camera towards and away from that point.
-class OrbitViewDelegate extends FskSceneNavigationDelegate {
+class OrbitViewDelegate extends PerspectiveViewDelegate {
   // Camera state
   double yaw = 0;
   double pitch = 0;
@@ -146,9 +146,12 @@ class OrbitViewDelegate extends FskSceneNavigationDelegate {
   OrbitViewDelegate({
     super.viewRect,
     super.boxFit,
+    super.fovYDegrees,
+    super.zNear,
+    super.zFar,
     int? rotationMouseButton,
     int? panMouseButton,
-  }) {
+  }){
     this.rotationMouseButton = rotationMouseButton ?? kPrimaryButton;
     this.panMouseButton = panMouseButton ?? kTertiaryButton;
 
@@ -169,8 +172,6 @@ class OrbitViewDelegate extends FskSceneNavigationDelegate {
     distance = newDistance;
     setNeedsUpdate(true);
   }
-
-  final double verticalFieldOfView = vm.radians(60);
 
   /// Creates the view matrix based on the current yaw, pitch, and distance.
   @override
@@ -199,29 +200,5 @@ class OrbitViewDelegate extends FskSceneNavigationDelegate {
   /// The point in space that the camera orbits around.
   vm.Vector3 getOrbitCenter() {
     return vm.Vector3(0, 0, 0);
-  }
-
-  /// Creates the perspective projection matrix.
-  @override
-  vm.Matrix4 createProjectionMatrix() {
-    final double aspectRatio = viewRect.width / viewRect.height;
-
-    vm.Matrix4 proj = vm.Matrix4.identity();
-    vm.setPerspectiveMatrix(
-      proj,
-      verticalFieldOfView,
-      aspectRatio,
-      1.0,
-      10000.0,
-    );
-
-    // flutter_gpu (Impeller) expects Z in [0, 1] (Vulkan style).
-    // The vector_math matrix produces Z in [-1, 1] (OpenGL style).
-    // We remap: Z_new = 0.5 * Z_old + 0.5
-    final vm.Matrix4 remap = vm.Matrix4.identity();
-    remap.setEntry(2, 2, 0.5);
-    remap.setEntry(2, 3, 0.5);
-
-    return remap * proj;
   }
 }
