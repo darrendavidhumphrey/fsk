@@ -12,6 +12,13 @@ mixin OrbitInputMixin on FskSceneNavigationDelegate {
   double pitch = 0;
   double distance = 300;
 
+  // Which button is used to rotate the camera?
+  int rotationMouseButton=kPrimaryButton;
+
+  // Which button is used to pan the camera?
+  // Tertiary is commonly the middle button
+  int panMouseButton=kTertiaryButton;
+
   // State variables for drag-based rotation.
   Offset _dragStart = Offset.zero;
   double _yawStart = 0;
@@ -34,35 +41,17 @@ mixin OrbitInputMixin on FskSceneNavigationDelegate {
     setNeedsUpdate(true);
   }
 
-  @override
-  bool onPointerDown(PointerDownEvent event) {
+  bool startRotation(PointerDownEvent event) {
     _pointers.add(event.pointer);
     _dragStart = event.localPosition;
     _yawStart = yaw;
     _pitchStart = pitch;
     setNeedsUpdate(true);
+
     return true;
   }
 
-  @override
-  bool onPointerUp(PointerUpEvent event) {
-    _pointers.remove(event.pointer);
-    _dragStart = Offset.zero;
-    setNeedsUpdate(true);
-    return true;
-  }
-
-  @override
-  bool onPointerCancel(PointerCancelEvent event) {
-    // Treat cancel as a pointer up event to reset state.
-    return onPointerUp(PointerUpEvent(
-      position: event.position,
-      pointer: event.pointer,
-    ));
-  }
-
-  @override
-  bool onPointerMove(PointerMoveEvent event) {
+  bool updateRotation(PointerMoveEvent event) {
     if (_dragStart == Offset.zero || _pointers.length > 1) return false;
 
     final deltaX = _dragStart.dx - event.localPosition.dx;
@@ -80,6 +69,56 @@ mixin OrbitInputMixin on FskSceneNavigationDelegate {
 
     setOrbitRotation(newYaw, newPitch);
     return true;
+  }
+
+  bool endRotation(PointerUpEvent event) {
+    _pointers.remove(event.pointer);
+    _dragStart = Offset.zero;
+    setNeedsUpdate(true);
+    return true;
+  }
+
+  @override
+  bool onPointerDown(PointerDownEvent event) {
+    bool handled = false;
+    if (event.kind == PointerDeviceKind.mouse) {
+      if (event.buttons == rotationMouseButton) {
+        handled = startRotation(event);
+      } else if (event.buttons == panMouseButton) {
+        // TODO: handled = startPan(event)
+      }
+    }
+
+    return handled;
+  }
+
+  @override
+  bool onPointerUp(PointerUpEvent event) {
+    // TODO: button comes in as zero, which makes sense, but can't differentiate which operation is finishing
+    endRotation(event);
+    return true;
+  }
+
+  @override
+  bool onPointerCancel(PointerCancelEvent event) {
+    // Treat cancel as a pointer up event to reset state.
+    return onPointerUp(PointerUpEvent(
+      position: event.position,
+      pointer: event.pointer,
+    ));
+  }
+
+  @override
+  bool onPointerMove(PointerMoveEvent event) {
+    bool handled = false;
+    if (event.kind == PointerDeviceKind.mouse) {
+      if (event.buttons == rotationMouseButton) {
+        handled = updateRotation(event);
+      } else if (event.buttons == panMouseButton) {
+        // TODO: handled = startPan(event)
+      }
+    }
+    return handled;
   }
 
   @override
@@ -143,16 +182,15 @@ mixin OrbitInputMixin on FskSceneNavigationDelegate {
 /// and zoom (dolly) the camera towards and away from that point.
 class OrbitViewDelegate extends FskSceneNavigationDelegate with OrbitInputMixin {
 
-  OrbitViewDelegate({super.viewRect, super.boxFit});
+  OrbitViewDelegate({super.viewRect, super.boxFit,
+    rotationMouseButton,
+    panMouseButton
+  }) {
+    this.rotationMouseButton = rotationMouseButton ?? kPrimaryButton;
+    this.panMouseButton = panMouseButton ?? kTertiaryButton;
+  }
 
   final double verticalFieldOfView = vm.radians(60);
-
-  /// A plane at z=0 used for calculating logical coordinates from a pick ray.
-  final vm.Plane _projectPlane = makePlaneFromVertices(
-    vm.Vector3.zero(),
-    vm.Vector3(1, 0, 0),
-    vm.Vector3(0, 1, 0),
-  )!;
 
   /// Creates the view matrix based on the current yaw, pitch, and distance.
   @override
@@ -172,7 +210,8 @@ class OrbitViewDelegate extends FskSceneNavigationDelegate with OrbitInputMixin 
     return v;
   }
 
-  /// Calculates the camera's position in 3D space.
+  /// Returns the camera's position in 3D space.
+  @override
   vm.Vector3 getEyeLocation() {
     return vm.Vector3(0, 0, -distance);
   }
@@ -180,32 +219,6 @@ class OrbitViewDelegate extends FskSceneNavigationDelegate with OrbitInputMixin 
   /// The point in space that the camera orbits around.
   vm.Vector3 getOrbitCenter() {
     return vm.Vector3(0, 0, 0);
-  }
-
-  /// Converts a 2D screen position into a 3D coordinate on the logical Z=0 plane.
-  vm.Vector3? getLogicalCoordinates(Offset mousePosition) {
-    vm.Ray ray = computePickRay(
-      mousePosition,
-      viewRect.size,
-      getProjectionMatrix(),
-      getViewMatrix(),
-      ndcNear: 0.0,
-      ndcFar: 1.0,
-    );
-    return intersectRayWithPlane(ray, _projectPlane);
-  }
-
-  /// Gets the world-space picking ray for a given screen position.
-  vm.Ray getWorldRay(Offset mousePosition) {
-    vm.Ray ray = computePickRay(
-      mousePosition,
-      viewRect.size,
-      getProjectionMatrix(),
-      getViewMatrix(),
-      ndcNear: 0.0,
-      ndcFar: 1.0,
-    );
-    return ray;
   }
 
   /// Creates the perspective projection matrix.

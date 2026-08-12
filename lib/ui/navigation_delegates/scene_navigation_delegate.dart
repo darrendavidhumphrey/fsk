@@ -10,10 +10,17 @@ enum FskBoxFit {
   bestFit,
 }
 
-abstract class FskSceneNavigationDelegate with ChangeNotifier, FskInputHandlerDefaultMixin {
+abstract class FskSceneNavigationDelegate with ChangeNotifier, FskInputHandlerDefaultMixin implements FskInputHandler{
   late FskSceneBase scene;
   late vm.Matrix4 _projectionMatrix;
   late vm.Matrix4 _viewMatrix;
+
+  /// A plane at z=0 used for calculating logical coordinates from a pick ray.
+  final vm.Plane _projectPlane = makePlaneFromVertices(
+    vm.Vector3.zero(),
+    vm.Vector3(1, 0, 0),
+    vm.Vector3(0, 1, 0),
+  )!;
 
   FskSceneNavigationDelegate({this._viewRect = defaultViewRect, this._boxFit = FskBoxFit.none}) {
     _projectionMatrix = vm.Matrix4.identity();
@@ -42,6 +49,11 @@ abstract class FskSceneNavigationDelegate with ChangeNotifier, FskInputHandlerDe
   void setViewRect(Rect value) {
     _viewRect = value;
     setNeedsUpdate(true);
+  }
+
+  /// Calculates the camera's position in 3D space.
+  vm.Vector3 getEyeLocation() {
+    return vm.Vector3(0, 0, 0);
   }
 
   void setViewMatrix(vm.Matrix4 matrix) => matrix.copyInto(_viewMatrix);
@@ -111,5 +123,31 @@ abstract class FskSceneNavigationDelegate with ChangeNotifier, FskInputHandlerDe
     return vm.Matrix4.identity()
       ..translateByVector3(vm.Vector3(_viewRect.left, _viewRect.top, 0.0))
       ..scaleByVector3(vm.Vector3(scaleX, scaleY, 1.0));
+  }
+
+  /// Converts a 2D screen position into a 3D coordinate on the logical Z=0 plane.
+  vm.Vector3? getLogicalCoordinates(Offset mousePosition) {
+    vm.Ray ray = computePickRay(
+      mousePosition,
+      viewRect.size,
+      getProjectionMatrix(),
+      getViewMatrix(),
+      ndcNear: 0.0,
+      ndcFar: 1.0,
+    );
+    return intersectRayWithPlane(ray, _projectPlane);
+  }
+
+  /// Gets the world-space picking ray for a given screen position.
+  vm.Ray getWorldRay(Offset mousePosition) {
+    vm.Ray ray = computePickRay(
+      mousePosition,
+      viewRect.size,
+      getProjectionMatrix(),
+      getViewMatrix(),
+      ndcNear: 0.0,
+      ndcFar: 1.0,
+    );
+    return ray;
   }
 }

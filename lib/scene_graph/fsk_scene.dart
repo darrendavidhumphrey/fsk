@@ -42,6 +42,23 @@ class FskScene extends FskSceneBase with FskSceneLayerDispatcherMixin {
     }
   }
 
+  // Replaces a top level node
+  void addOrReplaceNode(FskSceneObject? oldNode, FskSceneObject newNode) {
+    if (oldNode == newNode) {
+      return;
+    }
+    if (oldNode == null) {
+      addNode(newNode);
+    }
+    for (int i=0; i < rootNodes.length; i++) {
+       if (rootNodes[i] == oldNode) {
+         rootNodes[i] = newNode;
+         newNode.rebuildGeometry();
+         setNeedsUpdate();
+       }
+    }
+  }
+
   void addNode(FskSceneObject node) {
     if (FskGroup.enableDuplicateIdCheck && nodeMap.containsKey(node.id)) {
       logWarning('Duplicate node ID "${node.id}" added to FskScene.');
