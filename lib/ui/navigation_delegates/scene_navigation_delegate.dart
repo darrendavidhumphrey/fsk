@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart' hide Matrix4;
 import 'package:vector_math/vector_math.dart' as vm;
 import 'package:fsk/fsk.dart';
-import 'camera_modifier.dart';
+import 'scene_modifier.dart';
 
 enum FskBoxFit {
   none,
@@ -16,13 +16,13 @@ abstract class FskSceneNavigationDelegate with ChangeNotifier, FskCameraModifier
   late vm.Matrix4 _projectionMatrix;
   late vm.Matrix4 _viewMatrix;
 
-  final Map<String, CameraModifier> _modifiers = {};
-  final List<CameraModifier> _modifierOrder = [];
+  final Map<String, SceneModifier> _modifiers = {};
+  final List<SceneModifier> _modifierOrder = [];
 
   @override
-  List<CameraModifier> get modifiers => List.unmodifiable(_modifierOrder);
+  List<SceneModifier> get modifiers => List.unmodifiable(_modifierOrder);
 
-  void addModifier(String name, CameraModifier modifier) {
+  void addModifier(String name, SceneModifier modifier) {
     if (_modifiers.containsKey(name)) {
       removeModifier(name);
     }

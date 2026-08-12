@@ -2,7 +2,7 @@ import 'package:flutter/widgets.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter/gestures.dart';
 import 'ui/navigation_delegates/scene_navigation_delegate.dart';
-import 'ui/navigation_delegates/camera_modifier.dart';
+import 'ui/navigation_delegates/scene_modifier.dart';
 
 /// An interface for objects that can handle raw pointer and keyboard input events
 /// within the FSK rendering engine.
@@ -24,17 +24,17 @@ abstract class FskInputHandler {
   KeyEventResult onKeyEvent(KeyEvent event);
 }
 
-/// A mixin that implements [FskInputHandler] by passing events to [CameraModifier]s.
+/// A mixin that implements [FskInputHandler] by passing events to [SceneModifier]s.
 ///
 /// Classes using this mixin must provide a list of [modifiers].
 mixin FskCameraModifierInputMixin implements FskInputHandler {
-  List<CameraModifier> get modifiers;
+  List<SceneModifier> get modifiers;
 
-  bool _handleEvent(CameraModifierStatus Function(CameraModifier) call) {
+  bool _handleEvent(SceneModifierStatus Function(SceneModifier) call) {
     bool anyHandled = false;
     for (final modifier in modifiers) {
       final status = call(modifier);
-      if (status != CameraModifierStatus.ignored) {
+      if (status != SceneModifierStatus.ignored) {
         anyHandled = true;
       }
     }
@@ -69,7 +69,7 @@ mixin FskCameraModifierInputMixin implements FskInputHandler {
     bool anyHandled = false;
     for (final modifier in modifiers) {
       final status = modifier.onKeyEvent(event);
-      if (status != CameraModifierStatus.ignored) {
+      if (status != SceneModifierStatus.ignored) {
         anyHandled = true;
       }
     }
