@@ -32,7 +32,7 @@ mixin FskCameraModifierInputMixin implements FskInputHandler {
 
   bool _handleEvent(SceneModifierStatus Function(SceneModifier) call) {
     bool anyHandled = false;
-    for (final modifier in modifiers) {
+    for (final modifier in modifiers.reversed) {
       final status = call(modifier);
       if (status != SceneModifierStatus.ignored) {
         anyHandled = true;
@@ -67,7 +67,7 @@ mixin FskCameraModifierInputMixin implements FskInputHandler {
   @override
   KeyEventResult onKeyEvent(KeyEvent event) {
     bool anyHandled = false;
-    for (final modifier in modifiers) {
+    for (final modifier in modifiers.reversed) {
       final status = modifier.onKeyEvent(event);
       if (status != SceneModifierStatus.ignored) {
         anyHandled = true;
