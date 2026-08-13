@@ -5,7 +5,7 @@ import 'package:flutter_gpu/gpu.dart' as gpu;
 import 'package:vector_math/vector_math.dart' as vm;
 import 'package:vector_math/vector_math_64.dart' as vm64;
 
-import '../fsk_scene_base.dart';
+import 'fsk_scene_base.dart';
 import '../fsk_singleton.dart';
 import '../geometry/mesh_hit_tester.dart';
 import '../gpu/fsk_render_target.dart';
@@ -152,7 +152,7 @@ class FskScene extends FskSceneBase with FskSceneLayerDispatcherMixin {
         autoClear ? renderTarget.renderTarget : renderTarget.loadTarget,
       );
 
-      setupScissor(renderPass);
+      hardResetPipelineState(renderPass);
 
       for (final node in rootNodes) {
         if (node is FskRenderableObject && node.visible) {

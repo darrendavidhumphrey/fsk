@@ -3,12 +3,12 @@ import 'dart:ui' as ui;
 import 'package:flutter/material.dart' hide Matrix4;
 import 'package:flutter_gpu/gpu.dart' as gpu;
 import 'package:vector_math/vector_math.dart' as vm;
-import 'fsk_singleton.dart';
-import 'fsk_input_handler.dart';
-import 'logging.dart';
-import 'gpu/fsk_render_target.dart';
-import 'geometry/mesh_hit_tester.dart';
-import 'ui/navigation_delegates/scene_navigation_delegate.dart';
+import '../fsk_singleton.dart';
+import '../fsk_input_handler.dart';
+import '../logging.dart';
+import '../gpu/fsk_render_target.dart';
+import '../geometry/mesh_hit_tester.dart';
+import '../ui/navigation_delegates/scene_navigation_delegate.dart';
 
 /// An abstract base class for a 3D scene, representing the root of a scene graph.
 abstract class FskSceneBase extends ChangeNotifier
@@ -140,6 +140,27 @@ abstract class FskSceneBase extends ChangeNotifier
     renderPass.setViewport(
       gpu.Viewport(x: 0, y: 0, width: _texture!.width, height: _texture!.height),
     );
+  }
+
+  /// Performs a hard reset of common pipeline states to known defaults.
+  /// This helps prevent state leakage between layers or passes.
+  void hardResetPipelineState(gpu.RenderPass renderPass) {
+    renderPass.setCullMode(gpu.CullMode.none);
+    renderPass.setWindingOrder(gpu.WindingOrder.counterClockwise);
+    renderPass.setDepthWriteEnable(true);
+    renderPass.setDepthCompareOperation(gpu.CompareFunction.less);
+    renderPass.setStencilReference(0);
+    renderPass.setColorBlendEnable(true);
+    renderPass.setColorBlendEquation(gpu.ColorBlendEquation(
+      colorBlendOperation: gpu.BlendOperation.add,
+      sourceColorBlendFactor: gpu.BlendFactor.one,
+      destinationColorBlendFactor: gpu.BlendFactor.oneMinusSourceAlpha,
+      alphaBlendOperation: gpu.BlendOperation.add,
+      sourceAlphaBlendFactor: gpu.BlendFactor.one,
+      destinationAlphaBlendFactor: gpu.BlendFactor.oneMinusSourceAlpha,
+    ));
+
+    setupScissor(renderPass);
   }
 
   @mustCallSuper

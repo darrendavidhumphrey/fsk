@@ -145,13 +145,7 @@ abstract class ScreenSpaceOverlay extends FskScene {
       // to ensure it draws on top of the main scene.
       final renderPass =
           commandBuffer.createRenderPass(renderTarget.loadColorClearDepthTarget);
-      // Scissor to the overlay area anyway to be safe, though clearing depth is global
-      renderPass.setScissor(gpu.Scissor(
-        x: origin.dx.toInt(),
-        y: origin.dy.toInt(),
-        width: physicalWidth.toInt(),
-        height: physicalHeight.toInt(),
-      ));
+      hardResetPipelineState(renderPass);
     }
 
     // 2. Draw all child nodes via super (uses navigationDelegate matrices)
@@ -204,22 +198,7 @@ abstract class ScreenSpaceOverlay extends FskScene {
     Size logicalSize,
   ) {
     final renderPass = commandBuffer.createRenderPass(target);
-
-    // Set up the Scissor box
-    renderPass.setScissor(gpu.Scissor(
-      x: x.toInt(),
-      y: y.toInt(),
-      width: width.toInt(),
-      height: height.toInt(),
-    ));
-
-    // Set up the Viewport box
-    renderPass.setViewport(gpu.Viewport(
-      x: x.toInt(),
-      y: y.toInt(),
-      width: width.toInt(),
-      height: height.toInt(),
-    ));
+    hardResetPipelineState(renderPass);
 
     node.draw(
       renderPass,

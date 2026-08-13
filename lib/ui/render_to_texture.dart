@@ -1,6 +1,6 @@
 import 'package:flutter/gestures.dart';
 import 'package:flutter/material.dart';
-import '../fsk_scene_base.dart';
+import '../scene_graph/fsk_scene_base.dart';
 import '../ui/gpu_render_widget.dart';
 
 

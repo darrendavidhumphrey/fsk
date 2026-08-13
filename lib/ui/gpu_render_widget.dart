@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart' hide Matrix4;
 import 'package:flutter_gpu/gpu.dart' as gpu;
-import '../fsk_scene_base.dart';
+import '../scene_graph/fsk_scene_base.dart';
 import '../fsk_singleton.dart';
 import '../gpu/fsk_render_target.dart';
 import '../logging.dart';
