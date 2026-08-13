@@ -1,5 +1,6 @@
 import 'package:fsk/fsk.dart';
 import 'package:vector_math/vector_math.dart' as vm;
+import 'package:flutter/material.dart';
 
 /// Represents a generic 3D solid, specifically a rectangular prism or cube.
 ///
@@ -14,8 +15,9 @@ class FskRectangularSolid extends FskMesh {
     List<Polyline> faces,
     vm.Vector3 dimensions, {
     super.shaderMaterial,
+    Color color = Colors.white,
   }) {
-    vertices = MeshFactory.verticesFromSolidFaces(faces);
+    vertices = MeshFactory.verticesFromSolidFaces(faces, color: color);
     uploadToGpu();
     renderer.setTexture(FSK().textureManager.solidTextureInfo);
     renderer.addFskSubMesh(FskSubMesh(
@@ -31,6 +33,7 @@ class FskRectangularSolid extends FskMesh {
     required vm.Vector3 center,
     required double size,
     FskShaderMaterial? shaderMaterial,
+    Color color = Colors.white,
   }) {
     return FskRectangularSolid.rectangular(
       id:id,
@@ -38,6 +41,7 @@ class FskRectangularSolid extends FskMesh {
       center: center,
       dimensions: vm.Vector3(size, size, size),
       shaderMaterial: shaderMaterial,
+      color: color,
     );
   }
 
@@ -48,6 +52,7 @@ class FskRectangularSolid extends FskMesh {
     required vm.Vector3 center,
     required vm.Vector3 dimensions,
     FskShaderMaterial? shaderMaterial,
+    Color color = Colors.white,
   }) {
     final double halfWidth = dimensions.x / 2.0;
     final double halfHeight = dimensions.y / 2.0;
@@ -75,6 +80,6 @@ class FskRectangularSolid extends FskMesh {
     faces.add(Polyline.fromVector3([v[5], v[1], v[2], v[6]])); // Right face (+X)
     faces.add(Polyline.fromVector3([v[0], v[4], v[7], v[3]])); // Left face (-X)
 
-    return FskRectangularSolid._(id, scene, faces, dimensions, shaderMaterial: shaderMaterial);
+    return FskRectangularSolid._(id, scene, faces, dimensions, shaderMaterial: shaderMaterial, color: color);
   }
 }

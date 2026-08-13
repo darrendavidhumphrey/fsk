@@ -9,7 +9,6 @@ export 'geometry/polyline.dart';
 export 'geometry/polyline_clipper.dart';
 export 'geometry/reference_box.dart';
 export 'geometry/thick_lines.dart';
-export 'geometry/triangle_mesh.dart';
 
 export 'gpu/fsk_index_buffer.dart';
 export 'gpu/gpu_pipeline_key.dart';
