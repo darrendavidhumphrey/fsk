@@ -1,6 +1,7 @@
 import 'dart:async';
 import 'dart:ui' as ui;
 import 'package:flutter/material.dart' hide Matrix4;
+import 'package:flutter/services.dart';
 import 'package:flutter_gpu/gpu.dart' as gpu;
 import 'package:vector_math/vector_math.dart' as vm;
 import '../fsk_singleton.dart';
@@ -24,6 +25,15 @@ abstract class FskSceneBase extends ChangeNotifier
 
   @override
   FskSceneNavigationDelegate? navigationDelegate;
+
+  final ValueNotifier<MouseCursor> cursorNotifier =
+      ValueNotifier<MouseCursor>(SystemMouseCursors.basic);
+
+  void setCursor(MouseCursor cursor) {
+    if (cursorNotifier.value != cursor) {
+      cursorNotifier.value = cursor;
+    }
+  }
 
   /// Internal test hook for visual captures
   bool captureRequested = false;
@@ -148,7 +158,7 @@ abstract class FskSceneBase extends ChangeNotifier
     renderPass.setCullMode(gpu.CullMode.none);
     renderPass.setWindingOrder(gpu.WindingOrder.counterClockwise);
     renderPass.setDepthWriteEnable(true);
-    renderPass.setDepthCompareOperation(gpu.CompareFunction.less);
+    renderPass.setDepthCompareOperation(gpu.CompareFunction.lessEqual);
     renderPass.setStencilReference(0);
     renderPass.setColorBlendEnable(true);
     renderPass.setColorBlendEquation(gpu.ColorBlendEquation(

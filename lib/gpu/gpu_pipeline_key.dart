@@ -30,7 +30,7 @@ class PipelineKey with LoggableClass {
     required this.layoutName,
     this.depthTestEnabled = false,
     this.depthWriteEnabled = false,
-    this.depthCompareOperation = gpu.CompareFunction.less,
+    this.depthCompareOperation = gpu.CompareFunction.lessEqual,
     this.texturingEnabled = false,
     this.srcColorFactor = gpu.BlendFactor.sourceAlpha,
     this.dstColorFactor = gpu.BlendFactor.oneMinusSourceAlpha,

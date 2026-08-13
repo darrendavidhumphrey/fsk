@@ -19,13 +19,18 @@ layout(std140, set = 0, binding = 1) uniform GridFragmentUniforms {
     float u_majorLineThickness; // 17
     float u_minorLineThickness; // 18
     float u_mmLineThickness;    // 19
-    vec4 uPadding[5];           // 20-39
+    float u_fineLineSpacingMM;  // 20
+    float u_worldOriginX;       // 21
+    float u_worldOriginY;       // 22
+    float u_unusedPadding;      // 23
+    vec4 uPadding[4];           // 24-39
 } fragUniforms;
 
 // Unified Binding: All fragment shaders in this pass use Binding 2 for their primary sampler.
 layout(set = 0, binding = 2) uniform sampler2D uSampler;
 
 float getCenteredLineAlpha(float pos, float spacing, float thickness, float fwidthVal) {
+    if (thickness <= 0.0 || spacing <= 0.0) return 0.0;
     float centeredPos = mod(pos + spacing * 0.5, spacing) - spacing * 0.5;
     float halfThickness = thickness * 0.5;
     float lineAlpha = smoothstep(halfThickness + fwidthVal, halfThickness - fwidthVal, abs(centeredPos));
@@ -33,18 +38,18 @@ float getCenteredLineAlpha(float pos, float spacing, float thickness, float fwid
 }
 
 void main() {
-    vec2 fragCoord = v_uv * fragUniforms.u_resolution * fragUniforms.u_scale;
-    float dx = fwidth(fragCoord.x);
-    float dy = fwidth(fragCoord.y);
+    vec2 worldCoord = (v_uv * fragUniforms.u_resolution * fragUniforms.u_scale) + vec2(fragUniforms.u_worldOriginX, fragUniforms.u_worldOriginY);
+    float dx = fwidth(worldCoord.x);
+    float dy = fwidth(worldCoord.y);
 
-    float majorGrid = max(getCenteredLineAlpha(fragCoord.x, fragUniforms.u_majorLineSpacingMM, fragUniforms.u_majorLineThickness, dx),
-                          getCenteredLineAlpha(fragCoord.y, fragUniforms.u_majorLineSpacingMM, fragUniforms.u_majorLineThickness, dy));
+    float majorGrid = max(getCenteredLineAlpha(worldCoord.x, fragUniforms.u_majorLineSpacingMM, fragUniforms.u_majorLineThickness, dx),
+                          getCenteredLineAlpha(worldCoord.y, fragUniforms.u_majorLineSpacingMM, fragUniforms.u_majorLineThickness, dy));
 
-    float minorGrid = max(getCenteredLineAlpha(fragCoord.x, fragUniforms.u_minorLineSpacingMM, fragUniforms.u_minorLineThickness, dx),
-                          getCenteredLineAlpha(fragCoord.y, fragUniforms.u_minorLineSpacingMM, fragUniforms.u_minorLineThickness, dy));
+    float minorGrid = max(getCenteredLineAlpha(worldCoord.x, fragUniforms.u_minorLineSpacingMM, fragUniforms.u_minorLineThickness, dx),
+                          getCenteredLineAlpha(worldCoord.y, fragUniforms.u_minorLineSpacingMM, fragUniforms.u_minorLineThickness, dy));
 
-    float mmGrid = max(getCenteredLineAlpha(fragCoord.x, 1.0, fragUniforms.u_mmLineThickness, dx),
-                       getCenteredLineAlpha(fragCoord.y, 1.0, fragUniforms.u_mmLineThickness, dy));
+    float mmGrid = max(getCenteredLineAlpha(worldCoord.x, fragUniforms.u_fineLineSpacingMM, fragUniforms.u_mmLineThickness, dx),
+                       getCenteredLineAlpha(worldCoord.y, fragUniforms.u_fineLineSpacingMM, fragUniforms.u_mmLineThickness, dy));
 
     vec4 color = mix(vec4(0.0), fragUniforms.u_mmLineColor, mmGrid);
     color = mix(color, fragUniforms.u_minorLineColor, minorGrid);

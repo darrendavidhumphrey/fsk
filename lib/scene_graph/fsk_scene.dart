@@ -76,6 +76,12 @@ class FskScene extends FskSceneBase with FskSceneLayerDispatcherMixin {
   void addLayer(FskSceneBase layer) {
     layers.add(layer);
     layer.init();
+    layer.addListener(() {
+      setNeedsUpdate();
+    });
+    layer.cursorNotifier.addListener(() {
+      setCursor(layer.cursorNotifier.value);
+    });
     setNeedsUpdate();
   }
 

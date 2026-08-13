@@ -9,7 +9,7 @@ class FskDepthState {
   FskDepthState({
     this.depthTestEnabled = true,
     this.depthWriteEnabled = true,
-    this.depthCompareOperation = gpu.CompareFunction.less,
+    this.depthCompareOperation = gpu.CompareFunction.lessEqual,
   });
 
   void setDepthState({
@@ -41,7 +41,7 @@ mixin FskDepthStateMixin on FskRenderableObject {
   }
 
   gpu.CompareFunction get depthCompareOperation =>
-      renderer?.depthState.depthCompareOperation ?? gpu.CompareFunction.less;
+      renderer?.depthState.depthCompareOperation ?? gpu.CompareFunction.lessEqual;
   set depthCompareOperation(gpu.CompareFunction value) {
     if (renderer == null) return;
     renderer!.depthState.depthCompareOperation = value;

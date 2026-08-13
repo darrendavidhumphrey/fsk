@@ -13,6 +13,9 @@ class GridUniforms extends BaseUniforms {
   static const String _kMajorLineThicknessKey = 'majorLineThickness';
   static const String _kMinorLineThicknessKey = 'minorLineThickness';
   static const String _kMmLineThicknessKey = 'mmLineThickness';
+  static const String _kFineLineSpacingMMKey = 'fineLineSpacingMM';
+  static const String _kWorldOriginXKey = 'worldOriginX';
+  static const String _kWorldOriginYKey = 'worldOriginY';
 
   @override
   String get vertexBlockName => 'GridVertexUniforms';
@@ -28,6 +31,9 @@ class GridUniforms extends BaseUniforms {
     this[_kScaleKey] = 1.0;
     this[_kMajorLineSpacingMMKey] = 25.0;
     this[_kMinorLineSpacingMMKey] = 5.0;
+    this[_kFineLineSpacingMMKey] = 1.0;
+    this[_kWorldOriginXKey] = 0.0;
+    this[_kWorldOriginYKey] = 0.0;
     this[_kMajorLineThicknessKey] = 0.25;
     this[_kMinorLineThicknessKey] = 0.1;
     this[_kMmLineThicknessKey] = 0.05;
@@ -42,9 +48,15 @@ class GridUniforms extends BaseUniforms {
     this[_kResolutionHeightKey] = height;
   }
 
+  void setWorldOrigin(double x, double y) {
+    this[_kWorldOriginXKey] = x;
+    this[_kWorldOriginYKey] = y;
+  }
+
   set scale(double val) => this[_kScaleKey] = val;
   set majorLineSpacingMM(double val) => this[_kMajorLineSpacingMMKey] = val;
   set minorLineSpacingMM(double value) => this[_kMinorLineSpacingMMKey] = value;
+  set fineLineSpacingMM(double value) => this[_kFineLineSpacingMMKey] = value;
   set majorLineThickness(double val) => this[_kMajorLineThicknessKey] = val;
   set minorLineThickness(double val) => this[_kMinorLineThicknessKey] = val;
   set mmLineThickness(double val) => this[_kMmLineThicknessKey] = val;
@@ -70,5 +82,8 @@ class GridUniforms extends BaseUniforms {
     fragmentData.packDouble(valuesMap[_kMajorLineThicknessKey]);
     fragmentData.packDouble(valuesMap[_kMinorLineThicknessKey]);
     fragmentData.packDouble(valuesMap[_kMmLineThicknessKey]);
+    fragmentData.packDouble(valuesMap[_kFineLineSpacingMMKey]);
+    fragmentData.packDouble(valuesMap[_kWorldOriginXKey]);
+    fragmentData.packDouble(valuesMap[_kWorldOriginYKey]);
   }
 }

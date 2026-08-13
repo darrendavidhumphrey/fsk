@@ -15,7 +15,7 @@ abstract class FskMeshRendererBase extends FskRendererBase {
   FskShaderMaterial get defaultMaterial => FskShaderMaterial.lighting;
 
   @override
-  gpu.CullMode get cullMode => gpu.CullMode.backFace;
+  gpu.CullMode get cullMode => gpu.CullMode.none;
 
   final FskVertexBuffer vbo = FskVertexBuffer();
   final List<FskSubMesh> _subMeshes = [];

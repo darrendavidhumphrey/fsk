@@ -2,7 +2,7 @@ import 'package:flutter_gpu/gpu.dart' as gpu;
 import 'package:fsk/fsk.dart';
 
 class FskMeshRenderer extends FskMeshRendererBase {
-  gpu.CullMode _cullMode = gpu.CullMode.backFace;
+  gpu.CullMode _cullMode = gpu.CullMode.none;
 
   @override
   gpu.CullMode get cullMode => _cullMode;

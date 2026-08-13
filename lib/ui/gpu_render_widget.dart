@@ -139,15 +139,23 @@ class _GPURenderWidgetState extends State<GPURenderWidget> with SingleTickerProv
               return Container(color: widget.scene.clearColor);
             }
 
-            return CustomPaint(
-              size: logicalSize,
-              painter: FskScenePainter(
-                scene: widget.scene,
-                // Safely blit the completed output texture reference
-                texture: _fskTarget?.outputTexture,
-                pixelRatio: pixelRatio,
-                repaintTrigger: _repaintListenable,
-              ),
+            return ValueListenableBuilder<MouseCursor>(
+              valueListenable: widget.scene.cursorNotifier,
+              builder: (context, cursor, _) {
+                return MouseRegion(
+                  cursor: cursor,
+                  child: CustomPaint(
+                    size: logicalSize,
+                    painter: FskScenePainter(
+                      scene: widget.scene,
+                      // Safely blit the completed output texture reference
+                      texture: _fskTarget?.outputTexture,
+                      pixelRatio: pixelRatio,
+                      repaintTrigger: _repaintListenable,
+                    ),
+                  ),
+                );
+              },
             );
           },
         );
