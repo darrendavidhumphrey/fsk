@@ -38,7 +38,10 @@ float getCenteredLineAlpha(float pos, float spacing, float thickness, float fwid
 }
 
 void main() {
-    vec2 worldCoord = (v_uv * fragUniforms.u_resolution * fragUniforms.u_scale) + vec2(fragUniforms.u_worldOriginX, fragUniforms.u_worldOriginY);
+    // FSK quad UVs: (0,0) is at worldOrigin + yVector (Top-Left).
+    // Invert Y so that 0.0 UV maps to worldOriginY and 1.0 UV maps to worldOriginY + resolutionY.
+    vec2 flippedUV = vec2(v_uv.x, 1.0 - v_uv.y);
+    vec2 worldCoord = (flippedUV * fragUniforms.u_resolution * fragUniforms.u_scale) + vec2(fragUniforms.u_worldOriginX, fragUniforms.u_worldOriginY);
     float dx = fwidth(worldCoord.x);
     float dy = fwidth(worldCoord.y);
 
