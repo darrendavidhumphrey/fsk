@@ -7,7 +7,7 @@ import '../scene_graph/fsk_scene.dart';
 import '../scene_graph/fsk_scene_object.dart';
 import '../scene_graph/fsk_quad.dart';
 
-/// An abstract base class for a [FskSceneLayer] that is rendered in 2D screen space
+/// An abstract base class for a [FskScene] that is rendered in 2D screen space
 /// rather than 3D world space.
 ///
 /// This class manages the positioning and scissoring required to create a 2D

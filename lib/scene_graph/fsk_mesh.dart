@@ -57,6 +57,36 @@ class FskMesh extends FskRenderableObject with FskTransformableMixin, FskDepthSt
     return _cachedAabb!;
   }
 
+  /// The number of triangles in this mesh.
+  int get triangleCount =>
+      (vertices?.length ?? 0) ~/ (FskVertexBuffer.componentCount * 3);
+
+  /// Returns the triangle at the specified [index].
+  vm.Triangle getTriangle(int index) {
+    if (vertices == null) throw StateError("Mesh has no vertices");
+    int offset = index * FskVertexBuffer.componentCount * 3;
+
+    vm.Vector3 p0 = vm.Vector3(
+      vertices![offset],
+      vertices![offset + 1],
+      vertices![offset + 2],
+    );
+    offset += FskVertexBuffer.componentCount;
+    vm.Vector3 p1 = vm.Vector3(
+      vertices![offset],
+      vertices![offset + 1],
+      vertices![offset + 2],
+    );
+    offset += FskVertexBuffer.componentCount;
+    vm.Vector3 p2 = vm.Vector3(
+      vertices![offset],
+      vertices![offset + 1],
+      vertices![offset + 2],
+    );
+
+    return vm.Triangle.points(p0, p1, p2);
+  }
+
   @override
   List<FskHitDetails> doHitTest(vm.Ray ray,
       {FskHitTestMode mode = FskHitTestMode.closest}) {
