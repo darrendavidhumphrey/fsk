@@ -321,9 +321,11 @@ mixin FskSceneLayerDispatcherMixin on FskSceneBase {
         final transformedEvent = event.transformed(
             vm64.Matrix4.translationValues(-origin.dx, -origin.dy, 0) *
                 (event.transform ?? vm64.Matrix4.identity())) as PointerSignalEvent;
+
         if (layer.onPointerSignal(transformedEvent)) return true;
       }
     }
+
     return super.onPointerSignal(event);
   }
 

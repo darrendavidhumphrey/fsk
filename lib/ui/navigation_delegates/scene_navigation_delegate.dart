@@ -1,7 +1,6 @@
 import 'package:flutter/material.dart' hide Matrix4;
 import 'package:vector_math/vector_math.dart' as vm;
 import 'package:fsk/fsk.dart';
-import 'scene_interaction_behavior.dart';
 
 enum FskBoxFit {
   none,
@@ -28,6 +27,12 @@ abstract class FskSceneNavigationDelegate with ChangeNotifier, FskCameraBehavior
     }
     _behaviors[name] = behavior;
     _behaviorOrder.add(behavior);
+  }
+
+  void replaceBehavior(String name, SceneInteractionBehavior behavior) {
+    if (_behaviors.containsKey(name)) {
+      _behaviors[name] = behavior;
+    }
   }
 
   void removeBehavior(String name) {

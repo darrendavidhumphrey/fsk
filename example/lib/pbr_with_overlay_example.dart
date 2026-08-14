@@ -65,7 +65,7 @@ class PbrWithOverlayScene extends PbrModelScene {
       navigationDelegate: ViewCubeNavigationDelegate(boxFit: FskBoxFit.bestFit),
     );
 
-     var nav = overlayRight.navigationDelegate as OrbitViewDelegate;
+     var nav = overlayRight.navigationDelegate as ViewCubeNavigationDelegate;
      nav.setViewDistance(cubeSize * 2.5);
 
 

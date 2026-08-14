@@ -2,28 +2,25 @@ import 'dart:math';
 import 'package:flutter/gestures.dart' hide Matrix4;
 import 'package:vector_math/vector_math.dart' as vm;
 import 'package:fsk/fsk.dart';
-import 'scene_interaction_behavior.dart';
-import 'perspective_view_delegate.dart';
 
 /// A behavior that handles drag-based rotation for the orbit camera.
 class OrbitRotationBehavior extends SceneInteractionBehavior {
-  final OrbitViewDelegate delegate;
+  final OrbitViewDelegateBase delegate;
   
-  Offset _dragStart = Offset.zero;
-  double _yawStart = 0;
-  double _pitchStart = 0;
-
-  bool _isDragging = false;
+  Offset dragStart = Offset.zero;
+  double yawStart = 0;
+  double pitchStart = 0;
+  bool isDragging = false;
 
   OrbitRotationBehavior(this.delegate);
 
   @override
   SceneInteractionBehaviorStatus onPointerDown(PointerDownEvent event) {
     if (event.kind == PointerDeviceKind.mouse && event.buttons == delegate.rotationMouseButton) {
-      _isDragging = true;
-      _dragStart = event.localPosition;
-      _yawStart = delegate.yaw;
-      _pitchStart = delegate.pitch;
+      isDragging = true;
+      dragStart = event.localPosition;
+      yawStart = delegate.yaw;
+      pitchStart = delegate.pitch;
       delegate.setNeedsUpdate(true);
       return SceneInteractionBehaviorStatus.started;
     }
@@ -32,11 +29,10 @@ class OrbitRotationBehavior extends SceneInteractionBehavior {
 
   @override
   SceneInteractionBehaviorStatus onPointerMove(PointerMoveEvent event) {
-    if (_dragStart == Offset.zero || !_isDragging) return SceneInteractionBehaviorStatus.ignored;
+    if (dragStart == Offset.zero || !isDragging) return SceneInteractionBehaviorStatus.ignored;
 
-
-    final deltaX = _dragStart.dx - event.localPosition.dx;
-    final deltaY = event.localPosition.dy - _dragStart.dy;
+    final deltaX = dragStart.dx - event.localPosition.dx;
+    final deltaY = event.localPosition.dy - dragStart.dy;
 
     // Scale sensitivity by viewport size to make rotation feel consistent
     // regardless of widget size.
@@ -45,8 +41,8 @@ class OrbitRotationBehavior extends SceneInteractionBehavior {
     final double deltaYaw = deltaX * yawSensitivity * pi;
     final double deltaPitch = deltaY * pitchSensitivity * pi;
 
-    final newYaw = _yawStart + vm.degrees(deltaYaw);
-    final newPitch = _pitchStart + vm.degrees(deltaPitch);
+    final newYaw = yawStart + vm.degrees(deltaYaw);
+    final newPitch = pitchStart + vm.degrees(deltaPitch);
 
     delegate.setOrbitRotation(newYaw, newPitch);
     return SceneInteractionBehaviorStatus.consumed;
@@ -54,9 +50,9 @@ class OrbitRotationBehavior extends SceneInteractionBehavior {
 
   @override
   SceneInteractionBehaviorStatus onPointerUp(PointerUpEvent event) {
-    if (_isDragging) {
-      _isDragging = false;
-      _dragStart = Offset.zero;
+    if (isDragging) {
+      isDragging = false;
+      dragStart = Offset.zero;
       delegate.setNeedsUpdate(true);
       return SceneInteractionBehaviorStatus.finished;
     }
@@ -74,7 +70,7 @@ class OrbitRotationBehavior extends SceneInteractionBehavior {
 
 /// A behavior that handles zoom (dolly) for the orbit camera via scroll or pinch gestures.
 class OrbitZoomBehavior extends SceneInteractionBehavior {
-  final OrbitViewDelegate delegate;
+  final OrbitViewDelegateBase delegate;
   double _baseDistance = 0;
   bool _isScaling = false;
 
@@ -82,6 +78,7 @@ class OrbitZoomBehavior extends SceneInteractionBehavior {
 
   @override
   SceneInteractionBehaviorStatus onPointerSignal(PointerSignalEvent event) {
+
     const double minRadius = 3;
     if (event is! PointerScrollEvent) return SceneInteractionBehaviorStatus.ignored;
 
@@ -137,7 +134,7 @@ class OrbitZoomBehavior extends SceneInteractionBehavior {
 ///
 /// This class handles user input to rotate (orbit) around a central point,
 /// and zoom (dolly) the camera towards and away from that point.
-class OrbitViewDelegate extends PerspectiveViewDelegate {
+class OrbitViewDelegateBase extends PerspectiveViewDelegate {
   // Camera state
   double yaw = 0;
   double pitch = 0;
@@ -149,7 +146,7 @@ class OrbitViewDelegate extends PerspectiveViewDelegate {
   // Which button is used to pan the camera?
   int panMouseButton = kTertiaryButton;
 
-  OrbitViewDelegate({
+  OrbitViewDelegateBase({
     super.viewRect,
     super.boxFit,
     super.fovYDegrees,
@@ -160,10 +157,6 @@ class OrbitViewDelegate extends PerspectiveViewDelegate {
   }){
     this.rotationMouseButton = rotationMouseButton ?? kPrimaryButton;
     this.panMouseButton = panMouseButton ?? kTertiaryButton;
-
-    // Add default behaviors for rotation and zoom.
-    addBehavior('orbit_rotation', OrbitRotationBehavior(this));
-    addBehavior('orbit_zoom', OrbitZoomBehavior(this));
   }
 
   /// Programmatically sets the camera rotation.
@@ -206,5 +199,19 @@ class OrbitViewDelegate extends PerspectiveViewDelegate {
   /// The point in space that the camera orbits around.
   vm.Vector3 getOrbitCenter() {
     return vm.Vector3(0, 0, 0);
+  }
+}
+
+class OrbitViewDelegate extends OrbitViewDelegateBase {
+  OrbitViewDelegate({super.viewRect,
+      super.boxFit,
+      super.fovYDegrees,
+      super.zNear,
+      super.zFar,
+      super.rotationMouseButton,
+      super.panMouseButton})  {
+    // Add default behaviors for rotation and zoom.
+    addBehavior('orbit_rotation', OrbitRotationBehavior(this));
+    addBehavior('orbit_zoom', OrbitZoomBehavior(this));
   }
 }

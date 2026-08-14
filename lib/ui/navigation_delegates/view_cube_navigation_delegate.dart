@@ -3,7 +3,29 @@ import 'package:flutter/gestures.dart';
 import 'package:flutter/material.dart' show Colors;
 import 'package:vector_math/vector_math.dart' as vm;
 import 'package:fsk/fsk.dart';
-import 'scene_interaction_behavior.dart';
+
+class OrbitOnHitRotationBehavior extends OrbitRotationBehavior {
+  OrbitOnHitRotationBehavior(super.delegate);
+
+  @override
+  SceneInteractionBehaviorStatus onPointerDown(PointerDownEvent event) {
+    if (event.kind == PointerDeviceKind.mouse &&
+        event.buttons == delegate.rotationMouseButton) {
+
+      vm.Ray mouseRay = delegate.getWorldRay(event.localPosition);
+
+      List<FskHitDetails> hits = delegate.scene.hitTest(
+        mouseRay,
+        mode: FskHitTestMode.closest,
+      );
+
+      if (hits.isEmpty) {
+        return SceneInteractionBehaviorStatus.ignored;
+      }
+    }
+    return super.onPointerDown(event);
+  }
+}
 
 /// A behavior that provides interactive highlighting, clicking, and rotation tracking
 /// for a View Cube implementation.
@@ -20,7 +42,10 @@ class ViewCubeHighlightBehavior extends SceneInteractionBehavior {
   Offset? _pointerDownPos;
   static const double _kClickThreshold = 5.0;
 
-  ViewCubeHighlightBehavior(this.delegate, {this.highlightColor = Colors.lightBlue});
+  ViewCubeHighlightBehavior(
+    this.delegate, {
+    this.highlightColor = Colors.lightBlue,
+  });
 
   void _updateHighlight(FskRenderableObject? newTarget) {
     if (_highlightedObject == newTarget) return;
@@ -58,7 +83,10 @@ class ViewCubeHighlightBehavior extends SceneInteractionBehavior {
   @override
   SceneInteractionBehaviorStatus onPointerSignal(PointerSignalEvent event) {
     vm.Ray mouseRay = delegate.getWorldRay(event.localPosition);
-    List<FskHitDetails> hits = delegate.scene.hitTest(mouseRay, mode: FskHitTestMode.closest);
+    List<FskHitDetails> hits = delegate.scene.hitTest(
+      mouseRay,
+      mode: FskHitTestMode.closest,
+    );
 
     if (hits.isEmpty) {
       return SceneInteractionBehaviorStatus.ignored;
@@ -71,14 +99,17 @@ class ViewCubeHighlightBehavior extends SceneInteractionBehavior {
   SceneInteractionBehaviorStatus onPointerDown(PointerDownEvent event) {
     // Perform hit test to see if we should consume the input
     vm.Ray mouseRay = delegate.getWorldRay(event.localPosition);
-    List<FskHitDetails> hits = delegate.scene.hitTest(mouseRay, mode: FskHitTestMode.closest);
+    List<FskHitDetails> hits = delegate.scene.hitTest(
+      mouseRay,
+      mode: FskHitTestMode.closest,
+    );
 
     if (hits.isEmpty) {
       return SceneInteractionBehaviorStatus.ignored;
     }
 
     _pointerDownPos = event.localPosition;
-    // We return 'started' so that the event is marked as handled, 
+    // We return 'started' so that the event is marked as handled,
     // but the next behaviors (like OrbitRotation) can also see it.
     return SceneInteractionBehaviorStatus.started;
   }
@@ -91,7 +122,10 @@ class ViewCubeHighlightBehavior extends SceneInteractionBehavior {
       if (distance < _kClickThreshold) {
         // Perform hit test for the click
         vm.Ray mouseRay = delegate.getWorldRay(event.localPosition);
-        List<FskHitDetails> hits = delegate.scene.hitTest(mouseRay, mode: FskHitTestMode.closest);
+        List<FskHitDetails> hits = delegate.scene.hitTest(
+          mouseRay,
+          mode: FskHitTestMode.closest,
+        );
 
         if (hits.isNotEmpty) {
           delegate.onCubeClicked(hits[0].hitObject.id);
@@ -100,14 +134,16 @@ class ViewCubeHighlightBehavior extends SceneInteractionBehavior {
       }
       _pointerDownPos = null;
     }
-    return handled ? SceneInteractionBehaviorStatus.finished : SceneInteractionBehaviorStatus.ignored;
+    return handled
+        ? SceneInteractionBehaviorStatus.finished
+        : SceneInteractionBehaviorStatus.ignored;
   }
 
   @override
   SceneInteractionBehaviorStatus onPointerMove(PointerMoveEvent event) {
     final double oldYaw = delegate.yaw;
     final double oldPitch = delegate.pitch;
-    
+
     if (oldYaw != delegate.yaw || oldPitch != delegate.pitch) {
       delegate.onCubeRotated(delegate.yaw, delegate.pitch);
       return SceneInteractionBehaviorStatus.consumed;
@@ -118,7 +154,10 @@ class ViewCubeHighlightBehavior extends SceneInteractionBehavior {
   @override
   SceneInteractionBehaviorStatus onPointerHover(PointerHoverEvent event) {
     vm.Ray mouseRay = delegate.getWorldRay(event.localPosition);
-    List<FskHitDetails> hits = delegate.scene.hitTest(mouseRay, mode: FskHitTestMode.closest);
+    List<FskHitDetails> hits = delegate.scene.hitTest(
+      mouseRay,
+      mode: FskHitTestMode.closest,
+    );
 
     if (hits.isNotEmpty) {
       final hitObj = hits[0].hitObject;
@@ -140,15 +179,23 @@ class ViewCubeHighlightBehavior extends SceneInteractionBehavior {
 }
 
 /// A navigation delegate that implements a classic 3D orbit camera with a View Cube.
-class ViewCubeNavigationDelegate extends OrbitViewDelegate {
-  
+class ViewCubeNavigationDelegate extends OrbitViewDelegateBase {
   ViewCubeNavigationDelegate({
     super.viewRect,
     super.boxFit,
+    super.fovYDegrees,
+    super.zNear,
+    super.zFar,
+    super.rotationMouseButton,
+    super.panMouseButton,
     Color highlightColor = Colors.lightBlue,
   }) {
     // The ViewCubeHighlightBehavior should be added to handle its own events.
-    addBehavior('view_cube', ViewCubeHighlightBehavior(this, highlightColor: highlightColor));
+    addBehavior(
+      'view_cube',
+      ViewCubeHighlightBehavior(this, highlightColor: highlightColor),
+    );
+    addBehavior('orbit_rotation', OrbitOnHitRotationBehavior(this));
   }
 
   /// Callback interface for when a cube segment is clicked.

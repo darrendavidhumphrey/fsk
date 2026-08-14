@@ -67,4 +67,11 @@ class FskShaderMaterial {
     layout: v3t2n3Layout,
     uniformsFactory: (v, f) => PbrUniforms(vertexShader: v, fragmentShader: f),
   );
+
+  static final FskShaderMaterial wireframe = FskShaderMaterial(
+    vertShaderName: "WireFrameVertex",
+    fragShaderName: "WireFrameFragment",
+    layout: v3t2n3Layout,
+    uniformsFactory: (v, f) => WireFrameUniforms(vertexShader: v, fragmentShader: f),
+  );
 }
