@@ -55,7 +55,7 @@ class MeshFactory {
   static FskMesh meshFromQuadOutline(
       {required String id, required FskSceneBase parentScene, required vm.Quad quad, required double thickness, required Color color,
       FskShaderMaterial? material}) {
-    final outlines = createThickOutline3DFromQuad(quad, thickness);
+    final outlines = ThickLines.createThickOutline3DFromQuad(quad, thickness);
     return meshFromColorOutlines(id, parentScene, outlines, color, material: material);
   }
 
