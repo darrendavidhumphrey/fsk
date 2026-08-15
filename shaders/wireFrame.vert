@@ -3,6 +3,7 @@
 layout(location = 0) in vec3 aVertexPosition;
 layout(location = 1) in vec2 aTextureCoord;
 layout(location = 2) in vec3 aVertexNormal;
+layout(location = 3) in vec4 aVertexColor; // Stores baked barycentric coords
 
 layout(std140, set = 0, binding = 0) uniform WireFrameVertexUniforms {
     mat4 uMVMatrix;
@@ -20,14 +21,8 @@ void main(void) {
     vNormal = normalize(mat3(vertUniforms.uMVMatrix) * aVertexNormal);
     vTextureCoord = aTextureCoord;
 
-    int vertexInTriangle = gl_VertexIndex % 3;
-    if (vertexInTriangle == 0) {
-        vBarycentric = vec3(1.0, 0.0, 0.0);
-    } else if (vertexInTriangle == 1) {
-        vBarycentric = vec3(0.0, 1.0, 0.0);
-    } else {
-        vBarycentric = vec3(0.0, 0.0, 1.0);
-    }
+    // Use the baked barycentric coordinates from the color attribute
+    vBarycentric = aVertexColor.xyz;
 
     gl_Position = vertUniforms.uPMatrix * eyeCoords;
 }

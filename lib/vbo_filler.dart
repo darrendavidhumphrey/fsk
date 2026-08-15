@@ -76,13 +76,30 @@ class VboFiller {
     _currentPosition += 4;
   }
 
+  int _vertexIndexInTriangle = 0;
+
+  /// If true, the color attribute will be populated with barycentric coordinates
+  /// (1,0,0), (0,1,0), (0,0,1) instead of the provided color.
+  bool bakeBarycentrics = false;
+
   /// Adds a [Vector3] for position, a [Vector2] for texture coordinates, a [Vector3] for the normal and a Color for the color.
-  void addV3T2N3C4(vm.Vector3 v, vm.Vector2 tc, vm.Vector3 n,Color c) {
+  void addV3T2N3C4(vm.Vector3 v, vm.Vector2 tc, vm.Vector3 n, Color c) {
     _checkStrideSpace();
     _addV3(v);
     _addT2(tc);
     _addV3(n);
-    _addC4(c);
+    if (bakeBarycentrics) {
+      if (_vertexIndexInTriangle == 0) {
+        _addC4(const Color(0xFFFF0000));
+      } else if (_vertexIndexInTriangle == 1) {
+        _addC4(const Color(0xFF00FF00));
+      } else {
+        _addC4(const Color(0xFF0000FF));
+      }
+      _vertexIndexInTriangle = (_vertexIndexInTriangle + 1) % 3;
+    } else {
+      _addC4(c);
+    }
   }
 
   /// Adds a textured quad to the array using two triangles.

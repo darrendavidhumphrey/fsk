@@ -84,9 +84,12 @@ class FSK extends ChangeNotifier with LoggableClass {
     Logging.logInfo('FSK.clearCaches: finished', source: 'FSK');
   }
 
-  void activatePipeline( PipelineKey key,
-      gpu.RenderPass renderPass,
-      gpu.VertexLayout layout) {
+  void activatePipeline(
+    PipelineKey key,
+    gpu.RenderPass renderPass,
+    gpu.VertexLayout layout,
+  ) {
+    // logInfo("FSK: activatePipeline: ${key.uniqueStringKey}");
     _pipelineCache.activate(key, renderPass, layout);
   }
   /// Internal constructor for the singleton.

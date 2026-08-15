@@ -139,6 +139,7 @@ class ThickLines {
     double thickness, {
     Color color = Colors.white,
     FskShaderMaterial? material,
+    bool bakeBarycentrics = false,
   }) {
     List<Polyline> outlines = [];
     for (var edge in edges) {
@@ -158,6 +159,7 @@ class ThickLines {
       outlines,
       color,
       material: material,
+      bakeBarycentrics: bakeBarycentrics,
     );
   }
 
@@ -169,6 +171,7 @@ class ThickLines {
     double thickness, {
     Color color = Colors.white,
     FskShaderMaterial? material,
+    bool bakeBarycentrics = false,
   }) {
     final outlines = createThickOutline3D(polygon, thickness);
     return MeshFactory.meshFromColorOutlines(
@@ -177,6 +180,7 @@ class ThickLines {
       outlines,
       color,
       material: material,
+      bakeBarycentrics: bakeBarycentrics,
     );
   }
 }

@@ -248,18 +248,24 @@ class PipelineCache with LoggableClass {
   }
 
   gpu.RenderPipeline activate(
-      PipelineKey key,
-      gpu.RenderPass renderPass,
-      gpu.VertexLayout layout,
-      ) {
+    PipelineKey key,
+    gpu.RenderPass renderPass,
+    gpu.VertexLayout layout,
+  ) {
     gpu.RenderPipeline? pipeline = _cache[key.uniqueStringKey];
     if (pipeline == null) {
-      pipeline = gpu.gpuContext.createRenderPipeline(
-        key.vertShader,
-        key.fragShader,
-        vertexLayout: layout,
-      );
-      _cache[key.uniqueStringKey] = pipeline;
+      logInfo("PipelineCache: building NEW pipeline: ${key.uniqueStringKey}");
+      try {
+        pipeline = gpu.gpuContext.createRenderPipeline(
+          key.vertShader,
+          key.fragShader,
+          vertexLayout: layout,
+        );
+        _cache[key.uniqueStringKey] = pipeline;
+      } catch (e) {
+        logError("PipelineCache: FAILED to build pipeline: ${key.uniqueStringKey}\n$e");
+        rethrow;
+      }
     }
 
     renderPass.bindPipeline(pipeline);

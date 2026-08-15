@@ -14,7 +14,14 @@ abstract class FskRendererBase extends ChangeNotifier with LoggableClass {
   FskRendererBase();
 
   /// Optional custom material configuration
-  FskShaderMaterial? shaderMaterial;
+  FskShaderMaterial? _shaderMaterial;
+  FskShaderMaterial? get shaderMaterial => _shaderMaterial;
+  set shaderMaterial(FskShaderMaterial? value) {
+    if (_shaderMaterial == value) return;
+    _shaderMaterial = value;
+    pipeLineNeedsRebuild = true;
+    notifyListeners();
+  }
 
   /// The active uniform block for this renderer
   BaseUniforms? _uniforms;
@@ -61,7 +68,9 @@ abstract class FskRendererBase extends ChangeNotifier with LoggableClass {
   );
 
   /// Cleans up resources held by this renderer.
+  @override
   void dispose() {
+    super.dispose();
     _uniforms?.dispose();
     _uniforms = null;
   }
@@ -71,6 +80,8 @@ abstract class FskRendererBase extends ChangeNotifier with LoggableClass {
     if (!pipeLineNeedsRebuild && pipelineKey != null) return;
 
     final material = shaderMaterial ?? defaultMaterial;
+
+    logInfo("FskRendererBase: rebuildPipeline for material ${material.vertShaderName}/${material.fragShaderName}");
 
     pipelineKey = PipelineKey(
       vertShaderName: material.vertShaderName,

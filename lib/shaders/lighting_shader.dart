@@ -17,10 +17,10 @@ class LightingUniforms extends BaseUniforms {
 
   LightingUniforms({super.vertexShader, super.fragmentShader}) {
     this[_kKdKey] = const Color(0xFFFFFFFF);
-    this[_kLdKey] = vm.Vector3(1.0, 1.0, 1.0);
+    this[_kLdKey] = vm.Vector3(0.8, 0.8, 0.8); // Soft neutral light
     this[_kLightPosKey] = vm.Vector3.zero();
     this[_kWorldLightPosKey] = vm.Vector3(200.0, 200.0, 200.0);
-    this[_kIsHeadlampKey] = false;
+    this[_kIsHeadlampKey] = true; // Default to headlamp
   }
 
   set kd(vm.Vector3 val) => this[_kKdKey] = val;

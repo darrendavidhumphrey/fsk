@@ -15,8 +15,8 @@ class MeshFactory {
 
   // --- FskMesh Creation ---
 
-  /// Generates vertex data for a solid from its faces.
-  static Float32List verticesFromSolidFaces(List<Polyline> faces, {Color color = Colors.white}) {
+  static Float32List verticesFromSolidFaces(List<Polyline> faces,
+      {Color color = Colors.white, bool bakeBarycentrics = false}) {
     int triangleCount = 0;
     for (var face in faces) {
       if (face.length > 2) {
@@ -25,8 +25,10 @@ class MeshFactory {
     }
 
     int newVertexCount = triangleCount * 3;
-    final vertices = Float32List(newVertexCount * FskVertexBuffer.componentCount);
+    final vertices =
+        Float32List(newVertexCount * FskVertexBuffer.componentCount);
     final filler = VboFiller(vertices);
+    filler.bakeBarycentrics = bakeBarycentrics;
     for (var face in faces) {
       if (face.length > 2) {
         _addTexturedTriFan(filler, face, true, color: color);
@@ -36,33 +38,58 @@ class MeshFactory {
   }
 
   /// Creates an [FskMesh] by tessellating a list of [faces].
-  static FskMesh meshFromFaces(String id, FskSceneBase scene, List<Polyline> faces,
-      {Color color = Colors.white, FskShaderMaterial? material}) {
-    return _createMesh(id, scene, faces, (filler, face) {
-      _addTexturedTriFan(filler, face, true, color: color);
-    }, material: material);
+  static FskMesh meshFromFaces(
+      String id, FskSceneBase scene, List<Polyline> faces,
+      {Color color = Colors.white,
+      FskShaderMaterial? material,
+      bool bakeBarycentrics = false}) {
+    return _createMesh(
+        id,
+        scene,
+        faces,
+        (filler, face) {
+          _addTexturedTriFan(filler, face, true, color: color);
+        },
+        material: material,
+        bakeBarycentrics: bakeBarycentrics);
   }
 
   /// Creates an [FskMesh] by tessellating a list of [outlines] with a solid [color].
-  static FskMesh meshFromColorOutlines(String id, FskSceneBase scene,
-      List<Polyline> outlines, Color color, {FskShaderMaterial? material}) {
-    return _createMesh(id, scene, outlines, (filler, outline) {
-      _addTexturedTriFan(filler, outline, true, color: color);
-    }, material: material ?? FskShaderMaterial.flat);
+  static FskMesh meshFromColorOutlines(
+      String id, FskSceneBase scene, List<Polyline> outlines, Color color,
+      {FskShaderMaterial? material, bool bakeBarycentrics = false}) {
+    return _createMesh(
+        id,
+        scene,
+        outlines,
+        (filler, outline) {
+          _addTexturedTriFan(filler, outline, true, color: color);
+        },
+        material: material ?? FskShaderMaterial.flat,
+        bakeBarycentrics: bakeBarycentrics);
   }
 
   /// Creates an [FskMesh] that forms a thick, mitered outline around a [quad].
   static FskMesh meshFromQuadOutline(
-      {required String id, required FskSceneBase parentScene, required vm.Quad quad, required double thickness, required Color color,
-      FskShaderMaterial? material}) {
+      {required String id,
+      required FskSceneBase parentScene,
+      required vm.Quad quad,
+      required double thickness,
+      required Color color,
+      FskShaderMaterial? material,
+      bool bakeBarycentrics = false}) {
     final outlines = ThickLines.createThickOutline3DFromQuad(quad, thickness);
-    return meshFromColorOutlines(id, parentScene, outlines, color, material: material);
+    return meshFromColorOutlines(id, parentScene, outlines, color,
+        material: material, bakeBarycentrics: bakeBarycentrics);
   }
 
   /// Creates a new [FskMesh] by extruding a list of [outlines] by a [depth] vector.
   /// This generates top, bottom, and side faces to create a closed 3D shape.
-  static FskMesh extrude(String id, FskSceneBase scene, List<Polyline> outlines, vm.Vector3 depth,
-      {Color color = Colors.white, FskShaderMaterial? material}) {
+  static FskMesh extrude(String id, FskSceneBase scene, List<Polyline> outlines,
+      vm.Vector3 depth,
+      {Color color = Colors.white,
+      FskShaderMaterial? material,
+      bool bakeBarycentrics = false}) {
     if (outlines.isEmpty) {
       return FskMesh(id, scene, shaderMaterial: material);
     }
@@ -77,7 +104,8 @@ class MeshFactory {
 
     int sideCount = 0;
     for (var outline in outlines) {
-      sideCount += (outline.length) * 2; // Each edge of the outline becomes 2 triangles.
+      sideCount +=
+          (outline.length) * 2; // Each edge of the outline becomes 2 triangles.
     }
 
     int totalTriangles = topCount * 2 + sideCount;
@@ -85,20 +113,37 @@ class MeshFactory {
 
     final mesh = FskMesh(id, scene, shaderMaterial: material);
     if (totalVertices > 0) {
-      final vertices = Float32List(totalVertices * FskVertexBuffer.componentCount);
+      final vertices =
+          Float32List(totalVertices * FskVertexBuffer.componentCount);
       final filler = VboFiller(vertices);
+      filler.bakeBarycentrics = bakeBarycentrics;
 
-      // Add the top faces.
+      // Caps normal logic:
+      // The two caps should point in opposite directions to face OUTWARDS.
+      vm.Vector3 normal = vm.Vector3(0, 0, 1);
+      if (outlines.isNotEmpty && outlines.first.planeIsValid) {
+        normal = outlines.first.normal!;
+      }
+
+      // If depth is in the same direction as normal, then normal points to the "bottom" cap
+      // and -normal points to the "top" cap.
+      bool aligned = normal.dot(depth) > 0;
+      vm.Vector3 startNormal = aligned ? -normal : normal;
+      vm.Vector3 endNormal = aligned ? normal : -normal;
+
+      // Add the start faces (offset zero).
       for (var outline in outlines) {
         if (outline.planeIsValid) {
-          _addExtrudedCap(filler, outline, vm.Vector3.zero(), outline.normal!, color, reverse: false);
+          _addExtrudedCap(filler, outline, vm.Vector3.zero(), startNormal, color,
+              reverse: startNormal.dot(outline.normal!) < 0);
         }
       }
 
-      // Add the bottom faces (reversed winding order).
+      // Add the end faces (offset depth).
       for (var outline in outlines) {
         if (outline.planeIsValid) {
-          _addExtrudedCap(filler, outline, depth, -outline.normal!, color, reverse: true);
+          _addExtrudedCap(filler, outline, depth, endNormal, color,
+              reverse: endNormal.dot(outline.normal!) < 0);
         }
       }
 
@@ -125,9 +170,9 @@ class MeshFactory {
       String id,
       FskSceneBase scene,
       List<Polyline> outlines,
-      void Function(VboFiller, Polyline) addFunction, {
-        FskShaderMaterial? material,
-      }) {
+      void Function(VboFiller, Polyline) addFunction,
+      {FskShaderMaterial? material,
+      bool bakeBarycentrics = false}) {
     int triangleCount = 0;
     for (var outline in outlines) {
       if (outline.length > 2) {
@@ -138,8 +183,10 @@ class MeshFactory {
     final mesh = FskMesh(id, scene, shaderMaterial: material);
     int newVertexCount = triangleCount * 3;
     if (newVertexCount > 0) {
-      final vertices = Float32List(newVertexCount * FskVertexBuffer.componentCount);
+      final vertices =
+          Float32List(newVertexCount * FskVertexBuffer.componentCount);
       final filler = VboFiller(vertices);
+      filler.bakeBarycentrics = bakeBarycentrics;
       for (var outline in outlines) {
         if (outline.length > 2) {
           addFunction(filler, outline);
