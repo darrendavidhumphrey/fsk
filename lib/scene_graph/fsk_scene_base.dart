@@ -1,7 +1,6 @@
 import 'dart:async';
 import 'dart:ui' as ui;
 import 'package:flutter/material.dart' hide Matrix4;
-import 'package:flutter/services.dart';
 import 'package:flutter_gpu/gpu.dart' as gpu;
 import 'package:vector_math/vector_math.dart' as vm;
 import '../fsk_singleton.dart';
@@ -25,6 +24,10 @@ abstract class FskSceneBase extends ChangeNotifier
 
   @override
   FskSceneNavigationDelegate? navigationDelegate;
+
+  /// The distance from the camera to the primary point of interest.
+  /// Used by sub-layers for constant-screen-size scaling (highlights, handles).
+  double cameraDistance = 300.0;
 
   final ValueNotifier<MouseCursor> cursorNotifier =
       ValueNotifier<MouseCursor>(SystemMouseCursors.basic);
