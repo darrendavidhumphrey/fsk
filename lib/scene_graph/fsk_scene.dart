@@ -124,11 +124,11 @@ class FskScene extends FskSceneBase with FskSceneLayerDispatcherMixin {
 
   @override
   void drawScene(gpu.CommandBuffer commandBuffer, FskRenderTarget renderTarget,
-      gpu.HostBuffer transients) {
+      gpu.HostBuffer transients, [gpu.RenderPass? parentRenderPass]) {
     if (!isReady) return;
 
     try {
-      super.drawScene(commandBuffer, renderTarget, transients);
+      super.drawScene(commandBuffer, renderTarget, transients, parentRenderPass);
 
       // 1. Calculate the layout matrix (e.g. for BoxFit logic).
       vm.Matrix4 layoutMatrix = vm.Matrix4.identity();
@@ -153,12 +153,18 @@ class FskScene extends FskSceneBase with FskSceneLayerDispatcherMixin {
       // 2. Combine layout with the current view matrix (mvMatrix).
       final vm.Matrix4 finalMvMatrix = layoutMatrix * mvMatrix;
 
-      // 3. Create a single RenderPass for all root nodes.
-      final renderPass = commandBuffer.createRenderPass(
-        autoClear ? renderTarget.renderTarget : renderTarget.loadTarget,
-      );
+      // 3. Create or reuse the RenderPass.
+      // Root scene MUST clear if autoClear is true. 
+      // If parentRenderPass is NOT null, we are a layer and should NOT clear.
+      final gpu.RenderTarget gpuTarget = (parentRenderPass == null && autoClear) 
+          ? renderTarget.renderTarget 
+          : renderTarget.loadTarget;
 
-      hardResetPipelineState(renderPass);
+      final renderPass = parentRenderPass ?? commandBuffer.createRenderPass(gpuTarget);
+
+      if (parentRenderPass == null) {
+        hardResetPipelineState(renderPass);
+      }
 
       for (final node in rootNodes) {
         if (node is FskRenderableObject && node.visible) {
@@ -174,7 +180,8 @@ class FskScene extends FskSceneBase with FskSceneLayerDispatcherMixin {
 
       // 4. Draw overlays (each manages its own passes for depth/scissor isolation)
       for (final layer in layers) {
-        layer.drawScene(commandBuffer, renderTarget, transients);
+        // Shared pass for all sub-layers
+        layer.drawScene(commandBuffer, renderTarget, transients, renderPass);
       }
     } catch (e, s) {
       logError("CRITICAL Error in FskScene.drawScene: $e\n$s");

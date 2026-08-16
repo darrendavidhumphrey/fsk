@@ -76,7 +76,7 @@ abstract class ScreenSpaceOverlay extends FskScene {
 
   @override
   void drawScene(gpu.CommandBuffer commandBuffer, FskRenderTarget renderTarget,
-      gpu.HostBuffer transients) {
+      gpu.HostBuffer transients, [gpu.RenderPass? parentRenderPass]) {
     if (!isReady) return;
 
     final parentPhysicalSize =
@@ -117,11 +117,11 @@ abstract class ScreenSpaceOverlay extends FskScene {
     final double physicalWidth = screenSpaceSize.width * physicalDpr;
     final double physicalHeight = screenSpaceSize.height * physicalDpr;
 
+    // ScreenSpaceOverlays ALWAYS start a new pass to isolate viewport/scissor and clear depth.
     // 1. Clear depth and draw background if it exists
     if (_backgroundNode != null) {
       final vm.Matrix4 bgP = vm.Matrix4.identity();
       // Simple ortho mapping [-w/2, w/2] to [-1, 1]
-      // Using project's standard ortho logic
       bgP.setEntry(0, 0, 2.0 / screenSpaceSize.width);
       bgP.setEntry(1, 1, 2.0 / screenSpaceSize.height);
       bgP.setEntry(2, 2, 0.001);
@@ -149,6 +149,8 @@ abstract class ScreenSpaceOverlay extends FskScene {
     }
 
     // 2. Draw all child nodes via super (uses navigationDelegate matrices)
+    // We do NOT pass parentRenderPass here because we want ScreenSpaceOverlay's content
+    // to draw into its own isolated pass (created by super.drawScene internally since we pass null).
     super.drawScene(commandBuffer, renderTarget, transients);
   }
 

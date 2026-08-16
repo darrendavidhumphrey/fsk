@@ -175,7 +175,7 @@ abstract class FskSceneBase extends ChangeNotifier
 
   @mustCallSuper
   void drawScene(gpu.CommandBuffer commandBuffer, FskRenderTarget renderTarget,
-      gpu.HostBuffer transients) {
+      gpu.HostBuffer transients, [gpu.RenderPass? parentRenderPass]) {
     updateMatrices();
     _frameCount++;
   }

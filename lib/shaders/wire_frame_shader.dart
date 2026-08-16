@@ -30,7 +30,7 @@ class WireFrameUniforms extends BaseUniforms {
     this['shininess'] = 16.0; // Lower shininess for softer look
     this['outlineEnabled'] = 1.0;
     this['drawFill'] = 1.0;
-    this['lineWidth'] = 1.5;
+    this['lineWidth'] = 2.5; // Increased default
   }
 
   @override

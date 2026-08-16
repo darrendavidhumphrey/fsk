@@ -1,9 +1,9 @@
 import 'dart:ui' as ui;
 import 'package:flutter_gpu/gpu.dart' as gpu;
-
 import '../util.dart';
+import '../logging.dart';
 
-class FskRenderTarget {
+class FskRenderTarget with LoggableClass {
   final int width;
   final int height;
   final bool enableMsaa;
@@ -25,22 +25,22 @@ class FskRenderTarget {
     _allocateResources();
   }
 
-  /// Expose the render target configuration for clearing the frame.
   gpu.RenderTarget get renderTarget => _renderTargetClear!;
-
-  /// Expose the render target configuration for loading existing content.
   gpu.RenderTarget get loadTarget => _renderTargetLoad!;
-
-  /// Expose the render target configuration for loading existing color content but clearing depth.
   gpu.RenderTarget get loadColorClearDepthTarget => _renderTargetLoadColorClearDepth!;
-
-  /// Expose the final single-sample texture read by the canvas/samplers.
   gpu.Texture get outputTexture => _resolveTexture!;
 
-  /// The sample count matches the texture layout boundaries (4 for MSAA, 1 for standard).
-  int get sampleCount => enableMsaa ? 4 : 1;
+  int get sampleCount {
+    if (!enableMsaa) return 1;
+    // Strictly check hardware support for offscreen MSAA
+    if (!gpu.gpuContext.doesSupportOffscreenMSAA) return 1;
+    return 4;
+  }
 
   void _allocateResources() {
+    final int targetSampleCount = sampleCount;
+    logInfo("FskRenderTarget: allocating resources ($width x $height), MSAA samples: $targetSampleCount");
+
     _resolveTexture = gpu.gpuContext.createTexture(
       gpu.StorageMode.hostVisible,
       width,
@@ -50,19 +50,21 @@ class FskRenderTarget {
       enableShaderReadUsage: true,
     );
 
+    // Ensure the depth buffer ALWAYS matches the color buffer's sample count
     _depthTexture = gpu.gpuContext.createTexture(
       gpu.StorageMode.devicePrivate,
       width,
       height,
       format: gpu.gpuContext.defaultDepthStencilFormat,
       enableRenderTargetUsage: true,
+      sampleCount: targetSampleCount,
     );
 
     final depthAttachmentClear = gpu.DepthStencilAttachment(
       texture: _depthTexture!,
       depthClearValue: 1.0,
       depthLoadAction: gpu.LoadAction.clear,
-      depthStoreAction: gpu.StoreAction.store, // Keep depth for subsequent passes
+      depthStoreAction: gpu.StoreAction.store, 
     );
 
     final depthAttachmentLoad = gpu.DepthStencilAttachment(
@@ -71,13 +73,13 @@ class FskRenderTarget {
       depthStoreAction: gpu.StoreAction.store,
     );
 
-    if (enableMsaa && gpu.gpuContext.doesSupportOffscreenMSAA) {
+    if (targetSampleCount > 1) {
       _msaaColorTexture = gpu.gpuContext.createTexture(
-        gpu.StorageMode.deviceTransient,
+        gpu.StorageMode.devicePrivate,
         width,
         height,
         format: gpu.PixelFormat.r8g8b8a8UNormInt,
-        sampleCount: 4,
+        sampleCount: targetSampleCount,
         enableRenderTargetUsage: true,
         enableShaderReadUsage: false,
       );

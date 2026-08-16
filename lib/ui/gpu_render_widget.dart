@@ -13,7 +13,7 @@ class GPURenderWidget extends StatefulWidget {
   const GPURenderWidget({
     required this.scene, 
     super.key, 
-    this.useAntiAliasing = false,
+    this.useAntiAliasing = true,
     this.isAnimating = true,
   });
 

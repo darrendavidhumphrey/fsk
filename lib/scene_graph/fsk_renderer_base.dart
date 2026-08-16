@@ -81,8 +81,6 @@ abstract class FskRendererBase extends ChangeNotifier with LoggableClass {
 
     final material = shaderMaterial ?? defaultMaterial;
 
-    logInfo("FskRendererBase: rebuildPipeline for material ${material.vertShaderName}/${material.fragShaderName}");
-
     pipelineKey = PipelineKey(
       vertShaderName: material.vertShaderName,
       fragShaderName: material.fragShaderName,

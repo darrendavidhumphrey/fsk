@@ -7,7 +7,6 @@ layout(location = 2) in vec3 vEyeCoords;
 layout(location = 0) out vec4 FragColor;
 
 // Uniform Block for configuration properties (Binding 1, Set 0)
-// Unified 40-float (160-byte) block size for single-pass stability.
 layout(std140, set = 0, binding = 1) uniform LightingFragmentUniforms {
     vec4 uKd;        // Offset 0
     vec4 uLd;        // Offset 16
@@ -21,17 +20,19 @@ void main() {
     vec3 n = normalize(vNormal);
     vec3 s = normalize(vec3(fragUniforms.uLightPos.xyz - vEyeCoords));
 
-    // Soft neutral lighting (Half-Lambert style)
-    float diffuseFactor = max(dot(s, n), 0.0) * 0.7 + 0.3;
-    vec3 lightIntensity = fragUniforms.uLd.rgb * fragUniforms.uKd.rgb * diffuseFactor;
+    // Headlight soft lighting model
+    // High ambient + Half-Lambert diffuse
+    float diffuseFactor = max(dot(s, n), 0.0) * 0.5 + 0.5;
+    vec3 ambient = vec3(0.15);
+    vec3 lightIntensity = fragUniforms.uLd.rgb * fragUniforms.uKd.rgb * diffuseFactor + ambient;
 
     vec4 texColor = texture(uSampler, vTextureCoord);
 
-    // headlight mode often benefits from a very subtle specular to show curvature/depth
+    // Very subtle specular
     vec3 v = normalize(-vEyeCoords);
     vec3 r = reflect(-s, n);
-    float spec = pow(max(dot(v, r), 0.0), 32.0);
-    vec3 specular = vec3(0.1) * spec; // Very subtle
+    float spec = pow(max(dot(v, r), 0.0), 16.0);
+    vec3 specular = vec3(0.05) * spec;
 
     FragColor = vec4(texColor.rgb * lightIntensity + specular, texColor.a);
 }
