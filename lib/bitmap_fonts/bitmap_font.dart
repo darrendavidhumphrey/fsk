@@ -99,6 +99,7 @@ class BitmapFont extends ChangeNotifier with LoggableClass {
         wrapS: gpu.SamplerAddressMode.clampToEdge,
         wrapT: gpu.SamplerAddressMode.clampToEdge,
         generateMipmaps: generateMipmaps,
+        maxAnisotropy: 8, // 8x Anisotropic filtering for higher quality text
       );
 
       textureInfo = info;

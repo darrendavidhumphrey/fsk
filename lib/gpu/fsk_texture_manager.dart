@@ -110,6 +110,7 @@ class FskTextureManager with LoggableClass {
         gpu.SamplerAddressMode wrapS = gpu.SamplerAddressMode.repeat,
         gpu.SamplerAddressMode wrapT = gpu.SamplerAddressMode.repeat,
         bool generateMipmaps = false,
+        int maxAnisotropy = 1,
       }) async {
 
     if (_textures.containsKey(id)) {
@@ -128,6 +129,7 @@ class FskTextureManager with LoggableClass {
       mipFilter: mipFilter,
       widthAddressMode: wrapS,
       heightAddressMode: wrapT,
+      maxAnisotropy: maxAnisotropy,
     );
 
     var textureInfo = FskTextureInfo(id, url, samplerOptions);
