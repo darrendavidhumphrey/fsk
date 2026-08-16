@@ -25,6 +25,7 @@ layout(std140, set = 0, binding = 1) uniform WireFrameFragmentUniforms {
 layout(set = 0, binding = 2) uniform sampler2D uSampler;
 
 void main() {
+    // Standardize all varyings to vec3
     vec3 bary = vBarycentric;
     vec3 n = normalize(vNormal);
     vec3 eyeCoords = vEyeCoords;
@@ -32,10 +33,10 @@ void main() {
 
     vec3 lightDir = normalize(fragUniforms.uLightPos.xyz - eyeCoords);
 
-    // Half-Lambert soft lighting model
-    float diff = max(dot(n, lightDir), 0.0) * 0.5 + 0.5;
+    // Half-Lambert diffuse lighting
+    float diff = max(dot(n, lightDir), 0.0) * 0.6 + 0.4;
 
-    vec3 ambient = vec3(0.15) * fragUniforms.uMaterialAmbient.rgb;
+    vec3 ambient = fragUniforms.uAmbientLight.rgb * fragUniforms.uMaterialAmbient.rgb;
     vec3 diffuse = fragUniforms.uDiffuseLight.rgb * fragUniforms.uMaterialDiffuse.rgb * diff;
 
     // Headlight specular
@@ -46,11 +47,10 @@ void main() {
 
     vec3 litColor = ambient + diffuse + specular;
 
-    // Anti-aliased edge detection using standard analytic wireframe technique
+    // Edge detection logic
     vec3 d = fwidth(bary);
-    // Use slightly larger filter for smoothstep to prevent sub-pixel shimmering
-    vec3 a3 = smoothstep(vec3(0.0), d * (fragUniforms.uConfig.w + 0.75), bary);
-    float edgeFactor = min(min(a3.x, a3.y), a3.z);
+    vec3 a3 = smoothstep(vec3(0.0), d * (fragUniforms.uConfig.w + 0.5), bary);
+    float outlineFactor = min(min(a3.x, a3.y), a3.z);
 
     vec4 texColor = texture(uSampler, uv);
 
@@ -62,16 +62,14 @@ void main() {
         // Solid or SolidMesh mode
         vec4 fill = vec4(litColor * texColor.rgb, texColor.a);
         if (outlineEnabledFlag > 0.5) {
-            finalColor = mix(fragUniforms.uOutlineColor, fill, edgeFactor);
+            finalColor = mix(fragUniforms.uOutlineColor, fill, outlineFactor);
         } else {
             finalColor = fill;
         }
     } else {
         // Wireframe-only mode
         if (outlineEnabledFlag > 0.5) {
-            // Transparent background, solid lines
-            float lineAlpha = 1.0 - edgeFactor;
-            // Early out for non-line pixels to speed up rendering
+            float lineAlpha = 1.0 - outlineFactor;
             if (lineAlpha < 0.1) discard;
             finalColor = vec4(fragUniforms.uOutlineColor.rgb, lineAlpha);
         } else {
