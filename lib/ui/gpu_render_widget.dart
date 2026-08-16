@@ -77,8 +77,11 @@ class _GPURenderWidgetState extends State<GPURenderWidget> with SingleTickerProv
 
       if (physicalWidth <= 0 || physicalHeight <= 0) return;
 
-      // Reallocate container explicitly if size transforms, scene instances, or clear colors change
-      if (_lastSize != logicalSize || _lastScene != widget.scene || _lastClearColor != widget.scene.clearColor) {
+      // Reallocate container explicitly if size transforms, scene instances, clear colors, or MSAA settings change
+      if (_lastSize != logicalSize || 
+          _lastScene != widget.scene || 
+          _lastClearColor != widget.scene.clearColor || 
+          _fskTarget?.enableMsaa != widget.useAntiAliasing) {
         _lastSize = logicalSize;
         _lastScene = widget.scene;
         _lastClearColor = widget.scene.clearColor;
@@ -104,6 +107,12 @@ class _GPURenderWidgetState extends State<GPURenderWidget> with SingleTickerProv
 
       // Inform your pipeline states of your chosen sample layout rules
       widget.scene.drawScene(commandBuffer, _fskTarget!, frameTransients);
+
+      // Perform a final resolve pass to get the multi-sampled data into the resolve texture.
+      // This pass doesn't draw anything, it just triggers the GPU's resolve logic 
+      // for the entire screen, ensuring no trails and clean MSAA.
+      final resolvePass = commandBuffer.createRenderPass(_fskTarget!.resolveOnlyTarget);
+      // No draw calls needed, resolve happens at pass end automatically.
 
       commandBuffer.submit();
       widget.scene.clearRetainedBuffers();

@@ -124,64 +124,52 @@ class FskScene extends FskSceneBase with FskSceneLayerDispatcherMixin {
 
   @override
   void drawScene(gpu.CommandBuffer commandBuffer, FskRenderTarget renderTarget,
-      gpu.HostBuffer transients, [gpu.RenderPass? parentRenderPass]) {
+      gpu.HostBuffer transients, [gpu.RenderPass? parentRenderPass, bool isLast = true]) {
     if (!isReady) return;
 
     try {
-      super.drawScene(commandBuffer, renderTarget, transients, parentRenderPass);
+      super.drawScene(commandBuffer, renderTarget, transients, parentRenderPass, isLast);
 
-      // 1. Calculate the layout matrix (e.g. for BoxFit logic).
+      // 1. Calculate the layout matrix.
       vm.Matrix4 layoutMatrix = vm.Matrix4.identity();
       if (useBoxFitLayout) {
         vm.Matrix4? boxFitMatrix =
             navigationDelegate?.createBoxFitMatrix(skinSize);
-
         if (boxFitMatrix != null) {
           layoutMatrix = boxFitMatrix * layoutMatrix;
         }
-
-        // Center object in view by translating content origin to its center
-        layoutMatrix.translateByVector3(
-          vm.Vector3(
-            -skinSize.width / 2,
-            -skinSize.height / 2,
-            0,
-          ),
-        );
+        layoutMatrix.translateByVector3(vm.Vector3(-skinSize.width / 2, -skinSize.height / 2, 0));
       }
 
       // 2. Combine layout with the current view matrix (mvMatrix).
       final vm.Matrix4 finalMvMatrix = layoutMatrix * mvMatrix;
 
-      // 3. Create or reuse the RenderPass.
-      // Root scene MUST clear if autoClear is true. 
-      // If parentRenderPass is NOT null, we are a layer and should NOT clear.
-      final gpu.RenderTarget gpuTarget = (parentRenderPass == null && autoClear) 
-          ? renderTarget.renderTarget 
-          : renderTarget.loadTarget;
+      // 3. RenderPass Management
+      gpu.RenderPass renderPass;
+      if (parentRenderPass != null) {
+        renderPass = parentRenderPass;
+      } else {
+        // We are the root. Clear if autoClear is true. 
+        // We NEVER resolve here anymore; the GPURenderWidget handles final resolve.
+        final gpu.RenderTarget target = autoClear 
+            ? renderTarget.clearTarget 
+            : renderTarget.loadTarget;
 
-      final renderPass = parentRenderPass ?? commandBuffer.createRenderPass(gpuTarget);
-
-      if (parentRenderPass == null) {
+        renderPass = commandBuffer.createRenderPass(target);
         hardResetPipelineState(renderPass);
       }
 
+      // 4. Draw geometry
       for (final node in rootNodes) {
         if (node is FskRenderableObject && node.visible) {
-          node.draw(
-            renderPass,
-            transients,
-            pMatrix,
-            finalMvMatrix,
-            viewportSize,
-          );
+          node.draw(renderPass, transients, pMatrix, finalMvMatrix, viewportSize);
         }
       }
 
-      // 4. Draw overlays (each manages its own passes for depth/scissor isolation)
-      for (final layer in layers) {
-        // Shared pass for all sub-layers
-        layer.drawScene(commandBuffer, renderTarget, transients, renderPass);
+      // 5. Draw sub-layers
+      for (int i = 0; i < layers.length; i++) {
+        // Sub-layers share our pass if they can
+        layers[i].drawScene(commandBuffer, renderTarget, transients, renderPass, isLast);
       }
     } catch (e, s) {
       logError("CRITICAL Error in FskScene.drawScene: $e\n$s");

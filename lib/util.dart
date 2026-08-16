@@ -247,5 +247,12 @@ vm.Vector4 parseVector4(String value) {
 }
 
 vm.Vector4 colorToVector(Color color) {
-  return vm.Vector4(color.r, color.g, color.b, color.a);
+  // Use red, green, blue, alpha properties which are always 0-255, 
+  // then normalize to 0.0-1.0. This is safe across Flutter versions.
+  return vm.Vector4(
+    color.red / 255.0,
+    color.green / 255.0,
+    color.blue / 255.0,
+    color.alpha / 255.0,
+  );
 }
