@@ -3,7 +3,7 @@
 layout(location = 0) in vec3 aVertexPosition;
 layout(location = 1) in vec2 aTextureCoord;
 layout(location = 2) in vec3 aVertexNormal;
-layout(location = 3) in vec4 aVertexColor; // Baked barycentrics (r,g,b)
+layout(location = 3) in vec4 aVertexColor; // Baked barycentrics
 
 layout(std140, set = 0, binding = 0) uniform WireFrameVertexUniforms {
     mat4 uMVMatrix;
@@ -23,6 +23,9 @@ void main(void) {
 
     // Pass baked barycentric coordinates
     vBarycentric = aVertexColor.xyz;
+
+    // Safety factor: ensure aVertexColor.a is consumed
+    vNormal.x += aVertexColor.a * 0.000001;
 
     gl_Position = vertUniforms.uPMatrix * eyeCoords;
 }
