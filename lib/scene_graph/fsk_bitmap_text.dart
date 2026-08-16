@@ -378,8 +378,6 @@ class FskBitmapText extends Fsk2DRenderableObject
     final result = quadBuilder.build();
     numQuads = result.numQuads;
 
-    logInfo("FskBitmapText($id).doRebuild: built $numQuads quads for '$text'");
-
     // Only update the renderer if there are quads to draw
     if (result.numQuads != 0) {
       _renderer.setFromUnrolledQuads(result.numQuads, result.vertexData);
