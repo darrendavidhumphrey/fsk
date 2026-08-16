@@ -1,5 +1,6 @@
 import 'dart:async';
-import 'dart:ui';
+import 'dart:ui' as ui;
+import 'dart:math';
 import 'package:flutter/foundation.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_gpu/gpu.dart' as gpu;
@@ -105,8 +106,10 @@ class FskTextureManager with LoggableClass {
       String url, {
         gpu.MinMagFilter magFilter = gpu.MinMagFilter.linear,
         gpu.MinMagFilter minFilter = gpu.MinMagFilter.linear,
+        gpu.MipFilter mipFilter = gpu.MipFilter.linear,
         gpu.SamplerAddressMode wrapS = gpu.SamplerAddressMode.repeat,
         gpu.SamplerAddressMode wrapT = gpu.SamplerAddressMode.repeat,
+        bool generateMipmaps = false,
       }) async {
 
     if (_textures.containsKey(id)) {
@@ -118,10 +121,11 @@ class FskTextureManager with LoggableClass {
       return info;
     }
 
-    //  Bundle sampling parameters directly inside a unified SamplerOptions object
+    // Bundle sampling parameters directly inside a unified SamplerOptions object
     final gpu.SamplerOptions samplerOptions = gpu.SamplerOptions(
       minFilter: minFilter,
       magFilter: magFilter,
+      mipFilter: mipFilter,
       widthAddressMode: wrapS,
       heightAddressMode: wrapT,
     );
@@ -140,29 +144,65 @@ class FskTextureManager with LoggableClass {
     try {
       final ByteData data = await rootBundle.load(fullPath);
 
-      final Codec codec = await instantiateImageCodec(data.buffer.asUint8List());
-      final FrameInfo frameInfo = await codec.getNextFrame();
-      final Image uiImage = frameInfo.image;
+      final ui.Codec codec = await ui.instantiateImageCodec(data.buffer.asUint8List());
+      final ui.FrameInfo frameInfo = await codec.getNextFrame();
+      final ui.Image uiImage = frameInfo.image;
 
-      final ByteData? byteData = await uiImage.toByteData(
-        format: ImageByteFormat.rawRgba,
-      );
-      if (byteData == null) {
-        throw Exception("Could not convert image to raw RGBA bytes.");
+      // Calculate mip level count if requested
+      int mipLevelCount = 1;
+      if (generateMipmaps) {
+        // Use fullMipCount static from Texture
+        mipLevelCount = gpu.Texture.fullMipCount(uiImage.width, uiImage.height);
       }
 
       // Allocate the physical hardware texture allocation
       final gpu.Texture allocatedTexture = gpu.gpuContext.createTexture(
-        gpu.StorageMode.hostVisible,
+        gpu.StorageMode.devicePrivate,
         uiImage.width,
         uiImage.height,
         format: gpu.PixelFormat.r8g8b8a8UNormInt,
+        mipLevelCount: mipLevelCount,
       );
 
-      // Actually upload the texture to the GPU!
-      allocatedTexture.overwrite(byteData);
-      textureInfo.texture = allocatedTexture;
+      // Populate each mip level via CPU-side downscaling
+      for (int i = 0; i < mipLevelCount; i++) {
+        final int mipWidth = max(1, uiImage.width >> i);
+        final int mipHeight = max(1, uiImage.height >> i);
 
+        ui.Image currentMipImage;
+        if (i == 0) {
+          currentMipImage = uiImage;
+        } else {
+          final recorder = ui.PictureRecorder();
+          final canvas = ui.Canvas(recorder);
+          canvas.drawImageRect(
+            uiImage,
+            ui.Rect.fromLTWH(0, 0, uiImage.width.toDouble(), uiImage.height.toDouble()),
+            ui.Rect.fromLTWH(0, 0, mipWidth.toDouble(), mipHeight.toDouble()),
+            ui.Paint()..filterQuality = ui.FilterQuality.medium,
+          );
+          final picture = recorder.endRecording();
+          currentMipImage = await picture.toImage(mipWidth, mipHeight);
+          picture.dispose();
+        }
+
+        final ByteData? byteData = await currentMipImage.toByteData(
+          format: ui.ImageByteFormat.rawRgba,
+        );
+        if (byteData == null) {
+          throw Exception("Could not convert mip $i image to raw RGBA bytes.");
+        }
+
+        // Upload level to the GPU
+        allocatedTexture.overwrite(byteData, mipLevel: i);
+
+        if (i > 0) {
+          currentMipImage.dispose();
+        }
+      }
+
+      uiImage.dispose(); // Dispose original after loop
+      textureInfo.texture = allocatedTexture;
       textureInfo.isLoaded = textureInfo.texture != null;
     } catch (e) {
       logError("Error processing flutter_gpu texture allocation for $url: $e");

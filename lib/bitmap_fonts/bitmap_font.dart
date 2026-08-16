@@ -86,7 +86,7 @@ class BitmapFont extends ChangeNotifier with LoggableClass {
     this.kerningPairs,
   );
 
-  Future<void> loadFontTexture(String textureName) async {
+  Future<void> loadFontTexture(String textureName, {bool generateMipmaps = false}) async {
     try {
       // Updated to utilize Flutter GPU sampling and texture structures
       // Note: Ensure your textureManager is updated to return a gpu.Texture object
@@ -95,8 +95,10 @@ class BitmapFont extends ChangeNotifier with LoggableClass {
         textureName,
         minFilter: gpu.MinMagFilter.linear,
         magFilter: gpu.MinMagFilter.linear,
+        mipFilter: gpu.MipFilter.linear,
         wrapS: gpu.SamplerAddressMode.clampToEdge,
         wrapT: gpu.SamplerAddressMode.clampToEdge,
+        generateMipmaps: generateMipmaps,
       );
 
       textureInfo = info;

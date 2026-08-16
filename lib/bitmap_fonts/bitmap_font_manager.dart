@@ -56,14 +56,15 @@ class BitmapFontManager with LoggableClass {
 
   /// Explicitly initializes the manager, ensuring the default font is loaded.
   Future<void> init() async {
-    await createFont("default", creatoDisplayBoldXml, "CreatoDisplay-Bold.png");
+    await createFont("default", creatoDisplayBoldXml, "CreatoDisplay-Bold.png", generateMipmaps: true);
   }
 
   Future<void> createFontFromFile(
     String fontName,
     String filename,
-    String textureName,
-  ) async {
+    String textureName, {
+    bool generateMipmaps = true,
+  }) async {
     if (_fonts.containsKey(fontName)) {
       logInfo("Font $fontName already registered, skipping load.");
       return;
@@ -83,7 +84,7 @@ class BitmapFontManager with LoggableClass {
       logVerbose("createFontFromFile: $fontName, $filename, $textureName");
 
       // Call the createFont method with the retrieved data
-      await createFont(fontName, xmlData, textureName);
+      await createFont(fontName, xmlData, textureName, generateMipmaps: generateMipmaps);
     } catch (e, stackTrace) {
       logError("Error loading or parsing font XML '$fontPath': $e");
       logError("StackTrace: $stackTrace");
@@ -93,11 +94,11 @@ class BitmapFontManager with LoggableClass {
   /// Creates a font from XML data, loads its texture, and registers it.
   /// The XML data is processed synchronously, but the texture is loaded asynchronously.
   /// Thus it is possible for fonts to temporarily have no texture loaded
-  Future<void> createFont(String fontName, String xmlString, String textureName) async {
+  Future<void> createFont(String fontName, String xmlString, String textureName, {bool generateMipmaps = false}) async {
     try {
       var font = BitmapFont.fromXml(fontName, xmlString);
       // The texture loads asynchronously, so wait for it.
-      await font.loadFontTexture(textureName);
+      await font.loadFontTexture(textureName, generateMipmaps: generateMipmaps);
       registerFont(fontName, font);
     } catch (e, stackTrace) {
       logError("Error loading font '$fontName': $e");

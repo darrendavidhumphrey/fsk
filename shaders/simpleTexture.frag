@@ -1,5 +1,7 @@
 #version 460 core
 
+precision highp float;
+
 layout(location = 0) in vec2 vTextureCoord;
 layout(location = 0) out vec4 FragColor;
 
