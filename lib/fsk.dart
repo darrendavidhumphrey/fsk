@@ -27,6 +27,7 @@ export 'loaders/fsk_stl_loader.dart';
 export 'scenes/view_cube_overlay.dart';
 
 export 'scene_graph/fsk_bitmap_text.dart';
+export 'scene_graph/fsk_base_text.dart';
 export 'scene_graph/fsk_group.dart';
 export 'scene_graph/fsk_pbr_model.dart';
 export 'scene_graph/fsk_external_model.dart';
@@ -36,6 +37,7 @@ export 'scene_graph/fsk_obj_model.dart';
 export 'scene_graph/fsk_mesh.dart';
 export 'scene_graph/fsk_mesh_renderer.dart';
 export 'scene_graph/fsk_mesh_renderer_base.dart';
+export 'scene_graph/fsk_mtsdf_text.dart';
 export 'scene_graph/fsk_rectangular_solid.dart';
 export 'scene_graph/fsk_quad.dart';
 export 'scene_graph/fsk_scene.dart';

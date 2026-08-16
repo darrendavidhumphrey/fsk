@@ -8,6 +8,7 @@ import '../gpu/fsk_vertex_buffer.dart';
 import '../gpu/fsk_shader_material.dart';
 import '../vbo_filler.dart';
 import '../shaders/simple_texture_shader.dart';
+import '../shaders/mtsdf_text_shader.dart';
 import 'fsk_renderer_base.dart';
 
 class FskQuadsRenderer extends FskRendererBase {
@@ -86,6 +87,7 @@ class FskQuadsRenderer extends FskRendererBase {
   ) {
     // It's not an error for the renderer to be empty
     if (!_verticesDownloaded) {
+      logVerbose("FskQuadsRenderer.draw: vertices not downloaded");
       return;
     }
 
@@ -127,6 +129,8 @@ class FskQuadsRenderer extends FskRendererBase {
             )
           : _modulateColor;
       (uniforms as SimpleTextureUniforms).setModulateColor(modulate);
+    } else if (uniforms is MtsdfTextUniforms) {
+      (uniforms as MtsdfTextUniforms).setTextColor(_modulateColor);
     }
     
     // 4. Robust Texture Binding: Always bind a texture to Slot 2 to prevent state leaks.

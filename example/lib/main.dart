@@ -10,6 +10,7 @@ import 'cad_canvas_scene.dart';
 import 'obj_model_scene.dart';
 import 'pbr_model_scene.dart';
 import 'pbr_with_overlay_example.dart';
+import 'mtsdf_text_scene.dart';
 
 
 void main() async {
@@ -42,7 +43,8 @@ class TestAppState extends State<TestApp> {
     "Bitmap Text (Ortho View)",
     "Teapot OBJ (Orbit View)",
     "PBR Sci-Fi Helmet GLTF (Orbit View)",
-    "PBR with Teapot Overlay"
+    "PBR with Teapot Overlay",
+    "MTSDF Text (Ortho View)"
   ];
   final List<FskSceneBase> scenes = [];
 
@@ -55,6 +57,7 @@ class TestAppState extends State<TestApp> {
     scenes.add(ObjModelScene(navigationDelegate: OrbitViewDelegate(boxFit: FskBoxFit.bestFit)));
     scenes.add(PbrModelScene(navigationDelegate: OrbitViewDelegate(boxFit: FskBoxFit.bestFit)));
     scenes.add(PbrWithOverlayScene(navigationDelegate: OrbitViewDelegate(boxFit: FskBoxFit.bestFit)));
+    scenes.add(MtsdfTextScene(navigationDelegate: OrthoViewDelegate(boxFit: FskBoxFit.bestFit)));
   }
 
   @override

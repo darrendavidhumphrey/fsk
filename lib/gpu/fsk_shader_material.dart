@@ -1,5 +1,6 @@
 import 'package:flutter_gpu/gpu.dart' as gpu;
 import '../fsk.dart';
+import '../shaders/mtsdf_text_shader.dart';
 
 typedef UniformsFactory = BaseUniforms Function(gpu.Shader vert, gpu.Shader frag);
 
@@ -73,5 +74,12 @@ class FskShaderMaterial {
     fragShaderName: "WireFrameFragment",
     layout: v3t2n3c4Layout,
     uniformsFactory: (v, f) => WireFrameUniforms(vertexShader: v, fragmentShader: f),
+  );
+
+  static final FskShaderMaterial mtsdfText = FskShaderMaterial(
+    vertShaderName: "MtsdfTextVertex",
+    fragShaderName: "MtsdfTextFragment",
+    layout: textVertexLayout,
+    uniformsFactory: (v, f) => MtsdfTextUniforms(vertexShader: v, fragmentShader: f),
   );
 }

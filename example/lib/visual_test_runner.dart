@@ -15,6 +15,7 @@ import 'cad_canvas_scene.dart';
 import 'obj_model_scene.dart';
 import 'pbr_model_scene.dart';
 import 'pbr_with_overlay_example.dart';
+import 'mtsdf_text_scene.dart';
 
 /// A specialized version of the example program that automatically iterates
 /// through all examples and captures a screenshot of each to the 'test_outputs' directory.
@@ -44,7 +45,8 @@ class _VisualTestAppState extends State<VisualTestApp> with LoggableClass {
     "scene_from_xml",
     "obj_model_scene",
     "pbr_model_scene",
-    "pbr_with_overlay_scene"
+    "pbr_with_overlay_scene",
+    "mtsdf_text_scene"
   ];
 
   FskSceneBase? _currentScene;
@@ -292,6 +294,8 @@ class _VisualTestAppState extends State<VisualTestApp> with LoggableClass {
         return PbrModelScene(navigationDelegate: OrbitViewDelegate(boxFit: FskBoxFit.bestFit));
       case "pbr_with_overlay_scene":
         return PbrWithOverlayScene(navigationDelegate: OrbitViewDelegate(boxFit: FskBoxFit.bestFit));
+      case "mtsdf_text_scene":
+        return MtsdfTextScene(navigationDelegate: OrthoViewDelegate(boxFit: FskBoxFit.bestFit));
       default:
         throw Exception("Unknown scene: $name");
     }

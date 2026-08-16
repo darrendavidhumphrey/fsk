@@ -1,3 +1,4 @@
+import 'dart:ui';
 import 'package:vector_math/vector_math.dart' as vm;
 import 'geometry_util.dart';
 import 'polyline.dart';
@@ -50,6 +51,24 @@ class ReferenceBox {
   /// construction.
   ReferenceBox(this.origin, this.xVector, this.yVector, this.zVector) {
     _initialize();
+  }
+
+  /// Creates a [ReferenceBox] centered at [center] with the given [size].
+  factory ReferenceBox.fromCenterSize(vm.Vector3 center, Size size, {double depth = 0.0}) {
+    final double halfWidth = size.width / 2.0;
+    final double halfHeight = size.height / 2.0;
+    final double halfDepth = depth / 2.0;
+
+    final origin = vm.Vector3(
+      center.x - halfWidth,
+      center.y - halfHeight,
+      center.z - halfDepth,
+    );
+    final xVector = vm.Vector3(size.width, 0, 0);
+    final yVector = vm.Vector3(0, size.height, 0);
+    final zVector = vm.Vector3(0, 0, depth);
+
+    return ReferenceBox(origin, xVector, yVector, zVector);
   }
 
   /// Creates a degenerate ReferenceBox at the origin, which will be marked as invalid.

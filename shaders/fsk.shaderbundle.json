@@ -78,5 +78,13 @@
   "BitmapTextFragment": {
     "type": "fragment",
     "file": "shaders/bitmapText.frag"
+  },
+  "MtsdfTextVertex": {
+    "type": "vertex",
+    "file": "shaders/mtsdf_text.vert"
+  },
+  "MtsdfTextFragment": {
+    "type": "fragment",
+    "file": "shaders/mtsdf_text.frag"
   }
 }
