@@ -139,6 +139,7 @@ class OrbitViewDelegateBase extends PerspectiveViewDelegate {
   double yaw = 0;
   double pitch = 0;
   double distance = 300;
+  vm.Vector3 orbitCenter = vm.Vector3.zero();
 
   // Which button is used to rotate the camera?
   int rotationMouseButton = kPrimaryButton;
@@ -198,7 +199,7 @@ class OrbitViewDelegateBase extends PerspectiveViewDelegate {
 
   /// The point in space that the camera orbits around.
   vm.Vector3 getOrbitCenter() {
-    return vm.Vector3(0, 0, 0);
+    return orbitCenter;
   }
 }
 

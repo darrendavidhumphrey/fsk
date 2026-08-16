@@ -161,6 +161,15 @@ class FskQuad extends Fsk2DRenderableObject with FskTransformableMixin, FskDepth
     );
   }
 
+  static ReferenceBox createRefBoxAtCorner(Size size) {
+    return ReferenceBox(
+      vm.Vector3.zero(),
+      vm.Vector3(size.width, 0, 0),
+      vm.Vector3(0, size.height, 0),
+      vm.Vector3(0, 0, 1),
+    );
+  }
+
   /// Creates a centered 2D quad of the specified [size] at [z] depth.
   factory FskQuad.centered(
     String id,
