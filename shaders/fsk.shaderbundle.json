@@ -81,10 +81,10 @@
   },
   "MtsdfTextVertex": {
     "type": "vertex",
-    "file": "shaders/mtsdf_text.vert"
+    "file": "shaders/mtsdfText.vert"
   },
   "MtsdfTextFragment": {
     "type": "fragment",
-    "file": "shaders/mtsdf_text.frag"
+    "file": "shaders/mtsdfText.frag"
   }
 }

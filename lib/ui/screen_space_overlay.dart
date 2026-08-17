@@ -45,6 +45,7 @@ abstract class ScreenSpaceOverlay extends FskScene {
   @override
   void drawScene(gpu.CommandBuffer commandBuffer, FskRenderTarget renderTarget,
       gpu.HostBuffer transients, [gpu.RenderPass? parentRenderPass, bool isLast = true]) {
+
     if (!isReady) return;
 
     final parentPhysicalSize =

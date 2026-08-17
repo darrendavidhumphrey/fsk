@@ -36,7 +36,8 @@ class MtsdfTextUniforms extends BaseUniforms {
     fragmentData.packColor(valuesMap[_kGlowColorKey]);
     fragmentData.packDouble(valuesMap[_kGlowSizeKey]);
     // Explicit padding to reach the next vec4 boundary (3 slots)
-    fragmentData.packDouble(0.0); 
+    // TODO: NOT NEEDED!
+    fragmentData.packDouble(0.0);
     fragmentData.packDouble(0.0);
     fragmentData.packDouble(0.0);
   }
