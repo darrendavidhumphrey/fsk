@@ -3,14 +3,14 @@ import 'dart:ui';
 import 'package:flutter/material.dart' show Colors;
 import 'package:flutter_gpu/gpu.dart' as gpu;
 import 'package:vector_math/vector_math.dart' as vm;
-import '../bitmap_fonts/bitmap_font.dart';
-import '../bitmap_fonts/bitmap_font_manager.dart';
+import '../bitmap_fonts/texture_font.dart';
+import '../bitmap_fonts/font_manager.dart';
 import '../geometry/mesh_hit_tester.dart';
 import '../gpu/fsk_shader_material.dart';
 import 'fsk_scene_object.dart';
 import 'fsk_depth_state.dart';
 import 'fsk_quads_renderer.dart';
-import 'fsk_text_quad_builder.dart';
+import 'fsk_texture_text_quad_builder.dart';
 import 'fsk_text_alignment.dart';
 import 'fsk_transformable.dart';
 import '../util.dart';
@@ -48,10 +48,10 @@ abstract class FskBaseText extends Fsk2DRenderableObject
   late String _text;
 
   /// The font to render the text with
-  late BitmapFont _font;
+  late TextureFont _font;
 
-  /// The [BitmapFont] to use for rendering.
-  BitmapFont get font => _font;
+  /// The [TextureFont] to use for rendering.
+  TextureFont get font => _font;
 
   /// The target width of the text.
   late final double _width;
@@ -87,7 +87,7 @@ abstract class FskBaseText extends Fsk2DRenderableObject
   }
 
   /// Sets a new font and flags the text for a rebuild.
-  void setFont(BitmapFont font) {
+  void setFont(TextureFont font) {
     if (_font != font) {
       _font.removeListener(_onFontChanged);
       _font = font;
@@ -159,7 +159,7 @@ abstract class FskBaseText extends Fsk2DRenderableObject
     super.id,
     super.parentScene,
     super.refBox, {
-    required BitmapFont font,
+    required TextureFont font,
     required this._text,
     this._textColor = Colors.white,
     this._verticalJustification = TextVerticalJustification.bottom,
@@ -212,9 +212,9 @@ abstract class FskBaseText extends Fsk2DRenderableObject
       this.shaderMaterial = shaderMaterial;
     }
 
-    var fontToUse = BitmapFontManager().getFont(textData.font);
+    var fontToUse = FontManager().getFont(textData.font);
     if (fontToUse == null) {
-      fontToUse = BitmapFontManager().defaultFont;
+      fontToUse = FontManager().defaultFont;
       logWarning("Font not found for $id, using default font");
     }
     _font = fontToUse!;
@@ -313,7 +313,7 @@ abstract class FskBaseText extends Fsk2DRenderableObject
       return;
     }
 
-    FskBitmapTextQuadBuilder quadBuilder = FskBitmapTextQuadBuilder(
+    FskTextureTextQuadBuilder quadBuilder = FskTextureTextQuadBuilder(
       text: text,
       font: font,
       screenRect: refBox,

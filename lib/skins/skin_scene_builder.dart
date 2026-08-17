@@ -10,7 +10,7 @@ class SkinSceneBuilder with LoggableClass {
 
     FskQuad.registerWithFactories();
     FskGroup.registerWithFactories();
-    FskBitmapText.registerWithFactories();
+    FskTextureText.registerWithFactories();
   }
 
   final FskScene scene;
@@ -69,7 +69,7 @@ class SkinSceneBuilder with LoggableClass {
       String texturePath = getResourcePath(fontData.texture);
       String fontPath = getResourcePath(fontData.fntFile);
 
-      await BitmapFontManager().createFontFromFile(
+      await FontManager().createFontFromFile(
         fontData.id,
         fontPath,
         texturePath,

@@ -3,7 +3,7 @@ import 'package:flutter/services.dart';
 import 'package:flutter_gpu/gpu.dart' as gpu;
 import 'package:fsk/shaders/materials.dart';
 import 'package:fsk/gpu/fsk_texture_manager.dart';
-import 'bitmap_fonts/bitmap_font_manager.dart';
+import 'bitmap_fonts/font_manager.dart';
 import 'gpu/fsk_shader_library.dart';
 import 'gpu/gpu_pipeline_key.dart';
 import 'logging.dart';
@@ -78,7 +78,7 @@ class FSK extends ChangeNotifier with LoggableClass {
     _state = FskState.uninitialized; // Force re-init to rebuild built-in textures
     _pipelineCache.clear();
     textureManager.clear();
-    BitmapFontManager().clear();
+    FontManager().clear();
     materials.materials.clear();
     initDefaultMaterial();
     Logging.logInfo('FSK.clearCaches: finished', source: 'FSK');
@@ -109,7 +109,7 @@ class FSK extends ChangeNotifier with LoggableClass {
 
       _assetManifest ??= await AssetManifest.loadFromAssetBundle(rootBundle);
       await textureManager.init();
-      await BitmapFontManager().init();
+      await FontManager().init();
 
       // We try common paths for the compiled shader bundle in order of probability.
       final List<String> possiblePaths = [

@@ -15,7 +15,7 @@ class SkinSceneParser with LoggableClass {
 
     FskQuad.registerWithFactories();
     FskGroup.registerWithFactories();
-    FskBitmapText.registerWithFactories();
+    FskTextureText.registerWithFactories();
   }
 
   static String assetsRoot = "assets/";

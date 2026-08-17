@@ -6,7 +6,7 @@ import 'package:fsk/fsk.dart';
 class ShaderParamsExample extends FskScene {
   ShaderParamsExample({super.navigationDelegate});
   UniformValue? modulateUniform;
-  FskBitmapText? text1;
+  FskTextureText? text1;
   bool ready = false;
 
   @override

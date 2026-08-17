@@ -1,14 +1,14 @@
 import 'package:flutter/material.dart' show Colors;
-import '../bitmap_fonts/bitmap_font.dart';
+import '../bitmap_fonts/texture_font.dart';
 import '../skins/skin_scene_parser.dart';
 import '../skins/skin_data.dart';
 import 'fsk_text_alignment.dart';
 import 'fsk_base_text.dart';
 
 /// A class that manages the geometry and rendering for a single line of text
-/// using a [BitmapFont].
-class FskBitmapText extends FskBaseText {
-  FskBitmapText(
+/// using a [TextureFont].
+class FskTextureText extends FskBaseText {
+  FskTextureText(
     super.id,
     super.parentScene,
     super.refBox, {
@@ -24,7 +24,7 @@ class FskBitmapText extends FskBaseText {
     super.depthWriteEnabled = false,
   });
 
-  FskBitmapText.fromData(
+  FskTextureText.fromData(
     super.id,
     super.parentScene,
     super.refBox,
@@ -69,7 +69,7 @@ class FskBitmapText extends FskBaseText {
       final textData = data as SkinTextData;
 
       final refBox = SkinObjectData.screenRectToRefBox(textData.screenRect);
-      return FskBitmapText.fromData(textData.id, scene, refBox, textData);
+      return FskTextureText.fromData(textData.id, scene, refBox, textData);
     });
   }
 }

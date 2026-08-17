@@ -71,13 +71,13 @@
     "type": "fragment",
     "file": "shaders/pbr.frag"
   },
-  "BitmapTextVertex": {
+  "TextureTextVertex": {
     "type": "vertex",
-    "file": "shaders/bitmapText.vert"
+    "file": "shaders/textureText.vert"
   },
-  "BitmapTextFragment": {
+  "TextureTextFragment": {
     "type": "fragment",
-    "file": "shaders/bitmapText.frag"
+    "file": "shaders/textureText.frag"
   },
   "MtsdfTextVertex": {
     "type": "vertex",

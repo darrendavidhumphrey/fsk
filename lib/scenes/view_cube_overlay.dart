@@ -1,13 +1,13 @@
 import 'package:flutter/material.dart' show Colors;
 import 'package:flutter_gpu/gpu.dart' as gpu;
 import 'package:vector_math/vector_math.dart' as vm;
+import '../bitmap_fonts/font_manager.dart';
 import '../scene_graph/fsk_group.dart';
 import '../scene_graph/fsk_mtsdf_text.dart';
 import '../scene_graph/fsk_rectangular_solid.dart';
 import '../scene_graph/fsk_text_alignment.dart';
 import '../shaders/materials.dart';
 import '../shaders/lighting_shader.dart';
-import '../bitmap_fonts/bitmap_font_manager.dart';
 import '../geometry/reference_box.dart';
 import '../ui/screen_space_overlay.dart';
 
@@ -33,7 +33,7 @@ class ViewCubeOverlay extends ScreenSpaceOverlay {
     useBoxFitLayout = false;
 
     // Ensure the MTSDF font is loaded.
-    await BitmapFontManager().createFontFromFile(
+    await FontManager().createFontFromFile(
       "isocpeur-mtsdf",
       "Isocpeur-mtsdf.xml",
       "Isocpeur-mtsdf.png",
@@ -140,7 +140,7 @@ class ViewCubeOverlay extends ScreenSpaceOverlay {
     final double dist = cubeSize / 2 + 0.5;
     final double width = cubeSize * (2 / 3);
     final double h = width / 2;
-    final font = BitmapFontManager().getFont("isocpeur-mtsdf") ?? BitmapFontManager().defaultFont!;
+    final font = FontManager().getFont("isocpeur-mtsdf") ?? FontManager().defaultFont!;
 
     final List<FskMtsdfText> labels = [];
 

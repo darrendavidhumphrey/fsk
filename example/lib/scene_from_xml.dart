@@ -5,18 +5,18 @@ class SceneFromXml extends FskScene {
 
   SceneFromXml({super.navigationDelegate}) : super.fromSkinFile("skins/example4.xml",clearColor: Colors.green);
 
-  FskBitmapText? frameCountText;
-  FskBitmapText? sourceCode1, sourceCode2, sourceCode3, top;
+  FskTextureText? frameCountText;
+  FskTextureText? sourceCode1, sourceCode2, sourceCode3, top;
   FskQuad? penelope;
 
   /// Automatically invoked callback when skin loads successfully
   @override
   Future<void> onSkinReady() async {
-    frameCountText ??= findNode<FskBitmapText>("Text1");
-    sourceCode1 ??= findNode<FskBitmapText>("sourceCode1");
-    sourceCode2 ??= findNode<FskBitmapText>("sourceCode2");
-    sourceCode3 ??= findNode<FskBitmapText>("sourceCode3");
-    top ??= findNode<FskBitmapText>("Top");
+    frameCountText ??= findNode<FskTextureText>("Text1");
+    sourceCode1 ??= findNode<FskTextureText>("sourceCode1");
+    sourceCode2 ??= findNode<FskTextureText>("sourceCode2");
+    sourceCode3 ??= findNode<FskTextureText>("sourceCode3");
+    top ??= findNode<FskTextureText>("Top");
 
     penelope ??= findNode<FskQuad>("penelope");
     penelope?.modulateColor = Colors.red;

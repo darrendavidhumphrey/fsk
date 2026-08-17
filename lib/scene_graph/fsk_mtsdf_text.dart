@@ -1,13 +1,13 @@
 import 'dart:ui';
 import 'package:flutter_gpu/gpu.dart' as gpu;
 import 'package:vector_math/vector_math.dart' as vm;
-import '../bitmap_fonts/bitmap_font.dart';
+import '../bitmap_fonts/texture_font.dart';
 import '../gpu/fsk_shader_material.dart';
 import '../shaders/mtsdf_text_shader.dart';
 import 'fsk_base_text.dart';
 
 /// A class that manages the geometry and rendering for a single line of text
-/// using a [BitmapFont] with MTSDF (Multi-channel Signed Distance Field) textures.
+/// using a [TextureFont] with MTSDF (Multi-channel Signed Distance Field) textures.
 class FskMtsdfText extends FskBaseText {
   Color _glowColor = const Color(0x00000000);
   double _glowSize = 0.0;

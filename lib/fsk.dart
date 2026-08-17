@@ -1,5 +1,5 @@
-export 'bitmap_fonts/bitmap_font.dart';
-export 'bitmap_fonts/bitmap_font_manager.dart';
+export 'bitmap_fonts/texture_font.dart';
+export 'bitmap_fonts/font_manager.dart';
 
 export 'geometry/edge.dart';
 export 'geometry/geometry_util.dart';
@@ -26,7 +26,7 @@ export 'loaders/fsk_stl_loader.dart';
 
 export 'scenes/view_cube_overlay.dart';
 
-export 'scene_graph/fsk_bitmap_text.dart';
+export 'scene_graph/fsk_texture_text.dart';
 export 'scene_graph/fsk_base_text.dart';
 export 'scene_graph/fsk_group.dart';
 export 'scene_graph/fsk_pbr_model.dart';

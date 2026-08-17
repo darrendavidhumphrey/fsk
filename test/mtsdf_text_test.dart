@@ -10,7 +10,7 @@ void main() {
     // But we can check if the base class and properties are correctly set.
     
     final scene = FskScene();
-    final font = BitmapFont.fromXml("test_font", """
+    final font = TextureFont.fromXml("test_font", """
       <font>
         <info face="Arial" size="32" />
         <common lineHeight="32" base="26" scaleW="256" scaleH="256" />

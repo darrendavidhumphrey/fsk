@@ -7,7 +7,7 @@ import 'package:flutter_gpu/gpu.dart' as gpu;
 
 
 /// A data class that holds rendering information for a single character
-/// in a [BitmapFont].
+/// in a [TextureFont].
 class CharInfo {
   /// A flag indicating if the character exists in the font.
   final bool isCharAvailable;
@@ -38,11 +38,11 @@ class CharInfo {
   }
 }
 
-/// Represents a bitmap font, loaded from an XML `.fnt` file.
+/// Represents a texture-based font, loaded from an XML `.fnt` file.
 ///
 /// This class holds the font's metrics, character information, kerning pairs,
-/// and the associated WebGL texture.
-class BitmapFont extends ChangeNotifier with LoggableClass {
+/// and the associated texture.
+class TextureFont extends ChangeNotifier with LoggableClass {
   /// The name of the font.
   final String name;
 
@@ -75,8 +75,8 @@ class BitmapFont extends ChangeNotifier with LoggableClass {
       textureInfo!.isLoaded &&
       textureInfo!.texture != null);
 
-  /// Creates a new BitmapFont.
-  BitmapFont(
+  /// Creates a new TextureFont.
+  TextureFont(
     this.name,
     this.lineHeight,
     this.baseline,
@@ -116,8 +116,8 @@ class BitmapFont extends ChangeNotifier with LoggableClass {
     }
   }
 
-  /// Factory constructor to load and parse a BitmapFont from an XML string.
-  factory BitmapFont.fromXml(String name, String xmlString) {
+  /// Factory constructor to load and parse a TextureFont from an XML string.
+  factory TextureFont.fromXml(String name, String xmlString) {
     final document = XmlDocument.parse(xmlString);
 
     final commonElement = document.findAllElements('common').first;
@@ -166,7 +166,7 @@ class BitmapFont extends ChangeNotifier with LoggableClass {
       innerMap[second] = amount.toDouble();
     }
 
-    return BitmapFont(
+    return TextureFont(
       name,
       lineHeight.toDouble(),
       base.toDouble(),

@@ -3,12 +3,12 @@ import 'dart:typed_data';
 import 'package:vector_math/vector_math.dart' as vm;
 import '../fsk.dart';
 
-class FskBitmapTextQuadBuilderResult {
+class FskTextureTextQuadBuilderResult {
   int numQuads = 0;
   final Float32List vertexData;
 
-  FskBitmapTextQuadBuilderResult(this.numQuads, this.vertexData);
-  FskBitmapTextQuadBuilderResult.empty(): numQuads = 0, vertexData = Float32List(0);
+  FskTextureTextQuadBuilderResult(this.numQuads, this.vertexData);
+  FskTextureTextQuadBuilderResult.empty(): numQuads = 0, vertexData = Float32List(0);
 }
 
 class CharLayoutInfo {
@@ -17,9 +17,9 @@ class CharLayoutInfo {
   CharLayoutInfo({required this.char, required this.kerning});
 }
 
-class FskBitmapTextQuadBuilder {
+class FskTextureTextQuadBuilder {
   final String text;
-  final BitmapFont font;
+  final TextureFont font;
   final ReferenceBox screenRect;
   final TextHorizontalJustification horizontalJustification;
   final TextVerticalJustification verticalJustification;
@@ -38,7 +38,7 @@ class FskBitmapTextQuadBuilder {
   int _numQuads;
   Float32List _vertexData;
 
-  FskBitmapTextQuadBuilder({
+  FskTextureTextQuadBuilder({
     required this.text,
     required this.font,
     required this.screenRect,
@@ -48,7 +48,7 @@ class FskBitmapTextQuadBuilder {
     this.scaleToFit = false,
   }) : _numQuads = 0, _vertexData = Float32List(0);
 
-  FskBitmapTextQuadBuilderResult build() {
+  FskTextureTextQuadBuilderResult build() {
     layoutData.clear();
     _numQuads = 0;
     _vertexData = Float32List(0);
@@ -59,14 +59,14 @@ class FskBitmapTextQuadBuilder {
     _stringDescent = 0;
 
     if (text.isEmpty) {
-      return FskBitmapTextQuadBuilderResult.empty();
+      return FskTextureTextQuadBuilderResult.empty();
     }
 
     // Pass 1: Gather layout information and calculate total width/height bounds
     _gatherLayoutData();
 
     if (_lineLength == 0) {
-      return FskBitmapTextQuadBuilderResult.empty();
+      return FskTextureTextQuadBuilderResult.empty();
     }
 
     // Pass 2: Pre-allocate lists and generate scaled quads
@@ -81,7 +81,7 @@ class FskBitmapTextQuadBuilder {
     // Pass 5: Quad Construction Loop
     _constructQuads(currentX, unscaledVAdjust);
 
-    return FskBitmapTextQuadBuilderResult(_numQuads, _vertexData);
+    return FskTextureTextQuadBuilderResult(_numQuads, _vertexData);
   }
 
   /// Pass 1: Gathers character bounding information and computes unscaled text line length.

@@ -13,13 +13,13 @@ class MtsdfGoldenScene extends FskScene {
     skinSize = const Size(800, 600);
 
     // Load font from assets
-    await BitmapFontManager().createFontFromFile(
+    await FontManager().createFontFromFile(
       "mtsdf_font",
       "Isocpeur-mtsdf.xml",
       "Isocpeur-mtsdf.png",
     );
 
-    final font = BitmapFontManager().getFont("mtsdf_font")!;
+    final font = FontManager().getFont("mtsdf_font")!;
 
     final words = ["GOLDEN", "MTSDF", "TEST", "SHARP"];
     final random = math.Random(54321);

@@ -2,36 +2,36 @@ import 'package:flutter/services.dart';
 
 import '../fsk_singleton.dart';
 import '../logging.dart';
-import 'bitmap_font.dart';
+import 'texture_font.dart';
 part 'built_in_font.dart';
 
-/// A manager for loading, creating, and accessing [BitmapFont] objects.
+/// A manager for loading, creating, and accessing [TextureFont] objects.
 ///
 /// This class is intended to be held by a central singleton (e.g., FSK) and is
 /// responsible for caching fonts and ensuring their textures are loaded before use.
-class BitmapFontManager with LoggableClass {
+class FontManager with LoggableClass {
   /// The internal cache of registered fonts, keyed by their unique name.
-  final Map<String, BitmapFont> _fonts = {};
+  final Map<String, TextureFont> _fonts = {};
 
   /// The singleton instance.
-  static final BitmapFontManager _singleton = BitmapFontManager._internal();
+  static final FontManager _singleton = FontManager._internal();
 
   static String assetsRoot = "assets/";
 
   /// Factory constructor to return the singleton instance.
-  factory BitmapFontManager() {
+  factory FontManager() {
     return _singleton;
   }
 
   /// Internal constructor for the singleton.
-  BitmapFontManager._internal();
+  FontManager._internal();
 
   // List of textures that are still loading
   // This future tracks the end of the current chain line
   Future<void> loadQueue = Future.value();
 
-  /// Registers a pre-loaded [BitmapFont] instance with a given [name].
-  void registerFont(String name, BitmapFont font) {
+  /// Registers a pre-loaded [TextureFont] instance with a given [name].
+  void registerFont(String name, TextureFont font) {
     logInfo("Registering font $name");
     _fonts[name] = font;
   }
@@ -39,18 +39,18 @@ class BitmapFontManager with LoggableClass {
   /// Clears all registered fonts from the manager.
   void clear() {
     _fonts.clear();
-    logInfo("BitmapFontManager cleared.");
+    logInfo("FontManager cleared.");
   }
 
   /// Retrieves a font by its registered [name].
   ///
   /// Returns `null` if a font with the given name has not been registered.
-  BitmapFont? getFont(String name) {
+  TextureFont? getFont(String name) {
     return _fonts[name];
   }
 
   /// Returns the default font, which is expected to be named "default".
-  BitmapFont? get defaultFont {
+  TextureFont? get defaultFont {
     return _fonts["default"];
   }
 
@@ -96,7 +96,7 @@ class BitmapFontManager with LoggableClass {
   /// Thus it is possible for fonts to temporarily have no texture loaded
   Future<void> createFont(String fontName, String xmlString, String textureName, {bool generateMipmaps = false}) async {
     try {
-      var font = BitmapFont.fromXml(fontName, xmlString);
+      var font = TextureFont.fromXml(fontName, xmlString);
       // The texture loads asynchronously, so wait for it.
       await font.loadFontTexture(textureName, generateMipmaps: generateMipmaps);
       registerFont(fontName, font);
@@ -110,7 +110,7 @@ class BitmapFontManager with LoggableClass {
   // texture still loads asynchronously.
   void createFontSync(String fontName, String xmlString, String textureName)  {
     try {
-      var font = BitmapFont.fromXml(fontName, xmlString);
+      var font = TextureFont.fromXml(fontName, xmlString);
 
       // NOTE: The texture loads asynchronously
       font.loadFontTexture(textureName);

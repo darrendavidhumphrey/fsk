@@ -15,14 +15,14 @@ class MtsdfTextScene extends FskScene {
     logInfo("MtsdfTextScene.onInit: Loading font...");
 
     // 1. Load the MTSDF font
-    await BitmapFontManager().createFontFromFile(
+    await FontManager().createFontFromFile(
       "isocpeur-mtsdf",
       "Isocpeur-mtsdf.xml",
       "Isocpeur-mtsdf.png",
       generateMipmaps: true,
     );
 
-    final font = BitmapFontManager().getFont("isocpeur-mtsdf");
+    final font = FontManager().getFont("isocpeur-mtsdf");
     if (font == null) {
       logError("MtsdfTextScene.onInit: Failed to load isocpeur-mtsdf font");
       return;
