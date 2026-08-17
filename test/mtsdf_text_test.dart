@@ -2,7 +2,6 @@ import 'package:flutter_test/flutter_test.dart';
 import 'package:flutter/material.dart';
 import 'package:fsk/fsk.dart';
 import 'package:vector_math/vector_math.dart' as vm;
-import 'dart:math' as math;
 
 void main() {
   test('FskMtsdfText creation and properties', () {
