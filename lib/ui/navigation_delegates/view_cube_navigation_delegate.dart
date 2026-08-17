@@ -25,6 +25,16 @@ class OrbitOnHitRotationBehavior extends OrbitRotationBehavior {
     }
     return super.onPointerDown(event);
   }
+
+  @override
+  SceneInteractionBehaviorStatus onPointerMove(PointerMoveEvent event) {
+    final status = super.onPointerMove(event);
+    if (status == SceneInteractionBehaviorStatus.consumed) {
+       // Notify the delegate that the rotation was updated via interaction
+       (delegate as ViewCubeNavigationDelegate).onCubeRotated(delegate.yaw, delegate.pitch);
+    }
+    return status;
+  }
 }
 
 /// A behavior that provides interactive highlighting, clicking, and rotation tracking
@@ -141,13 +151,6 @@ class ViewCubeHighlightBehavior extends SceneInteractionBehavior {
 
   @override
   SceneInteractionBehaviorStatus onPointerMove(PointerMoveEvent event) {
-    final double oldYaw = delegate.yaw;
-    final double oldPitch = delegate.pitch;
-
-    if (oldYaw != delegate.yaw || oldPitch != delegate.pitch) {
-      delegate.onCubeRotated(delegate.yaw, delegate.pitch);
-      return SceneInteractionBehaviorStatus.consumed;
-    }
     return SceneInteractionBehaviorStatus.ignored;
   }
 

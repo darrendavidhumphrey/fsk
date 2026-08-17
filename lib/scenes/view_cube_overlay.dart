@@ -43,16 +43,14 @@ class ViewCubeOverlay extends ScreenSpaceOverlay {
     // Create a container group for the entire cube assembly.
     final cubeRoot = FskGroup('cube_root', this);
 
-    // Apply corrections to align with OrbitViewDelegate's native view.
-    // The delegate has a 180-degree flip baked in.
-    cubeRoot.transformable.rotation = vm.Vector3(0, vm.radians(180), vm.radians(180));
+    // Standard CAD View Cube orientation (Z-up, X-right, Y-forward)
+    cubeRoot.transformable.rotation = vm.Vector3.zero();
 
     // Generate geometry and labels.
     cubeRoot.addNodes(_generateGeometry());
     cubeRoot.addNodes(_generateLabels());
 
     addNode(cubeRoot);
-
   }
 
   List<FskRectangularSolid> _generateGeometry() {
@@ -62,14 +60,14 @@ class ViewCubeOverlay extends ScreenSpaceOverlay {
     final double midSize = cubeSize - (2 * cornerSize);
     final double cornerOffset = halfSize - (cornerSize / 2.0);
 
-    // 1. Central Face Segments
+    // 1. Central Face Segments (mapped to Z-up axes)
     final faceData = [
       ('RIGHT', vm.Vector3(cornerOffset, 0, 0), vm.Vector3(cornerSize, midSize, midSize)),
       ('LEFT', vm.Vector3(-cornerOffset, 0, 0), vm.Vector3(cornerSize, midSize, midSize)),
-      ('TOP', vm.Vector3(0, cornerOffset, 0), vm.Vector3(midSize, cornerSize, midSize)),
-      ('BOTTOM', vm.Vector3(0, -cornerOffset, 0), vm.Vector3(midSize, cornerSize, midSize)),
-      ('FRONT', vm.Vector3(0, 0, cornerOffset), vm.Vector3(midSize, midSize, cornerSize)),
-      ('BACK', vm.Vector3(0, 0, -cornerOffset), vm.Vector3(midSize, midSize, cornerSize)),
+      ('BACK', vm.Vector3(0, cornerOffset, 0), vm.Vector3(midSize, cornerSize, midSize)),
+      ('FRONT', vm.Vector3(0, -cornerOffset, 0), vm.Vector3(midSize, cornerSize, midSize)),
+      ('TOP', vm.Vector3(0, 0, cornerOffset), vm.Vector3(midSize, midSize, cornerSize)),
+      ('BOTTOM', vm.Vector3(0, 0, -cornerOffset), vm.Vector3(midSize, midSize, cornerSize)),
     ];
 
     for (final data in faceData) {
@@ -120,11 +118,9 @@ class ViewCubeOverlay extends ScreenSpaceOverlay {
     for (final solid in solids) {
       solid.renderer.rebuildPipeline();
       final u = solid.uniforms as LightingUniforms;
-      u.isHeadlamp = true; // Light follows the camera
+      u.isHeadlamp = true; 
       u.kd = vm.Vector3(0.7, 0.7, 0.7);
       u.ld = vm.Vector3(1.0, 1.0, 1.0);
-      
-      // Ensure the material is explicitly applied to prevent white fallback
       solid.renderer.uniforms?.applyMaterial(GlMaterial(Colors.grey, Colors.grey, Colors.black, 32.0));
     }
 
@@ -157,12 +153,19 @@ class ViewCubeOverlay extends ScreenSpaceOverlay {
       ));
     }
 
-    addLabel("FRONT", vm.Vector3(-h, -h, dist), vm.Vector3(width, 0, 0), vm.Vector3(0, width, 0), vm.Vector3(0, 0, 1));
-    addLabel("BACK", vm.Vector3(h, -h, -dist), vm.Vector3(-width, 0, 0), vm.Vector3(0, width, 0), vm.Vector3(0, 0, -1));
-    addLabel("TOP", vm.Vector3(-h, dist, h), vm.Vector3(width, 0, 0), vm.Vector3(0, 0, -width), vm.Vector3(0, 1, 0));
-    addLabel("BOTTOM", vm.Vector3(-h, -dist, -h), vm.Vector3(width, 0, 0), vm.Vector3(0, 0, width), vm.Vector3(0, -1, 0));
-    addLabel("RIGHT", vm.Vector3(dist, -h, h), vm.Vector3(0, 0, -width), vm.Vector3(0, width, 0), vm.Vector3(1, 0, 0));
-    addLabel("LEFT", vm.Vector3(-dist, -h, -h), vm.Vector3(0, 0, width), vm.Vector3(0, width, 0), vm.Vector3(-1, 0, 0));
+    // Z-up Label Mappings synchronized with the polar fallback logic:
+    // FRONT (-Y face): Origin at (-h, -dist, -h), X=(width, 0, 0), Y=(0, 0, width), Normal=(0, -1, 0)
+    addLabel("FRONT", vm.Vector3(-h, -dist, -h), vm.Vector3(width, 0, 0), vm.Vector3(0, 0, width), vm.Vector3(0, -1, 0));
+    // BACK (+Y face): Origin at (h, dist, -h), X=(-width, 0, 0), Y=(0, 0, width), Normal=(0, 1, 0)
+    addLabel("BACK", vm.Vector3(h, dist, -h), vm.Vector3(-width, 0, 0), vm.Vector3(0, 0, width), vm.Vector3(0, 1, 0));
+    // TOP (+Z face): Origin at (-h, -h, dist), X=(width, 0, 0), Y=(0, width, 0), Normal=(0, 0, 1)
+    addLabel("TOP", vm.Vector3(-h, -h, dist), vm.Vector3(width, 0, 0), vm.Vector3(0, width, 0), vm.Vector3(0, 0, 1));
+    // BOTTOM (-Z face): Origin at (-h, -h, -dist), X=(width, 0, 0), Y=(0, width, 0), Normal=(0, 0, -1)
+    addLabel("BOTTOM", vm.Vector3(-h, -h, -dist), vm.Vector3(width, 0, 0), vm.Vector3(0, width, 0), vm.Vector3(0, 0, -1));
+    // RIGHT (+X face): Origin at (dist, -h, -h), X=(0, width, 0), Y=(0, 0, width), Normal=(1, 0, 0)
+    addLabel("RIGHT", vm.Vector3(dist, -h, -h), vm.Vector3(0, width, 0), vm.Vector3(0, 0, width), vm.Vector3(1, 0, 0));
+    // LEFT (-X face): Origin at (-dist, h, -h), X=(0, -width, 0), Y=(0, 0, width), Normal=(-1, 0, 0)
+    addLabel("LEFT", vm.Vector3(-dist, h, -h), vm.Vector3(0, -width, 0), vm.Vector3(0, 0, width), vm.Vector3(-1, 0, 0));
 
     for (final label in labels) {
       label.textColor = Colors.black;
