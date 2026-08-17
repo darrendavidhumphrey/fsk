@@ -177,6 +177,14 @@ class FskScene extends FskSceneBase with FskSceneLayerDispatcherMixin {
   }
 
   @override
+  void updateAnimations(DateTime now) {
+    super.updateAnimations(now);
+    for (var layer in layers) {
+      layer.updateAnimations(now);
+    }
+  }
+
+  @override
   void rebuildGeometry() {
     for (var node in rootNodes) {
       node.rebuildGeometry();

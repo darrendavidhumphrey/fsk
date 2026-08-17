@@ -100,6 +100,7 @@ class _GPURenderWidgetState extends State<GPURenderWidget> with SingleTickerProv
         widget.scene.texture = _fskTarget!.outputTexture;
       }
 
+      widget.scene.updateAnimations(DateTime.now());
       widget.scene.rebuildGeometry();
 
       final commandBuffer = gpu.gpuContext.createCommandBuffer();

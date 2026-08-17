@@ -182,6 +182,10 @@ abstract class FskSceneBase extends ChangeNotifier
     _frameCount++;
   }
 
+  /// Updates any active animations in the scene.
+  @mustCallSuper
+  void updateAnimations(DateTime now) {}
+
   @override
   void dispose() {
     navigationDelegate = null;
