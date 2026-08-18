@@ -212,6 +212,20 @@ class ReferenceBox {
     ]);
   }
 
+  /// Returns all 8 corners of the oriented bounding box.
+  List<vm.Vector3> getCorners() {
+    return [
+      origin,                       // 0: Origin (0,0,0)
+      origin + xVector,             // 1: +X
+      origin + xVector + yVector,   // 2: +X+Y
+      origin + yVector,             // 3: +Y
+      origin + zVector,             // 4: +Z
+      origin + xVector + zVector,   // 5: +X+Z
+      origin + xVector + yVector + zVector, // 6: +X+Y+Z
+      origin + yVector + zVector,   // 7: +Y+Z
+    ];
+  }
+
   /// Transforms a 2D point from the box's local XY plane into 3D world space.
   vm.Vector3 transformPointToReferencePlane(vm.Vector2 v) {
     return origin + (xAxis * v.x) + (yAxis * v.y);
