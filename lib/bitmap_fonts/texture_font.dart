@@ -88,18 +88,24 @@ class TextureFont extends ChangeNotifier with LoggableClass {
 
   Future<void> loadFontTexture(String textureName, {bool generateMipmaps = false}) async {
     try {
+      // Ensure FSK is fully initialized before attempting to create GPU textures.
+      // This ensures the underlying gpuContext is ready.
+      if (FSK().state != FskState.initialized) {
+        logInfo("Waiting for FSK initialization before loading font texture: $textureName");
+        await FSK().init();
+      }
+
       // Updated to utilize Flutter GPU sampling and texture structures
-      // Note: Ensure your textureManager is updated to return a gpu.Texture object
       final info = await FSK().textureManager.createTextureFromAsset(
         name,
         textureName,
         minFilter: gpu.MinMagFilter.linear,
         magFilter: gpu.MinMagFilter.linear,
-        mipFilter: gpu.MipFilter.linear,
+        mipFilter: generateMipmaps ? gpu.MipFilter.linear : gpu.MipFilter.nearest,
         wrapS: gpu.SamplerAddressMode.clampToEdge,
         wrapT: gpu.SamplerAddressMode.clampToEdge,
         generateMipmaps: generateMipmaps,
-        maxAnisotropy: 4, // 4x Anisotropic filtering for higher quality text
+        maxAnisotropy: generateMipmaps ? 4 : 1, // Anisotropy requires mipmaps to be effective
       );
 
       textureInfo = info;

@@ -90,10 +90,13 @@ class FskTextureManager with LoggableClass {
 
   /// Clears all loaded textures from the manager.
   void clear() {
-    _textures.clear();
-    _transparentTexture = null;
-    _solidTexture = null;
-    logInfo("TextureManager cleared.");
+    if (_textures.isNotEmpty) {
+      _textures.clear();
+      _transparentTexture = null;
+      _solidTexture = null;
+      logInfo(
+          "=========================TextureManager cleared============================");
+    }
   }
 
   void _addTextureInfo(FskTextureInfo textureInfo) {
@@ -122,11 +125,15 @@ class FskTextureManager with LoggableClass {
       return info;
     }
 
+    // Avoid using a mip filter if we are not generating mipmaps, as some GPUs will return black.
+    final gpu.MipFilter effectiveMipFilter =
+        generateMipmaps ? mipFilter : gpu.MipFilter.nearest;
+
     // Bundle sampling parameters directly inside a unified SamplerOptions object
     final gpu.SamplerOptions samplerOptions = gpu.SamplerOptions(
       minFilter: minFilter,
       magFilter: magFilter,
-      mipFilter: mipFilter,
+      mipFilter: effectiveMipFilter,
       widthAddressMode: wrapS,
       heightAddressMode: wrapT,
       maxAnisotropy: maxAnisotropy,

@@ -38,8 +38,10 @@ class FontManager with LoggableClass {
 
   /// Clears all registered fonts from the manager.
   void clear() {
-    _fonts.clear();
-    logInfo("FontManager cleared.");
+    if (_fonts.isNotEmpty) {
+      _fonts.clear();
+      logInfo("FontManager cleared ==================================");
+    }
   }
 
   /// Retrieves a font by its registered [name].
