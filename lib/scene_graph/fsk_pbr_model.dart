@@ -1,5 +1,3 @@
-import 'dart:ui';
-import 'package:flutter_gpu/gpu.dart' as gpu;
 import 'package:vector_math/vector_math.dart' as vm;
 import '../fsk.dart';
 
@@ -31,58 +29,5 @@ class FskPbrModel extends FskExternalModel {
     }
 
     return model;
-  }
-
-  @override
-  void draw(
-    gpu.RenderPass renderPass,
-    gpu.HostBuffer transients,
-    vm.Matrix4 pMatrix,
-    vm.Matrix4 mvMatrix, // This is (Layout * CameraView)
-    Size viewportSize,
-  ) {
-    if (!visible) return;
-
-    // We override the custom recursive rendering to handle mixed node types
-    // while still injecting environment state.
-    _drawRecursive(this, renderPass, transients, pMatrix, mvMatrix, viewportSize);
-  }
-
-  void _drawRecursive(
-    FskSceneObject node,
-    gpu.RenderPass renderPass,
-    gpu.HostBuffer transients,
-    vm.Matrix4 proj,
-    vm.Matrix4 view,
-    Size viewportSize,
-  ) {
-    if (node is! FskRenderableObject || !node.visible) return;
-
-    final renderer = node.renderer;
-    if (renderer != null) {
-      renderer.rebuildPipeline();
-
-      // Inject environment state if the renderer supports it.
-      // LightingUniforms and PbrUniforms now handle View-Space transformation automatically onUpdate.
-      if (renderer.uniforms is PbrUniforms) {
-        final pbr = renderer.uniforms as PbrUniforms;
-        pbr.lightPos = lightPosition;
-        pbr.debugMode = 0.0;
-      } else if (renderer.uniforms is LightingUniforms) {
-        final lighting = renderer.uniforms as LightingUniforms;
-        lighting.lightPos = lightPosition;
-      }
-    }
-
-    if (node is FskGroup) {
-      final vm.Matrix4 currentMv = view.clone()..multiply(node.transformable.getTransform());
-
-      for (final child in node.children) {
-        _drawRecursive(
-            child, renderPass, transients, proj, currentMv, viewportSize);
-      }
-    } else {
-      node.draw(renderPass, transients, proj, view, viewportSize);
-    }
   }
 }

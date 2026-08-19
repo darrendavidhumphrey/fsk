@@ -7,17 +7,20 @@ import '../gpu/gpu_pipeline_key.dart';
 import '../gpu/fsk_vertex_buffer.dart';
 import '../gpu/fsk_shader_material.dart';
 import '../vbo_filler.dart';
-import '../shaders/simple_texture_shader.dart';
-import '../shaders/mtsdf_text_shader.dart';
 import 'fsk_renderer_base.dart';
 
 class FskQuadsRenderer extends FskRendererBase {
   bool _verticesDownloaded = false;
 
   bool _premultiplyAlpha = false;
-
-  // Color to modulate the texture with
-  Color _modulateColor = const Color(0xFFFFFFFF);
+  bool get premultiplyAlpha => _premultiplyAlpha;
+  set premultiplyAlpha(bool value) {
+    if (_premultiplyAlpha != value) {
+      _premultiplyAlpha = value;
+      pipeLineNeedsRebuild = true;
+      notifyListeners();
+    }
+  }
 
   @override
   gpu.VertexLayout get layout => shaderMaterial?.layout ?? textVertexLayout;
@@ -38,18 +41,6 @@ class FskQuadsRenderer extends FskRendererBase {
   /////////////////////////////////////////////////////////////////////////////
   // Public API
   /////////////////////////////////////////////////////////////////////////////
-  bool get premultiplyAlpha => _premultiplyAlpha;
-  set premultiplyAlpha(bool value) {
-    _premultiplyAlpha = value;
-    pipeLineNeedsRebuild = true;
-  }
-
-  void setModulateColor(Color color) {
-    if (_modulateColor != color) {
-      _modulateColor = color;
-      notifyListeners();
-    }
-  }
 
   /////////////////////////////////////////////////////////////////////////////
   // Constructor
@@ -118,22 +109,7 @@ class FskQuadsRenderer extends FskRendererBase {
     // 2. Perform per-frame updates
     uniforms!.onUpdate(viewportSize);
 
-    // 3. Synchronize renderer-specific properties
-    if (uniforms is SimpleTextureUniforms) {
-      final modulate = _premultiplyAlpha
-          ? Color.fromARGB(
-              (_modulateColor.a * 255).round(),
-              (_modulateColor.r * _modulateColor.a * 255).round(),
-              (_modulateColor.g * _modulateColor.a * 255).round(),
-              (_modulateColor.b * _modulateColor.a * 255).round(),
-            )
-          : _modulateColor;
-      (uniforms as SimpleTextureUniforms).setModulateColor(modulate);
-    } else if (uniforms is MtsdfTextUniforms) {
-      (uniforms as MtsdfTextUniforms).setTextColor(_modulateColor);
-    }
-    
-    // 4. Robust Texture Binding: Always bind a texture to Slot 2 to prevent state leaks.
+    // 3. Robust Texture Binding: Always bind a texture to Slot 2 to prevent state leaks.
     if (textureInfo == null || textureInfo!.texture == null) {
       uniforms!.texture = FSK().textureManager.transparentTexture;
     } else {

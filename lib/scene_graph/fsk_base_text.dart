@@ -134,7 +134,7 @@ abstract class FskBaseText extends Fsk2DRenderableObject
   set textColor(Color value) {
     if (_textColor != value) {
       _textColor = value;
-      _renderer.setModulateColor(_textColor);
+      parentScene.setNeedsUpdate();
     }
   }
 
@@ -179,12 +179,7 @@ abstract class FskBaseText extends Fsk2DRenderableObject
       this.shaderMaterial = shaderMaterial;
     }
 
-    _renderer.setModulateColor(_textColor);
-
     _font.addListener(_onFontChanged);
-
-    // Initial property sync
-    _renderer.setModulateColor(_textColor);
 
     if (_font.isInitialized) {
       _renderer.setTexture(_font.textureInfo);
@@ -227,7 +222,6 @@ abstract class FskBaseText extends Fsk2DRenderableObject
 
     _text = textData.text;
     _textColor = parseHexColor(textData.textColor, defaultColor: Colors.white);
-    _renderer.setModulateColor(_textColor);
     _horizontalJustification = textData.hJustify;
     _verticalJustification = textData.vJustify;
     _maxLen = textData.maxLen;
@@ -292,12 +286,7 @@ abstract class FskBaseText extends Fsk2DRenderableObject
     vm.Matrix4 mvMatrix,
     Size viewportSize,
   ) {
-    rebuildGeometryIfNeeded();
-    if (needsRebuild) {
-      // Still waiting for font/rebuild
-      return;
-    }
-    if (numQuads == 0) {
+    if ((numQuads == 0) || needsRebuild) {
       // Nothing to draw
       return;
     }

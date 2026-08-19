@@ -94,6 +94,7 @@ class FskGroup extends FskRenderableObject with FskTransformableMixin {
         }
       }
     }
+    node.parent = this;
     children.add(node);
   }
 

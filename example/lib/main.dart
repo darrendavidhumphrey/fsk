@@ -37,7 +37,7 @@ class TestAppState extends State<TestApp> {
   String _titleText = "";
 
   final List<String> menuLabels = [
-    "Checkerboard (Ortho View)",
+   "Checkerboard (Ortho View)",
     "Animated Checkerboard (Perspective View)",
     "CAD Canvas (Orbit View)",
     "Bitmap Text (Ortho View)",
@@ -45,6 +45,7 @@ class TestAppState extends State<TestApp> {
     "PBR Sci-Fi Helmet GLTF (Orbit View)",
     "PBR with Teapot Overlay",
     "MTSDF Text (Ortho View)"
+
   ];
   final List<FskSceneBase> scenes = [];
 

@@ -48,6 +48,7 @@ class ViewCubeOverlay extends ScreenSpaceOverlay {
 
     // Generate geometry and labels.
     cubeRoot.addNodes(_generateGeometry());
+    logVerbose("Generating cube labels");
     cubeRoot.addNodes(_generateLabels());
 
     addNode(cubeRoot);
@@ -140,7 +141,7 @@ class ViewCubeOverlay extends ScreenSpaceOverlay {
     final double dist = cubeSize / 2 + 0.5;
     final double width = cubeSize * (2 / 3);
     final double h = width / 2;
-    final font = FontManager().getFont("isocpeur-mtsdf") ?? FontManager().defaultFont!;
+    final font = FontManager().getFont("isocpeur-mtsdf")!;
 
     final List<FskMtsdfText> labels = [];
 

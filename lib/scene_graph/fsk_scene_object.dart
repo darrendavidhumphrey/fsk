@@ -8,10 +8,23 @@ abstract class FskSceneObject with LoggableClass {
   final String id;
   final FskSceneBase parentScene;
 
+  /// The parent node in the scene graph, or null if this is a root node.
+  FskSceneObject? parent;
+
   /// Whether this object should be considered during hit testing.
   bool isPickable = true;
 
   FskSceneObject(this.id, this.parentScene);
+
+  /// Recursively walks up the tree to find the nearest ancestor of type [T].
+  T? findAncestor<T>() {
+    FskSceneObject? current = parent;
+    while (current != null) {
+      if (current is T) return current as T;
+      current = current.parent;
+    }
+    return null;
+  }
 
   /// Cleans up resources held by this object.
   void dispose() {}
@@ -91,6 +104,15 @@ abstract class FskRenderableObject extends FskSceneObject {
     }
   }
 
+  /// Optional callback for setting custom shader uniforms per-frame.
+  void Function(BaseUniforms uniforms)? onUpdateUniformsCallback;
+
+  /// Virtual method to synchronize object state to shader uniforms.
+  /// Subclasses should override this and call super.updateUniforms(uniforms).
+  void updateUniforms(BaseUniforms uniforms) {
+    onUpdateUniformsCallback?.call(uniforms);
+  }
+
   void draw(gpu.RenderPass renderPass, gpu.HostBuffer transients,
       vm.Matrix4 pMatrix, vm.Matrix4 mvMatrix, Size viewportSize) {
     if (!visible) return;
@@ -101,8 +123,16 @@ abstract class FskRenderableObject extends FskSceneObject {
       finalMvMatrix.multiply(transformable.getTransform());
     }
 
-    _renderer?.draw(
-        renderPass, transients, pMatrix, finalMvMatrix, viewportSize);
+    final r = _renderer;
+    if (r != null) {
+      // Ensure the pipeline and uniforms are up to date before synchronization.
+      rebuildPipelineIfNeeded();
+
+      final u = r.uniforms;
+      assert (u != null);
+      updateUniforms(u!);
+      r.draw(renderPass, transients, pMatrix, finalMvMatrix, viewportSize);
+    }
   }
 
   @override

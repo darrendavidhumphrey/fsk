@@ -1,5 +1,7 @@
 import 'package:flutter/material.dart' show Colors;
 import '../bitmap_fonts/texture_font.dart';
+import '../shaders/base_uniforms.dart';
+import '../shaders/simple_texture_shader.dart';
 import '../skins/skin_scene_parser.dart';
 import '../skins/skin_data.dart';
 import 'fsk_text_alignment.dart';
@@ -71,5 +73,13 @@ class FskTextureText extends FskBaseText {
       final refBox = SkinObjectData.screenRectToRefBox(textData.screenRect);
       return FskTextureText.fromData(textData.id, scene, refBox, textData);
     });
+  }
+
+  @override
+  void updateUniforms(BaseUniforms uniforms) {
+    super.updateUniforms(uniforms);
+    assert(uniforms is SimpleTextureUniforms);
+    var u = uniforms as SimpleTextureUniforms;
+    u.setModulateColor(textColor);
   }
 }

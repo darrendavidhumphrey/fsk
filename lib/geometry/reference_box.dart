@@ -2,6 +2,7 @@ import 'dart:ui';
 import 'package:vector_math/vector_math.dart' as vm;
 import 'geometry_util.dart';
 import 'polyline.dart';
+import 'edge.dart';
 /// Represents an immutable, oriented bounding box in 3D space.
 ///
 /// An instance can be created with potentially degenerate vectors (e.g., zero-length
@@ -269,6 +270,19 @@ class ReferenceBox {
     }
 
     return null;
+  }
+
+  /// Returns all 12 edge segments of the oriented bounding box.
+  List<Edge> getAllEdges() {
+    final c = getCorners();
+    return [
+      // Bottom face
+      Edge(c[0], c[1]), Edge(c[1], c[2]), Edge(c[2], c[3]), Edge(c[3], c[0]),
+      // Top face
+      Edge(c[4], c[5]), Edge(c[5], c[6]), Edge(c[6], c[7]), Edge(c[7], c[4]),
+      // Vertical seams
+      Edge(c[0], c[4]), Edge(c[1], c[5]), Edge(c[2], c[6]), Edge(c[3], c[7]),
+    ];
   }
 
   @override

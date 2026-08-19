@@ -1,8 +1,7 @@
 import 'dart:ui';
-import 'package:flutter_gpu/gpu.dart' as gpu;
-import 'package:vector_math/vector_math.dart' as vm;
 import '../bitmap_fonts/texture_font.dart';
 import '../gpu/fsk_shader_material.dart';
+import '../shaders/base_uniforms.dart';
 import '../shaders/mtsdf_text_shader.dart';
 import 'fsk_base_text.dart';
 
@@ -49,21 +48,12 @@ class FskMtsdfText extends FskBaseText {
         );
 
   @override
-  void draw(
-    gpu.RenderPass renderPass,
-    gpu.HostBuffer transients,
-    vm.Matrix4 pMatrix,
-    vm.Matrix4 mvMatrix,
-    Size viewportSize,
-  ) {
-    if (renderer.uniforms is MtsdfTextUniforms) {
-      final u = renderer.uniforms as MtsdfTextUniforms;
-      u.setTextColor(textColor);
-      u.setGlowColor(glowColor);
-      u.setGlowSize(glowSize);
-    } else {
-      logWarning("FskMtsdfText.draw ($id): renderer.uniforms is ${renderer.uniforms.runtimeType}, expected MtsdfTextUniforms");
-    }
-    super.draw(renderPass, transients, pMatrix, mvMatrix, viewportSize);
+  void updateUniforms(BaseUniforms uniforms) {
+    super.updateUniforms(uniforms);
+    var u = uniforms as MtsdfTextUniforms;
+    u.setTextColor(textColor);
+    u.setGlowColor(glowColor);
+    u.setGlowSize(glowSize);
   }
+
 }

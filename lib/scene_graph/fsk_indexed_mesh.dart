@@ -33,6 +33,21 @@ class FskIndexedMesh extends FskRenderableObject with FskTransformableMixin, Fsk
   @override
   FskIndexedMeshRenderer get renderer => _renderer;
 
+  @override
+  void updateUniforms(BaseUniforms uniforms) {
+    super.updateUniforms(uniforms);
+
+    final pbrModel = findAncestor<FskPbrModel>();
+    if (pbrModel != null) {
+      if (uniforms is PbrUniforms) {
+        uniforms.lightPos = pbrModel.lightPosition;
+        uniforms.debugMode = 0.0;
+      } else if (uniforms is LightingUniforms) {
+        uniforms.lightPos = pbrModel.lightPosition;
+      }
+    }
+  }
+
   /// Uploads the owned geometry data to the renderer's GPU buffers
   void uploadToGpu() {
     if (vertices != null) {

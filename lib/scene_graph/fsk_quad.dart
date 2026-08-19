@@ -45,6 +45,22 @@ class FskQuad extends Fsk2DRenderableObject with FskTransformableMixin, FskDepth
   bool _premultiplyAlpha = true;
   Color _modulateColor = const Color(0xFFFFFFFF);
 
+  @override
+  void updateUniforms(BaseUniforms uniforms) {
+    super.updateUniforms(uniforms);
+    if (uniforms is SimpleTextureUniforms) {
+      final modulate = _premultiplyAlpha
+          ? Color.fromARGB(
+              (_modulateColor.a * 255).round(),
+              (_modulateColor.r * _modulateColor.a * 255).round(),
+              (_modulateColor.g * _modulateColor.a * 255).round(),
+              (_modulateColor.b * _modulateColor.a * 255).round(),
+            )
+          : _modulateColor;
+      uniforms.setModulateColor(modulate);
+    }
+  }
+
   static void registerWithFactories() {
     SkinObjectDataFactory.register('quad', (node, anchors, parseObject) {
       final String? shaderName = node.getAttribute('shader');
@@ -91,8 +107,10 @@ class FskQuad extends Fsk2DRenderableObject with FskTransformableMixin, FskDepth
 
   Color get modulateColor => _modulateColor;
   set modulateColor(Color value) {
-    _modulateColor = value;
-    _renderer.setModulateColor(value);
+    if (_modulateColor != value) {
+      _modulateColor = value;
+      parentScene.setNeedsUpdate();
+    }
   }
 
   /////////////////////////////////////////////////////////////////////////////
