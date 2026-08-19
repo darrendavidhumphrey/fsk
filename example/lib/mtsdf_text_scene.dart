@@ -4,8 +4,9 @@ import 'package:fsk/fsk.dart';
 import 'package:vector_math/vector_math.dart' as vm;
 
 class MtsdfTextScene extends FskScene {
-  MtsdfTextScene({super.navigationDelegate}) : super(clearColor: const Color(0xFF202040)) {
-    skinSize = const Size(1000, 1000);
+  MtsdfTextScene({super.navigationDelegate}) : super(clearColor: const Color(0xFF0A0A1A)) {
+    // Use the full 1080p target resolution
+    skinSize = const Size(1920, 1080);
   }
 
   @override
@@ -30,36 +31,48 @@ class MtsdfTextScene extends FskScene {
     
     logInfo("MtsdfTextScene.onInit: Font loaded. texture isInitialized: ${font.isInitialized}");
 
-    // 2. Add some random text objects
-    final random = math.Random(12345); // Deterministic random
+    // 2. Add text objects in a grid to fill the 1920x1080 space
+    const int cols = 4;
+    const int rows = 5;
+    const double margin = 150.0;
+    final double colSpacing = (skinSize.width - 2 * margin) / (cols - 1);
+    final double rowSpacing = (skinSize.height - 2 * margin) / (rows - 1);
+
+    final random = math.Random(54321); // Deterministic random
     final words = ["FLUTTER", "GPU", "MTSDF", "FSK", "ENGINE", "TEXT", "GLOW", "SHARP"];
 
-    for (int i = 0; i < 10; i++) {
-      final textStr = List.generate(3, (_) => words[random.nextInt(words.length)]).join(" ");
-      final x = 0.0;
-      final y = 400.0 - i * 80.0;
-      final color = Color.fromARGB(
-        255,
-        150 + random.nextInt(105),
-        150 + random.nextInt(105),
-        150 + random.nextInt(105),
-      );
+    for (int i = 0; i < rows; i++) {
+      for (int j = 0; j < cols; j++) {
+        final int index = i * cols + j;
+        final double x = margin + j * colSpacing;
+        final double y = margin + i * rowSpacing;
 
-      final text = FskMtsdfText(
-        "text_$i",
-        this,
-        ReferenceBox.fromCenterSize(vm.Vector3(x, y, 0), const Size(800, 100)),
-        font: font,
-        text: textStr,
-        textColor: color,
-        glowColor: Colors.blue.withValues(alpha: 0.5),
-        glowSize: 0.05,
-        horizontalJustification: TextHorizontalJustification.center,
-        verticalJustification: TextVerticalJustification.center,
-      );
-      addNode(text);
-      text.rebuildGeometry();
-      logInfo("Added text node: text_$i ('$textStr') at ($x, $y)");
+        final textStr = words[random.nextInt(words.length)];
+        final color = Colors.primaries[index % Colors.primaries.length];
+        
+        // Vary the glow and rotation to exercise different parameters
+        final double glowSize = (index / (cols * rows)) * 0.15;
+        final double rotation = (random.nextDouble() - 0.5) * 0.4;
+        final double scale = 0.8 + random.nextDouble() * 0.6;
+
+        final textNode = FskMtsdfText(
+          "text_$index",
+          this,
+          ReferenceBox.fromCenterSize(vm.Vector3(x, y, 0), const Size(400, 100)),
+          font: font,
+          text: textStr,
+          textColor: color,
+          glowColor: color.withValues(alpha: 0.3),
+          glowSize: glowSize,
+          horizontalJustification: TextHorizontalJustification.center,
+          verticalJustification: TextVerticalJustification.center,
+        );
+        
+        textNode.rotation = vm.Vector3(0, 0, rotation);
+        textNode.scale = vm.Vector3(scale, scale, 1.0);
+        
+        addNode(textNode);
+      }
     }
     
     setNeedsUpdate();

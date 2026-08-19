@@ -11,6 +11,7 @@ import 'obj_model_scene.dart';
 import 'pbr_model_scene.dart';
 import 'pbr_with_overlay_example.dart';
 import 'mtsdf_text_scene.dart';
+import 'transformation_test_scene.dart';
 
 
 void main() async {
@@ -44,7 +45,8 @@ class TestAppState extends State<TestApp> {
     "Teapot OBJ (Orbit View)",
     "PBR Sci-Fi Helmet GLTF (Orbit View)",
     "PBR with Teapot Overlay",
-    "MTSDF Text (Ortho View)"
+    "MTSDF Text (Ortho View)",
+    "Transformation & Nesting Test"
 
   ];
   final List<FskSceneBase> scenes = [];
@@ -59,6 +61,7 @@ class TestAppState extends State<TestApp> {
     scenes.add(PbrModelScene(navigationDelegate: OrbitViewDelegate(boxFit: FskBoxFit.bestFit)));
     scenes.add(PbrWithOverlayScene(navigationDelegate: OrbitViewDelegate(boxFit: FskBoxFit.bestFit)));
     scenes.add(MtsdfTextScene(navigationDelegate: OrthoViewDelegate(boxFit: FskBoxFit.bestFit)));
+    scenes.add(TransformationTestScene(navigationDelegate: OrthoViewDelegate(boxFit: FskBoxFit.bestFit)));
   }
 
   @override
