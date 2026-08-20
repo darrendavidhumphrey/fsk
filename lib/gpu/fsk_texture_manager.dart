@@ -99,6 +99,10 @@ class FskTextureManager with LoggableClass {
     }
   }
 
+  void registerTexture(FskTextureInfo textureInfo) {
+    _textures[textureInfo.id] = textureInfo;
+  }
+
   void _addTextureInfo(FskTextureInfo textureInfo) {
     _textures[textureInfo.id] = textureInfo;
   }

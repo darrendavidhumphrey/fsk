@@ -3,6 +3,7 @@ import 'package:flutter/services.dart';
 import 'package:fsk/fsk.dart';
 import 'package:flutter/material.dart';
 import 'package:fsk_examples/checkerboard_scene.dart';
+import 'package:fsk_examples/picking_test_scene.dart';
 import 'package:fsk_examples/positioned_title_bar.dart';
 import 'package:fsk_examples/scene_from_xml.dart';
 import 'animated_checkerboard_scene.dart';
@@ -46,8 +47,7 @@ class TestAppState extends State<TestApp> {
     "PBR Sci-Fi Helmet GLTF (Orbit View)",
     "PBR with Teapot Overlay",
     "MTSDF Text (Ortho View)",
-    "Transformation & Nesting Test"
-
+    "Transformation & Nesting Test",
   ];
   final List<FskSceneBase> scenes = [];
 

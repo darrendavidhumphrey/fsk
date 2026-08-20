@@ -5,6 +5,7 @@ import 'dart:math' as math;
 import 'dart:ui' as ui;
 import 'package:flutter/material.dart';
 import 'package:fsk/fsk.dart';
+import 'package:fsk_examples/picking_test_scene.dart';
 import 'package:path/path.dart' as path;
 
 // Scene imports
@@ -17,6 +18,7 @@ import 'pbr_model_scene.dart';
 import 'pbr_with_overlay_example.dart';
 import 'mtsdf_text_scene.dart';
 import 'transformation_test_scene.dart';
+import 'picking_test_scene.dart';
 
 /// A specialized version of the example program that automatically iterates
 /// through all examples and captures a screenshot of each to the 'test_outputs' directory.
@@ -48,7 +50,8 @@ class _VisualTestAppState extends State<VisualTestApp> with LoggableClass {
     "pbr_model_scene",
     "pbr_with_overlay_scene",
     "mtsdf_text_scene",
-    "transformation_test_scene"
+    "transformation_test_scene",
+    "picking_test_scene"
   ];
 
   FskSceneBase? _currentScene;
@@ -90,6 +93,13 @@ class _VisualTestAppState extends State<VisualTestApp> with LoggableClass {
 
       // --- TEST SETUP ---
       _setupSceneForTest(name, _currentScene!);
+
+      // If the scene requires background processing (like PickingTestScene),
+      // we must wait for it to complete before capturing.
+      if (_currentScene is PickingTestScene) {
+        logInfo("    Waiting for PickingTestScene to generate map...");
+        await (_currentScene as PickingTestScene).pickMapReady;
+      }
 
       // Give it time to render several frames to ensure PBR textures and geometry are fully ready
       // and that the UI has settled.
@@ -300,6 +310,8 @@ class _VisualTestAppState extends State<VisualTestApp> with LoggableClass {
         return MtsdfTextScene(navigationDelegate: OrthoViewDelegate(boxFit: FskBoxFit.bestFit));
       case "transformation_test_scene":
         return TransformationTestScene(navigationDelegate: OrthoViewDelegate(boxFit: FskBoxFit.bestFit));
+        case "picking_test_scene":
+          return PickingTestScene(navigationDelegate: OrthoViewDelegate(boxFit: FskBoxFit.bestFit));
       default:
         throw Exception("Unknown scene: $name");
     }
