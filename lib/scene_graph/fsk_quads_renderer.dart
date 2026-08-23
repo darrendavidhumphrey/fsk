@@ -26,6 +26,9 @@ class FskQuadsRenderer extends FskRendererBase {
   gpu.VertexLayout get layout => shaderMaterial?.layout ?? textVertexLayout;
 
   @override
+  bool get verticesDownloaded => _verticesDownloaded;
+
+  @override
   FskShaderMaterial get defaultMaterial => FskShaderMaterial.simpleTexture;
 
   @override
@@ -79,6 +82,7 @@ class FskQuadsRenderer extends FskRendererBase {
     // It's not an error for the renderer to be empty
     if (!_verticesDownloaded) {
       logVerbose("FskQuadsRenderer.draw: vertices not downloaded");
+      logVerbose("FskQuadsRenderer.draw:  vertex count is ${_vbo.vertexCount}");
       return;
     }
 

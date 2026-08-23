@@ -286,6 +286,10 @@ abstract class FskBaseText extends Fsk2DRenderableObject
     vm.Matrix4 mvMatrix,
     Size viewportSize,
   ) {
+    if (!renderer.verticesDownloaded) {
+      needsRebuild = true;
+    }
+    rebuildGeometryIfNeeded();
     if ((numQuads == 0) || needsRebuild) {
       // Nothing to draw
       return;

@@ -59,6 +59,9 @@ abstract class FskRendererBase extends ChangeNotifier with LoggableClass {
 
   gpu.VertexLayout get layout;
 
+  /// Returns true if the vertex data has been successfully uploaded to the GPU.
+  bool get verticesDownloaded;
+
   void draw(
     gpu.RenderPass renderPass,
     gpu.HostBuffer transients,

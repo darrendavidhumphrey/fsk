@@ -9,6 +9,9 @@ abstract class FskMeshRendererBase extends FskRendererBase {
   bool isValid = false;
 
   @override
+  bool get verticesDownloaded => _dataUploaded;
+
+  @override
   gpu.VertexLayout get layout => shaderMaterial?.layout ?? v3t2n3Layout;
 
   @override
