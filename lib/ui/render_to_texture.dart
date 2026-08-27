@@ -3,7 +3,6 @@ import 'package:flutter/material.dart';
 import '../scene_graph/fsk_scene_base.dart';
 import '../ui/gpu_render_widget.dart';
 
-
 /// A widget that renders a [FskSceneBase] and provides user interaction capabilities.
 ///
 /// This widget builds upon [RenderToTextureCore] by adding a [GestureDetector],

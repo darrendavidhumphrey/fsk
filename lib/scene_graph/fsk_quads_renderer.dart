@@ -22,6 +22,11 @@ class FskQuadsRenderer extends FskRendererBase {
     }
   }
 
+  bool _debug = false;
+  void setDebug(bool value) {
+    _debug = value;
+  }
+
   @override
   gpu.VertexLayout get layout => shaderMaterial?.layout ?? textVertexLayout;
 
@@ -115,11 +120,22 @@ class FskQuadsRenderer extends FskRendererBase {
 
     // 3. Robust Texture Binding: Always bind a texture to Slot 2 to prevent state leaks.
     if (textureInfo == null || textureInfo!.texture == null) {
-      uniforms!.texture = FSK().textureManager.transparentTexture;
+      if (_debug) {
+        logVerbose(
+            "FskQuadsRenderer.draw: texture is NULL using transparent texture");
+      }
+      var transparent = FSK().textureManager.transparentTexture;
+      uniforms!.texture = transparent;
+      uniforms!.samplerOptions = FSK().textureManager.transparentTextureInfo.samplerOptions;
     } else {
+      if (_debug) {
+        logVerbose("FskQuadsRenderer.draw: texture ID is ${textureInfo!.id} dims are ${textureInfo!.texture!.width}x${textureInfo!.texture!.height}");
+      }
       uniforms!.texture = textureInfo!.texture;
+      uniforms!.samplerOptions = textureInfo!.samplerOptions;
     }
-    uniforms!.samplerOptions = (textureInfo != null) ? textureInfo!.samplerOptions : null;
+
+
 
     uniforms!.bind(renderPass, transients);
 

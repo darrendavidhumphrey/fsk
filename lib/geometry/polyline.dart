@@ -1,6 +1,7 @@
 import 'dart:typed_data';
 import 'dart:math';
 import 'geometry_util.dart';
+import 'edge.dart';
 import 'package:vector_math/vector_math.dart' as vm;
 
 /// An immutable class representing a 3D polyline (a connected sequence of line segments).
@@ -79,6 +80,16 @@ class Polyline {
   vm.Vector3 getVector3(int index) {
     final int j = index * 3;
     return vm.Vector3(_vertices[j], _vertices[j + 1], _vertices[j + 2]);
+  }
+
+  /// Returns all edge segments of the polyline.
+  /// Assumes the polyline is closed.
+  List<Edge> getEdges() {
+    final List<Edge> result = [];
+    for (int i = 0; i < length; i++) {
+      result.add(Edge(getVector3(i), getVector3((i + 1) % length)));
+    }
+    return result;
   }
 
   /// Calculates the plane of the polyline from its first three vertices.
@@ -199,6 +210,28 @@ class Polyline {
     }
 
     return null;
+  }
+
+  /// Calculates the 3D bounding box of the polyline.
+  ({vm.Vector3 min, vm.Vector3 max}) getBounds() {
+    double minX = double.infinity;
+    double maxX = double.negativeInfinity;
+    double minY = double.infinity;
+    double maxY = double.negativeInfinity;
+    double minZ = double.infinity;
+    double maxZ = double.negativeInfinity;
+
+    for (int i = 0; i < length; i++) {
+      vm.Vector3 v = getVector3(i);
+      minX = min(minX, v.x);
+      minY = min(minY, v.y);
+      minZ = min(minZ, v.z);
+      maxX = max(maxX, v.x);
+      maxY = max(maxY, v.y);
+      maxZ = max(maxZ, v.z);
+    }
+
+    return (min: vm.Vector3(minX, minY, minZ), max: vm.Vector3(maxX, maxY, maxZ));
   }
 
   /// Calculates the 2D bounding box of the polyline on the XY plane.

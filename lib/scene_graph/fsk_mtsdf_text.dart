@@ -27,6 +27,12 @@ class FskMtsdfText extends FskBaseText {
     }
   }
 
+  bool _debug = false;
+  void setDebug(bool value) {
+    _debug = value;
+    renderer.setDebug(value);
+  }
+
   FskMtsdfText(
     super.id,
     super.parentScene,
