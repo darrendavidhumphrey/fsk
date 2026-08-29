@@ -1,6 +1,11 @@
 import 'package:flutter/material.dart' show Color, Colors;
-import 'package:fsk/fsk.dart';
 import 'package:vector_math/vector_math.dart' as vm;
+import 'polyline.dart';
+import 'edge.dart';
+import 'mesh_factory.dart';
+import '../scene_graph/fsk_mesh.dart';
+import '../scene_graph/fsk_scene_base.dart';
+import '../gpu/fsk_shader_material.dart';
 
 /// A utility class for creating thick line geometry as [Polyline]s or [FskMesh] objects.
 class ThickLines {

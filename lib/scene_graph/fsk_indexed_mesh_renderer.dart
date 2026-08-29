@@ -1,5 +1,7 @@
 import 'package:flutter_gpu/gpu.dart' as gpu;
-import 'package:fsk/fsk.dart';
+import 'fsk_mesh_renderer_base.dart';
+import 'fsk_submesh.dart';
+import '../gpu/fsk_index_buffer.dart';
 
 class FskIndexedMeshRenderer extends FskMeshRendererBase {
   final FskIndexBuffer _ibo = FskIndexBuffer();

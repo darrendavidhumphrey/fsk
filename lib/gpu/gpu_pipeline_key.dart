@@ -1,5 +1,6 @@
 import 'package:flutter_gpu/gpu.dart' as gpu;
-import 'package:fsk/fsk.dart';
+import '../logging.dart';
+import '../fsk_singleton.dart';
 
 class PipelineKey with LoggableClass {
   final String vertShaderName;
@@ -45,8 +46,13 @@ class PipelineKey with LoggableClass {
     var f = FSK().shaderLibrary[fragShaderName];
     
     if (v == null || f == null) {
-      final missing = v == null ? vertShaderName : fragShaderName;
-      throw StateError("PipelineKey: Shader '$missing' not found in library.");
+      logWarning("PipelineKey: Shader '${v == null ? vertShaderName : fragShaderName}' not found. Falling back to SimpleTexture.");
+      v = FSK().shaderLibrary["SimpleTextureVertex"];
+      f = FSK().shaderLibrary["SimpleTextureFragment"];
+    }
+
+    if (v == null || f == null) {
+      throw StateError("PipelineKey: Critical failure. Even fallback shaders are missing from library.");
     }
     
     vertShader = v;
@@ -268,6 +274,7 @@ class PipelineCache with LoggableClass {
       }
     }
 
+    //logPedantic("PipelineCache: activating pipeline ${key.uniqueStringKey}");
     renderPass.bindPipeline(pipeline);
     key.applyPipelineStates(renderPass);
 

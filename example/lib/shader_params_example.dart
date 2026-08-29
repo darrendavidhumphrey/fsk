@@ -1,70 +1,51 @@
-// TODO: Implement this
-/*
-import 'package:flutter/cupertino.dart';
+import 'package:flutter/material.dart';
 import 'package:fsk/fsk.dart';
+import 'package:vector_math/vector_math.dart' as vm;
 
 class ShaderParamsExample extends FskScene {
   ShaderParamsExample({super.navigationDelegate});
-  UniformValue? modulateUniform;
-  FskTextureText? text1;
+  
   bool ready = false;
 
   @override
-  void init() {
-    String skinPath = "skins/example6.xml";
-    super.init();
-    loadSkin(skinPath);
-  }
-
-  @override
-  void onSceneReady() {
-    modulateUniform = findObjectUniform("PenelopeModulate","uModulateColor");
-
-    var text1Node = findNodeByType<SKinTextNode>("Text1");
-    if (text1Node != null) {
-      text1 = text1Node.object;
-    }
+  Future<void> onInit() async {
+    await super.onInit();
+    // Load a skin or create objects manually
+    // For this example, we'll just create a quad and animate its color
+    
+    final quad = FskQuad.centered(
+      "animated_quad",
+      this,
+      const Size(400, 400),
+      modulateColor: Colors.white,
+    );
+    addNode(quad);
+    
     ready = true;
   }
 
   Color getCyclingColor({
     required double timeInSeconds,
-    double cycleDurationSeconds =
-    10.0, // Default to 10 seconds for a full cycle
+    double cycleDurationSeconds = 2.0,
     double saturation = 1.0,
     double value = 1.0,
   }) {
-    // Normalize time to a value between 0.0 and 1.0 based on cycleDuration
-    final double normalizedTime =
-        (timeInSeconds % cycleDurationSeconds) / cycleDurationSeconds;
-
-    // Map the normalized time to a hue angle (0.0 to 360.0 degrees)
+    final double normalizedTime = (timeInSeconds % cycleDurationSeconds) / cycleDurationSeconds;
     final double hue = normalizedTime * 360.0;
-
-    // Create an HSVColor and convert it to a standard Color object
-    final HSVColor hsvColor = HSVColor.fromAHSV(1.0, hue, saturation, value);
-    return hsvColor.toColor();
+    return HSVColor.fromAHSV(1.0, hue, saturation, value).toColor();
   }
 
   @override
-  void drawScene() async {
-    if (!skinLoaded || !ready) {
-      requestRepaint();
-      return;
+  void updateAnimations(DateTime now) {
+    super.updateAnimations(now);
+    if (!ready) return;
+
+    final double timeInSeconds = now.millisecondsSinceEpoch / 1000.0;
+    final color = getCyclingColor(timeInSeconds: timeInSeconds);
+
+    final quad = findNode<FskQuad>("animated_quad");
+    if (quad != null) {
+      quad.modulateColor = color;
     }
-
-    DateTime now = DateTime.now();
-    double timeInSeconds = now.millisecondsSinceEpoch / 1000.0;
-    var color = getCyclingColor(timeInSeconds: timeInSeconds,cycleDurationSeconds: 2);
-
-    modulateUniform?.value = color;
-
-    text1?.setTextColor(color);
-
-    super.drawScene();
-    requestRepaint();
   }
 }
-
-
- */

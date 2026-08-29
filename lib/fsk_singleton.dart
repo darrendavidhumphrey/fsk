@@ -162,8 +162,17 @@ class FSK extends ChangeNotifier with LoggableClass {
       return true;
     } catch (e) {
       _state = FskState.uninitialized; // Reset on failure
-      logError('Exception initializing GpuShader Pipeline: $e');
-      logError('Make sure you are running with --enable-impeller.');
+      logError('Exception during FSK.init(): $e');
+      
+      try {
+        final allAssets = (await AssetManifest.loadFromAssetBundle(rootBundle)).listAssets();
+        logInfo('Listing all bundled assets for diagnostics:');
+        for (final asset in allAssets) {
+          logInfo('  - $asset');
+        }
+      } catch (_) {}
+      
+      logError('Ensure you are running with --enable-impeller and --enable-flutter-gpu.');
       return false;
     }
   }

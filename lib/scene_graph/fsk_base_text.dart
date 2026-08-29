@@ -3,18 +3,20 @@ import 'dart:ui';
 import 'package:flutter/material.dart' show Colors;
 import 'package:flutter_gpu/gpu.dart' as gpu;
 import 'package:vector_math/vector_math.dart' as vm;
+
 import '../bitmap_fonts/texture_font.dart';
 import '../bitmap_fonts/font_manager.dart';
 import '../geometry/mesh_hit_tester.dart';
 import '../gpu/fsk_shader_material.dart';
+import '../util.dart';
+import '../skins/skin_data.dart';
+
 import 'fsk_scene_object.dart';
 import 'fsk_depth_state.dart';
 import 'fsk_quads_renderer.dart';
 import 'fsk_texture_text_quad_builder.dart';
 import 'fsk_text_alignment.dart';
 import 'fsk_transformable.dart';
-import '../util.dart';
-import '../skins/skin_data.dart';
 
 class SkinTextData extends SkinObjectData {
   final String font;
@@ -110,6 +112,7 @@ abstract class FskBaseText extends Fsk2DRenderableObject
     if (_text != newText) {
       _text = newText;
       needsRebuild = true;
+      parentScene.setNeedsUpdate();
     }
   }
 
@@ -184,6 +187,8 @@ abstract class FskBaseText extends Fsk2DRenderableObject
     if (_font.isInitialized) {
       _renderer.setTexture(_font.textureInfo);
       needsRebuild = true;
+    } else {
+      logVerbose("Font not initialized for $id");
     }
 
     setDepthState(
@@ -271,6 +276,7 @@ abstract class FskBaseText extends Fsk2DRenderableObject
       FskHitDetails(
         hitObject: this,
         hitPoint: hit,
+        localHitPoint: hit,
         distance: ray.origin.distanceTo(hit),
         normal: refBox.normal,
         hitData: null,
@@ -286,25 +292,22 @@ abstract class FskBaseText extends Fsk2DRenderableObject
     vm.Matrix4 mvMatrix,
     Size viewportSize,
   ) {
-    if (!renderer.verticesDownloaded && (numQuads > 0)) {
-      needsRebuild = true;
-    }
-
-    rebuildGeometryIfNeeded();
-
-    if ((numQuads == 0) || needsRebuild) {
-      // Nothing to draw
-      return;
-    }
+    if (numQuads == 0) return;
     super.draw(renderPass, transients, pMatrix, mvMatrix, viewportSize);
   }
 
   /// Rebuilds the vertex buffer object
   @override
   void doRebuild() {
-    if (!font.isInitialized || text.isEmpty) {
+    if (!font.isInitialized) {
       needsRebuild = true;
       numQuads = 0;
+      return;
+    }
+
+    if (text.isEmpty) {
+      numQuads = 0;
+      needsRebuild = false;
       return;
     }
 

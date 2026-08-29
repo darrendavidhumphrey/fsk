@@ -1,6 +1,16 @@
 import 'dart:typed_data';
-import 'package:fsk/fsk.dart';
+import 'package:fsk/scene_graph/fsk_scene_object.dart';
+import 'package:fsk/scene_graph/fsk_transformable.dart';
 import 'package:fsk/scene_graph/fsk_depth_state.dart';
+import 'package:fsk/scene_graph/fsk_mesh_renderer.dart';
+import 'package:fsk/scene_graph/fsk_pbr_model.dart';
+import 'package:fsk/gpu/fsk_vertex_buffer.dart';
+import 'package:fsk/gpu/fsk_shader_material.dart';
+import 'package:fsk/geometry/geometry_util.dart';
+import 'package:fsk/geometry/mesh_hit_tester.dart';
+import 'package:fsk/shaders/base_uniforms.dart';
+import 'package:fsk/shaders/pbr_shader.dart';
+import 'package:fsk/shaders/lighting_shader.dart';
 import 'package:vector_math/vector_math.dart' as vm;
 
 class FskMesh extends FskRenderableObject with FskTransformableMixin, FskDepthStateMixin {

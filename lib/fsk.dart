@@ -40,6 +40,7 @@ export 'scene_graph/fsk_mesh_renderer_base.dart';
 export 'scene_graph/fsk_mtsdf_text.dart';
 export 'scene_graph/fsk_rectangular_solid.dart';
 export 'scene_graph/fsk_quad.dart';
+export 'scene_graph/fsk_widget_object.dart';
 export 'scene_graph/fsk_scene.dart';
 export 'scene_graph/fsk_scene_base.dart';
 export 'scene_graph/fsk_scene_object.dart';

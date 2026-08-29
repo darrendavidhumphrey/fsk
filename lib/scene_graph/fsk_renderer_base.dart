@@ -2,13 +2,14 @@ import 'package:flutter/foundation.dart';
 import 'dart:ui';
 import 'package:flutter_gpu/gpu.dart' as gpu;
 import 'package:vector_math/vector_math.dart' as vm;
+
 import '../gpu/fsk_shader_material.dart';
 import '../gpu/fsk_texture_manager.dart';
 import '../gpu/gpu_pipeline_key.dart';
 import '../shaders/base_uniforms.dart';
-import 'fsk_depth_state.dart';
-
 import '../logging.dart';
+
+import 'fsk_depth_state.dart';
 
 abstract class FskRendererBase extends ChangeNotifier with LoggableClass {
   FskRendererBase();

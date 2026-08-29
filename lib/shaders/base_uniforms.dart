@@ -1,7 +1,9 @@
 import 'dart:ui';
 import 'package:flutter/foundation.dart';
 import 'package:flutter_gpu/gpu.dart' as gpu;
-import 'package:fsk/fsk.dart';
+import '../fsk_singleton.dart';
+import '../logging.dart';
+import 'materials.dart';
 import 'package:vector_math/vector_math.dart' as vm;
 
 import 'fragment_values.dart';
@@ -10,7 +12,12 @@ abstract class BaseUniforms extends ChangeNotifier with LoggableClass {
   final gpu.Shader? vertexShader;
   final gpu.Shader? fragmentShader;
 
+  /// The name of the uniform block in the vertex shader.
+  /// Subclasses should override this to match their specific shader.
   String get vertexBlockName => 'VertexUniforms';
+
+  /// The name of the uniform block in the fragment shader.
+  /// Subclasses should override this to match their specific shader.
   String get fragmentBlockName => 'FragmentUniforms';
 
   // Shared Vertex Uniform State
@@ -117,10 +124,7 @@ abstract class BaseUniforms extends ChangeNotifier with LoggableClass {
       ),
     );
 
-    final gpu.UniformSlot vertexSlot = vertexShader!.getUniformSlot(
-      vertexBlockName,
-    );
-    renderPass.bindUniform(vertexSlot, vertexBufferView);
+    _safeBindUniform(renderPass, vertexShader!, vertexBlockName, vertexBufferView);
 
     // =========================================================================
     // 2. DYNAMIC SUBCLASS FRAGMENT WRITER
@@ -132,22 +136,55 @@ abstract class BaseUniforms extends ChangeNotifier with LoggableClass {
         fragmentData.buffer.lengthInBytes,
       ),
     );
-    final gpu.UniformSlot fragmentSlot =
-        fragmentShader!.getUniformSlot(fragmentBlockName);
-    renderPass.bindUniform(fragmentSlot, fragmentBufferView);
+    
+    _safeBindUniform(renderPass, fragmentShader!, fragmentBlockName, fragmentBufferView);
 
     // =========================================================================
     // 3. UNIFIED SAMPLER BINDING (Binding 2)
     // =========================================================================
-    final gpu.UniformSlot textureSlot = fragmentShader!.getUniformSlot(
-      samplerUniformName,
-    );
-
-    final gpu.Texture textureToBind =
-        textureIn ?? FSK().textureManager.transparentTexture!;
-    renderPass.bindTexture(textureSlot, textureToBind, sampler: samplerOptions);
+    _safeBindSampler(renderPass, fragmentShader!, samplerUniformName);
 
     bindAdditionalTextures(renderPass);
+  }
+
+  void _safeBindUniform(gpu.RenderPass pass, gpu.Shader shader, String name, gpu.BufferView view) {
+    try {
+      final slot = shader.getUniformSlot(name);
+      pass.bindUniform(slot, view);
+    } catch (_) {
+      // Primary name failed. We'll try some common defaults if the specific subclass name wasn't found.
+      final variants = name.contains('Vertex') 
+          ? ['VertexUniforms', 'uVertexUniforms'] 
+          : ['FragmentUniforms', 'uFragmentUniforms'];
+      
+      for (var v in variants) {
+        try {
+          final slot = shader.getUniformSlot(v);
+          pass.bindUniform(slot, view);
+          return;
+        } catch (_) {}
+      }
+    }
+  }
+
+  void _safeBindSampler(gpu.RenderPass pass, gpu.Shader shader, String name) {
+    final gpu.Texture textureToBind = textureIn ?? FSK().textureManager.transparentTexture!;
+
+    try {
+      final slot = shader.getUniformSlot(name);
+      pass.bindTexture(slot, textureToBind, sampler: samplerOptions);
+      return;
+    } catch (_) {}
+
+    // Fallback search for common sampler names
+    final variants = ['uTexture', 'uBaseColorMap', 'tDiffuse', 'texture', 'uSampler'];
+    for (var v in variants) {
+      try {
+        final slot = shader.getUniformSlot(v);
+        pass.bindTexture(slot, textureToBind, sampler: samplerOptions);
+        return;
+      } catch (_) {}
+    }
   }
 
   void bindAdditionalTextures(gpu.RenderPass renderPass) {}

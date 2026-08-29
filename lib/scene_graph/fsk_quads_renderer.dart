@@ -2,11 +2,14 @@ import 'dart:typed_data';
 import 'dart:ui';
 import 'package:vector_math/vector_math.dart' as vm;
 import 'package:flutter_gpu/gpu.dart' as gpu;
+
 import '../fsk_singleton.dart';
 import '../gpu/gpu_pipeline_key.dart';
 import '../gpu/fsk_vertex_buffer.dart';
 import '../gpu/fsk_shader_material.dart';
 import '../vbo_filler.dart';
+
+
 import 'fsk_renderer_base.dart';
 
 class FskQuadsRenderer extends FskRendererBase {
@@ -129,7 +132,7 @@ class FskQuadsRenderer extends FskRendererBase {
       uniforms!.samplerOptions = FSK().textureManager.transparentTextureInfo.samplerOptions;
     } else {
       if (_debug) {
-        logVerbose("FskQuadsRenderer.draw: texture ID is ${textureInfo!.id} dims are ${textureInfo!.texture!.width}x${textureInfo!.texture!.height}");
+        //logVerbose("FskQuadsRenderer.draw: texture ID is ${textureInfo!.id} dims are ${textureInfo!.texture!.width}x${textureInfo!.texture!.height}");
       }
       uniforms!.texture = textureInfo!.texture;
       uniforms!.samplerOptions = textureInfo!.samplerOptions;

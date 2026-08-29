@@ -4,7 +4,16 @@ import 'dart:typed_data';
 import 'dart:ui';
 import 'package:dart_stl/stl_reader.dart';
 import 'package:flutter/services.dart' show rootBundle;
-import 'package:fsk/fsk.dart';
+import '../fsk_singleton.dart';
+import '../logging.dart';
+import '../vbo_filler.dart';
+import '../gpu/fsk_vertex_buffer.dart';
+import '../gpu/fsk_shader_material.dart';
+import '../scene_graph/fsk_scene_base.dart';
+import '../scene_graph/fsk_mesh.dart';
+import '../scene_graph/fsk_stl_model.dart';
+import '../scene_graph/fsk_submesh.dart';
+import 'fsk_model_loader.dart';
 import 'package:vector_math/vector_math.dart' as vm;
 
 /// Represents a 3D model loaded from an STL file (ASCII or Binary).

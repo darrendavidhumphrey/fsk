@@ -3,12 +3,12 @@ import 'dart:ui' as ui;
 import 'package:flutter/material.dart' hide Matrix4;
 import 'package:flutter_gpu/gpu.dart' as gpu;
 import 'package:vector_math/vector_math.dart' as vm;
-import '../fsk_singleton.dart';
-import '../fsk_input_handler.dart';
-import '../logging.dart';
-import '../gpu/fsk_render_target.dart';
-import '../geometry/mesh_hit_tester.dart';
-import '../ui/navigation_delegates/scene_navigation_delegate.dart';
+import 'package:fsk/fsk_singleton.dart';
+import 'package:fsk/fsk_input_handler.dart';
+import 'package:fsk/logging.dart';
+import 'package:fsk/gpu/fsk_render_target.dart';
+import 'package:fsk/geometry/mesh_hit_tester.dart';
+import 'package:fsk/ui/navigation_delegates/scene_navigation_delegate.dart';
 
 /// An abstract base class for a 3D scene, representing the root of a scene graph.
 abstract class FskSceneBase extends ChangeNotifier
@@ -21,6 +21,9 @@ abstract class FskSceneBase extends ChangeNotifier
   // ignore: unnecessary_getters_setters
   Size get viewportSize => _viewportSize;
   set viewportSize(Size value) => _viewportSize = value;
+
+  /// Returns the layout matrix used to scale/position the scene content.
+  vm.Matrix4 getLayoutMatrix() => vm.Matrix4.identity();
 
   @override
   FskSceneNavigationDelegate? navigationDelegate;
@@ -144,14 +147,13 @@ abstract class FskSceneBase extends ChangeNotifier
   }
 
   void setupScissor(gpu.RenderPass renderPass) {
-    if (_texture == null) return;
+    final double width = _texture?.width.toDouble() ?? _viewportSize.width;
+    final double height = _texture?.height.toDouble() ?? _viewportSize.height;
+
+    if (width <= 0 || height <= 0) return;
 
     renderPass.setScissor(
-      gpu.Scissor(x: 0, y: 0, width: _texture!.width, height: _texture!.height),
-    );
-
-    renderPass.setViewport(
-      gpu.Viewport(x: 0, y: 0, width: _texture!.width, height: _texture!.height),
+      gpu.Scissor(x: 0, y: 0, width: width.toInt(), height: height.toInt()),
     );
   }
 

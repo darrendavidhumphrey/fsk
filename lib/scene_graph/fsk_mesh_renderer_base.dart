@@ -1,8 +1,12 @@
 import 'dart:ui';
 import 'package:vector_math/vector_math.dart' as vm;
 import 'package:flutter_gpu/gpu.dart' as gpu;
-import 'package:fsk/fsk.dart';
-import 'fsk_renderer_base.dart';
+import 'package:fsk/scene_graph/fsk_renderer_base.dart';
+import 'package:fsk/scene_graph/fsk_submesh.dart';
+import 'package:fsk/gpu/fsk_vertex_buffer.dart';
+import 'package:fsk/gpu/fsk_shader_material.dart';
+import 'package:fsk/gpu/gpu_pipeline_key.dart';
+import 'package:fsk/fsk_singleton.dart';
 
 abstract class FskMeshRendererBase extends FskRendererBase {
   bool _dataUploaded = false;

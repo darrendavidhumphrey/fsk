@@ -1,6 +1,17 @@
 import 'dart:ui';
-import 'package:fsk/fsk.dart';
-import 'package:fsk/scene_graph/fsk_renderer_base.dart';
+import 'package:flutter/gestures.dart';
+
+import '../logging.dart';
+import '../geometry/mesh_hit_tester.dart';
+import '../geometry/reference_box.dart';
+import '../geometry/geometry_util.dart';
+import '../shaders/base_uniforms.dart';
+import '../gpu/fsk_shader_material.dart';
+
+import 'fsk_scene_base.dart';
+import 'fsk_transformable.dart';
+import 'fsk_renderer_base.dart';
+
 import 'package:vector_math/vector_math.dart' as vm;
 import 'package:flutter_gpu/gpu.dart' as gpu;
 
@@ -141,13 +152,37 @@ abstract class FskRenderableObject extends FskSceneObject {
     if (!visible || !isPickable) return [];
 
     vm.Ray localRay = ray;
+    vm.Matrix4 localToParent = vm.Matrix4.identity();
     if (transformable.isTransformed()) {
-      final vm.Matrix4 worldToLocal =
-          vm.Matrix4.copy(transformable.getTransform())..invert();
-      localRay = transformRay(ray, worldToLocal);
+      localToParent = transformable.getTransform();
+      final vm.Matrix4 parentToLocal =
+          vm.Matrix4.copy(localToParent)..invert();
+      localRay = transformRay(ray, parentToLocal);
     }
 
-    return doHitTest(localRay, mode: mode);
+    final hits = doHitTest(localRay, mode: mode);
+    if (hits.isEmpty) return hits;
+
+    // Transform hits back to parent space
+    if (transformable.isTransformed()) {
+      for (var i = 0; i < hits.length; i++) {
+        final hit = hits[i];
+        final parentHitPoint =
+            localToParent.transform3(vm.Vector3.copy(hit.hitPoint));
+        final parentNormal =
+            localToParent.rotate3(vm.Vector3.copy(hit.normal))..normalize();
+        hits[i] = FskHitDetails(
+          hitObject: hit.hitObject,
+          hitPoint: parentHitPoint,
+          localHitPoint: hit.localHitPoint,
+          distance: ray.origin.distanceTo(parentHitPoint),
+          normal: parentNormal,
+          hitData: hit.hitData,
+        );
+      }
+    }
+
+    return hits;
   }
 
   /// Internal hit test implementation for subclasses.
@@ -156,6 +191,15 @@ abstract class FskRenderableObject extends FskSceneObject {
       {FskHitTestMode mode = FskHitTestMode.closest}) {
     return [];
   }
+
+  bool onPointerDown(PointerDownEvent event, FskHitDetails hit) => false;
+  bool onPointerMove(PointerMoveEvent event, FskHitDetails hit) => false;
+  bool onPointerUp(PointerUpEvent event, FskHitDetails hit) => false;
+  bool onPointerHover(PointerHoverEvent event, FskHitDetails hit) => false;
+  bool onPointerCancel(PointerCancelEvent event, FskHitDetails hit) => false;
+
+  void onPointerEnter(PointerEvent event, [FskHitDetails? hit]) {}
+  void onPointerExit(PointerEvent event, [FskHitDetails? hit]) {}
 
   void setRenderer(FskRendererBase newRenderer) {
     if (_renderer == newRenderer) return;

@@ -1,7 +1,5 @@
-import 'dart:typed_data';
 import 'dart:ui';
 import 'materials.dart';
-
 import 'base_uniforms.dart';
 
 class SimpleTextureUniforms extends BaseUniforms {
@@ -28,6 +26,34 @@ class SimpleTextureUniforms extends BaseUniforms {
   @override
   void serializeFragmentData() {
     fragmentData.clear();
-    fragmentData.packColor(valuesMap[_kModulateColorKey]);
+    fragmentData.packColor(valuesMap[_kModulateColorKey] ?? const Color(0xFFFFFFFF));
+  }
+}
+
+class BitmapTextUniforms extends BaseUniforms {
+  static const String _kTextColorKey = 'uTextColor';
+
+  @override
+  String get vertexBlockName => 'BitmapTextVertexUniforms';
+  @override
+  String get fragmentBlockName => 'BitmapTextFragmentUniforms';
+
+  BitmapTextUniforms({super.vertexShader, super.fragmentShader}) {
+    this[_kTextColorKey] = const Color(0xFFFFFFFF);
+  }
+
+  void setTextColor(Color color) {
+    this[_kTextColorKey] = color;
+  }
+
+  @override
+  void applyMaterial(GlMaterial material) {
+    this[_kTextColorKey] = material.diffuse;
+  }
+
+  @override
+  void serializeFragmentData() {
+    fragmentData.clear();
+    fragmentData.packColor(valuesMap[_kTextColorKey] ?? const Color(0xFFFFFFFF));
   }
 }

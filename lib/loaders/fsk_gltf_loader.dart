@@ -4,8 +4,20 @@ import 'dart:math';
 import 'dart:typed_data';
 import 'package:flutter/services.dart';
 import 'package:vector_math/vector_math.dart' as vm;
-import '../fsk.dart';
 
+import '../logging.dart';
+import '../fsk_singleton.dart';
+import '../gpu/fsk_texture_manager.dart';
+import '../gpu/fsk_shader_material.dart';
+import '../gpu/fsk_vertex_buffer.dart';
+import '../scene_graph/fsk_scene_base.dart';
+import '../scene_graph/fsk_scene_object.dart';
+import '../scene_graph/fsk_group.dart';
+import '../scene_graph/fsk_external_model.dart';
+import '../scene_graph/fsk_indexed_mesh.dart';
+import '../scene_graph/fsk_submesh.dart';
+import '../shaders/pbr_shader.dart';
+import 'fsk_model_loader.dart';
 
 /// A lightweight, dependency-free GLTF 2.0 loader for the FSK engine.
 class FskGltfLoader extends FskModelLoader {

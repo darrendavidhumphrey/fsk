@@ -1,6 +1,15 @@
 import 'package:flutter_gpu/gpu.dart' as gpu;
-import '../fsk.dart';
-import '../shaders/mtsdf_text_shader.dart';
+import 'package:fsk/shaders/base_uniforms.dart';
+import 'package:fsk/shaders/simple_texture_shader.dart';
+import 'package:fsk/shaders/flat_shader.dart';
+import 'package:fsk/shaders/grid_shader.dart';
+import 'package:fsk/shaders/lighting_shader.dart';
+import 'package:fsk/shaders/one_light_shader.dart';
+import 'package:fsk/shaders/checkerboard_shader.dart';
+import 'package:fsk/shaders/pbr_shader.dart';
+import 'package:fsk/shaders/wire_frame_shader.dart';
+import 'package:fsk/shaders/mtsdf_text_shader.dart';
+import 'package:fsk/gpu/gpu_pipeline_key.dart';
 
 typedef UniformsFactory = BaseUniforms Function(gpu.Shader vert, gpu.Shader frag);
 
@@ -31,7 +40,7 @@ class FskShaderMaterial {
     vertShaderName: "TextureTextVertex",
     fragShaderName: "TextureTextFragment",
     layout: textVertexLayout,
-    uniformsFactory: (v, f) => SimpleTextureUniforms(vertexShader: v, fragmentShader: f),
+    uniformsFactory: (v, f) => BitmapTextUniforms(vertexShader: v, fragmentShader: f),
   );
 
   static final FskShaderMaterial flat = FskShaderMaterial(

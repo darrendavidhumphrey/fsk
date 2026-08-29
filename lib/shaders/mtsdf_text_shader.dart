@@ -32,8 +32,8 @@ class MtsdfTextUniforms extends BaseUniforms {
   @override
   void serializeFragmentData() {
     fragmentData.clear();
-    fragmentData.packColor(valuesMap[_kTextColorKey]);
-    fragmentData.packColor(valuesMap[_kGlowColorKey]);
-    fragmentData.packDouble(valuesMap[_kGlowSizeKey]);
+    fragmentData.packColor(valuesMap[_kTextColorKey]!);
+    fragmentData.packColor(valuesMap[_kGlowColorKey]!);
+    fragmentData.packDouble(valuesMap[_kGlowSizeKey] ?? 0.0);
   }
 }

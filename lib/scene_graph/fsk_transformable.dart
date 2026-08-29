@@ -1,7 +1,7 @@
-import 'package:fsk/fsk.dart';
+import 'fsk_scene_object.dart';
 import 'package:vector_math/vector_math.dart' as vm;
 
-class FskTransformable with LoggableClass {
+class FskTransformable {
   final vm.Vector3 _anchor = vm.Vector3.zero();
   final vm.Vector3 _position = vm.Vector3.zero();
   final vm.Vector3 _rotation = vm.Vector3.zero();

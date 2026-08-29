@@ -1,6 +1,14 @@
-import 'package:fsk/fsk.dart';
 import 'package:vector_math/vector_math.dart' as vm;
 import 'package:flutter/material.dart';
+import 'package:fsk/scene_graph/fsk_mesh.dart';
+import 'package:fsk/scene_graph/fsk_scene_object.dart';
+import 'package:fsk/scene_graph/fsk_scene_base.dart';
+import 'package:fsk/scene_graph/fsk_submesh.dart';
+import 'package:fsk/fsk_singleton.dart';
+import 'package:fsk/geometry/polyline.dart';
+import 'package:fsk/geometry/mesh_factory.dart';
+import 'package:fsk/gpu/fsk_vertex_buffer.dart';
+import 'package:fsk/gpu/fsk_shader_material.dart';
 
 /// Represents a generic 3D solid, specifically a rectangular prism or cube.
 ///

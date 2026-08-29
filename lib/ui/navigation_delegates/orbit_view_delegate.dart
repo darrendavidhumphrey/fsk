@@ -176,25 +176,27 @@ class OrbitViewDelegateBase extends PerspectiveViewDelegate {
   /// Creates the view matrix based on the current yaw, pitch, and distance.
   @override
   vm.Matrix4 createViewMatrix() {
-    vm.Vector3 up = vm.Vector3(0, 1, 0);
-    vm.Vector3 orbitCenter = getOrbitCenter();
+    // 1. Calculate eye position by rotating the distance vector
+    final vm.Vector3 eye = vm.Vector3(0, 0, distance);
+    final vm.Matrix4 rotation = vm.Matrix4.identity()
+      ..rotateY(vm.radians(-yaw))
+      ..rotateX(vm.radians(-pitch));
+    
+    final vm.Vector3 rotatedEye = rotation.transform3(eye);
+    final vm.Vector3 finalEye = rotatedEye + orbitCenter;
 
-    // Use the library's makeViewMatrix for a correct look-at matrix.
-    vm.Matrix4 v = vm.makeViewMatrix(getEyeLocation(), orbitCenter, up);
-
-    // Apply rotations around the orbit center.
-    v.translateByVector3(orbitCenter);
-    v.rotateZ(vm.radians(180));
-    v.rotateY(vm.radians(yaw));
-    v.rotateX(vm.radians(pitch));
-    v.translateByVector3(-orbitCenter);
-    return v;
+    // 2. Look at the orbit center from the rotated position
+    return vm.makeViewMatrix(finalEye, orbitCenter, vm.Vector3(0, 1, 0));
   }
 
   /// Returns the camera's position in 3D space.
   @override
   vm.Vector3 getEyeLocation() {
-    return vm.Vector3(0, 0, -distance);
+    final vm.Vector3 eye = vm.Vector3(0, 0, distance);
+    final vm.Matrix4 rotation = vm.Matrix4.identity()
+      ..rotateY(vm.radians(-yaw))
+      ..rotateX(vm.radians(-pitch));
+    return rotation.transform3(eye) + orbitCenter;
   }
 
   /// The point in space that the camera orbits around.

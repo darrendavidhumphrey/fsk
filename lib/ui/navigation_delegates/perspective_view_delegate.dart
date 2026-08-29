@@ -61,18 +61,17 @@ abstract class PerspectiveViewDelegate extends FskSceneNavigationDelegate {
       _zFar,
     );
 
-    // flutter_gpu (Impeller) expects Z in [0, 1] (Vulkan style).
-    // The vector_math matrix produces Z in [-1, 1] (OpenGL style).
-    // We remap: Z_new = 0.5 * Z_old + 0.5
+    // flutter_gpu (Impeller) expects Z in [0, 1] (Vulkan style) and Y-down.
+    // The vector_math matrix produces Z in [-1, 1] (OpenGL style) and Y-up.
+    // We remap: Z_new = 0.5 * Z_old + 0.5, and flip Y.
+    final vm.Matrix4 remap = vm.Matrix4.identity();
 
-    bool test = true ;
-    if (test) {
-      final vm.Matrix4 remap = vm.Matrix4.identity();
 
-      remap.setEntry(2, 2, 0.5);
-      remap.setEntry(2, 3, 0.5);
+    // NOTE TO AGENTS: NEVER CHANGE THIS
+   // TODO: NOT NEEDED!!! remap.setEntry(1, 1, -1.0); // Flip Y
+    remap.setEntry(2, 2, 0.5);
+    remap.setEntry(2, 3, 0.5);
 
-      return remap * proj;
-    }
+    return remap * proj;
   }
 }

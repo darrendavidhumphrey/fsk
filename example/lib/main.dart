@@ -3,7 +3,6 @@ import 'package:flutter/services.dart';
 import 'package:fsk/fsk.dart';
 import 'package:flutter/material.dart';
 import 'package:fsk_examples/checkerboard_scene.dart';
-import 'package:fsk_examples/picking_test_scene.dart';
 import 'package:fsk_examples/positioned_title_bar.dart';
 import 'package:fsk_examples/scene_from_xml.dart';
 import 'animated_checkerboard_scene.dart';
@@ -13,6 +12,7 @@ import 'pbr_model_scene.dart';
 import 'pbr_with_overlay_example.dart';
 import 'mtsdf_text_scene.dart';
 import 'transformation_test_scene.dart';
+import 'widget_nesting_scene.dart';
 
 
 void main() async {
@@ -39,7 +39,7 @@ class TestAppState extends State<TestApp> {
   String _titleText = "";
 
   final List<String> menuLabels = [
-   "Checkerboard (Ortho View)",
+    "Checkerboard (Ortho View)",
     "Animated Checkerboard (Perspective View)",
     "CAD Canvas (Orbit View)",
     "Bitmap Text (Ortho View)",
@@ -48,6 +48,7 @@ class TestAppState extends State<TestApp> {
     "PBR with Teapot Overlay",
     "MTSDF Text (Ortho View)",
     "Transformation & Nesting Test",
+    "Interactive Widget (Editable Text)"
   ];
   final List<FskSceneBase> scenes = [];
 
@@ -62,6 +63,7 @@ class TestAppState extends State<TestApp> {
     scenes.add(PbrWithOverlayScene(navigationDelegate: OrbitViewDelegate(boxFit: FskBoxFit.bestFit)));
     scenes.add(MtsdfTextScene(navigationDelegate: OrthoViewDelegate(boxFit: FskBoxFit.bestFit)));
     scenes.add(TransformationTestScene(navigationDelegate: OrthoViewDelegate(boxFit: FskBoxFit.bestFit)));
+    scenes.add(WidgetNestingScene(navigationDelegate: OrbitViewDelegate(boxFit: FskBoxFit.bestFit)));
   }
 
   @override
@@ -69,19 +71,37 @@ class TestAppState extends State<TestApp> {
     super.initState();
     _setTitleText();
 
-    FSK().init().then((_) async {
-      makeExamples();
-
-      // Ensure all scenes are initialized
-      for (var scene in scenes) {
-        await scene.init();
+    FSK().init().then((success) async {
+      if (!success) {
+        if (mounted) {
+          setState(() {
+            _titleText = "GPU Error: Check Console";
+          });
+        }
+        return;
       }
+      
+      try {
+        makeExamples();
 
-      if (mounted) {
-        setState(() {
-          _pageIndex = 0;
-          _setTitleText();
-        });
+        // Ensure all scenes are initialized
+        for (var scene in scenes) {
+          await scene.init();
+        }
+
+        if (mounted) {
+          setState(() {
+            _pageIndex = 0;
+            _setTitleText();
+          });
+        }
+      } catch (e, s) {
+        Logging.logError("CRITICAL: Error during Scene initialization: $e\n$s", source: "TestApp");
+        if (mounted) {
+          setState(() {
+            _titleText = "Initialization Error: See Logs";
+          });
+        }
       }
     });
   }

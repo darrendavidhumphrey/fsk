@@ -1,11 +1,20 @@
 import 'dart:typed_data';
 import 'package:flutter/material.dart';
-import 'package:fsk/fsk.dart';
 import 'package:vector_math/vector_math.dart' as vm;
+import '../logging.dart';
+import '../scene_graph/fsk_mesh.dart';
+import '../scene_graph/fsk_scene_base.dart';
+import '../scene_graph/fsk_submesh.dart';
+import '../gpu/fsk_vertex_buffer.dart';
+import '../gpu/fsk_shader_material.dart';
+import '../vbo_filler.dart';
+import '../util.dart';
+import 'polyline.dart';
+import 'thick_lines.dart';
 
 /// A utility class with static methods to create complex [FskMesh] objects
 /// or generate [Float32List] vertex data.
-class MeshFactory {
+class MeshFactory with LoggableClass {
   // Private constructor to prevent instantiation of this utility class.
   MeshFactory._();
 
@@ -183,6 +192,7 @@ class MeshFactory {
     final mesh = FskMesh(id, scene, shaderMaterial: material);
     int newVertexCount = triangleCount * 3;
     if (newVertexCount > 0) {
+
       final vertices =
           Float32List(newVertexCount * FskVertexBuffer.componentCount);
       final filler = VboFiller(vertices);

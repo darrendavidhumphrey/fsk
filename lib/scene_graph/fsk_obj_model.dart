@@ -1,4 +1,5 @@
-import 'package:fsk/fsk.dart';
+import 'fsk_external_model.dart';
+import 'fsk_indexed_mesh.dart';
 
 /// Lightweight specialized group node for Wavefront OBJ models that provides direct access
 /// to the primary mesh once loaded.

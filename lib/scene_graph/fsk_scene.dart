@@ -5,14 +5,18 @@ import 'package:flutter_gpu/gpu.dart' as gpu;
 import 'package:vector_math/vector_math.dart' as vm;
 import 'package:vector_math/vector_math_64.dart' as vm64;
 
-import 'fsk_scene_base.dart';
 import '../fsk_singleton.dart';
+import '../geometry/geometry_util.dart';
 import '../geometry/mesh_hit_tester.dart';
 import '../gpu/fsk_render_target.dart';
 import '../skins/skin_scene_parser.dart';
 import '../skins/skin_scene_builder.dart';
+
+import 'fsk_scene_base.dart';
 import 'fsk_group.dart';
 import 'fsk_scene_object.dart';
+import 'fsk_widget_portal.dart';
+import 'fsk_renderer_base.dart';
 
 class FskScene extends FskSceneBase with FskSceneLayerDispatcherMixin {
   final List<FskSceneObject> rootNodes = [];
@@ -22,6 +26,16 @@ class FskScene extends FskSceneBase with FskSceneLayerDispatcherMixin {
   bool useBoxFitLayout = true;
   bool autoClear = true;
   String? _pendingSkinPath;
+
+  final List<FskWidgetPortal> widgetPortals = [];
+
+  /// Internal list of widget draw commands collected during traversal.
+  final List<_FskWidgetDrawCommand> _widgetDrawCommands = [];
+
+  void addWidgetPortal(FskWidgetPortal portal) {
+    widgetPortals.add(portal);
+    notifyListeners();
+  }
 
   FskScene({super.navigationDelegate, super.clearColor}) {
     isReady = false;
@@ -94,29 +108,62 @@ class FskScene extends FskSceneBase with FskSceneLayerDispatcherMixin {
     setNeedsUpdate();
   }
 
+  @override
+  vm.Matrix4 getLayoutMatrix() {
+    vm.Matrix4 layoutMatrix = vm.Matrix4.identity();
+    if (useBoxFitLayout) {
+      vm.Matrix4? boxFitMatrix =
+          navigationDelegate?.createBoxFitMatrix(skinSize);
+      if (boxFitMatrix != null) {
+        layoutMatrix = boxFitMatrix * layoutMatrix;
+      }
+      layoutMatrix.translateByVector3(vm.Vector3(-skinSize.width / 2, -skinSize.height / 2, 0));
+    }
+    return layoutMatrix;
+  }
+
   /// Performs a hit test traversal of the scene graph.
   @override
   List<FskHitDetails> hitTest(vm.Ray ray,
       {FskHitTestMode mode = FskHitTestMode.closest}) {
     final List<FskHitDetails> results = [];
 
+    final vm.Matrix4 layoutMatrix = getLayoutMatrix();
+    final vm.Matrix4 invLayout = vm.Matrix4.copy(layoutMatrix)..invert();
+    final vm.Ray localRay = transformRay(ray, invLayout);
+
+    // To find the closest hit across all root nodes, we must gather everything.
+    final childMode = (mode == FskHitTestMode.closest) ? FskHitTestMode.all : mode;
+
     for (final node in rootNodes) {
-      final hits = node.hitTest(ray, mode: mode);
+      final hits = node.hitTest(localRay, mode: childMode);
       if (hits.isNotEmpty) {
-        if (mode == FskHitTestMode.first) {
-          return hits;
+        // Transform hits back to world space
+        for (var i = 0; i < hits.length; i++) {
+          final hit = hits[i];
+          final worldHitPoint =
+              layoutMatrix.transform3(vm.Vector3.copy(hit.hitPoint));
+          final worldNormal =
+              layoutMatrix.rotate3(vm.Vector3.copy(hit.normal))..normalize();
+          hits[i] = FskHitDetails(
+            hitObject: hit.hitObject,
+            hitPoint: worldHitPoint,
+            localHitPoint: hit.localHitPoint,
+            distance: ray.origin.distanceTo(worldHitPoint),
+            normal: worldNormal,
+            hitData: hit.hitData,
+          );
         }
         results.addAll(hits);
       }
     }
 
-    if (mode == FskHitTestMode.closest && results.length > 1) {
-      results.sort((a, b) => a.distance.compareTo(b.distance));
-      return [results.first];
-    }
+    if (results.isEmpty) return [];
 
-    if (mode == FskHitTestMode.all) {
-      results.sort((a, b) => a.distance.compareTo(b.distance));
+    results.sort((a, b) => a.distance.compareTo(b.distance));
+
+    if (mode == FskHitTestMode.first || mode == FskHitTestMode.closest) {
+      return [results.first];
     }
 
     return results;
@@ -128,18 +175,11 @@ class FskScene extends FskSceneBase with FskSceneLayerDispatcherMixin {
     if (!isReady) return;
 
     try {
+      _widgetDrawCommands.clear();
       super.drawScene(commandBuffer, renderTarget, transients, parentRenderPass, isLast);
 
       // 1. Calculate the layout matrix.
-      vm.Matrix4 layoutMatrix = vm.Matrix4.identity();
-      if (useBoxFitLayout) {
-        vm.Matrix4? boxFitMatrix =
-            navigationDelegate?.createBoxFitMatrix(skinSize);
-        if (boxFitMatrix != null) {
-          layoutMatrix = boxFitMatrix * layoutMatrix;
-        }
-        layoutMatrix.translateByVector3(vm.Vector3(-skinSize.width / 2, -skinSize.height / 2, 0));
-      }
+      vm.Matrix4 layoutMatrix = getLayoutMatrix();
 
       // 2. Combine layout with the current view matrix (mvMatrix).
       final vm.Matrix4 finalMvMatrix = layoutMatrix * mvMatrix;
@@ -150,7 +190,6 @@ class FskScene extends FskSceneBase with FskSceneLayerDispatcherMixin {
         renderPass = parentRenderPass;
       } else {
         // We are the root. Clear if autoClear is true. 
-        // We NEVER resolve here anymore; the GPURenderWidget handles final resolve.
         final gpu.RenderTarget target = autoClear 
             ? renderTarget.clearTarget 
             : renderTarget.loadTarget;
@@ -162,14 +201,44 @@ class FskScene extends FskSceneBase with FskSceneLayerDispatcherMixin {
       // 4. Draw geometry
       for (final node in rootNodes) {
         if (node is FskRenderableObject && node.visible) {
-          node.draw(renderPass, transients, pMatrix, finalMvMatrix, viewportSize);
+          try {
+             node.draw(renderPass, transients, pMatrix, finalMvMatrix, viewportSize);
+          } catch (e, s) {
+             logError("Error drawing node ${node.id}: $e\n$s");
+          }
+        }
+      }
+
+      // 4b. Draw collected Flutter widgets in a truly separate pass for maximum isolation.
+      if (_widgetDrawCommands.isNotEmpty) {
+        final widgetPass = commandBuffer.createRenderPass(renderTarget.loadTarget);
+        hardResetPipelineState(widgetPass);
+        
+        for (final cmd in _widgetDrawCommands) {
+          try {
+            // Ensure uniforms are updated with the object's current state.
+            cmd.object.updateUniforms(cmd.renderer.uniforms!);
+            
+            cmd.renderer.draw(
+              widgetPass, 
+              transients, 
+              cmd.pMatrix, 
+              cmd.mvMatrix, 
+              cmd.viewportSize
+            );
+          } catch (e, s) {
+            logError("Error drawing widget node: $e\n$s");
+          }
         }
       }
 
       // 5. Draw sub-layers
       for (int i = 0; i < layers.length; i++) {
-        // Sub-layers share our pass if they can
-        layers[i].drawScene(commandBuffer, renderTarget, transients, renderPass, isLast);
+        try {
+           layers[i].drawScene(commandBuffer, renderTarget, transients, renderPass, isLast);
+        } catch (e, s) {
+           logError("Error drawing layer $i: $e\n$s");
+        }
       }
     } catch (e, s) {
       logError("CRITICAL Error in FskScene.drawScene: $e\n$s");
@@ -233,6 +302,39 @@ class FskScene extends FskSceneBase with FskSceneLayerDispatcherMixin {
       node.dumpSceneGraph();
     }
   }
+
+  @override
+  KeyEventResult onKeyEvent(KeyEvent event) {
+    // Forward key events to the navigation delegate which forwards to behaviors
+    return navigationDelegate?.onKeyEvent(event) ?? KeyEventResult.ignored;
+  }
+
+  /// Internal registration for widget draw commands.
+  void registerWidgetDraw(FskRenderableObject object, FskRendererBase renderer, vm.Matrix4 pMatrix, vm.Matrix4 mvMatrix, Size viewportSize) {
+    _widgetDrawCommands.add(_FskWidgetDrawCommand(
+      object: object,
+      renderer: renderer,
+      pMatrix: pMatrix,
+      mvMatrix: mvMatrix,
+      viewportSize: viewportSize,
+    ));
+  }
+}
+
+class _FskWidgetDrawCommand {
+  final FskRenderableObject object;
+  final FskRendererBase renderer;
+  final vm.Matrix4 pMatrix;
+  final vm.Matrix4 mvMatrix;
+  final Size viewportSize;
+
+  _FskWidgetDrawCommand({
+    required this.object,
+    required this.renderer,
+    required this.pMatrix,
+    required this.mvMatrix,
+    required this.viewportSize,
+  });
 }
 
 /// A mixin that dispatches input events to the scene's [layers].
@@ -242,6 +344,12 @@ mixin FskSceneLayerDispatcherMixin on FskSceneBase {
   /// Map of pointer IDs to the overlay that currently "owns" them.
   /// If the value is null, the main scene owns the pointer.
   final Map<int, FskSceneBase?> _pointerCaptures = {};
+
+  /// Map of pointer IDs to the scene object that currently "owns" them.
+  final Map<int, FskRenderableObject?> _objectCaptures = {};
+
+  /// The scene object currently under the mouse cursor.
+  FskRenderableObject? _currentHoveredObject;
 
   Size get logicalSize => Size(viewportSize.width / FSK.devicePixelRatio,
       viewportSize.height / FSK.devicePixelRatio);
@@ -263,12 +371,43 @@ mixin FskSceneLayerDispatcherMixin on FskSceneBase {
         }
       }
     }
+
+    // Hit test against the 3D scene
+    final ray = navigationDelegate?.getWorldRay(event.localPosition);
+    if (ray != null) {
+      final hits = hitTest(ray, mode: FskHitTestMode.closest);
+      if (hits.isNotEmpty) {
+        final hit = hits.first;
+        if (hit.hitObject is FskRenderableObject) {
+          final obj = hit.hitObject as FskRenderableObject;
+          if (obj.onPointerDown(event, hit)) {
+            _objectCaptures[event.pointer] = obj;
+            return true;
+          }
+        }
+      }
+    }
+
     _pointerCaptures[event.pointer] = null;
     return super.onPointerDown(event);
   }
 
   @override
   bool onPointerMove(PointerMoveEvent event) {
+    if (_objectCaptures.containsKey(event.pointer)) {
+      final obj = _objectCaptures[event.pointer];
+      if (obj != null) {
+        final ray = navigationDelegate?.getWorldRay(event.localPosition);
+        if (ray != null) {
+          final hits = obj.hitTest(ray, mode: FskHitTestMode.first);
+          if (hits.isNotEmpty) {
+            return obj.onPointerMove(event, hits.first);
+          }
+        }
+        return obj.onPointerMove(event, FskHitDetails(hitObject: obj, hitPoint: vm.Vector3.zero(), localHitPoint: vm.Vector3.zero(), distance: 0, normal: vm.Vector3.zero(), hitData: null));
+      }
+    }
+
     if (_pointerCaptures.containsKey(event.pointer)) {
       final layer = _pointerCaptures[event.pointer];
       if (layer != null) {
@@ -284,6 +423,20 @@ mixin FskSceneLayerDispatcherMixin on FskSceneBase {
 
   @override
   bool onPointerUp(PointerUpEvent event) {
+    if (_objectCaptures.containsKey(event.pointer)) {
+      final obj = _objectCaptures.remove(event.pointer);
+      if (obj != null) {
+        final ray = navigationDelegate?.getWorldRay(event.localPosition);
+        if (ray != null) {
+          final hits = obj.hitTest(ray, mode: FskHitTestMode.first);
+          if (hits.isNotEmpty) {
+            return obj.onPointerUp(event, hits.first);
+          }
+        }
+        return obj.onPointerUp(event, FskHitDetails(hitObject: obj, hitPoint: vm.Vector3.zero(), localHitPoint: vm.Vector3.zero(), distance: 0, normal: vm.Vector3.zero(), hitData: null));
+      }
+    }
+
     if (_pointerCaptures.containsKey(event.pointer)) {
       final layer = _pointerCaptures[event.pointer];
       _pointerCaptures.remove(event.pointer);
@@ -345,6 +498,30 @@ mixin FskSceneLayerDispatcherMixin on FskSceneBase {
         if (layer.onPointerHover(transformedEvent)) return true;
       }
     }
+
+    // Hit test against the 3D scene for hover
+    final ray = navigationDelegate?.getWorldRay(event.localPosition);
+    FskRenderableObject? hitObj;
+    FskHitDetails? hitDetails;
+
+    if (ray != null) {
+      final hits = hitTest(ray, mode: FskHitTestMode.first);
+      if (hits.isNotEmpty && hits.first.hitObject is FskRenderableObject) {
+        hitObj = hits.first.hitObject as FskRenderableObject;
+        hitDetails = hits.first;
+      }
+    }
+
+    if (hitObj != _currentHoveredObject) {
+      _currentHoveredObject?.onPointerExit(event);
+      _currentHoveredObject = hitObj;
+      _currentHoveredObject?.onPointerEnter(event, hitDetails);
+    }
+
+    if (hitObj != null && hitDetails != null) {
+      return hitObj.onPointerHover(event, hitDetails);
+    }
+
     return super.onPointerHover(event);
   }
 

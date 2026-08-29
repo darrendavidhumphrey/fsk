@@ -1,8 +1,8 @@
 import 'package:flutter/widgets.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter/gestures.dart';
-import 'ui/navigation_delegates/scene_navigation_delegate.dart';
-import 'ui/navigation_delegates/scene_interaction_behavior.dart';
+import 'package:fsk/ui/navigation_delegates/scene_navigation_delegate.dart';
+import 'package:fsk/ui/navigation_delegates/scene_interaction_behavior.dart';
 
 /// An interface for objects that can handle raw pointer and keyboard input events
 /// within the FSK rendering engine.

@@ -1,5 +1,6 @@
 import 'dart:ui';
 import 'package:vector_math/vector_math.dart' as vm;
+import '../logging.dart';
 import 'geometry_util.dart';
 import 'polyline.dart';
 import 'edge.dart';
@@ -8,7 +9,7 @@ import 'edge.dart';
 /// An instance can be created with potentially degenerate vectors (e.g., zero-length
 /// or collinear), in which case it will be marked as invalid. Methods that rely
 /// on a valid plane, like `rayIntersect`, will fail gracefully.
-class ReferenceBox {
+class ReferenceBox with LoggableClass {
   /// The origin point of the box in 3D space.
   final vm.Vector3 origin;
 
@@ -101,22 +102,32 @@ class ReferenceBox {
 
   /// Internal helper to compute derived properties and validate the box.
   void _initialize() {
-    final normalizedX = xVector.normalized();
-    final normalizedY = yVector.normalized();
-    final normalizedZ = zVector.normalized();
+    final normalizedX = xVector.length2 > 0 ? xVector.normalized() : vm.Vector3(1, 0, 0);
+    final normalizedY = yVector.length2 > 0 ? yVector.normalized() : vm.Vector3(0, 1, 0);
+    
+    // For Z, if it's a flat plane (zero length), we use the cross product of X and Y.
+    vm.Vector3 normalizedZ;
+    if (zVector.length2 > 0) {
+      normalizedZ = zVector.normalized();
+    } else {
+      normalizedZ = normalizedX.cross(normalizedY)..normalize();
+      if (normalizedZ.length2 == 0) {
+        normalizedZ = vm.Vector3(0, 0, 1);
+      }
+    }
 
-    // Check for zero-length or non-finite vectors.
+    // Check for non-finite vectors.
     if (normalizedX.isInfinite ||
         normalizedX.isNaN ||
         normalizedY.isInfinite ||
         normalizedY.isNaN ||
         normalizedZ.isInfinite ||
         normalizedZ.isNaN) {
-      xAxis = vm.Vector3.zero();
-      yAxis = vm.Vector3.zero();
-      zAxis = vm.Vector3.zero();
-      plane = vm.Plane.components(0, 0, 1, 0); // Assign a default plane.
-      _isValid = false; // Mark this instance as invalid.
+      xAxis = vm.Vector3(1, 0, 0);
+      yAxis = vm.Vector3(0, 1, 0);
+      zAxis = vm.Vector3(0, 0, 1);
+      plane = vm.Plane.components(0, 0, 1, 0);
+      _isValid = false;
     } else {
       xAxis = normalizedX;
       yAxis = normalizedY;
@@ -250,20 +261,11 @@ class ReferenceBox {
     if (!isValid) {
       return null;
     }
-    final p = plane!;
-    final double denominator = p.normal.dot(pickRay.direction);
 
-    if (denominator.abs() < 1e-6) {
+    final vm.Vector3? intersectionPoint = intersectRayWithPlane(pickRay, plane!);
+    if (intersectionPoint == null) {
       return null;
     }
-
-    final double t = -(p.normal.dot(pickRay.origin) - p.constant) / denominator;
-
-    if (t < 0) {
-      return null;
-    }
-
-    final intersectionPoint = pickRay.origin + pickRay.direction * t;
 
     if (toPolyline().containsPoint(intersectionPoint)) {
       return intersectionPoint;

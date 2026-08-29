@@ -1,6 +1,9 @@
 import 'package:flutter/material.dart' hide Matrix4;
 import 'package:vector_math/vector_math.dart' as vm;
-import 'package:fsk/fsk.dart';
+import '../../scene_graph/fsk_scene_base.dart';
+import '../../fsk_input_handler.dart';
+import '../../geometry/geometry_util.dart';
+import 'scene_interaction_behavior.dart';
 
 enum FskBoxFit {
   none,

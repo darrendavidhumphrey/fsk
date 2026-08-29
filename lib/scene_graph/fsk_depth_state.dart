@@ -1,5 +1,5 @@
 import 'package:flutter_gpu/gpu.dart' as gpu;
-import 'package:fsk/scene_graph/fsk_scene_object.dart';
+import 'fsk_scene_object.dart';
 
 class FskDepthState {
   bool depthTestEnabled;

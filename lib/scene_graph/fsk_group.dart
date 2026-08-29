@@ -1,11 +1,13 @@
 import 'dart:ui';
-
 import 'package:flutter_gpu/gpu.dart' as gpu;
-import 'package:fsk/fsk.dart';
 import 'package:vector_math/vector_math.dart' as vm;
 import 'package:xml/xml.dart';
 
+import 'fsk_scene_object.dart';
+import 'fsk_transformable.dart';
+import '../geometry/mesh_hit_tester.dart';
 import '../skins/skin_data.dart';
+import '../skins/skin_scene_parser.dart';
 
 class SkinGroupData extends SkinGroupDataExplicit {
   final vm.Vector3 anchor;
@@ -163,23 +165,25 @@ class FskGroup extends FskRenderableObject with FskTransformableMixin {
       {FskHitTestMode mode = FskHitTestMode.closest}) {
     final List<FskHitDetails> results = [];
 
+    // If searching for the closest hit, we must gather all hits from children
+    // to perform a correct distance comparison at this level.
+    final childMode = (mode == FskHitTestMode.closest) ? FskHitTestMode.all : mode;
+
     for (final child in children) {
-      final hits = child.hitTest(ray, mode: mode);
+      final hits = child.hitTest(ray, mode: childMode);
       if (hits.isNotEmpty) {
-        if (mode == FskHitTestMode.first) {
-          return hits;
-        }
         results.addAll(hits);
       }
     }
 
-    if (mode == FskHitTestMode.closest && results.length > 1) {
+    if (results.isEmpty) return [];
+
+    if (mode == FskHitTestMode.all || mode == FskHitTestMode.closest || mode == FskHitTestMode.first) {
       results.sort((a, b) => a.distance.compareTo(b.distance));
-      return [results.first];
     }
 
-    if (mode == FskHitTestMode.all) {
-      results.sort((a, b) => a.distance.compareTo(b.distance));
+    if (mode == FskHitTestMode.first || mode == FskHitTestMode.closest) {
+      return [results.first];
     }
 
     return results;

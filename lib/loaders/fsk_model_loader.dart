@@ -1,5 +1,7 @@
-import 'package:fsk/fsk.dart';
 import 'package:vector_math/vector_math.dart' as vm;
+import '../logging.dart';
+import '../scene_graph/fsk_group.dart';
+import '../scene_graph/fsk_scene_base.dart';
 
 /// Base class for model loaders.
 abstract class FskModelLoader with LoggableClass {

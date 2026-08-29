@@ -1,7 +1,9 @@
 import 'dart:math';
 import 'dart:typed_data';
 import 'package:vector_math/vector_math.dart' as vm;
-import '../fsk.dart';
+import '../bitmap_fonts/texture_font.dart';
+import '../geometry/reference_box.dart';
+import 'fsk_text_alignment.dart';
 
 class FskTextureTextQuadBuilderResult {
   int numQuads = 0;

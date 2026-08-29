@@ -1,6 +1,7 @@
 import 'package:flutter/foundation.dart';
-import 'package:fsk/fsk.dart';
 import 'package:vector_math/vector_math.dart' as vm;
+import 'fsk_group.dart';
+import 'fsk_scene_object.dart';
 
 /// Base class for models loaded from external resources (OBJ, GLTF, etc.)
 abstract class FskExternalModel extends FskGroup with ChangeNotifier {

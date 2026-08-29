@@ -126,7 +126,7 @@ class Polyline {
     }
 
     // First, check if the point is on the plane of the polyline.
-    if (plane.distanceToVector3(point).abs() > 1e-6) {
+    if (plane.distanceToVector3(point).abs() > 0.1) {
       return false;
     }
 

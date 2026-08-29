@@ -1,5 +1,7 @@
 import 'package:vector_math/vector_math.dart' as vm;
-import '../fsk.dart';
+import 'fsk_external_model.dart';
+import 'fsk_scene_base.dart';
+import '../loaders/fsk_gltf_loader.dart';
 
 /// A specialized group node that implements a custom PBR rendering pass for its subtree.
 /// This node overrides the standard draw traversal to inject PBR-specific uniforms

@@ -82,7 +82,6 @@ vm.Ray computePickRay(
   final vm.Matrix4 inverseCombinedMatrix = vm.Matrix4.copy(combinedMatrix)..invert();
 
   // Convert screen coordinates to Normalized Device Coordinates (NDC) [-1, 1].
-  // Note: Y is flipped because screen coords are top-down, NDC is bottom-up.
   final double ndcX = (winX * 2.0) / viewportSize.width - 1.0;
   final double ndcY = 1.0 - (winY * 2.0) / viewportSize.height;
 

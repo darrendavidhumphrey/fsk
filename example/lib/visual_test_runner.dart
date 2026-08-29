@@ -18,7 +18,7 @@ import 'pbr_model_scene.dart';
 import 'pbr_with_overlay_example.dart';
 import 'mtsdf_text_scene.dart';
 import 'transformation_test_scene.dart';
-import 'picking_test_scene.dart';
+import 'widget_nesting_scene.dart';
 
 /// A specialized version of the example program that automatically iterates
 /// through all examples and captures a screenshot of each to the 'test_outputs' directory.
@@ -51,7 +51,8 @@ class _VisualTestAppState extends State<VisualTestApp> with LoggableClass {
     "pbr_with_overlay_scene",
     "mtsdf_text_scene",
     "transformation_test_scene",
-    "picking_test_scene"
+    "picking_test_scene",
+    "widget_nesting_scene"
   ];
 
   FskSceneBase? _currentScene;
@@ -312,6 +313,8 @@ class _VisualTestAppState extends State<VisualTestApp> with LoggableClass {
         return TransformationTestScene(navigationDelegate: OrthoViewDelegate(boxFit: FskBoxFit.bestFit));
         case "picking_test_scene":
           return PickingTestScene(navigationDelegate: OrthoViewDelegate(boxFit: FskBoxFit.bestFit));
+      case "widget_nesting_scene":
+        return WidgetNestingScene(navigationDelegate: OrthoViewDelegate(boxFit: FskBoxFit.bestFit));
       default:
         throw Exception("Unknown scene: $name");
     }

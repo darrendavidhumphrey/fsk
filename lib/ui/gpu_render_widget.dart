@@ -1,9 +1,10 @@
 import 'package:flutter/material.dart' hide Matrix4;
 import 'package:flutter_gpu/gpu.dart' as gpu;
-import '../scene_graph/fsk_scene_base.dart';
-import '../fsk_singleton.dart';
-import '../gpu/fsk_render_target.dart';
-import '../logging.dart';
+import 'package:fsk/scene_graph/fsk_scene.dart';
+import 'package:fsk/scene_graph/fsk_scene_base.dart';
+import 'package:fsk/fsk_singleton.dart';
+import 'package:fsk/gpu/fsk_render_target.dart';
+import 'package:fsk/logging.dart';
 
 class GPURenderWidget extends StatefulWidget {
   final FskSceneBase scene;
@@ -101,6 +102,7 @@ class _GPURenderWidgetState extends State<GPURenderWidget> with SingleTickerProv
       }
 
       widget.scene.updateAnimations(DateTime.now());
+      // logVerbose("GPURenderWidget: Rebuilding geometry...");
       widget.scene.rebuildGeometry();
 
       final commandBuffer = gpu.gpuContext.createCommandBuffer();
@@ -154,15 +156,39 @@ class _GPURenderWidgetState extends State<GPURenderWidget> with SingleTickerProv
               builder: (context, cursor, _) {
                 return MouseRegion(
                   cursor: cursor,
-                  child: CustomPaint(
-                    size: logicalSize,
-                    painter: FskScenePainter(
-                      scene: widget.scene,
-                      // Safely blit the completed output texture reference
-                      texture: _fskTarget?.outputTexture,
-                      pixelRatio: pixelRatio,
-                      repaintTrigger: _repaintListenable,
-                    ),
+                  child: Stack(
+                    clipBehavior: Clip.none,
+                    children: [
+                      CustomPaint(
+                        size: logicalSize,
+                        painter: FskScenePainter(
+                          scene: widget.scene,
+                          // Safely blit the completed output texture reference
+                          texture: _fskTarget?.outputTexture,
+                          pixelRatio: pixelRatio,
+                          repaintTrigger: _repaintListenable,
+                        ),
+                      ),
+                      // Render Widget Portals 
+                      if (widget.scene is FskScene)
+                        ...((widget.scene as FskScene).widgetPortals.map((portal) {
+                          return Positioned(
+                            left: 0,
+                            top: 0,
+                            child: Opacity(
+                              opacity: 0.01, // Nearly invisible but still mounted and active
+                              child: SizedBox(
+                                width: portal.size.width,
+                                height: portal.size.height,
+                                child: RepaintBoundary(
+                                  key: portal.repaintKey,
+                                  child: portal.widget,
+                                ),
+                              ),
+                            ),
+                          );
+                        })).toList(),
+                    ],
                   ),
                 );
               },

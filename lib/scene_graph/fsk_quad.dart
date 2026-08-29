@@ -2,8 +2,20 @@ import 'dart:ui';
 import 'package:flutter/material.dart' show Colors;
 import 'package:flutter_gpu/gpu.dart' as gpu;
 import 'package:vector_math/vector_math.dart' as vm;
-import 'package:fsk/fsk.dart';
+
+import '../fsk_singleton.dart';
+import '../geometry/reference_box.dart';
+import '../geometry/mesh_hit_tester.dart';
+import '../gpu/fsk_shader_material.dart';
+import '../shaders/base_uniforms.dart';
+import '../shaders/simple_texture_shader.dart';
+import '../util.dart';
 import '../skins/skin_data.dart';
+import '../skins/skin_scene_parser.dart';
+
+import 'fsk_scene_object.dart';
+import 'fsk_scene_base.dart';
+import 'fsk_transformable.dart';
 import 'fsk_depth_state.dart';
 import 'fsk_quads_renderer.dart';
 
@@ -263,9 +275,8 @@ class FskQuad extends Fsk2DRenderableObject with FskTransformableMixin, FskDepth
     if (hit == null) return [];
 
     // 2. Check if hit point is inside quad
-    // A Quad in vector_math is point0, point1, point2, point3
-    // We can check if it's within the ReferenceBox bounds in 2D
     final vm.Vector3 localHit = refBox.calcLocalCoordinates(hit);
+
     if (localHit.x >= 0 &&
         localHit.x <= refBox.xVector.length &&
         localHit.y >= 0 &&
@@ -274,6 +285,7 @@ class FskQuad extends Fsk2DRenderableObject with FskTransformableMixin, FskDepth
         FskHitDetails(
           hitObject: this,
           hitPoint: hit,
+          localHitPoint: localHit,
           distance: ray.origin.distanceTo(hit),
           normal: _quad.getSurfaceNormal(),
           hitData: null,

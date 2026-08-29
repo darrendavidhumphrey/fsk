@@ -91,11 +91,6 @@ abstract class ScreenSpaceOverlay extends FskScene {
       width: physicalWidth.toInt(), height: physicalHeight.toInt(),
     ));
 
-    renderPass.setViewport(gpu.Viewport(
-      x: origin.dx.toInt(), y: origin.dy.toInt(),
-      width: physicalWidth.toInt(), height: physicalHeight.toInt(),
-    ));
-
     if (_backgroundNode != null) {
       final vm.Matrix4 bgP = vm.Matrix4.identity();
       bgP.setEntry(0, 0, 2.0 / screenSpaceSize.width);

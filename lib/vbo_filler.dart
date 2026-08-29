@@ -1,8 +1,8 @@
 import 'dart:typed_data';
 import 'dart:ui';
 import 'package:vector_math/vector_math.dart' as vm;
-
 import 'gpu/fsk_vertex_buffer.dart';
+
 
 /// A utility class for filling a vertex buffer list with data.
 class VboFiller {

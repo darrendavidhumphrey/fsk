@@ -1,5 +1,5 @@
 import 'package:flutter_gpu/gpu.dart' as gpu;
-import 'package:fsk/fsk.dart';
+import '../logging.dart';
 
 class FskShaderLibrary with LoggableClass {
   // Store all of your loaded individual shader libraries
@@ -42,14 +42,13 @@ class FskShaderLibrary with LoggableClass {
   /// Searches all registered libraries sequentially for the shader name
   gpu.Shader? findShader(String shaderName) {
     for (final library in _libraries) {
-      final shader = library[shaderName]; // Queries library index operator
+      final shader = library[shaderName]; 
       if (shader != null) {
-        return shader; // Return immediately once found
-      } else {
-        logWarning('Shader not found in library: $shaderName');
+        return shader;
       }
     }
-    return null; // Not found in any registered asset bundle
+    // logInfo("FskShaderLibrary: '$shaderName' not found. Registered libraries: ${_libraries.length}");
+    return null; 
   }
 
   /// Optional: Operator overloading to match native syntax registry['Name']

@@ -1,6 +1,10 @@
 import 'dart:typed_data';
-import 'package:fsk/fsk.dart';
 import 'package:vector_math/vector_math.dart' as vm;
+
+import '../scene_graph/fsk_scene_object.dart';
+import '../scene_graph/fsk_mesh.dart';
+import '../scene_graph/fsk_indexed_mesh.dart';
+import '../gpu/fsk_vertex_buffer.dart';
 
 /// Modes for controlling hit test traversal and results.
 enum FskHitTestMode {
@@ -22,6 +26,9 @@ class FskHitDetails {
   /// The exact point of intersection in world space.
   final vm.Vector3 hitPoint;
 
+  /// The exact point of intersection in the local coordinate space of [hitObject].
+  final vm.Vector3 localHitPoint;
+
   /// The distance from the ray's origin to the hit point.
   final double distance;
 
@@ -34,6 +41,7 @@ class FskHitDetails {
   FskHitDetails({
     required this.hitObject,
     required this.hitPoint,
+    required this.localHitPoint,
     required this.distance,
     required this.normal,
     this.hitData,
@@ -126,6 +134,7 @@ class MeshHitTester {
         final details = FskHitDetails(
           hitObject: hitObject,
           hitPoint: hitPoint,
+          localHitPoint: hitPoint,
           distance: distance,
           normal: normal,
           hitData: i ~/ 3,
