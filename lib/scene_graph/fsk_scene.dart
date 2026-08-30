@@ -171,12 +171,14 @@ class FskScene extends FskSceneBase with FskSceneLayerDispatcherMixin {
 
   @override
   void drawScene(gpu.CommandBuffer commandBuffer, FskRenderTarget renderTarget,
-      gpu.HostBuffer transients, [gpu.RenderPass? parentRenderPass, bool isLast = true]) {
+      gpu.HostBuffer transients,
+      [gpu.RenderPass? parentRenderPass, bool isLast = true]) {
     if (!isReady) return;
 
     try {
       widgetDrawCommands.clear();
-      super.drawScene(commandBuffer, renderTarget, transients, parentRenderPass, isLast);
+      super.drawScene(
+          commandBuffer, renderTarget, transients, parentRenderPass, isLast);
 
       // 1. Calculate the layout matrix.
       vm.Matrix4 layoutMatrix = getLayoutMatrix();
@@ -189,60 +191,80 @@ class FskScene extends FskSceneBase with FskSceneLayerDispatcherMixin {
       if (parentRenderPass != null) {
         renderPass = parentRenderPass;
       } else {
-        // We are the root. Clear if autoClear is true. 
-        final gpu.RenderTarget target = autoClear 
-            ? renderTarget.clearTarget 
-            : renderTarget.loadTarget;
+        // We are the root. Clear if autoClear is true.
+        final gpu.RenderTarget target =
+            autoClear ? renderTarget.clearTarget : renderTarget.loadTarget;
 
         renderPass = commandBuffer.createRenderPass(target);
         hardResetPipelineState(renderPass);
       }
 
-      // 4. Draw geometry
-      for (final node in rootNodes) {
-        if (node is FskRenderableObject && node.visible) {
-          try {
-             node.draw(renderPass, transients, pMatrix, finalMvMatrix, viewportSize);
-          } catch (e, s) {
-             logError("Error drawing node ${node.id}: $e\n$s");
-          }
-        }
-      }
+      // 4. Draw content
+      renderNodes(renderPass, transients, pMatrix, finalMvMatrix, viewportSize);
 
       // 5. Draw sub-layers
-      for (int i = 0; i < layers.length; i++) {
-        try {
-           layers[i].drawScene(commandBuffer, renderTarget, transients, renderPass, isLast);
-        } catch (e, s) {
-           logError("Error drawing layer $i: $e\n$s");
-        }
-      }
+      renderLayers(commandBuffer, renderTarget, transients, renderPass, isLast);
 
       // 6. Draw collected Flutter widgets in a truly separate pass for maximum isolation.
       // This happens AFTER layers to ensure widgets stay on top.
-      if (widgetDrawCommands.isNotEmpty) {
-        final widgetPass = commandBuffer.createRenderPass(renderTarget.loadTarget);
-        hardResetPipelineState(widgetPass);
-        
-        for (final cmd in widgetDrawCommands) {
-          try {
-            // Ensure uniforms are updated with the object's current state.
-            cmd.object.updateUniforms(cmd.renderer.uniforms!);
-            
-            cmd.renderer.draw(
-              widgetPass, 
-              transients, 
-              cmd.pMatrix, 
-              cmd.mvMatrix, 
-              cmd.viewportSize
-            );
-          } catch (e, s) {
-            logError("Error drawing widget node: $e\n$s");
-          }
-        }
-      }
+      renderWidgets(commandBuffer, renderTarget, transients);
     } catch (e, s) {
       logError("CRITICAL Error in FskScene.drawScene: $e\n$s");
+    }
+  }
+
+  /// Draws all root nodes into the provided [renderPass].
+  @protected
+  void renderNodes(gpu.RenderPass renderPass, gpu.HostBuffer transients,
+      vm.Matrix4 pMatrix, vm.Matrix4 mvMatrix, Size viewportSize) {
+    for (final node in rootNodes) {
+      if (node is FskRenderableObject && node.visible) {
+        try {
+          node.draw(renderPass, transients, pMatrix, mvMatrix, viewportSize);
+        } catch (e, s) {
+          logError("Error drawing node ${node.id}: $e\n$s");
+        }
+      }
+    }
+  }
+
+  /// Draws all sub-layers into the provided [renderPass].
+  @protected
+  void renderLayers(
+      gpu.CommandBuffer commandBuffer,
+      FskRenderTarget renderTarget,
+      gpu.HostBuffer transients,
+      gpu.RenderPass renderPass,
+      bool isLast) {
+    for (int i = 0; i < layers.length; i++) {
+      try {
+        layers[i].drawScene(
+            commandBuffer, renderTarget, transients, renderPass, isLast);
+      } catch (e, s) {
+        logError("Error drawing layer $i: $e\n$s");
+      }
+    }
+  }
+
+  /// Draws all collected widget commands in a separate pass.
+  @protected
+  void renderWidgets(gpu.CommandBuffer commandBuffer,
+      FskRenderTarget renderTarget, gpu.HostBuffer transients) {
+    if (widgetDrawCommands.isNotEmpty) {
+      final widgetPass = commandBuffer.createRenderPass(renderTarget.loadTarget);
+      hardResetPipelineState(widgetPass);
+
+      for (final cmd in widgetDrawCommands) {
+        try {
+          // Ensure uniforms are updated with the object's current state.
+          cmd.object.updateUniforms(cmd.renderer.uniforms!);
+
+          cmd.renderer.draw(widgetPass, transients, cmd.pMatrix, cmd.mvMatrix,
+              cmd.viewportSize);
+        } catch (e, s) {
+          logError("Error drawing widget node: $e\n$s");
+        }
+      }
     }
   }
 

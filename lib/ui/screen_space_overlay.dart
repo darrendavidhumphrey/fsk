@@ -4,7 +4,6 @@ import 'package:vector_math/vector_math.dart' as vm;
 import '../fsk_singleton.dart';
 import '../gpu/fsk_render_target.dart';
 import '../scene_graph/fsk_scene.dart';
-import '../scene_graph/fsk_scene_object.dart';
 import '../scene_graph/fsk_quad.dart';
 
 /// An abstract base class for a [FskScene] that is rendered in 2D screen space
@@ -44,121 +43,96 @@ abstract class ScreenSpaceOverlay extends FskScene {
 
   @override
   void drawScene(gpu.CommandBuffer commandBuffer, FskRenderTarget renderTarget,
-      gpu.HostBuffer transients, [gpu.RenderPass? parentRenderPass, bool isLast = true]) {
-
+      gpu.HostBuffer transients,
+      [gpu.RenderPass? parentRenderPass, bool isLast = true]) {
     if (!isReady) {
-      // logInfo("ScreenSpaceOverlay($id): NOT ready yet (node count: ${rootNodes.length})");
       return;
     }
 
-    // Perform base bookkeeping (increment frame count, etc.)
-    advanceFrame();
-    widgetDrawCommands.clear();
+    try {
+      // Perform base bookkeeping (increment frame count, etc.)
+      advanceFrame();
+      widgetDrawCommands.clear();
 
-    final parentPhysicalSize =
-        Size(renderTarget.width.toDouble(), renderTarget.height.toDouble());
-    _lastParentSize = parentPhysicalSize;
+      final parentPhysicalSize =
+          Size(renderTarget.width.toDouble(), renderTarget.height.toDouble());
+      _lastParentSize = parentPhysicalSize;
 
-    final double physicalDpr = FSK.devicePixelRatio;
-    viewportSize = Size(screenSpaceSize.width * physicalDpr,
-        screenSpaceSize.height * physicalDpr);
+      final double physicalDpr = FSK.devicePixelRatio;
+      viewportSize = Size(screenSpaceSize.width * physicalDpr,
+          screenSpaceSize.height * physicalDpr);
 
-    updateMatrices();
+      updateMatrices();
 
-    // logInfo("ScreenSpaceOverlay($id): physical origin: ${_calculateTopLeft(_lastParentSize)}, logical size: $screenSpaceSize");
+      // Lazily create the background node
+      if (clearColor.a > 0.0 && _backgroundNode == null) {
+        _backgroundNode = FskQuad.centered(
+          '${id}_bg',
+          this,
+          screenSpaceSize,
+          modulateColor: clearColor,
+          textureId: FSK().textureManager.solidTextureId,
+        );
+        _backgroundNode!.premultiplyAlpha = false;
+        _backgroundNode!.setDepthState(
+          depthTestEnabled: false,
+          depthWriteEnabled: false,
+          depthCompareOperation: gpu.CompareFunction.always,
+        );
+        _backgroundNode!.rebuildGeometry();
+      }
 
-    // Lazily create the background node
-    if (clearColor.a > 0.0 && _backgroundNode == null) {
-      _backgroundNode = FskQuad.centered(
-        '${id}_bg',
-        this,
-        screenSpaceSize,
-        modulateColor: clearColor,
-        textureId: FSK().textureManager.solidTextureId,
-      );
-      _backgroundNode!.premultiplyAlpha = false;
-      _backgroundNode!.setDepthState(
-        depthTestEnabled: false,
-        depthWriteEnabled: false,
-        depthCompareOperation: gpu.CompareFunction.always,
-      );
-      _backgroundNode!.rebuildGeometry();
-    }
+      final origin = _calculateTopLeft(_lastParentSize);
+      final double physicalWidth = screenSpaceSize.width * physicalDpr;
+      final double physicalHeight = screenSpaceSize.height * physicalDpr;
 
-    final origin = _calculateTopLeft(_lastParentSize);
-    final double physicalWidth = screenSpaceSize.width * physicalDpr;
-    final double physicalHeight = screenSpaceSize.height * physicalDpr;
+      // Architecture: Single-Pass MSAA Compatibility
+      // To clear depth for an overlay, we MUST start a new pass.
+      // We use loadClearDepthTarget which keeps color but clears depth.
+      final renderPass =
+          commandBuffer.createRenderPass(renderTarget.loadClearDepthTarget);
+      hardResetPipelineState(renderPass);
 
-    // Architecture: Single-Pass MSAA Compatibility
-    // To clear depth for an overlay, we MUST start a new pass.
-    // We use loadClearDepthTarget which keeps color but clears depth.
-    final renderPass = commandBuffer.createRenderPass(renderTarget.loadClearDepthTarget);
-    hardResetPipelineState(renderPass);
+      renderPass.setScissor(gpu.Scissor(
+        x: origin.dx.toInt(),
+        y: origin.dy.toInt(),
+        width: physicalWidth.toInt(),
+        height: physicalHeight.toInt(),
+      ));
 
-    renderPass.setScissor(gpu.Scissor(
-      x: origin.dx.toInt(), y: origin.dy.toInt(),
-      width: physicalWidth.toInt(), height: physicalHeight.toInt(),
-    ));
+      renderPass.setViewport(gpu.Viewport(
+        x: origin.dx.toInt(),
+        y: origin.dy.toInt(),
+        width: physicalWidth.toInt(),
+        height: physicalHeight.toInt(),
+      ));
 
-    renderPass.setViewport(gpu.Viewport(
-      x: origin.dx.toInt(), y: origin.dy.toInt(),
-      width: physicalWidth.toInt(), height: physicalHeight.toInt(),
-    ));
+      if (_backgroundNode != null) {
+        final vm.Matrix4 bgP = vm.Matrix4.identity();
+        bgP.setEntry(0, 0, 2.0 / screenSpaceSize.width);
+        bgP.setEntry(1, 1, 2.0 / screenSpaceSize.height);
+        bgP.setEntry(2, 2, 0.001);
+        bgP.setEntry(3, 3, 1.0);
 
-    if (_backgroundNode != null) {
-      final vm.Matrix4 bgP = vm.Matrix4.identity();
-      bgP.setEntry(0, 0, 2.0 / screenSpaceSize.width);
-      bgP.setEntry(1, 1, 2.0 / screenSpaceSize.height);
-      bgP.setEntry(2, 2, 0.001);
-      bgP.setEntry(3, 3, 1.0);
-
-      _backgroundNode!.draw(
-        renderPass,
-        transients,
-        bgP,
-        vm.Matrix4.identity(),
-        screenSpaceSize,
-      );
-    }
-
-    // Draw all child nodes into the new pass.
-    for (final node in rootNodes) {
-      if (node is FskRenderableObject && node.visible) {
-        // logInfo("ScreenSpaceOverlay($id): drawing node ${node.id}");
-        node.draw(
+        _backgroundNode!.draw(
           renderPass,
           transients,
-          pMatrix,
-          mvMatrix, 
+          bgP,
+          vm.Matrix4.identity(),
           screenSpaceSize,
         );
       }
-    }
 
-    // Draw sub-layers into the new pass
-    for (int i = 0; i < layers.length; i++) {
-      layers[i].drawScene(commandBuffer, renderTarget, transients, renderPass, isLast);
-    }
+      // Draw all child nodes into the new pass.
+      renderNodes(renderPass, transients, pMatrix, mvMatrix, screenSpaceSize);
 
-    // Process widgets for this overlay in an isolated pass
-    if (widgetDrawCommands.isNotEmpty) {
-      final widgetPass = commandBuffer.createRenderPass(renderTarget.loadTarget);
-      hardResetPipelineState(widgetPass);
-      
-      for (final cmd in widgetDrawCommands) {
-        try {
-          cmd.object.updateUniforms(cmd.renderer.uniforms!);
-          cmd.renderer.draw(
-            widgetPass, 
-            transients, 
-            cmd.pMatrix, 
-            cmd.mvMatrix, 
-            cmd.viewportSize
-          );
-        } catch (e, s) {
-          logError("Error drawing widget node in overlay $id: $e\n$s");
-        }
-      }
+      // Draw sub-layers into the new pass
+      renderLayers(commandBuffer, renderTarget, transients, renderPass, isLast);
+
+      // Process widgets for this overlay in an isolated pass
+      renderWidgets(commandBuffer, renderTarget, transients);
+    } catch (e, s) {
+      logError("CRITICAL Error in ScreenSpaceOverlay($id).drawScene: $e\n$s");
     }
   }
 
