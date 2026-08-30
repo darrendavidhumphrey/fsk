@@ -43,7 +43,10 @@ abstract class FskRendererBase extends ChangeNotifier with LoggableClass {
   PipelineKey? pipelineKey;
 
   void setTexture(FskTextureInfo? info) {
+    if (textureInfo == info) return;
     textureInfo = info;
+    pipeLineNeedsRebuild = true;
+    notifyListeners();
   }
 
   // --- Pipeline Customization Hooks ---

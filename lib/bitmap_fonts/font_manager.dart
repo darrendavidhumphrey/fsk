@@ -51,6 +51,10 @@ class FontManager with LoggableClass {
     return _fonts[name];
   }
 
+  void removeFont(String name) {
+    _fonts.remove(name);
+  }
+
   /// Returns the default font, which is expected to be named "default".
   TextureFont? get defaultFont {
     return _fonts["default"];
@@ -68,8 +72,12 @@ class FontManager with LoggableClass {
     bool generateMipmaps = true,
   }) async {
     if (_fonts.containsKey(fontName)) {
-      logInfo("Font $fontName already registered, skipping load.");
-      return;
+      final existingFont = _fonts[fontName]!;
+      if (existingFont.isInitialized) {
+        logInfo("Font $fontName already registered and initialized, skipping load.");
+        return;
+      }
+      logInfo("Font $fontName exists but is not initialized, retrying load.");
     }
 
     // Load the XML data from the file as a string

@@ -15,6 +15,7 @@ class FskTextureInfo {
 
   gpu.SamplerOptions samplerOptions;
   bool isLoaded = false;
+  bool isLoading = false;
   Future<void>? loadFuture;
 
   FskTextureInfo(this.id, this.url, this.samplerOptions,{this.texture});
@@ -103,6 +104,10 @@ class FskTextureManager with LoggableClass {
     _textures[textureInfo.id] = textureInfo;
   }
 
+  void removeTexture(String id) {
+    _textures.remove(id);
+  }
+
   void _addTextureInfo(FskTextureInfo textureInfo) {
     _textures[textureInfo.id] = textureInfo;
   }
@@ -122,11 +127,16 @@ class FskTextureManager with LoggableClass {
 
     if (_textures.containsKey(id)) {
       final info = _textures[id]!;
-      if (info.loadFuture != null) {
-        await info.loadFuture;
+      // If it is already loaded or is currently in the process of loading, return the existing info.
+      if (info.isLoaded || info.isLoading) {
+        if (info.loadFuture != null) {
+          await info.loadFuture;
+        }
+        logVerbose("Skip Loading Texture ID $id (already exists and valid)");
+        return info;
       }
-      logVerbose("Skip Loading Texture ID $id (already exists)");
-      return info;
+      // If it exists but is not loaded and not loading, we fall through and retry.
+      logInfo("Retrying failed texture load for ID $id");
     }
 
     // Avoid using a mip filter if we are not generating mipmaps, as some GPUs will return black.
@@ -144,6 +154,7 @@ class FskTextureManager with LoggableClass {
     );
 
     var textureInfo = FskTextureInfo(id, url, samplerOptions);
+    textureInfo.isLoading = true;
     _addTextureInfo(textureInfo);
 
     String fullPath = '$assetsRoot$url';
@@ -221,6 +232,7 @@ class FskTextureManager with LoggableClass {
       logError("Error processing flutter_gpu texture allocation for $url: $e");
       textureInfo.isLoaded = false;
     } finally {
+      textureInfo.isLoading = false;
       completer.complete();
       FSK().endLoad();
     }

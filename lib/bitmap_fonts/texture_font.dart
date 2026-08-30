@@ -112,12 +112,13 @@ class TextureFont extends ChangeNotifier with LoggableClass {
 
       if (isInitialized) {
         logVerbose("Loaded font texture into Flutter GPU: $textureName");
-        notifyListeners();
       } else {
         logError("Font texture loaded but failed initialization check: $textureName");
       }
+      notifyListeners();
     } catch (e) {
       logError("Failed loading $textureName into Flutter GPU: $e");
+      notifyListeners();
       rethrow;
     }
   }
