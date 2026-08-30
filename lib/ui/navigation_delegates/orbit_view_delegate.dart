@@ -41,7 +41,7 @@ class OrbitRotationBehavior extends SceneInteractionBehavior {
     final double deltaYaw = deltaX * yawSensitivity * pi;
     final double deltaPitch = deltaY * pitchSensitivity * pi;
 
-    final newYaw = yawStart + vm.degrees(deltaYaw);
+    final newYaw = yawStart - vm.degrees(deltaYaw);
     final newPitch = pitchStart + vm.degrees(deltaPitch);
 
     delegate.setOrbitRotation(newYaw, newPitch);
