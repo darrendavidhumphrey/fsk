@@ -45,8 +45,10 @@ class FskTextureManager with LoggableClass {
       1,
       format: gpu.PixelFormat.r8g8b8a8UNormInt,
     );
-    // Fill transparent with clear color
-    final data = Uint8List.fromList([255, 255, 255, 0]);
+    // Fill transparent with clear black [0, 0, 0, 0].
+    // This ensures that MTSDF text falling back to this texture during loading
+    // results in a sigDist of 0.0, making the quad invisible instead of black.
+    final data = Uint8List.fromList([0, 0, 0, 0]);
     _transparentTexture!.overwrite(data.buffer.asByteData());
 
     FskTextureInfo textureInfo = FskTextureInfo(transparentTextureId, '', gpu.SamplerOptions(), texture: _transparentTexture);
@@ -153,8 +155,11 @@ class FskTextureManager with LoggableClass {
       maxAnisotropy: maxAnisotropy,
     );
 
+    final completer = Completer<void>();
     var textureInfo = FskTextureInfo(id, url, samplerOptions);
     textureInfo.isLoading = true;
+    textureInfo.loadFuture = completer.future;
+    
     _addTextureInfo(textureInfo);
 
     String fullPath = '$assetsRoot$url';
@@ -162,9 +167,6 @@ class FskTextureManager with LoggableClass {
 
     FSK().startLoad();
     
-    final completer = Completer<void>();
-    textureInfo.loadFuture = completer.future;
-
     try {
       final ByteData data = await rootBundle.load(fullPath);
 
@@ -187,6 +189,18 @@ class FskTextureManager with LoggableClass {
         format: gpu.PixelFormat.r8g8b8a8UNormInt,
         mipLevelCount: mipLevelCount,
       );
+
+      // Immediately clear ALL mip levels to transparent black to avoid random GPU garbage.
+      // This is critical for small objects (like the View Cube) that might sample higher 
+      // mip levels before the font data is fully uploaded.
+      final Uint8List clearBuffer = Uint8List(uiImage.width * uiImage.height * 4);
+      final ByteData clearData = ByteData.sublistView(clearBuffer);
+      for (int i = 0; i < mipLevelCount; i++) {
+        final int mipWidth = max(1, uiImage.width >> i);
+        final int mipHeight = max(1, uiImage.height >> i);
+        final int levelSize = mipWidth * mipHeight * 4;
+        allocatedTexture.overwrite(clearData.buffer.asByteData(0, levelSize), mipLevel: i);
+      }
 
       // Populate each mip level via CPU-side downscaling
       for (int i = 0; i < mipLevelCount; i++) {

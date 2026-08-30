@@ -25,23 +25,33 @@ float median(float r, float g, float b) {
 void main(void) {
     vec4 texColor = texture(uSampler, v_uv);
 
+    // Defensive discard: if texture is fully transparent (e.g. uninitialized black), skip rendering.
+    if (texColor.a == 0.0) {
+        discard;
+    }
+
     // MTSDF decoding: median of three distance channels
     float sigDist = median(texColor.r, texColor.g, texColor.b);
 
-    // Adjusted threshold based on heat map evidence (green letters = 0.5 peak)
-    // We'll use 0.25 as the new edge to ensure the body is visible.
+    // Reverted to 0.25 as requested for this specific font's encoding.
     float threshold = 0.25;
-    float w = 0.05;
+    float w = max(fwidth(sigDist), 0.0001);
     float opacity = smoothstep(threshold - w, threshold + w, sigDist);
 
     vec4 color = fragUniforms.uTextColor;
 
-    // Glow pass: adjusted for lower threshold
+    // Glow pass: rendered behind the text.
     if (fragUniforms.uGlowSize > 0.0) {
         float glowOpacity = smoothstep(threshold - fragUniforms.uGlowSize - w, threshold, sigDist);
-        color = mix(fragUniforms.uGlowColor, color, opacity);
+
+        // Final pixel color is a mix between glow and text color based on glyph opacity.
+        color = mix(fragUniforms.uGlowColor, fragUniforms.uTextColor, opacity);
+
+        // Combine text opacity and glow opacity (clamped by glow color alpha).
         opacity = max(opacity, glowOpacity * fragUniforms.uGlowColor.a);
     }
 
-    FragColor = vec4(color.rgb, color.a * opacity);
+    // Output straight alpha (blending handles the rest).
+    // Multiply by texColor.a as a defensive mask against uninitialized memory.
+    FragColor = vec4(color.rgb, color.a * opacity * texColor.a);
 }

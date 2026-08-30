@@ -241,6 +241,10 @@ abstract class FskRenderableObject extends FskSceneObject {
 
     parentScene.setNeedsUpdate();
   }
+
+  /// The active shader material for this object.
+  FskShaderMaterial? get shaderMaterial => _renderer?.shaderMaterial;
+
   set shaderMaterial(FskShaderMaterial value) {
     final r = _renderer;
     if (r == null) return;

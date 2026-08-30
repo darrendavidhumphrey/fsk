@@ -36,6 +36,7 @@ abstract class FskRendererBase extends ChangeNotifier with LoggableClass {
 
   // Pointer to the texture in the texture manager
   FskTextureInfo? textureInfo;
+  gpu.Texture? _lastTextureHandle;
 
   final FskDepthState depthState = FskDepthState();
   bool pipeLineNeedsRebuild = true;
@@ -84,6 +85,12 @@ abstract class FskRendererBase extends ChangeNotifier with LoggableClass {
 
   // Shared implementation of pipeline reconstruction
   void rebuildPipeline() {
+    // Detect if the underlying texture handle has changed (e.g. font finished loading)
+    if (textureInfo?.texture != _lastTextureHandle) {
+      pipeLineNeedsRebuild = true;
+      _lastTextureHandle = textureInfo?.texture;
+    }
+
     if (!pipeLineNeedsRebuild && pipelineKey != null) return;
 
     final material = shaderMaterial ?? defaultMaterial;

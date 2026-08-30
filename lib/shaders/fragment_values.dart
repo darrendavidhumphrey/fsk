@@ -23,6 +23,8 @@ class FragmentValues {
   /// Handles Color and Vector4 types. Ensures normalized 0.0-1.0 range.
   void packColor(dynamic colorVal) {
     if (colorVal is Color) {
+      // Use modern r, g, b, a getters which return normalized doubles (0.0-1.0).
+      // This complies with the latest Flutter API and project standards.
       buffer[_offset++] = colorVal.r;
       buffer[_offset++] = colorVal.g;
       buffer[_offset++] = colorVal.b;

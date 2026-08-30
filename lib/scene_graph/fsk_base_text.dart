@@ -80,6 +80,10 @@ abstract class FskBaseText extends Fsk2DRenderableObject
   /// Cache the count of quads to be rendered
   int numQuads = 0;
 
+  /// Self-healing retry counter for uninitialized fonts
+  int _retryFrames = 0;
+  static const int _reloadThreshold = 120; // Trigger reload after ~2s at 60fps
+
   void _onFontChanged() {
     if (_font.isInitialized) {
       _renderer.setTexture(_font.textureInfo);
@@ -299,11 +303,32 @@ abstract class FskBaseText extends Fsk2DRenderableObject
   /// Rebuilds the vertex buffer object
   @override
   void doRebuild() {
-    if (!font.isInitialized) {
+    // Safety check: ensure the renderer's texture is in sync with the font's current texture.
+    // This catches race conditions in the async loading lifecycle.
+    if (font.isInitialized && 
+        font.textureInfo?.texture != null && 
+        _renderer.textureInfo != font.textureInfo) {
+      _renderer.setTexture(font.textureInfo);
+      _retryFrames = 0;
+    }
+
+    if (!font.isInitialized || font.textureInfo?.texture == null) {
+      _retryFrames++;
+      if (_retryFrames >= _reloadThreshold) {
+        logInfo("================================================================================");
+        logInfo("SELF-HEALING: Font '$id' remains uninitialized after $_retryFrames frames.");
+        logInfo("TRIGGERING BACKGROUND RELOAD FOR FONT: ${font.name} (Object ID: $id)");
+        logInfo("================================================================================");
+        font.reload();
+        _retryFrames = 0;
+      }
+
       needsRebuild = true;
       numQuads = 0;
       return;
     }
+
+    _retryFrames = 0;
 
     if (text.isEmpty) {
       numQuads = 0;

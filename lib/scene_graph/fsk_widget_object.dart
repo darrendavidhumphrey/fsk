@@ -58,11 +58,15 @@ class FskWidgetObject extends FskQuad {
   }
 
   void _initTexture() {
+    final double pixelRatio = ui.PlatformDispatcher.instance.views.first.devicePixelRatio;
+    final int width = (widgetSize.width * pixelRatio).toInt();
+    final int height = (widgetSize.height * pixelRatio).toInt();
+
     // Initial texture allocation
     final gpu.Texture texture = gpu.gpuContext.createTexture(
       gpu.StorageMode.devicePrivate,
-      widgetSize.width.toInt(),
-      widgetSize.height.toInt(),
+      width,
+      height,
       format: gpu.PixelFormat.r8g8b8a8UNormInt,
     );
 
@@ -78,7 +82,7 @@ class FskWidgetObject extends FskQuad {
     _widgetTexture!.isLoaded = true;
 
     // Initialize with transparent black to avoid garbage on first frame
-    final Uint8List transparentPixels = Uint8List(widgetSize.width.toInt() * widgetSize.height.toInt() * 4);
+    final Uint8List transparentPixels = Uint8List(width * height * 4);
     texture.overwrite(ByteData.sublistView(transparentPixels));
 
     renderer.setTexture(_widgetTexture);
@@ -115,7 +119,8 @@ class FskWidgetObject extends FskQuad {
           as RenderRepaintBoundary?;
       if (boundary == null) return;
 
-      final image = await boundary.toImage(pixelRatio: 1.0);
+      final double pixelRatio = ui.PlatformDispatcher.instance.views.first.devicePixelRatio;
+      final image = await boundary.toImage(pixelRatio: pixelRatio);
       final byteData =
           await image.toByteData(format: ui.ImageByteFormat.rawRgba);
 

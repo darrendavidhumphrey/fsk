@@ -75,6 +75,11 @@ class TextureFont extends ChangeNotifier with LoggableClass {
       textureInfo!.isLoaded &&
       textureInfo!.texture != null);
 
+  /// Metadata for self-healing/reloading
+  String? _lastTextureName;
+  bool _lastGenerateMipmaps = false;
+  bool _isReloading = false;
+
   /// Creates a new TextureFont.
   TextureFont(
     this.name,
@@ -87,6 +92,9 @@ class TextureFont extends ChangeNotifier with LoggableClass {
   );
 
   Future<void> loadFontTexture(String textureName, {bool generateMipmaps = false}) async {
+    _lastTextureName = textureName;
+    _lastGenerateMipmaps = generateMipmaps;
+
     try {
       // Ensure FSK is fully initialized before attempting to create GPU textures.
       // This ensures the underlying gpuContext is ready.
@@ -120,6 +128,23 @@ class TextureFont extends ChangeNotifier with LoggableClass {
       logError("Failed loading $textureName into Flutter GPU: $e");
       notifyListeners();
       rethrow;
+    }
+  }
+
+  /// Triggers a reload of the font texture if it's currently uninitialized.
+  /// This is used as a self-healing mechanism for race conditions.
+  Future<void> reload() async {
+    if (isInitialized || _isReloading || _lastTextureName == null) return;
+    
+    _isReloading = true;
+    logInfo("Triggering background font reload for '$name'...");
+    
+    try {
+      await loadFontTexture(_lastTextureName!, generateMipmaps: _lastGenerateMipmaps);
+    } catch (e) {
+      logError("Background reload for font '$name' failed: $e");
+    } finally {
+      _isReloading = false;
     }
   }
 

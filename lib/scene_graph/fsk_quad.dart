@@ -62,11 +62,11 @@ class FskQuad extends Fsk2DRenderableObject with FskTransformableMixin, FskDepth
     super.updateUniforms(uniforms);
     if (uniforms is SimpleTextureUniforms) {
       final modulate = _premultiplyAlpha
-          ? Color.fromARGB(
-              (_modulateColor.a * 255).round(),
-              (_modulateColor.r * _modulateColor.a * 255).round(),
-              (_modulateColor.g * _modulateColor.a * 255).round(),
-              (_modulateColor.b * _modulateColor.a * 255).round(),
+          ? Color.from(
+              alpha: _modulateColor.a,
+              red: _modulateColor.r * _modulateColor.a,
+              green: _modulateColor.g * _modulateColor.a,
+              blue: _modulateColor.b * _modulateColor.a,
             )
           : _modulateColor;
       uniforms.setModulateColor(modulate);
