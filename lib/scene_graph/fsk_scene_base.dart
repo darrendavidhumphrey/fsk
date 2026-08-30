@@ -104,6 +104,12 @@ abstract class FskSceneBase extends ChangeNotifier
     navigationDelegate?.setScene(this);
   }
 
+  /// Increments the frame count and updates matrices.
+  void advanceFrame() {
+    updateMatrices();
+    _frameCount++;
+  }
+
   Future<void>? _initFuture;
   bool get initStarted => _initFuture != null;
 
@@ -155,6 +161,10 @@ abstract class FskSceneBase extends ChangeNotifier
     renderPass.setScissor(
       gpu.Scissor(x: 0, y: 0, width: width.toInt(), height: height.toInt()),
     );
+
+    renderPass.setViewport(
+      gpu.Viewport(x: 0, y: 0, width: width.toInt(), height: height.toInt()),
+    );
   }
 
   /// Performs a hard reset of common pipeline states to known defaults.
@@ -180,8 +190,7 @@ abstract class FskSceneBase extends ChangeNotifier
 
   void drawScene(gpu.CommandBuffer commandBuffer, FskRenderTarget renderTarget,
       gpu.HostBuffer transients, [gpu.RenderPass? parentRenderPass, bool isLast = true]) {
-    updateMatrices();
-    _frameCount++;
+    advanceFrame();
   }
 
   /// Updates any active animations in the scene.

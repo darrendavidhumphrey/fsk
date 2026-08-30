@@ -46,7 +46,14 @@ abstract class ScreenSpaceOverlay extends FskScene {
   void drawScene(gpu.CommandBuffer commandBuffer, FskRenderTarget renderTarget,
       gpu.HostBuffer transients, [gpu.RenderPass? parentRenderPass, bool isLast = true]) {
 
-    if (!isReady) return;
+    if (!isReady) {
+      // logInfo("ScreenSpaceOverlay($id): NOT ready yet (node count: ${rootNodes.length})");
+      return;
+    }
+
+    // Perform base bookkeeping (increment frame count, etc.)
+    advanceFrame();
+    widgetDrawCommands.clear();
 
     final parentPhysicalSize =
         Size(renderTarget.width.toDouble(), renderTarget.height.toDouble());
@@ -57,6 +64,8 @@ abstract class ScreenSpaceOverlay extends FskScene {
         screenSpaceSize.height * physicalDpr);
 
     updateMatrices();
+
+    // logInfo("ScreenSpaceOverlay($id): physical origin: ${_calculateTopLeft(_lastParentSize)}, logical size: $screenSpaceSize");
 
     // Lazily create the background node
     if (clearColor.a > 0.0 && _backgroundNode == null) {
@@ -91,6 +100,11 @@ abstract class ScreenSpaceOverlay extends FskScene {
       width: physicalWidth.toInt(), height: physicalHeight.toInt(),
     ));
 
+    renderPass.setViewport(gpu.Viewport(
+      x: origin.dx.toInt(), y: origin.dy.toInt(),
+      width: physicalWidth.toInt(), height: physicalHeight.toInt(),
+    ));
+
     if (_backgroundNode != null) {
       final vm.Matrix4 bgP = vm.Matrix4.identity();
       bgP.setEntry(0, 0, 2.0 / screenSpaceSize.width);
@@ -110,6 +124,7 @@ abstract class ScreenSpaceOverlay extends FskScene {
     // Draw all child nodes into the new pass.
     for (final node in rootNodes) {
       if (node is FskRenderableObject && node.visible) {
+        // logInfo("ScreenSpaceOverlay($id): drawing node ${node.id}");
         node.draw(
           renderPass,
           transients,
@@ -123,6 +138,27 @@ abstract class ScreenSpaceOverlay extends FskScene {
     // Draw sub-layers into the new pass
     for (int i = 0; i < layers.length; i++) {
       layers[i].drawScene(commandBuffer, renderTarget, transients, renderPass, isLast);
+    }
+
+    // Process widgets for this overlay in an isolated pass
+    if (widgetDrawCommands.isNotEmpty) {
+      final widgetPass = commandBuffer.createRenderPass(renderTarget.loadTarget);
+      hardResetPipelineState(widgetPass);
+      
+      for (final cmd in widgetDrawCommands) {
+        try {
+          cmd.object.updateUniforms(cmd.renderer.uniforms!);
+          cmd.renderer.draw(
+            widgetPass, 
+            transients, 
+            cmd.pMatrix, 
+            cmd.mvMatrix, 
+            cmd.viewportSize
+          );
+        } catch (e, s) {
+          logError("Error drawing widget node in overlay $id: $e\n$s");
+        }
+      }
     }
   }
 

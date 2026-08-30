@@ -224,8 +224,13 @@ class _VisualTestAppState extends State<VisualTestApp> with LoggableClass {
     img1.dispose();
     img2.dispose();
 
-    final bytes1 = data1.buffer.asUint8List();
-    final bytes2 = data2.buffer.asUint8List();
+    final bytes1 = data1.buffer.asUint8List(data1.offsetInBytes, data1.lengthInBytes);
+    final bytes2 = data2.buffer.asUint8List(data2.offsetInBytes, data2.lengthInBytes);
+
+    if (bytes1.length != bytes2.length) {
+      logError("      Byte length mismatch: ${bytes1.length} vs ${bytes2.length}");
+      return false;
+    }
 
     int failingPixels = 0;
     double totalSquareError = 0;
@@ -337,7 +342,7 @@ class _VisualTestAppState extends State<VisualTestApp> with LoggableClass {
     }
 
     final File file = File(path.join('test_outputs', '$name.png'));
-    await file.writeAsBytes(byteData.buffer.asUint8List());
+    await file.writeAsBytes(byteData.buffer.asUint8List(byteData.offsetInBytes, byteData.lengthInBytes));
     logInfo("    Saved to: ${file.path} (${byteData.lengthInBytes} bytes)");
   }
 

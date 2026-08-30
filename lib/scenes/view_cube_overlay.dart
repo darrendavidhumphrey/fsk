@@ -30,6 +30,7 @@ class ViewCubeOverlay extends ScreenSpaceOverlay {
   @override
   Future<void> onInit() async {
     await super.onInit();
+
     useBoxFitLayout = false;
 
     // Ensure the MTSDF font is loaded.
@@ -48,9 +49,7 @@ class ViewCubeOverlay extends ScreenSpaceOverlay {
 
     // Generate geometry and labels.
     cubeRoot.addNodes(_generateGeometry());
-    logVerbose("Generating cube labels");
     cubeRoot.addNodes(_generateLabels());
-
     addNode(cubeRoot);
   }
 
@@ -141,7 +140,11 @@ class ViewCubeOverlay extends ScreenSpaceOverlay {
     final double dist = cubeSize / 2 + 0.5;
     final double width = cubeSize * (2 / 3);
     final double h = width / 2;
-    final font = FontManager().getFont("isocpeur-mtsdf")!;
+    final font = FontManager().getFont("isocpeur-mtsdf");
+    if (font == null) {
+      logError("ViewCubeOverlay: MTSDF font 'isocpeur-mtsdf' not found. Labels will not be generated.");
+      return [];
+    }
 
     final List<FskMtsdfText> labels = [];
 

@@ -32,6 +32,9 @@ class StlOverlay extends ScreenSpaceOverlay {
         model.transformable.scale = vm.Vector3.all(1);
         model.centerModel();
         
+        final aabb = model.getAabb();
+        Logging.logInfo("StlOverlay: model loaded. Bounds: ${aabb.min} to ${aabb.max}", source: "StlOverlay");
+
         // Use the standard lighting uniforms since ObjModel defaults to LightingShader
         final uniforms = model.mesh.uniforms as LightingUniforms;
         uniforms.lightPos = vm.Vector3(500, 500, 500);

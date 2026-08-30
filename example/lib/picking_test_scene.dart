@@ -1,5 +1,4 @@
 import 'dart:async';
-import 'dart:math' as math;
 import 'dart:typed_data';
 import 'dart:ui' as ui;
 import 'package:flutter/material.dart';
@@ -69,8 +68,6 @@ class PickingTestScene extends TransformationTestScene {
     }
 
     // 2. The combined view matrix used for picking
-    final vm.Matrix4 finalMvMatrix = layoutMatrix * mvMatrix;
-
     final int step = fastPickTest ? 2 : 1;
     int pixelsTested = 0;
 
@@ -79,12 +76,13 @@ class PickingTestScene extends TransformationTestScene {
         pixelsTested++;
         final offset = Offset(x.toDouble(), y.toDouble());
         
-        // Generate ray using the scene-adjusted modelview matrix
+        // Generate ray using the camera view matrix. 
+        // The scene's hitTest() will automatically apply the layout matrix.
         final vm.Ray ray = computePickRay(
           offset,
           viewportSize,
           pMatrix,
-          finalMvMatrix,
+          mvMatrix,
           ndcNear: 0.0,
           ndcFar: 1.0,
         );

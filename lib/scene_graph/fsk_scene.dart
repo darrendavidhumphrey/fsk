@@ -30,7 +30,7 @@ class FskScene extends FskSceneBase with FskSceneLayerDispatcherMixin {
   final List<FskWidgetPortal> widgetPortals = [];
 
   /// Internal list of widget draw commands collected during traversal.
-  final List<_FskWidgetDrawCommand> _widgetDrawCommands = [];
+  final List<FskWidgetDrawCommand> widgetDrawCommands = [];
 
   void addWidgetPortal(FskWidgetPortal portal) {
     widgetPortals.add(portal);
@@ -175,7 +175,7 @@ class FskScene extends FskSceneBase with FskSceneLayerDispatcherMixin {
     if (!isReady) return;
 
     try {
-      _widgetDrawCommands.clear();
+      widgetDrawCommands.clear();
       super.drawScene(commandBuffer, renderTarget, transients, parentRenderPass, isLast);
 
       // 1. Calculate the layout matrix.
@@ -209,12 +209,22 @@ class FskScene extends FskSceneBase with FskSceneLayerDispatcherMixin {
         }
       }
 
-      // 4b. Draw collected Flutter widgets in a truly separate pass for maximum isolation.
-      if (_widgetDrawCommands.isNotEmpty) {
+      // 5. Draw sub-layers
+      for (int i = 0; i < layers.length; i++) {
+        try {
+           layers[i].drawScene(commandBuffer, renderTarget, transients, renderPass, isLast);
+        } catch (e, s) {
+           logError("Error drawing layer $i: $e\n$s");
+        }
+      }
+
+      // 6. Draw collected Flutter widgets in a truly separate pass for maximum isolation.
+      // This happens AFTER layers to ensure widgets stay on top.
+      if (widgetDrawCommands.isNotEmpty) {
         final widgetPass = commandBuffer.createRenderPass(renderTarget.loadTarget);
         hardResetPipelineState(widgetPass);
         
-        for (final cmd in _widgetDrawCommands) {
+        for (final cmd in widgetDrawCommands) {
           try {
             // Ensure uniforms are updated with the object's current state.
             cmd.object.updateUniforms(cmd.renderer.uniforms!);
@@ -229,15 +239,6 @@ class FskScene extends FskSceneBase with FskSceneLayerDispatcherMixin {
           } catch (e, s) {
             logError("Error drawing widget node: $e\n$s");
           }
-        }
-      }
-
-      // 5. Draw sub-layers
-      for (int i = 0; i < layers.length; i++) {
-        try {
-           layers[i].drawScene(commandBuffer, renderTarget, transients, renderPass, isLast);
-        } catch (e, s) {
-           logError("Error drawing layer $i: $e\n$s");
         }
       }
     } catch (e, s) {
@@ -311,7 +312,7 @@ class FskScene extends FskSceneBase with FskSceneLayerDispatcherMixin {
 
   /// Internal registration for widget draw commands.
   void registerWidgetDraw(FskRenderableObject object, FskRendererBase renderer, vm.Matrix4 pMatrix, vm.Matrix4 mvMatrix, Size viewportSize) {
-    _widgetDrawCommands.add(_FskWidgetDrawCommand(
+    widgetDrawCommands.add(FskWidgetDrawCommand(
       object: object,
       renderer: renderer,
       pMatrix: pMatrix,
@@ -321,14 +322,14 @@ class FskScene extends FskSceneBase with FskSceneLayerDispatcherMixin {
   }
 }
 
-class _FskWidgetDrawCommand {
+class FskWidgetDrawCommand {
   final FskRenderableObject object;
   final FskRendererBase renderer;
   final vm.Matrix4 pMatrix;
   final vm.Matrix4 mvMatrix;
   final Size viewportSize;
 
-  _FskWidgetDrawCommand({
+  FskWidgetDrawCommand({
     required this.object,
     required this.renderer,
     required this.pMatrix,
