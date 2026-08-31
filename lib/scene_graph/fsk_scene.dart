@@ -29,12 +29,31 @@ class FskScene extends FskSceneBase with FskSceneLayerDispatcherMixin {
 
   final List<FskWidgetPortal> widgetPortals = [];
 
+  /// Recursively collects all widget portals from this scene and all its layers.
+  List<FskWidgetPortal> getAllWidgetPortals() {
+    final List<FskWidgetPortal> allPortals = List.from(widgetPortals);
+    for (var layer in layers) {
+      if (layer is FskScene) {
+        allPortals.addAll((layer).getAllWidgetPortals());
+      }
+    }
+    return allPortals;
+  }
+
   /// Internal list of widget draw commands collected during traversal.
   final List<FskWidgetDrawCommand> widgetDrawCommands = [];
 
   void addWidgetPortal(FskWidgetPortal portal) {
-    widgetPortals.add(portal);
-    notifyListeners();
+    if (!widgetPortals.contains(portal)) {
+      widgetPortals.add(portal);
+      notifyListeners();
+    }
+  }
+
+  void removeWidgetPortal(FskWidgetPortal portal) {
+    if (widgetPortals.remove(portal)) {
+      notifyListeners();
+    }
   }
 
   FskScene({super.navigationDelegate, super.clearColor}) {
@@ -106,6 +125,13 @@ class FskScene extends FskSceneBase with FskSceneLayerDispatcherMixin {
     rootNodes.clear();
     nodeMap.clear();
     setNeedsUpdate();
+  }
+
+  /// Clears the root nodes list without disposing them. 
+  /// Use this only if you are manually managing node lifecycles (e.g. pooling).
+  void softClearNodes() {
+    rootNodes.clear();
+    nodeMap.clear();
   }
 
   @override
@@ -260,11 +286,19 @@ class FskScene extends FskSceneBase with FskSceneLayerDispatcherMixin {
 
       for (final cmd in widgetDrawCommands) {
         try {
-          // Ensure uniforms are updated with the object's current state.
-          cmd.object.updateUniforms(cmd.renderer.uniforms!);
+          // Ensure the pipeline and uniforms are up to date before synchronization.
+          cmd.renderer.rebuildPipeline();
 
-          cmd.renderer.draw(widgetPass, transients, cmd.pMatrix, cmd.mvMatrix,
-              cmd.viewportSize);
+          final uniforms = cmd.renderer.uniforms;
+          if (uniforms != null) {
+            // Ensure uniforms are updated with the object's current state.
+            cmd.object.updateUniforms(uniforms);
+
+            cmd.renderer.draw(widgetPass, transients, cmd.pMatrix, cmd.mvMatrix,
+                cmd.viewportSize);
+          } else {
+            // logError("FskScene.renderWidgets: uniforms is NULL after rebuild for ${cmd.object.id}");
+          }
         } catch (e, s) {
           logError("Error drawing widget node: $e\n$s");
         }

@@ -71,45 +71,44 @@ abstract class FskMeshRendererBase extends FskRendererBase {
 
     rebuildPipeline();
 
-    if (pipelineKey == null) {
-      logError("FskMeshRendererBase.draw: pipelineKey is NULL");
+    final pk = pipelineKey;
+    final u = uniforms;
+
+    if (pk == null || u == null) {
+      if (pk == null) logError("FskMeshRendererBase.draw: pipelineKey is NULL");
+      if (u == null) logError("FskMeshRendererBase.draw: uniforms is NULL");
       return;
     }
 
-    FSK().activatePipeline(pipelineKey!, renderPass, layout);
+    FSK().activatePipeline(pk, renderPass, layout);
 
     vbo.bind(renderPass);
 
-    if (uniforms == null) {
-      logError("FskMeshRendererBase.draw: uniforms is NULL");
-      return;
-    }
-
     // 1. Assign matrices FIRST so onUpdate can use them for View-Space transforms
-    uniforms!.mvMatrix = mvMatrix;
-    uniforms!.pMatrix = pMatrix;
+    u.mvMatrix = mvMatrix;
+    u.pMatrix = pMatrix;
 
     // 2. Perform per-frame updates (like light-to-view transformation)
-    uniforms!.onUpdate(viewportSize);
+    u.onUpdate(viewportSize);
 
     for (var subMesh in _subMeshes) {
       // 3. Robust Texture Binding: Always bind a texture to Slot 2 to prevent state leaks.
       if (subMesh.textureInfo != null) {
-        uniforms!.texture = subMesh.textureInfo!.texture;
-        uniforms!.samplerOptions = subMesh.textureInfo!.samplerOptions;
+        u.texture = subMesh.textureInfo!.texture;
+        u.samplerOptions = subMesh.textureInfo!.samplerOptions;
       } else if (textureInfo != null) {
-        uniforms!.texture = textureInfo!.texture;
-        uniforms!.samplerOptions = textureInfo!.samplerOptions;
+        u.texture = textureInfo!.texture;
+        u.samplerOptions = textureInfo!.samplerOptions;
       } else {
-        uniforms!.texture = FSK().textureManager.solidTexture; // Default for meshes
-        uniforms!.samplerOptions = null;
+        u.texture = FSK().textureManager.solidTexture; // Default for meshes
+        u.samplerOptions = null;
       }
 
       if (subMesh.material != null) {
-        uniforms!.applyMaterial(subMesh.material!);
+        u.applyMaterial(subMesh.material!);
       }
 
-      uniforms!.bind(renderPass, transients);
+      u.bind(renderPass, transients);
 
       drawFskSubMesh(renderPass, subMesh);
     }

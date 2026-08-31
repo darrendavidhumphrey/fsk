@@ -87,6 +87,8 @@ class FskQuadsRenderer extends FskRendererBase {
     vm.Matrix4 mvMatrix,
     Size viewportSize,
   ) {
+    if (isDisposed) return;
+    
     // It's not an error for the renderer to be empty
     if (!_verticesDownloaded) {
       logVerbose("FskQuadsRenderer.draw: vertices not downloaded");
@@ -96,30 +98,29 @@ class FskQuadsRenderer extends FskRendererBase {
 
     rebuildPipeline();
 
-    if (pipelineKey == null) {
-      logError("FskQuadsRenderer.draw: pipelineKey is NULL");
+    final pk = pipelineKey;
+    final u = uniforms;
+
+    if (pk == null || u == null) {
+      if (pk == null) logError("FskQuadsRenderer.draw: pipelineKey is NULL");
+      if (u == null) logError("FskQuadsRenderer.draw: uniforms is NULL");
       return;
     }
 
     FSK().activatePipeline(
-      pipelineKey!,
+      pk,
       renderPass,
       layout,
     );
 
     _vbo.bind(renderPass);
 
-    if (uniforms == null) {
-      logError("FskQuadsRenderer.draw: uniforms is NULL");
-      return;
-    }
-
     // 1. Assign matrices FIRST so onUpdate can use them for View-Space transforms
-    uniforms!.mvMatrix = mvMatrix;
-    uniforms!.pMatrix = pMatrix;
+    u.mvMatrix = mvMatrix;
+    u.pMatrix = pMatrix;
 
     // 2. Perform per-frame updates
-    uniforms!.onUpdate(viewportSize);
+    u.onUpdate(viewportSize);
 
     // 3. Absolute Texture Guard: Never draw if the GPU handle is missing.
     // This makes "black quads" mathematically impossible; we render nothing until ready.
@@ -130,12 +131,10 @@ class FskQuadsRenderer extends FskRendererBase {
       return;
     }
 
-    uniforms!.texture = textureInfo!.texture;
-    uniforms!.samplerOptions = textureInfo!.samplerOptions;
+    u.texture = textureInfo!.texture;
+    u.samplerOptions = textureInfo!.samplerOptions;
 
-
-
-    uniforms!.bind(renderPass, transients);
+    u.bind(renderPass, transients);
 
     _vbo.drawTriangles(renderPass);
   }

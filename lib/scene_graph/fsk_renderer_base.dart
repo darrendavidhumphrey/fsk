@@ -12,6 +12,9 @@ import '../logging.dart';
 import 'fsk_depth_state.dart';
 
 abstract class FskRendererBase extends ChangeNotifier with LoggableClass {
+  bool _disposed = false;
+  bool get isDisposed => _disposed;
+
   FskRendererBase();
 
   /// Optional custom material configuration
@@ -76,16 +79,21 @@ abstract class FskRendererBase extends ChangeNotifier with LoggableClass {
     Size viewportSize,
   );
 
-  /// Cleans up resources held by this renderer.
   @override
   void dispose() {
-    super.dispose();
+    if (_disposed) return;
+    _disposed = true;
     _uniforms?.dispose();
     _uniforms = null;
+    pipelineKey = null;
+    pipeLineNeedsRebuild = true;
+    super.dispose();
   }
 
   // Shared implementation of pipeline reconstruction
   void rebuildPipeline() {
+    if (_disposed) return;
+
     // Detect if the underlying texture handle has changed (e.g. font finished loading)
     if (textureInfo?.texture != _lastTextureHandle) {
       pipeLineNeedsRebuild = true;
@@ -97,7 +105,7 @@ abstract class FskRendererBase extends ChangeNotifier with LoggableClass {
       }
     }
 
-    if (!pipeLineNeedsRebuild && pipelineKey != null) return;
+    if (!pipeLineNeedsRebuild && pipelineKey != null && _uniforms != null) return;
 
     final material = shaderMaterial ?? defaultMaterial;
 

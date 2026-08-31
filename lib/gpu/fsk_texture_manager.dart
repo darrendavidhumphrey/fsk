@@ -8,6 +8,15 @@ import 'package:flutter_gpu/gpu.dart' as gpu;
 import '../logging.dart';
 import '../fsk_singleton.dart';
 
+class TexturePoolEntry {
+  final gpu.Texture texture;
+  final String id;
+  bool inUse = false;
+  DateTime lastUsed = DateTime.now();
+
+  TexturePoolEntry(this.texture, this.id);
+}
+
 class FskTextureInfo {
   String id;
   String url;
@@ -21,9 +30,10 @@ class FskTextureInfo {
   FskTextureInfo(this.id, this.url, this.samplerOptions,{this.texture});
 }
 
-/// A manager for loading, creating, and caching flutter_gpu textures.
+  /// A manager for loading, creating, and caching flutter_gpu textures.
 class FskTextureManager with LoggableClass {
   final Map<String, FskTextureInfo> _textures = {};
+  final Map<String, List<TexturePoolEntry>> _reusablePool = {};
 
   static String assetsRoot = "assets/";
 
@@ -287,5 +297,58 @@ class FskTextureManager with LoggableClass {
 
   FskTextureInfo? getTextureInfo(String id) {
     return _textures[id];
+  }
+
+  /// Attempts to find an existing texture in the pool that matches the requested size.
+  /// If found, it marks it as in-use and returns it. Otherwise returns null.
+  FskTextureInfo? getReusableTexture(int width, int height) {
+    final String key = "${width}x$height";
+    final pool = _reusablePool[key];
+    if (pool == null || pool.isEmpty) return null;
+
+    for (final entry in pool) {
+      if (!entry.inUse) {
+        entry.inUse = true;
+        entry.lastUsed = DateTime.now();
+        
+        // Wrap the raw GPU texture in a FskTextureInfo
+        final info = FskTextureInfo(
+          entry.id, 
+          "pooled", 
+          gpu.SamplerOptions(
+            minFilter: gpu.MinMagFilter.linear,
+            magFilter: gpu.MinMagFilter.linear,
+          ),
+          texture: entry.texture,
+        );
+        info.isLoaded = true;
+        return info;
+      }
+    }
+    return null;
+  }
+
+  /// Releases a texture back to the pool for reuse.
+  void releaseTexture(FskTextureInfo info) {
+    if (info.texture == null) return;
+    final String key = "${info.texture!.width}x${info.texture!.height}";
+    
+    // Check if this texture is already in our pool
+    final pool = _reusablePool.putIfAbsent(key, () => []);
+    final entry = pool.firstWhere((e) => e.texture == info.texture, orElse: () {
+      final newEntry = TexturePoolEntry(info.texture!, info.id);
+      pool.add(newEntry);
+      return newEntry;
+    });
+
+    entry.inUse = false;
+    entry.lastUsed = DateTime.now();
+    
+    // Limit pool size per dimension to prevent leaks (e.g., max 10 textures per size)
+    if (pool.length > 20) {
+       // Sort by last used and remove oldest
+       pool.sort((a, b) => a.lastUsed.compareTo(b.lastUsed));
+       pool.removeAt(0);
+    }
   }
 }

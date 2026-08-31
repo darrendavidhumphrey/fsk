@@ -25,6 +25,7 @@ class FskWidgetObject extends FskQuad {
   final ValueNotifier<bool> isHovered = ValueNotifier<bool>(false);
 
   FskTextureInfo? _widgetTexture;
+  FskWidgetPortal? _portal;
   bool _isUpdating = false;
   final vm.Vector3 _lastLocalHitPoint = vm.Vector3.zero();
   ByteData? _pendingByteData;
@@ -41,6 +42,11 @@ class FskWidgetObject extends FskQuad {
     _initWidget();
   }
 
+  void updateRefBox(ReferenceBox newBox) {
+    refBox = newBox;
+    setNeedsRebuild();
+  }
+
   void _initWidget() {
     // Check FSK state before attempting GPU operations
     if (FSK().state != FskState.initialized) {
@@ -48,15 +54,12 @@ class FskWidgetObject extends FskQuad {
       return;
     }
 
-    // Defer texture allocation to avoid throwing in the constructor.
-    Future.microtask(() {
-      try {
-        _initTexture();
-        _registerPortal();
-      } catch (e, s) {
-        logError("FskWidgetObject($id): Failed to initialize widget/texture. Ensure --enable-flutter-gpu is used: $e\n$s");
-      }
-    });
+    try {
+      _initTexture();
+      _registerPortal();
+    } catch (e, s) {
+      logError("FskWidgetObject($id): Failed to initialize widget/texture. Ensure --enable-flutter-gpu is used: $e\n$s");
+    }
   }
 
   void _initTexture() {
@@ -64,28 +67,33 @@ class FskWidgetObject extends FskQuad {
     final int width = (widgetSize.width * pixelRatio).round();
     final int height = (widgetSize.height * pixelRatio).round();
 
-    // Initial texture allocation
-    final gpu.Texture texture = gpu.gpuContext.createTexture(
-      gpu.StorageMode.devicePrivate,
-      width,
-      height,
-      format: gpu.PixelFormat.r8g8b8a8UNormInt,
-    );
+    // 1. Try to get a texture from the pool first
+    _widgetTexture = FSK().textureManager.getReusableTexture(width, height);
 
-    _widgetTexture = FskTextureInfo(
-      "widget_${id}_$hashCode",
-      "generated",
-      gpu.SamplerOptions(
-        minFilter: gpu.MinMagFilter.linear,
-        magFilter: gpu.MinMagFilter.linear,
-      ),
-      texture: texture,
-    );
-    _widgetTexture!.isLoaded = true;
+    if (_widgetTexture == null) {
+      // 2. Fallback: create new texture if none available in pool
+      final gpu.Texture texture = gpu.gpuContext.createTexture(
+        gpu.StorageMode.devicePrivate,
+        width,
+        height,
+        format: gpu.PixelFormat.r8g8b8a8UNormInt,
+      );
 
-    // Initialize with transparent black to avoid garbage on first frame
-    final Uint8List transparentPixels = Uint8List(width * height * 4);
-    texture.overwrite(ByteData.sublistView(transparentPixels));
+      _widgetTexture = FskTextureInfo(
+        "widget_${id}_$hashCode",
+        "generated",
+        gpu.SamplerOptions(
+          minFilter: gpu.MinMagFilter.linear,
+          magFilter: gpu.MinMagFilter.linear,
+        ),
+        texture: texture,
+      );
+      _widgetTexture!.isLoaded = true;
+
+      // Initialize with transparent black to avoid garbage on first frame
+      final Uint8List transparentPixels = Uint8List(width * height * 4);
+      texture.overwrite(ByteData.sublistView(transparentPixels));
+    }
 
     renderer.setTexture(_widgetTexture);
   }
@@ -93,7 +101,7 @@ class FskWidgetObject extends FskQuad {
   void _registerPortal() {
     // Register the portal with the scene so it can be rendered by GPURenderWidget
     if (parentScene is FskScene) {
-      (parentScene as FskScene).addWidgetPortal(FskWidgetPortal(
+      _portal = FskWidgetPortal(
         repaintKey: _repaintKey,
         widget: _RepaintNotifier(
           onPaint: _updateTexture,
@@ -101,7 +109,8 @@ class FskWidgetObject extends FskQuad {
         ),
         size: widgetSize,
         onRepaint: _updateTexture,
-      ));
+      );
+      (parentScene as FskScene).addWidgetPortal(_portal!);
     } else {
       logError("FskWidgetObject($id): parentScene is NOT an FskScene. Portal registration failed.");
     }
@@ -132,7 +141,7 @@ class FskWidgetObject extends FskQuad {
           await image.toByteData(format: ui.ImageByteFormat.rawRgba);
 
       if (byteData != null) {
-        logInfo("FskWidgetObject($id): Texture capture successful. Size: ${image.width}x${image.height}");
+        // logVerbose("FskWidgetObject($id): Texture capture successful. Size: ${image.width}x${image.height}");
         _pendingByteData = byteData;
         _pendingWidth = image.width;
         _pendingHeight = image.height;
@@ -158,9 +167,9 @@ class FskWidgetObject extends FskQuad {
             currentTexture.width != _pendingWidth || 
             currentTexture.height != _pendingHeight) {
           
-          logVerbose("FskWidgetObject($id): Re-allocating texture to match captured image size: ${_pendingWidth}x${_pendingHeight}");
+        // logVerbose("FskWidgetObject($id): Re-allocating texture to match captured image size: ${_pendingWidth}x${_pendingHeight}");
           
-          final gpu.Texture newTexture = gpu.gpuContext.createTexture(
+        final gpu.Texture newTexture = gpu.gpuContext.createTexture(
             gpu.StorageMode.devicePrivate,
             _pendingWidth!,
             _pendingHeight!,
@@ -183,6 +192,19 @@ class FskWidgetObject extends FskQuad {
       texture.overwrite(_pendingByteData!);
       _pendingByteData = null;
     }
+  }
+
+  @override
+  void dispose() {
+    if (_widgetTexture != null) {
+      FSK().textureManager.releaseTexture(_widgetTexture!);
+      _widgetTexture = null;
+    }
+    if (_portal != null && parentScene is FskScene) {
+      (parentScene as FskScene).removeWidgetPortal(_portal!);
+      _portal = null;
+    }
+    super.dispose();
   }
 
   @override

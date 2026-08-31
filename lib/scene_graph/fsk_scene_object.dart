@@ -258,5 +258,5 @@ abstract class FskRenderableObject extends FskSceneObject {
 
 abstract class Fsk2DRenderableObject extends FskRenderableObject {
   Fsk2DRenderableObject(super.id, super.parentScene, this.refBox);
-  final ReferenceBox refBox;
+  ReferenceBox refBox;
 }

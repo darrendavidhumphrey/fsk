@@ -82,6 +82,12 @@ class FskFlutterText extends FskWidgetObject {
   }
 
   @override
+  void updateRefBox(ReferenceBox newBox) {
+    super.updateRefBox(newBox);
+    _rebuildNotifier.value++;
+  }
+
+  @override
   Widget buildPortalWidget() {
     return ValueListenableBuilder<int>(
       valueListenable: _rebuildNotifier,

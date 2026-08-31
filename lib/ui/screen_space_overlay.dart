@@ -141,7 +141,7 @@ abstract class ScreenSpaceOverlay extends FskScene {
   void renderWidgets(gpu.CommandBuffer commandBuffer,
       FskRenderTarget renderTarget, gpu.HostBuffer transients) {
     if (widgetDrawCommands.isNotEmpty) {
-      logTrace("ScreenSpaceOverlay($id): Rendering ${widgetDrawCommands.length} widgets at $viewportSize");
+      // logTrace("ScreenSpaceOverlay($id): Rendering ${widgetDrawCommands.length} widgets at $viewportSize");
       final physicalDpr = FSK.devicePixelRatio;
       final origin = _calculateTopLeft(_lastParentSize);
       final double physicalWidth = screenSpaceSize.width * physicalDpr;
@@ -171,6 +171,9 @@ abstract class ScreenSpaceOverlay extends FskScene {
 
       for (final cmd in widgetDrawCommands) {
         try {
+          // Ensure the pipeline and uniforms are up to date before synchronization.
+          cmd.renderer.rebuildPipeline();
+
           cmd.object.updateUniforms(cmd.renderer.uniforms!);
           cmd.renderer.draw(widgetPass, transients, cmd.pMatrix, cmd.mvMatrix,
               cmd.viewportSize);

@@ -157,32 +157,21 @@ class _GPURenderWidgetState extends State<GPURenderWidget> with SingleTickerProv
 
             final List<FskWidgetPortal> allPortals = [];
             
-            void collectPortals(FskSceneBase scene) {
+            void addFromScene(FskSceneBase? scene) {
               if (scene is FskScene) {
-                for (var portal in scene.widgetPortals) {
-                  if (!allPortals.contains(portal)) {
-                    allPortals.add(portal);
-                  }
-                }
-                for (var layer in scene.layers) {
-                  if (layer is FskSceneBase) {
-                    collectPortals(layer);
-                  }
-                }
+                allPortals.addAll(scene.getAllWidgetPortals());
               }
             }
 
-            collectPortals(widget.scene);
+            addFromScene(widget.scene);
 
             // Also collect from navigation delegate overlays if they exist
             final nav = widget.scene.navigationDelegate;
             if (nav != null) {
-              // Note: We check common overlay accessors. 
-              // If the delegate has specific overlay properties, they should be added here.
               try {
                 final dynamic navDyn = nav;
-                if (navDyn.overlay is FskSceneBase) collectPortals(navDyn.overlay);
-                if (navDyn.underlay is FskSceneBase) collectPortals(navDyn.underlay);
+                addFromScene(navDyn.overlay as FskSceneBase?);
+                addFromScene(navDyn.underlay as FskSceneBase?);
               } catch (_) {}
             }
 
