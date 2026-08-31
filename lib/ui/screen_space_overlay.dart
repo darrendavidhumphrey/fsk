@@ -150,6 +150,10 @@ abstract class ScreenSpaceOverlay extends FskScene {
       final widgetPass = commandBuffer.createRenderPass(renderTarget.loadTarget);
       hardResetPipelineState(widgetPass);
 
+      // Widgets should respect depth testing but generally not write to the depth buffer.
+      widgetPass.setDepthCompareOperation(gpu.CompareFunction.lessEqual);
+      widgetPass.setDepthWriteEnable(false);
+
       // Re-apply the overlay-specific viewport and scissor for the widget pass
       widgetPass.setScissor(gpu.Scissor(
         x: origin.dx.toInt(),

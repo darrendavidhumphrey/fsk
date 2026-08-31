@@ -253,9 +253,9 @@ class FskScene extends FskSceneBase with FskSceneLayerDispatcherMixin {
       final widgetPass = commandBuffer.createRenderPass(renderTarget.loadTarget);
       hardResetPipelineState(widgetPass);
 
-      // Disable depth testing for the widget pass to ensure text labels are always visible 
-      // on top of their 3D geometry parents (matching MTSDF behavior).
-      widgetPass.setDepthCompareOperation(gpu.CompareFunction.always);
+      // Widgets should respect depth testing but generally not write to the depth buffer.
+      // We use lessEqual to ensure they are occluded by 3D geometry but can overlap each other.
+      widgetPass.setDepthCompareOperation(gpu.CompareFunction.lessEqual);
       widgetPass.setDepthWriteEnable(false);
 
       for (final cmd in widgetDrawCommands) {

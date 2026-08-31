@@ -1,7 +1,6 @@
 import 'package:flutter/material.dart';
 import 'fsk_widget_object.dart';
 import 'fsk_text_alignment.dart';
-import 'fsk_scene_base.dart';
 import '../geometry/reference_box.dart';
 
 /// A scene object that renders text using standard Flutter widgets.
@@ -24,19 +23,14 @@ class FskFlutterText extends FskWidgetObject {
     super.id,
     super.parentScene,
     super.refBox, {
-    required String text,
-    Color textColor = Colors.white,
-    TextStyle style = const TextStyle(fontSize: 40),
-    TextHorizontalJustification horizontalJustification = TextHorizontalJustification.center,
-    TextVerticalJustification verticalJustification = TextVerticalJustification.center,
+    required this._text,
+    this._textColor = Colors.white,
+    this._style = const TextStyle(fontSize: 40),
+    this._horizontalJustification = TextHorizontalJustification.center,
+    this._verticalJustification = TextVerticalJustification.center,
     this.scaleToFit = false,
     Size? widgetSize,
-  }) : _text = text,
-       _textColor = textColor,
-       _style = style,
-       _horizontalJustification = horizontalJustification,
-       _verticalJustification = verticalJustification,
-       super(
+  }) : super(
          widget: const SizedBox.shrink(),
          // 4x supersampling for high fidelity.
          widgetSize: widgetSize ?? Size(refBox.xVector.length * 4, refBox.yVector.length * 4),
@@ -91,7 +85,7 @@ class FskFlutterText extends FskWidgetObject {
   Widget buildPortalWidget() {
     return ValueListenableBuilder<int>(
       valueListenable: _rebuildNotifier,
-      builder: (context, _, __) {
+      builder: (context, _, _) {
         final double quadHeight = refBox.yVector.length;
         final double fontSize = _style.fontSize ?? 72.0;
         
@@ -106,7 +100,6 @@ class FskFlutterText extends FskWidgetObject {
               width: widgetSize.width,
               height: widgetSize.height,
               alignment: _getAlignment(),
-              color: Colors.white.withValues(alpha: 0.01),
               child: FittedBox(
                 // scaleToFit=true: fill the box (BoxFit.contain).
                 // scaleToFit=false: use natural size relative to box (mimicked via FractionallySizedBox).
@@ -167,6 +160,5 @@ class FskFlutterText extends FskWidgetObject {
           case TextHorizontalJustification.right: return Alignment.bottomRight;
         }
     }
-    return Alignment.center; // Fallback
   }
 }
