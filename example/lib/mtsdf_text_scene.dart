@@ -51,20 +51,21 @@ class MtsdfTextScene extends FskScene {
         final textStr = words[random.nextInt(words.length)];
         final color = Colors.primaries[index % Colors.primaries.length];
         
-        // Vary the glow and rotation to exercise different parameters
-        final double glowSize = (index / (cols * rows)) * 0.15;
+        // Vary rotation to exercise different parameters
         final double rotation = (random.nextDouble() - 0.5) * 0.4;
         final double scale = 0.8 + random.nextDouble() * 0.6;
 
-        final textNode = FskMtsdfText(
+        final textNode = FskFlutterText(
           "text_$index",
           this,
           ReferenceBox.fromCenterSize(vm.Vector3(x, y, 0), const Size(400, 100)),
-          font: font,
           text: textStr,
           textColor: color,
-          glowColor: color.withValues(alpha: 0.3),
-          glowSize: glowSize,
+          style: const TextStyle(
+            fontFamily: 'isocpeur',
+            fontSize: 60,
+            fontWeight: FontWeight.bold,
+          ),
           horizontalJustification: TextHorizontalJustification.center,
           verticalJustification: TextVerticalJustification.center,
         );

@@ -43,56 +43,34 @@ class WidgetNestingScene extends FskScene {
     bgQuad.isPickable = false;
     rotatingGroup.addNode(bgQuad);
 
-    // 2. Status/Display Texts (MTSDF)
-    try {
-      await FontManager().createFontFromFile(
-        "isocpeur-mtsdf",
-        "Isocpeur-mtsdf.xml",
-        "Isocpeur-mtsdf.png",
-        generateMipmaps: false,
-      );
-    } catch (e) {
-      logError("WidgetNestingScene: Failed to load font: $e");
-    }
-
-    final font =
-        FontManager().getFont("isocpeur-mtsdf") ?? FontManager().defaultFont;
-
-    if (font == null) {
-      logError(
-        "WidgetNestingScene.onInit: No valid font found. Text displays will be disabled.",
-      );
-      _initInputWidget(rotatingGroup);
-      return;
-    }
-
-    final liveDisplay = FskMtsdfText(
+    // 2. Status/Display Texts (Flutter Text)
+    final liveDisplay = FskFlutterText(
       "live_display",
       this,
       ReferenceBox.fromCenterSize(vm.Vector3(0, 200, 0), const Size(800, 60)),
-      font: font,
       text: "Live: 100.0",
       textColor: Colors.white,
+      style: const TextStyle(fontFamily: 'isocpeur', fontSize: 60),
     );
     mainGroup.addNode(liveDisplay);
 
-    final submittedDisplay = FskMtsdfText(
+    final submittedDisplay = FskFlutterText(
       "submitted_display",
       this,
       ReferenceBox.fromCenterSize(vm.Vector3(0, 280, 0), const Size(800, 60)),
-      font: font,
       text: "Submitted: 100.0",
       textColor: Colors.greenAccent,
+      style: const TextStyle(fontFamily: 'isocpeur', fontSize: 60),
     );
     mainGroup.addNode(submittedDisplay);
 
-    final errorDisplay = FskMtsdfText(
+    final errorDisplay = FskFlutterText(
       "error_display",
       this,
       ReferenceBox.fromCenterSize(vm.Vector3(0, 100, 20), const Size(800, 40)),
-      font: font,
       text: "",
       textColor: Colors.redAccent,
+      style: const TextStyle(fontFamily: 'isocpeur', fontSize: 40),
     );
     rotatingGroup.addNode(errorDisplay);
 
@@ -106,9 +84,9 @@ class WidgetNestingScene extends FskScene {
 
   void _initInputWidget(
     FskGroup rotatingGroup, {
-    FskMtsdfText? liveDisplay,
-    FskMtsdfText? submittedDisplay,
-    FskMtsdfText? errorDisplay,
+    FskFlutterText? liveDisplay,
+    FskFlutterText? submittedDisplay,
+    FskFlutterText? errorDisplay,
   }) {
     // 3. The Interactive Input Widget
     final editableText = FskEditableTextObject(

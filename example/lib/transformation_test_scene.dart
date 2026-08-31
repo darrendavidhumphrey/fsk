@@ -45,7 +45,7 @@ class TransformationTestScene extends FskScene {
     switch (index) {
       // --- Row 0: Fundamentals ---
       case 0: // Pure Translate
-        _addQuad(id, color)..position = basePos;
+        _addQuad(id, color).position = basePos;
         break;
       case 1: // Pure Rotate (45 deg)
         _addQuad(id, color)..position = basePos..rotation = vm.Vector3(0, 0, math.pi / 4);
@@ -209,7 +209,7 @@ class TransformationTestScene extends FskScene {
           if (index % 3 == 0) t.rotation = vm.Vector3(0, 0, 0.2);
           if (index % 4 == 0) t.scale = vm.Vector3(0.8, 1.2, 1.0);
         } else {
-           _addQuad(id, color)..position = basePos;
+           _addQuad(id, color).position = basePos;
         }
         break;
     }
@@ -239,14 +239,18 @@ class TransformationTestScene extends FskScene {
     return g;
   }
 
-  FskTextureText _addText(String id, vm.Vector3 pos, TextureFont font, String text, Color color) {
-    final t = FskTextureText(
+  FskFlutterText _addText(String id, vm.Vector3 pos, TextureFont font, String text, Color color) {
+    final t = FskFlutterText(
       id,
       this,
       ReferenceBox.fromCenterSize(pos, const Size(180, 50)),
-      font: font,
       text: text,
       textColor: color,
+      style: const TextStyle(
+        fontFamily: 'isocpeur',
+        fontSize: 40,
+        fontWeight: FontWeight.bold,
+      ),
       horizontalJustification: TextHorizontalJustification.center,
       verticalJustification: TextVerticalJustification.center,
     );
