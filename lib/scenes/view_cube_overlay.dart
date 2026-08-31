@@ -34,12 +34,15 @@ class ViewCubeOverlay extends ScreenSpaceOverlay {
     useBoxFitLayout = false;
 
     // Ensure the MTSDF font is loaded.
+    // NOTE: generateMipmaps is disabled because standard downscaling destroys MTSDF distance fields,
+    // which is the primary cause of solid color ("black quad") artifacts on small objects.
     await FontManager().createFontFromFile(
       "isocpeur-mtsdf",
       "Isocpeur-mtsdf.xml",
       "Isocpeur-mtsdf.png",
-      generateMipmaps: true,
+      generateMipmaps: false,
     );
+    logInfo("ViewCubeOverlay: font 'isocpeur-mtsdf' load task completed.");
 
     // Create a container group for the entire cube assembly.
     final cubeRoot = FskGroup('cube_root', this);

@@ -13,6 +13,9 @@ class FontManager with LoggableClass {
   /// The internal cache of registered fonts, keyed by their unique name.
   final Map<String, TextureFont> _fonts = {};
 
+  /// Tracks active loading tasks to prevent redundant parallel requests.
+  final Map<String, Future<TextureFont?>> _inProgressLoads = {};
+
   /// The singleton instance.
   static final FontManager _singleton = FontManager._internal();
 
@@ -62,72 +65,91 @@ class FontManager with LoggableClass {
 
   /// Explicitly initializes the manager, ensuring the default font is loaded.
   Future<void> init() async {
-    await createFont("default", creatoDisplayBoldXml, "CreatoDisplay-Bold.png", generateMipmaps: true);
+    await createFont("default", creatoDisplayBoldXml, "CreatoDisplay-Bold.png", generateMipmaps: false);
   }
 
   Future<void> createFontFromFile(
     String fontName,
     String filename,
     String textureName, {
-    bool generateMipmaps = true,
+    bool generateMipmaps = false,
   }) async {
+    // 1. Check if the font is already fully initialized and registered.
     if (_fonts.containsKey(fontName)) {
       final existingFont = _fonts[fontName]!;
       if (existingFont.isInitialized) {
-        logInfo("Font $fontName already registered and initialized, skipping load.");
+        logVerbose("Font $fontName already registered and initialized, skipping load.");
         return;
       }
-      logInfo("Font $fontName exists but is not initialized, retrying load.");
     }
 
-    // Load the XML data from the file as a string
+    // 2. Check if a load for this font is already in progress.
+    if (_inProgressLoads.containsKey(fontName)) {
+      logVerbose("Font $fontName load is already in progress, awaiting existing task...");
+      await _inProgressLoads[fontName];
+      return;
+    }
+
+    // 3. Start a new atomic loading task.
+    final loadTask = _runCreateFontFromFile(fontName, filename, textureName, generateMipmaps);
+    _inProgressLoads[fontName] = loadTask;
+
+    try {
+      await loadTask;
+    } finally {
+      _inProgressLoads.remove(fontName);
+    }
+  }
+
+  Future<TextureFont?> _runCreateFontFromFile(
+    String fontName,
+    String filename,
+    String textureName,
+    bool generateMipmaps,
+  ) async {
     final fontPath = "$assetsRoot$filename";
 
     try {
       if (!FSK().assetManifest.listAssets().contains(fontPath)) {
         logError("Font file not found in asset manifest: '$fontPath'");
-        return;
+        return null;
       }
 
       final xmlData = await rootBundle.loadString(fontPath);
+      logVerbose("createFontFromFile starting: $fontName, $filename, $textureName");
 
-      logVerbose("createFontFromFile: $fontName, $filename, $textureName");
-
-      // Call the createFont method with the retrieved data
-      await createFont(fontName, xmlData, textureName, generateMipmaps: generateMipmaps);
+      return await createFont(fontName, xmlData, textureName, generateMipmaps: generateMipmaps);
     } catch (e, stackTrace) {
       logError("Error loading or parsing font XML '$fontPath': $e");
       logError("StackTrace: $stackTrace");
+      return null;
     }
   }
 
   /// Creates a font from XML data, loads its texture, and registers it.
-  /// The XML data is processed synchronously, but the texture is loaded asynchronously.
-  /// Thus it is possible for fonts to temporarily have no texture loaded
-  Future<void> createFont(String fontName, String xmlString, String textureName, {bool generateMipmaps = false}) async {
+  Future<TextureFont?> createFont(String fontName, String xmlString, String textureName, {bool generateMipmaps = false}) async {
     try {
       var font = TextureFont.fromXml(fontName, xmlString);
       // The texture loads asynchronously, so wait for it.
       await font.loadFontTexture(textureName, generateMipmaps: generateMipmaps);
-      registerFont(fontName, font);
-    } catch (e, stackTrace) {
-      logError("Error loading font '$fontName': $e");
-      logError("StackTrace: $stackTrace");
-    }
-  }
+      
+      // Settle Frame: ensure any pending GPU overwrite commands (like the clear) 
+      // from the texture manager are fully submitted before the font is registered.
+      // 100ms provides a massive buffer to ensure GPU tasks settle completely.
+      await Future.delayed(const Duration(milliseconds: 100));
 
-  // Synchronous version that ensures the font is loaded before use, but the
-  // texture still loads asynchronously.
-  void createFontSync(String fontName, String xmlString, String textureName)  {
-    try {
-      var font = TextureFont.fromXml(fontName, xmlString);
-
-      // NOTE: The texture loads asynchronously
-      font.loadFontTexture(textureName);
-      registerFont(fontName, font);
+      // Enforce atomic "validated" registration: check wrapper AND hardware handle.
+      if (font.isInitialized && font.textureInfo?.texture != null) {
+        registerFont(fontName, font);
+        return font;
+      } else {
+        logError("Font '$fontName' failed to initialize after texture load (handle is NULL).");
+        return null;
+      }
     } catch (e, stackTrace) {
-      logError("Error loading font '$fontName': $e");
+      logError("Error creating font '$fontName': $e");
       logError("StackTrace: $stackTrace");
+      return null;
     }
   }
 }

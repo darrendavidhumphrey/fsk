@@ -121,22 +121,17 @@ class FskQuadsRenderer extends FskRendererBase {
     // 2. Perform per-frame updates
     uniforms!.onUpdate(viewportSize);
 
-    // 3. Robust Texture Binding: Always bind a texture to Slot 2 to prevent state leaks.
-    if (textureInfo == null || textureInfo!.texture == null) {
+    // 3. Absolute Texture Guard: Never draw if the GPU handle is missing.
+    // This makes "black quads" mathematically impossible; we render nothing until ready.
+    if (textureInfo?.texture == null) {
       if (_debug) {
-        logVerbose(
-            "FskQuadsRenderer.draw: texture is NULL using transparent texture");
+        logVerbose("FskQuadsRenderer.draw: texture handle is NULL, skipping draw call.");
       }
-      var transparent = FSK().textureManager.transparentTexture;
-      uniforms!.texture = transparent;
-      uniforms!.samplerOptions = FSK().textureManager.transparentTextureInfo.samplerOptions;
-    } else {
-      if (_debug) {
-        //logVerbose("FskQuadsRenderer.draw: texture ID is ${textureInfo!.id} dims are ${textureInfo!.texture!.width}x${textureInfo!.texture!.height}");
-      }
-      uniforms!.texture = textureInfo!.texture;
-      uniforms!.samplerOptions = textureInfo!.samplerOptions;
+      return;
     }
+
+    uniforms!.texture = textureInfo!.texture;
+    uniforms!.samplerOptions = textureInfo!.samplerOptions;
 
 
 

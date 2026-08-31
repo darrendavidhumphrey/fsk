@@ -70,12 +70,15 @@ class FSK extends ChangeNotifier with LoggableClass {
     return _singleton;
   }
 
+  Future<bool>? _initFuture;
+
   // Cache of rendering pipelines -- NOW GLOBAL
   final PipelineCache _pipelineCache = PipelineCache();
 
   void clearCaches() {
     Logging.logInfo('FSK.clearCaches: starting', source: 'FSK');
     _state = FskState.uninitialized; // Force re-init to rebuild built-in textures
+    _initFuture = null;
     _pipelineCache.clear();
     textureManager.clear();
     FontManager().clear();
@@ -102,9 +105,12 @@ class FSK extends ChangeNotifier with LoggableClass {
   /// This must be called once before any other operations.
   Future<bool> init() async {
     if (_state == FskState.initialized) return true;
-    _state = FskState.initialized;
+    return _initFuture ??= _runInit();
+  }
 
-    logVerbose('FSK.init() called. Current state: $_state');
+  Future<bool> _runInit() async {
+    _state = FskState.initialized;
+    logVerbose('FSK.init() starting. Current state: $_state');
     try {
 
       _assetManifest ??= await AssetManifest.loadFromAssetBundle(rootBundle);
@@ -162,6 +168,7 @@ class FSK extends ChangeNotifier with LoggableClass {
       return true;
     } catch (e) {
       _state = FskState.uninitialized; // Reset on failure
+      _initFuture = null;
       logError('Exception during FSK.init(): $e');
       
       try {

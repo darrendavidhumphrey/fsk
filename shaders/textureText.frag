@@ -16,5 +16,11 @@ layout(set = 0, binding = 2) uniform sampler2D uSampler;
 
 void main(void) {
     vec4 texColor = texture(uSampler, v_uv);
+
+    // Strict Discard: if texture is essentially zero (uninitialized or clear), skip rendering.
+    if (texColor.a < 0.01) {
+        discard;
+    }
+
     FragColor = texColor * fragUniforms.uTextColor;
 }

@@ -305,9 +305,7 @@ abstract class FskBaseText extends Fsk2DRenderableObject
   void doRebuild() {
     // Safety check: ensure the renderer's texture is in sync with the font's current texture.
     // This catches race conditions in the async loading lifecycle.
-    if (font.isInitialized && 
-        font.textureInfo?.texture != null && 
-        _renderer.textureInfo != font.textureInfo) {
+    if (font.isInitialized && font.textureInfo?.texture != null) {
       _renderer.setTexture(font.textureInfo);
       _retryFrames = 0;
     }
@@ -335,6 +333,8 @@ abstract class FskBaseText extends Fsk2DRenderableObject
       needsRebuild = false;
       return;
     }
+
+    logVerbose("FskBaseText($id): Rebuilding text geometry for '$text' using font '${font.name}'");
 
     FskTextureTextQuadBuilder quadBuilder = FskTextureTextQuadBuilder(
       text: text,

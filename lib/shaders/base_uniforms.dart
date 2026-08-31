@@ -152,18 +152,8 @@ abstract class BaseUniforms extends ChangeNotifier with LoggableClass {
       final slot = shader.getUniformSlot(name);
       pass.bindUniform(slot, view);
     } catch (_) {
-      // Primary name failed. We'll try some common defaults if the specific subclass name wasn't found.
-      final variants = name.contains('Vertex') 
-          ? ['VertexUniforms', 'uVertexUniforms'] 
-          : ['FragmentUniforms', 'uFragmentUniforms'];
-      
-      for (var v in variants) {
-        try {
-          final slot = shader.getUniformSlot(v);
-          pass.bindUniform(slot, view);
-          return;
-        } catch (_) {}
-      }
+      logError("FATAL: Could not find requested uniform slot '$name' in shader ${shader.hashCode}.");
+      throw StateError("Shader is missing required uniform slot: $name");
     }
   }
 
@@ -173,17 +163,12 @@ abstract class BaseUniforms extends ChangeNotifier with LoggableClass {
     try {
       final slot = shader.getUniformSlot(name);
       pass.bindTexture(slot, textureToBind, sampler: samplerOptions);
-      return;
-    } catch (_) {}
-
-    // Fallback search for common sampler names
-    final variants = ['uTexture', 'uBaseColorMap', 'tDiffuse', 'texture', 'uSampler'];
-    for (var v in variants) {
-      try {
-        final slot = shader.getUniformSlot(v);
-        pass.bindTexture(slot, textureToBind, sampler: samplerOptions);
-        return;
-      } catch (_) {}
+    } catch (_) {
+      // CRITICAL: If we reach here, the shader HAS no valid sampler slot found by name.
+      // This will lead to a "Texture State Leak" where the PREVIOUS draw call's texture 
+      // remains bound to Slot 2, causing solid color artifacts (black quads).
+      logError("FATAL: Could not find requested sampler slot '$name' in shader ${shader.hashCode}. This will cause state leaks.");
+      throw StateError("Shader is missing required sampler uniform slot: $name");
     }
   }
 

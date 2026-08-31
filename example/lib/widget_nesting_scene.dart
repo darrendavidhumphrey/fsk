@@ -49,7 +49,7 @@ class WidgetNestingScene extends FskScene {
         "isocpeur-mtsdf",
         "Isocpeur-mtsdf.xml",
         "Isocpeur-mtsdf.png",
-        generateMipmaps: true,
+        generateMipmaps: false,
       );
     } catch (e) {
       logError("WidgetNestingScene: Failed to load font: $e");

@@ -44,8 +44,9 @@ abstract class FskRendererBase extends ChangeNotifier with LoggableClass {
   PipelineKey? pipelineKey;
 
   void setTexture(FskTextureInfo? info) {
-    if (textureInfo == info) return;
+    if (textureInfo == info && textureInfo?.texture == _lastTextureHandle) return;
     textureInfo = info;
+    _lastTextureHandle = textureInfo?.texture;
     pipeLineNeedsRebuild = true;
     notifyListeners();
   }
@@ -88,7 +89,12 @@ abstract class FskRendererBase extends ChangeNotifier with LoggableClass {
     // Detect if the underlying texture handle has changed (e.g. font finished loading)
     if (textureInfo?.texture != _lastTextureHandle) {
       pipeLineNeedsRebuild = true;
-      _lastTextureHandle = textureInfo?.texture;
+      // ONLY update the handle if it's non-null. If it's null, we want to keep 
+      // pipeLineNeedsRebuild=true until we get a real handle.
+      if (textureInfo?.texture != null) {
+        logInfo("Renderer for texture '${textureInfo!.id}' handle transitioned from NULL to VALID.");
+        _lastTextureHandle = textureInfo?.texture;
+      }
     }
 
     if (!pipeLineNeedsRebuild && pipelineKey != null) return;

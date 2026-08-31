@@ -17,6 +17,11 @@ layout(set = 0, binding = 2) uniform sampler2D uSampler;
 void main() {
     vec4 texColor = texture(uSampler, vTextureCoord);
 
+    // Strict Discard: if texture is essentially zero (uninitialized or clear), skip rendering.
+    if (texColor.a < 0.01) {
+        discard;
+    }
+
     // Both are in straight alpha space.
     FragColor = texColor * fragUniforms.uModulateColor;
 }

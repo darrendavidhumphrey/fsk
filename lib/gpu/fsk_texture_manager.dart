@@ -51,7 +51,16 @@ class FskTextureManager with LoggableClass {
     final data = Uint8List.fromList([0, 0, 0, 0]);
     _transparentTexture!.overwrite(data.buffer.asByteData());
 
-    FskTextureInfo textureInfo = FskTextureInfo(transparentTextureId, '', gpu.SamplerOptions(), texture: _transparentTexture);
+    FskTextureInfo textureInfo = FskTextureInfo(
+      transparentTextureId,
+      '',
+      gpu.SamplerOptions(
+        minFilter: gpu.MinMagFilter.nearest,
+        magFilter: gpu.MinMagFilter.nearest,
+        mipFilter: gpu.MipFilter.nearest,
+      ),
+      texture: _transparentTexture,
+    );
     textureInfo.isLoaded = true;
     _addTextureInfo(textureInfo);
   }
@@ -68,7 +77,16 @@ class FskTextureManager with LoggableClass {
     final data = Uint8List.fromList([255, 255, 255, 255]);
     _solidTexture!.overwrite(data.buffer.asByteData());
 
-    FskTextureInfo textureInfo = FskTextureInfo(solidTextureId,'', gpu.SamplerOptions(), texture: _solidTexture);
+    FskTextureInfo textureInfo = FskTextureInfo(
+      solidTextureId,
+      '',
+      gpu.SamplerOptions(
+        minFilter: gpu.MinMagFilter.nearest,
+        magFilter: gpu.MinMagFilter.nearest,
+        mipFilter: gpu.MipFilter.nearest,
+      ),
+      texture: _solidTexture,
+    );
     textureInfo.isLoaded = true;
     _addTextureInfo(textureInfo);
   }
@@ -127,6 +145,12 @@ class FskTextureManager with LoggableClass {
         int maxAnisotropy = 1,
       }) async {
 
+    // Ensure engine is ready before any GPU resource allocation starts.
+    if (FSK().state != FskState.initialized) {
+      logInfo("Waiting for FSK initialization before loading texture: $id");
+      await FSK().init();
+    }
+
     if (_textures.containsKey(id)) {
       final info = _textures[id]!;
       // If it is already loaded or is currently in the process of loading, return the existing info.
@@ -134,8 +158,14 @@ class FskTextureManager with LoggableClass {
         if (info.loadFuture != null) {
           await info.loadFuture;
         }
-        logVerbose("Skip Loading Texture ID $id (already exists and valid)");
-        return info;
+        
+        // Final sanity check: if loading finished but handle is still null, we must retry.
+        if (info.texture != null) {
+          logVerbose("Skip Loading Texture ID $id (already exists and valid)");
+          return info;
+        }
+        
+        logInfo("Texture ID $id was marked loaded/loading but handle is NULL. Retrying...");
       }
       // If it exists but is not loaded and not loading, we fall through and retry.
       logInfo("Retrying failed texture load for ID $id");
@@ -201,6 +231,7 @@ class FskTextureManager with LoggableClass {
         final int levelSize = mipWidth * mipHeight * 4;
         allocatedTexture.overwrite(clearData.buffer.asByteData(0, levelSize), mipLevel: i);
       }
+      logVerbose("Texture ID $id physically cleared to transparent black across $mipLevelCount levels.");
 
       // Populate each mip level via CPU-side downscaling
       for (int i = 0; i < mipLevelCount; i++) {

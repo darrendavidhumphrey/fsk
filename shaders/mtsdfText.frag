@@ -25,17 +25,28 @@ float median(float r, float g, float b) {
 void main(void) {
     vec4 texColor = texture(uSampler, v_uv);
 
-    // Defensive discard: if texture is fully transparent (e.g. uninitialized black), skip rendering.
-    if (texColor.a == 0.0) {
+    // Strict Discard: if texture is essentially zero (uninitialized or clear), skip rendering.
+    if (texColor.a < 0.01) {
         discard;
     }
 
     // MTSDF decoding: median of three distance channels
     float sigDist = median(texColor.r, texColor.g, texColor.b);
+    sigDist = clamp(sigDist, 0.0, 1.0);
+
+    // Strict Noise Discard: if the distance is essentially zero, discard immediately.
+    // This removes the "black quad" background even if the texture alpha is 1.0.
+    if (sigDist < 0.005) {
+        discard;
+    }
 
     // Reverted to 0.25 as requested for this specific font's encoding.
     float threshold = 0.25;
-    float w = max(fwidth(sigDist), 0.0001);
+
+    // Smoothness Width: cap the smoothing to 0.05 to prevent "black quad" artifacts
+    // caused by high derivatives in uninitialized memory areas.
+    float w = clamp(fwidth(sigDist), 0.0001, 0.05);
+
     float opacity = smoothstep(threshold - w, threshold + w, sigDist);
 
     vec4 color = fragUniforms.uTextColor;
@@ -51,7 +62,7 @@ void main(void) {
         opacity = max(opacity, glowOpacity * fragUniforms.uGlowColor.a);
     }
 
-    // Output straight alpha (blending handles the rest).
-    // Multiply by texColor.a as a defensive mask against uninitialized memory.
-    FragColor = vec4(color.rgb, color.a * opacity * texColor.a);
+    // Output straight alpha. We no longer multiply by texColor.a to avoid dependency
+    // on uninitialized or poorly exported alpha channels.
+    FragColor = vec4(color.rgb, color.a * opacity);
 }

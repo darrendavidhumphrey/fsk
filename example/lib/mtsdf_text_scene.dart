@@ -16,11 +16,12 @@ class MtsdfTextScene extends FskScene {
     logInfo("MtsdfTextScene.onInit: Loading font...");
 
     // 1. Load the MTSDF font
+    // NOTE: generateMipmaps is disabled to prevent distance field corruption on small scales.
     await FontManager().createFontFromFile(
       "isocpeur-mtsdf",
       "Isocpeur-mtsdf.xml",
       "Isocpeur-mtsdf.png",
-      generateMipmaps: true,
+      generateMipmaps: false,
     );
 
     final font = FontManager().getFont("isocpeur-mtsdf");
