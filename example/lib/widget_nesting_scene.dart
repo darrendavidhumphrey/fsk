@@ -12,8 +12,6 @@ class WidgetNestingScene extends FskScene {
   );
   final FocusNode _focusNode = FocusNode();
 
-  final ValueNotifier<bool> _validationEnabled = ValueNotifier<bool>(true);
-
   @override
   Future<void> onInit() async {
     await super.onInit();
@@ -64,21 +62,10 @@ class WidgetNestingScene extends FskScene {
     );
     mainGroup.addNode(submittedDisplay);
 
-    final errorDisplay = FskFlutterText(
-      "error_display",
-      this,
-      ReferenceBox.fromCenterSize(vm.Vector3(0, 100, 20), const Size(800, 40)),
-      text: "",
-      textColor: Colors.redAccent,
-      style: const TextStyle(fontFamily: 'isocpeur', fontSize: 40),
-    );
-    rotatingGroup.addNode(errorDisplay);
-
     _initInputWidget(
       rotatingGroup,
       liveDisplay: liveDisplay,
       submittedDisplay: submittedDisplay,
-      errorDisplay: errorDisplay,
     );
   }
 
@@ -86,63 +73,42 @@ class WidgetNestingScene extends FskScene {
     FskGroup rotatingGroup, {
     FskFlutterText? liveDisplay,
     FskFlutterText? submittedDisplay,
-    FskFlutterText? errorDisplay,
   }) {
-    // 3. The Interactive Input Widget
-    final editableText = FskEditableTextObject(
+    // 3. The Interactive Input Widget (Editable Flutter Text)
+    final editableText = FskEditableFlutterText(
       "editable_text",
       this,
       ReferenceBox.fromCenterSize(vm.Vector3(0, 0, 20), const Size(600, 150)),
-      controller: _textController,
-      focusNode: _focusNode,
+      text: _textController.text,
       style: const TextStyle(
+        fontFamily: 'isocpeur',
         fontSize: 40,
         color: Colors.white,
         fontWeight: FontWeight.bold,
       ),
-      widgetSize: const Size(600, 150),
-    );
-    // Inject the complex widget with checkbox and validation awareness
-    editableText.buildPortalWidgetOverride = () => _ComplexInputWidget(
-      controller: _textController,
-      focusNode: _focusNode,
-      isHoveredNotifier: editableText.isHovered,
-      validationEnabled: _validationEnabled,
-      onSubmitted: (val) {
-        Logging.logInfo(
-          "WidgetNestingScene: onSubmitted received '$val'",
-          source: "WidgetNestingScene",
-        );
-        submittedDisplay?.text = "Submitted: $val";
+      onValidate: (val) {
+        final d = double.tryParse(val);
+        if (d == null && val.isNotEmpty) {
+          return "Invalid Double Number!";
+        }
+        return null;
       },
+      onSubmitted: (val) {
+        Logging.logInfo("WidgetNestingScene: onSubmitted received '$val'", source: "WidgetNestingScene");
+        if (submittedDisplay != null) {
+          submittedDisplay.text = "Submitted: $val";
+        }
+      },
+      widgetSize: const Size(600, 150),
     );
 
     rotatingGroup.addNode(editableText);
 
-    // Wire up the live listener
-    _textController.addListener(() {
-      final text = _textController.text;
-      if (liveDisplay != null) liveDisplay.text = "Live: $text";
-
-      if (_validationEnabled.value) {
-        final val = double.tryParse(text);
-        if (val == null && text.isNotEmpty) {
-          if (errorDisplay != null) {
-            errorDisplay.text = "Invalid Double Number!";
-          }
-        } else {
-          if (errorDisplay != null) errorDisplay.text = "";
-        }
-      } else {
-        if (errorDisplay != null) errorDisplay.text = "";
-      }
-    });
-
-    _validationEnabled.addListener(() {
-      if (!_validationEnabled.value) {
-        if (errorDisplay != null) errorDisplay.text = "";
-      } else {
-        _textController.notifyListeners();
+    // Sync live display
+    editableText.controller.addListener(() {
+      final text = editableText.controller.text;
+      if (liveDisplay != null) {
+        liveDisplay.text = "Live: $text";
       }
     });
   }
@@ -161,121 +127,6 @@ class WidgetNestingScene extends FskScene {
   void dispose() {
     _textController.dispose();
     _focusNode.dispose();
-    _validationEnabled.dispose();
     super.dispose();
-  }
-}
-
-class _ComplexInputWidget extends StatefulWidget {
-  final TextEditingController controller;
-  final FocusNode focusNode;
-  final ValueNotifier<bool> isHoveredNotifier;
-  final ValueNotifier<bool> validationEnabled;
-  final Function(String) onSubmitted;
-
-  const _ComplexInputWidget({
-    required this.controller,
-    required this.focusNode,
-    required this.isHoveredNotifier,
-    required this.validationEnabled,
-    required this.onSubmitted,
-  });
-
-  @override
-  State<_ComplexInputWidget> createState() => _ComplexInputWidgetState();
-}
-
-class _ComplexInputWidgetState extends State<_ComplexInputWidget>
-    with LoggableClass {
-  bool _isHovered = false;
-
-  @override
-  void initState() {
-    super.initState();
-    widget.isHoveredNotifier.addListener(_onHoverChanged);
-    widget.validationEnabled.addListener(_rebuild);
-    widget.focusNode.addListener(_rebuild);
-  }
-
-  @override
-  void dispose() {
-    widget.isHoveredNotifier.removeListener(_onHoverChanged);
-    widget.validationEnabled.removeListener(_rebuild);
-    widget.focusNode.removeListener(_rebuild);
-    super.dispose();
-  }
-
-  void _onHoverChanged() {
-    if (mounted) setState(() => _isHovered = widget.isHoveredNotifier.value);
-  }
-
-  void _rebuild() {
-    if (mounted) setState(() {});
-  }
-
-  @override
-  Widget build(BuildContext context) {
-    return Material(
-      color: Colors.transparent,
-      child: Container(
-        padding: const EdgeInsets.symmetric(horizontal: 16),
-        decoration: BoxDecoration(
-          color: _isHovered
-              ? Colors.black.withValues(alpha: 0.7)
-              : Colors.black.withValues(alpha: 0.5),
-          border: Border.all(
-            color: widget.focusNode.hasFocus
-                ? Colors.cyanAccent
-                : (_isHovered ? Colors.white : Colors.white70),
-            width: widget.focusNode.hasFocus ? 4 : (_isHovered ? 3 : 2),
-          ),
-        ),
-        child: Row(
-          children: [
-            Expanded(
-              child: TextField(
-                controller: widget.controller,
-                focusNode: widget.focusNode,
-                onChanged: (val) {
-                  Logging.logInfo("ComplexInputWidget: TextField onChanged: '$val'", source: "ComplexInputWidget");
-                },
-                style: const TextStyle(
-                  fontSize: 40,
-                  color: Colors.white,
-                  fontWeight: FontWeight.bold,
-                ),
-                textAlign: TextAlign.center,
-                onSubmitted: widget.onSubmitted,
-                textInputAction: TextInputAction.done,
-                decoration: const InputDecoration(border: InputBorder.none),
-              ),
-            ),
-            const VerticalDivider(color: Colors.white24, width: 20),
-            Container(
-              width: 100,
-              color: Colors.white.withValues(alpha: 0.1),
-              child: Column(
-                mainAxisAlignment: MainAxisAlignment.center,
-                children: [
-                  const Text(
-                    "VAL",
-                    style: TextStyle(color: Colors.white, fontSize: 16, fontWeight: FontWeight.bold),
-                  ),
-                  const SizedBox(height: 8),
-                  Checkbox(
-                    value: widget.validationEnabled.value,
-                    onChanged: (val) {
-                      widget.validationEnabled.value = val ?? false;
-                    },
-                    activeColor: Colors.cyanAccent,
-                    checkColor: Colors.black,
-                  ),
-                ],
-              ),
-            ),
-          ],
-        ),
-      ),
-    );
   }
 }

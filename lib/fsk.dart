@@ -27,6 +27,7 @@ export 'loaders/fsk_stl_loader.dart';
 export 'scenes/view_cube_overlay.dart';
 
 export 'scene_graph/fsk_flutter_text.dart';
+export 'scene_graph/fsk_editable_flutter_text.dart';
 export 'scene_graph/fsk_texture_text.dart';
 export 'scene_graph/fsk_base_text.dart';
 export 'scene_graph/fsk_group.dart';
