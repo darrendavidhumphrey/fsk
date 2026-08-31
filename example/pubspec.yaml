@@ -59,3 +59,8 @@ flutter:
     - assets/3D/Axis/
     - assets/3D/STL/
     - data_assets/
+
+  fonts:
+    - family: isocpeur
+      fonts:
+        - asset: assets/fonts/isocpeur.ttf

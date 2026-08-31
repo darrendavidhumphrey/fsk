@@ -1,9 +1,8 @@
-import 'package:flutter/material.dart' show Colors;
+import 'package:flutter/material.dart' show Colors, TextStyle, FontWeight;
 import 'package:flutter_gpu/gpu.dart' as gpu;
 import 'package:vector_math/vector_math.dart' as vm;
-import '../bitmap_fonts/font_manager.dart';
 import '../scene_graph/fsk_group.dart';
-import '../scene_graph/fsk_mtsdf_text.dart';
+import '../scene_graph/fsk_flutter_text.dart';
 import '../scene_graph/fsk_rectangular_solid.dart';
 import '../scene_graph/fsk_text_alignment.dart';
 import '../shaders/materials.dart';
@@ -32,17 +31,6 @@ class ViewCubeOverlay extends ScreenSpaceOverlay {
     await super.onInit();
 
     useBoxFitLayout = false;
-
-    // Ensure the MTSDF font is loaded.
-    // NOTE: generateMipmaps is disabled because standard downscaling destroys MTSDF distance fields,
-    // which is the primary cause of solid color ("black quad") artifacts on small objects.
-    await FontManager().createFontFromFile(
-      "isocpeur-mtsdf",
-      "Isocpeur-mtsdf.xml",
-      "Isocpeur-mtsdf.png",
-      generateMipmaps: false,
-    );
-    logInfo("ViewCubeOverlay: font 'isocpeur-mtsdf' load task completed.");
 
     // Create a container group for the entire cube assembly.
     final cubeRoot = FskGroup('cube_root', this);
@@ -139,24 +127,25 @@ class ViewCubeOverlay extends ScreenSpaceOverlay {
     );
   }
 
-  List<FskMtsdfText> _generateLabels() {
+  List<FskFlutterText> _generateLabels() {
     final double dist = cubeSize / 2 + 0.5;
     final double width = cubeSize * (2 / 3);
     final double h = width / 2;
-    final font = FontManager().getFont("isocpeur-mtsdf");
-    if (font == null) {
-      logError("ViewCubeOverlay: MTSDF font 'isocpeur-mtsdf' not found. Labels will not be generated.");
-      return [];
-    }
 
-    final List<FskMtsdfText> labels = [];
+    final List<FskFlutterText> labels = [];
 
     // Helper to define face orientation: Label, Origin, X-Axis, Y-Axis, Normal
     void addLabel(String text, vm.Vector3 origin, vm.Vector3 x, vm.Vector3 y, vm.Vector3 n) {
-      labels.add(FskMtsdfText(
+      labels.add(FskFlutterText(
         '${text}_text', this,
         ReferenceBox(origin, x, y, n),
-        font: font, text: text,
+        text: text,
+        textColor: Colors.black,
+        style: const TextStyle(
+          fontFamily: 'isocpeur',
+          fontSize: 60,
+          fontWeight: FontWeight.bold,
+        ),
       ));
     }
 
@@ -175,10 +164,8 @@ class ViewCubeOverlay extends ScreenSpaceOverlay {
     addLabel("LEFT", vm.Vector3(-dist, h, -h), vm.Vector3(0, -width, 0), vm.Vector3(0, 0, width), vm.Vector3(-1, 0, 0));
 
     for (final label in labels) {
-      label.textColor = Colors.black;
       label.horizontalJustification = TextHorizontalJustification.center;
       label.verticalJustification = TextVerticalJustification.center;
-      label.renderer.premultiplyAlpha = false;
       label.setDepthState(
         depthTestEnabled: true,
         depthWriteEnabled: false,

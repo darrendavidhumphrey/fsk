@@ -2,6 +2,7 @@ import 'package:flutter/material.dart' hide Matrix4;
 import 'package:flutter_gpu/gpu.dart' as gpu;
 import 'package:fsk/scene_graph/fsk_scene.dart';
 import 'package:fsk/scene_graph/fsk_scene_base.dart';
+import 'package:fsk/scene_graph/fsk_widget_portal.dart';
 import 'package:fsk/fsk_singleton.dart';
 import 'package:fsk/gpu/fsk_render_target.dart';
 import 'package:fsk/logging.dart';
@@ -70,7 +71,10 @@ class _GPURenderWidgetState extends State<GPURenderWidget> with SingleTickerProv
     if (!widget.scene.isReady) return;
     if (_isProcessingFrame) return;
 
-    FSK.devicePixelRatio = pixelRatio;
+    if (FSK.devicePixelRatio != pixelRatio) {
+       logInfo("GPURenderWidget: Device Pixel Ratio updated to $pixelRatio");
+       FSK.devicePixelRatio = pixelRatio;
+    }
     _isProcessingFrame = true;
     try {
       final int physicalWidth = (logicalSize.width * pixelRatio).round();
@@ -151,6 +155,41 @@ class _GPURenderWidgetState extends State<GPURenderWidget> with SingleTickerProv
               return Container(color: widget.scene.clearColor);
             }
 
+            final List<FskWidgetPortal> allPortals = [];
+            
+            void collectPortals(FskSceneBase scene) {
+              if (scene is FskScene) {
+                for (var portal in scene.widgetPortals) {
+                  if (!allPortals.contains(portal)) {
+                    allPortals.add(portal);
+                  }
+                }
+                for (var layer in scene.layers) {
+                  if (layer is FskSceneBase) {
+                    collectPortals(layer);
+                  }
+                }
+              }
+            }
+
+            collectPortals(widget.scene);
+
+            // Also collect from navigation delegate overlays if they exist
+            final nav = widget.scene.navigationDelegate;
+            if (nav != null) {
+              // Note: We check common overlay accessors. 
+              // If the delegate has specific overlay properties, they should be added here.
+              try {
+                final dynamic navDyn = nav;
+                if (navDyn.overlay is FskSceneBase) collectPortals(navDyn.overlay);
+                if (navDyn.underlay is FskSceneBase) collectPortals(navDyn.underlay);
+              } catch (_) {}
+            }
+
+            if (allPortals.isNotEmpty) {
+              // logTrace("GPURenderWidget: Rendering ${allPortals.length} widget portals.");
+            }
+
             return ValueListenableBuilder<MouseCursor>(
               valueListenable: widget.scene.cursorNotifier,
               builder: (context, cursor, _) {
@@ -170,24 +209,20 @@ class _GPURenderWidgetState extends State<GPURenderWidget> with SingleTickerProv
                         ),
                       ),
                       // Render Widget Portals 
-                      if (widget.scene is FskScene)
-                        ...((widget.scene as FskScene).widgetPortals.map((portal) {
-                          return Positioned(
-                            left: 0,
-                            top: 0,
-                            child: Opacity(
-                              opacity: 0.01, // Nearly invisible but still mounted and active
-                              child: SizedBox(
-                                width: portal.size.width,
-                                height: portal.size.height,
-                                child: RepaintBoundary(
-                                  key: portal.repaintKey,
-                                  child: portal.widget,
-                                ),
-                              ),
+                      ...allPortals.map((portal) {
+                        return Positioned(
+                          left: -20000, // Move off-screen
+                          top: -20000,
+                          child: SizedBox(
+                            width: portal.size.width,
+                            height: portal.size.height,
+                            child: RepaintBoundary(
+                              key: portal.repaintKey,
+                              child: portal.widget,
                             ),
-                          );
-                        })).toList(),
+                          ),
+                        );
+                      }).toList(),
                     ],
                   ),
                 );

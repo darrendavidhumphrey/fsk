@@ -246,13 +246,17 @@ class FskScene extends FskSceneBase with FskSceneLayerDispatcherMixin {
     }
   }
 
-  /// Draws all collected widget commands in a separate pass.
   @protected
   void renderWidgets(gpu.CommandBuffer commandBuffer,
       FskRenderTarget renderTarget, gpu.HostBuffer transients) {
     if (widgetDrawCommands.isNotEmpty) {
       final widgetPass = commandBuffer.createRenderPass(renderTarget.loadTarget);
       hardResetPipelineState(widgetPass);
+
+      // Disable depth testing for the widget pass to ensure text labels are always visible 
+      // on top of their 3D geometry parents (matching MTSDF behavior).
+      widgetPass.setDepthCompareOperation(gpu.CompareFunction.always);
+      widgetPass.setDepthWriteEnable(false);
 
       for (final cmd in widgetDrawCommands) {
         try {
@@ -341,6 +345,7 @@ class FskScene extends FskSceneBase with FskSceneLayerDispatcherMixin {
       mvMatrix: mvMatrix,
       viewportSize: viewportSize,
     ));
+    // logTrace("FskScene: Registered widget #${widgetDrawCommands.length}: ${object.id}");
   }
 }
 

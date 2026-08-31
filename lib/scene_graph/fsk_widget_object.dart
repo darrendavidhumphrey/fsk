@@ -28,6 +28,8 @@ class FskWidgetObject extends FskQuad {
   bool _isUpdating = false;
   final vm.Vector3 _lastLocalHitPoint = vm.Vector3.zero();
   ByteData? _pendingByteData;
+  int? _pendingWidth;
+  int? _pendingHeight;
 
   FskWidgetObject(
     String id,
@@ -59,8 +61,8 @@ class FskWidgetObject extends FskQuad {
 
   void _initTexture() {
     final double pixelRatio = ui.PlatformDispatcher.instance.views.first.devicePixelRatio;
-    final int width = (widgetSize.width * pixelRatio).toInt();
-    final int height = (widgetSize.height * pixelRatio).toInt();
+    final int width = (widgetSize.width * pixelRatio).round();
+    final int height = (widgetSize.height * pixelRatio).round();
 
     // Initial texture allocation
     final gpu.Texture texture = gpu.gpuContext.createTexture(
@@ -100,6 +102,8 @@ class FskWidgetObject extends FskQuad {
         size: widgetSize,
         onRepaint: _updateTexture,
       ));
+    } else {
+      logError("FskWidgetObject($id): parentScene is NOT an FskScene. Portal registration failed.");
     }
   }
 
@@ -117,7 +121,10 @@ class FskWidgetObject extends FskQuad {
     try {
       final boundary = _repaintKey.currentContext?.findRenderObject()
           as RenderRepaintBoundary?;
-      if (boundary == null) return;
+      if (boundary == null) {
+        logVerbose("FskWidgetObject($id): Repaint boundary context is null. Skipping update.");
+        return;
+      }
 
       final double pixelRatio = ui.PlatformDispatcher.instance.views.first.devicePixelRatio;
       final image = await boundary.toImage(pixelRatio: pixelRatio);
@@ -125,13 +132,16 @@ class FskWidgetObject extends FskQuad {
           await image.toByteData(format: ui.ImageByteFormat.rawRgba);
 
       if (byteData != null) {
+        logInfo("FskWidgetObject($id): Texture capture successful. Size: ${image.width}x${image.height}");
         _pendingByteData = byteData;
+        _pendingWidth = image.width;
+        _pendingHeight = image.height;
         setNeedsRebuild();
         parentScene.setNeedsUpdate();
       }
       image.dispose();
     } catch (e) {
-      logError("Error updating widget texture: $e");
+      logError("FskWidgetObject($id): Error updating widget texture: $e");
     } finally {
       _isUpdating = false;
     }
@@ -140,8 +150,37 @@ class FskWidgetObject extends FskQuad {
   @override
   void doRebuild() {
     super.doRebuild();
-    if (_pendingByteData != null && _widgetTexture?.texture != null) {
-      _widgetTexture!.texture!.overwrite(_pendingByteData!);
+    if (_pendingByteData != null && _widgetTexture != null) {
+      // 1. Synchronize physical GPU texture handle if dimensions changed during capture
+      if (_pendingWidth != null && _pendingHeight != null) {
+        final currentTexture = _widgetTexture!.texture;
+        if (currentTexture == null || 
+            currentTexture.width != _pendingWidth || 
+            currentTexture.height != _pendingHeight) {
+          
+          logVerbose("FskWidgetObject($id): Re-allocating texture to match captured image size: ${_pendingWidth}x${_pendingHeight}");
+          
+          final gpu.Texture newTexture = gpu.gpuContext.createTexture(
+            gpu.StorageMode.devicePrivate,
+            _pendingWidth!,
+            _pendingHeight!,
+            format: gpu.PixelFormat.r8g8b8a8UNormInt,
+          );
+          
+          _widgetTexture!.texture = newTexture;
+          renderer.setTexture(_widgetTexture);
+        }
+      }
+
+      final texture = _widgetTexture!.texture!;
+      final expectedBytes = texture.width * texture.height * 4;
+      if (_pendingByteData!.lengthInBytes != expectedBytes) {
+        logError("FskWidgetObject($id): Byte length mismatch even after reallocation! Expected $expectedBytes, got ${_pendingByteData!.lengthInBytes}. Skipping upload.");
+        _pendingByteData = null;
+        return;
+      }
+      
+      texture.overwrite(_pendingByteData!);
       _pendingByteData = null;
     }
   }

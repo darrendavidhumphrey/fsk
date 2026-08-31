@@ -136,10 +136,45 @@ abstract class ScreenSpaceOverlay extends FskScene {
     }
   }
 
+  @protected
   @override
-  void rebuildGeometry() {
-    super.rebuildGeometry();
-    _backgroundNode?.rebuildGeometry();
+  void renderWidgets(gpu.CommandBuffer commandBuffer,
+      FskRenderTarget renderTarget, gpu.HostBuffer transients) {
+    if (widgetDrawCommands.isNotEmpty) {
+      logTrace("ScreenSpaceOverlay($id): Rendering ${widgetDrawCommands.length} widgets at $viewportSize");
+      final physicalDpr = FSK.devicePixelRatio;
+      final origin = _calculateTopLeft(_lastParentSize);
+      final double physicalWidth = screenSpaceSize.width * physicalDpr;
+      final double physicalHeight = screenSpaceSize.height * physicalDpr;
+
+      final widgetPass = commandBuffer.createRenderPass(renderTarget.loadTarget);
+      hardResetPipelineState(widgetPass);
+
+      // Re-apply the overlay-specific viewport and scissor for the widget pass
+      widgetPass.setScissor(gpu.Scissor(
+        x: origin.dx.toInt(),
+        y: origin.dy.toInt(),
+        width: physicalWidth.toInt(),
+        height: physicalHeight.toInt(),
+      ));
+
+      widgetPass.setViewport(gpu.Viewport(
+        x: origin.dx.toInt(),
+        y: origin.dy.toInt(),
+        width: physicalWidth.toInt(),
+        height: physicalHeight.toInt(),
+      ));
+
+      for (final cmd in widgetDrawCommands) {
+        try {
+          cmd.object.updateUniforms(cmd.renderer.uniforms!);
+          cmd.renderer.draw(widgetPass, transients, cmd.pMatrix, cmd.mvMatrix,
+              cmd.viewportSize);
+        } catch (e, s) {
+          logError("Error drawing widget node in Overlay($id): $e\n$s");
+        }
+      }
+    }
   }
 
   Offset _calculateTopLeft(Size parentViewportSize) {
