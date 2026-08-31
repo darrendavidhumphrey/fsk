@@ -39,7 +39,7 @@ class OrbitOnHitRotationBehavior extends OrbitRotationBehavior {
 
 /// A behavior that provides interactive highlighting, clicking, and rotation tracking
 /// for a View Cube implementation.
-class ViewCubeHighlightBehavior extends SceneInteractionBehavior {
+class ViewCubeHighlightBehavior extends SceneInteractionBehavior with LoggableClass {
   final ViewCubeNavigationDelegate delegate;
 
   FskRenderableObject? _highlightedObject;

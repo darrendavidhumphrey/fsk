@@ -166,6 +166,7 @@ class ViewCubeOverlay extends ScreenSpaceOverlay {
     for (final label in labels) {
       label.horizontalJustification = TextHorizontalJustification.center;
       label.verticalJustification = TextVerticalJustification.center;
+      label.isPickable = false; // Allow hover highlights to "see through" labels to the cube faces
       label.setDepthState(
         depthTestEnabled: true,
         depthWriteEnabled: false,

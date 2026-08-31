@@ -72,7 +72,6 @@ class _GPURenderWidgetState extends State<GPURenderWidget> with SingleTickerProv
     if (_isProcessingFrame) return;
 
     if (FSK.devicePixelRatio != pixelRatio) {
-       logInfo("GPURenderWidget: Device Pixel Ratio updated to $pixelRatio");
        FSK.devicePixelRatio = pixelRatio;
     }
     _isProcessingFrame = true;

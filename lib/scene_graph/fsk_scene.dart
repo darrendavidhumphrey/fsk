@@ -581,7 +581,7 @@ mixin FskSceneLayerDispatcherMixin on FskSceneBase {
     }
 
     if (hitObj != null && hitDetails != null) {
-      return hitObj.onPointerHover(event, hitDetails);
+      if (hitObj.onPointerHover(event, hitDetails)) return true;
     }
 
     return super.onPointerHover(event);
